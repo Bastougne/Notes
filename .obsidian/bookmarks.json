@@ -1,0 +1,29 @@
+{
+  "items": [
+    {
+      "type": "file",
+      "ctime": 1699890910689,
+      "path": "PDF/Kernel Particle Filter for Visual Tracking.pdf"
+    },
+    {
+      "type": "file",
+      "ctime": 1700819317615,
+      "path": "PDF/Modeling Magnetic Fields using Gaussian Processes.pdf"
+    },
+    {
+      "type": "file",
+      "ctime": 1700828713326,
+      "path": "PDF/Reproducing Kernel Hilbert Spaces and Gaussian Process.pdf"
+    },
+    {
+      "type": "file",
+      "ctime": 1701186851446,
+      "path": "PDFs/Terrain-Aided SLAM with Limited-Size Reference Maps using Gaussian Processes.pdf"
+    },
+    {
+      "type": "file",
+      "ctime": 1703077447359,
+      "path": "PDF/Le Krigeage Revue de la Théorie et Application à l'Interpolation Spatiale de Données de Précipitations.pdf"
+    }
+  ]
+}

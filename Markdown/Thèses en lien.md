@@ -1,0 +1,13 @@
+- thèse de Karim :
+	- [[Nouvelles Méthodes en Filtrage Particulaire Application au Recalage de Navigation Inertielle par Mesures Altimétriques.pdf]]
+- thèse de Nicolas :
+	- [[State Estimation and Trajectory Planning using Box Particle Kernels.pdf]]
+- thèse d'Audrey :
+	- [[Apports des Techniques de Filtrage Non Linéaire pour la Navigation avec les Systèmes de Navigation Inertielle et le GPS.pdf]]
+
+- thèse de Nadia :
+	- [[Stabilité et Approximations Particulaires en Filtrage Non Linéaire Application au Pistage.pdf]]
+- thèse de Camille :
+	- [[New Particle Filters for Underwater Terrain-Aided Navigation using Multi-Sensor Fusion.pdf]]
+- thèse d'Achille :
+	- [[Nouvelles Approches en Filtrage Particulaire Application au Recalage de la Navigation Inertielle.pdf]]
