@@ -1,0 +1,14 @@
+# Obsidian - fichiers volatiles (état de session, UI)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/graph.json
+.obsidian/app.json
+.obsidian/appearance.json
+.obsidian/core-plugins.json
+
+# Cache et données temporaires
+.obsidian/cache
+.obsidian/.trash/
+
+# Plugins (installés localement, pas à versionner)
+.obsidian/plugins/

@@ -44,7 +44,7 @@
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -203,10 +203,10 @@
       "publish:Publier les modifications": false
     }
   },
-  "active": "b59eecf84c9b3744",
+  "active": "c9fb1a56efbbcec1",
   "lastOpenFiles": [
-    "FUSION 2026 script.md",
     "Markdown/Processus Gaussiens.md",
+    "FUSION 2026 script.md",
     "PDF/Apports des Techniques de Filtrage Non Linéaire pour la Navigation avec les Systèmes de Navigation Inertielle et le GPS.pdf",
     "PDF/Nouvelles Méthodes en Filtrage Particulaire Application au Recalage de Navigation Inertielle par Mesures Altimétriques.pdf",
     "Markdown/Thèses en lien.md",
