@@ -2,6 +2,7 @@
 
 - méthode de régression par [[Processus Gaussiens]] (_Gaussian process regression_ ou GPR en anglais)
 - c'est une méthode qui garantit de trouver un estimateur linéaire non-biaisé à minimum de variance pour l'image d'une fonction bruitée et partiellement connue sous réserve qu'elle suive un processus gaussien
+![[Étapes du krigeage.pdf]]
 
 ## Références :
 

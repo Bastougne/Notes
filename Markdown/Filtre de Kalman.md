@@ -3,6 +3,7 @@
 - on souhaite estimer la densité _a posteriori_ $p(x_k|\textbf{z}_{1:k})$ à chaque pas de temps discret $k$
 - on se place dans une approche paramétrique en supposant que la densité _a posteriori_ est gaussienne à chaque pas de temps
 - on peut trouver une solution analytique récursive
+- [[Étapes du filtre de Kalman avec images.png]]
 
 ## Hypothèses :
 
@@ -21,7 +22,7 @@
 ## Algorithme :
 
 - notation : $m|n$ signifie "l'état à l'instant $m$ sachant les observations aux instants $1$ à $n$"
-![[Étapes du filtre de Kalman.png]]
+![[Étapes du filtre de Kalman avec équations.png]]
 
 **TODO : à démontrer**
 - prédiction de l'état après déplacement par odométrie :

@@ -7,6 +7,7 @@
 - [[Algorithmes de Navigation par Champ Magnétique Terrestre pour des Véhicules Aérospatiaux.pdf]]
 - documents [[à lire]]
 - [[Thèses en lien]] avec mon sujet
+- [[Articles et présentations]]
 
 ## Estimation bayésienne :
 

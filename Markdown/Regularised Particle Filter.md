@@ -17,6 +17,7 @@ S^N_{K_h}(\mu_{\textbf{z}_{1:k}},\nu_{\textbf{z}_{1:k}})=K_h\ast S^N_\delta(\mu_
 $$
 - l'approximation aura un support de mesure non-nulle et sera donc plus fidèle à la vraie densité
 
+![[Étapes du RPF.png]]
 ![[Régularisation par noyau.png]]
 
 ## Noyau de régularisation :

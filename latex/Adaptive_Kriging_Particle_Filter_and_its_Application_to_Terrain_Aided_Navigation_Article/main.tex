@@ -391,7 +391,7 @@ where $\Delta_t$ is the sampling period of the filter and $I_3$ is the identity 
 Figure \ref{fig:terrain} shows the elevation of the overflown terrain as a function of time.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=6cm]{../../Images/Élevation de terrain FUSION 2024.pdf}}
+\centerline{\includegraphics[width=6cm]{../../Images/Élévation de terrain FUSION 2024.pdf}}
 \caption{True terrain elevation under the UAV trajectory for each iteration of the navigation algorithm} \label{fig:terrain}
 \end{figure}
 
@@ -547,6 +547,8 @@ On the other hand, the highly noise-sensitive and extremely local interpolation 
 This paper focuses on solving the navigation problem in a poorly-known environment by reconstructing the measurement function solely based on scarce prior samples of the terrain. The innovation lies in the use of an adaptive-windowed Gaussian process combined with a regularised particle filter. This technique selects the most relevant prior data for regression at each iteration of the algorithm and dynamically estimates the hyperparameters of the Gaussian process by MLE. This new particle filter, called Adaptive Kriging Regularised Particle Filter (AK-RPF), has been applied to a TAN of UAV equipped with a radar altimeter. It outperforms the RPF based on classical bilinear interpolation methods by providing a more accurate and robust state estimation.
 
 The main perspective to improving the AK-RPF is to use a Simultaneous Localisation And Mapping (SLAM) formalism by adding new data to the GPR during the mission. The Adaptive Kriging framework could also be extended to other types of Particle Filters.
+
+\vspace*{-1mm}
 
 \begin{thebibliography}{00}
 \bibitem{bib:TAN1} C. Palmier, K. Dahia, N. Merlinge, P. Del Moral, D. Laneuville and C. Musso, "Adaptive Approximate Bayesian Computational Particle Filters for Underwater Terrain Aided Navigation". In: 2019 22th International Conference on Information Fusion (FUSION), pp. 1-8, 2019.
