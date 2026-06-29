@@ -361,7 +361,7 @@ The process and measurement noises $\nu_k$ and $\eta_k$ are modelled by Gaussian
 0.01^2\:I_2$ and $R=0.01^2$ respectively. The initial state of the system is assumed to be shifted by a white Gaussian noise with covariance matrix $P_{init}=0.1^2\:I_2$. Figure \ref{fig:trajectoire} shows the ground-truth trajectory of the system over the observation field.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=0.5\textwidth]{trajectoire.png}}
+\centerline{\includegraphics[width=0.5\textwidth]{../../Images/trajectoire.png}}
 \caption{Trajectory of the system over the observation field}\label{fig:trajectoire}
 \end{figure}
 
@@ -390,7 +390,7 @@ The root mean squared error (RMSE) of each filter at time step $k\in[\![1,N_{ite
 where $\hat{x}_{k,m}$ denotes the estimated state computed by the $m$-th Monte-Carlo run at time $k$. Figure \ref{fig:RMSE_x} gives the $\text{RMSE}_x$ curves of all four tested filters.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=0.5\textwidth]{RMSE_x.png}}
+\centerline{\includegraphics[width=0.5\textwidth]{../../Images/RMSE_x.png}}
 \caption{$\text{RMSE}_x$ as a function of time for the studied filters}\label{fig:RMSE_x}
 \end{figure}
 
@@ -418,12 +418,12 @@ Similarly to \eqref{eq:RMSE_x}, the reconstruction error of the observation func
 where $\hat{H}_m$ denotes to the final estimation of the map by the $m$-th run of algorithm \ref{alg:RFF/RLS AKKF SLAM} as described by \eqref{eq:observation RFF}. Figure \ref{fig:carte_reconstruite} presents representative reconstruction of the observation function, while \ref{fig:RMSE_z} shows the spatial distribution of $\text{RMSE}_z$. Its average is $0.21$ over the $[-5,5]\times[-5,5]$ domain, reduced to $0.07$ along the true trajectory.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=0.5\textwidth]{carte_reconstruite.png}}
+\centerline{\includegraphics[width=0.5\textwidth]{../../Images/carte_reconstruite.png}}
 \caption{An example of reconstructed observation function by algorithm \ref{alg:RFF/RLS AKKF SLAM} and its corresponding estimated trajectory in dotted blue}\label{fig:carte_reconstruite}
 \end{figure}
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=0.5\textwidth]{RMSE_z.png}}
+\centerline{\includegraphics[width=0.5\textwidth]{../../Images/RMSE_z.png}}
 \caption{Spatial distribution of the reconstruction error}\label{fig:RMSE_z}
 \end{figure}
 

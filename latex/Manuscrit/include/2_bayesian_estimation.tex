@@ -400,7 +400,7 @@ Finally, $x_0$, $(w_k)_{k\geq0}$ and $(n_k)_{k\geq0}$ are assumed to be mutually
 The resulting algorithm, known as the Kalman filter, is depicted by \Cref{fig:Kalman_filter} and presented in \Cref{alg:Kalman_filter}.
 
 \begin{figure}[ht]
-	\centering\includegraphics[width=\textwidth]{figures/Kalman_filter.png}
+	\centering\includegraphics[width=\textwidth]{../../Images/Kalman_filter.png}
 	\caption{Schematic representation of the Kalman filter prediction/correction cycle. At each time step, the previous PDF $\mathcal{N}\left(\hat{x}_{k-1|k-1}, P_{k-1|k-1}\right)$ is propagated through the state transition model (prediction), then updated using the new observation $z_k$ (correction). Each ellipsoid represents a confidence region associated with its corresponding Gaussian density.}\label{fig:Kalman_filter}
 \end{figure}
 
