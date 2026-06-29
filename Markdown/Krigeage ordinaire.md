@@ -111,10 +111,10 @@ $$
 
 ## Résultats :
 
-- Krigeage 2D : ![[GPR 2d MATLAB.png]]
-- Krigeage 3D : ![[GPR 3d MATLAB.png]]
-- Krigeage sur carte : ![[GPR carte MATLAB.png]]
-- RPF avec krigeage (construction de carte par données bruitées sans correction en cours de mission) : ![[RPF avec krigeage.png]]
+- Krigeage 2D : ![[Exemple de krigeage 2D.png]]
+- Krigeage 3D : ![[Exemple de krigeage 3D.png]]
+- Krigeage sur carte : ![[Exemple de carte krigée.png]]
+- RPF avec krigeage (construction de carte par données bruitées sans correction en cours de mission) : ![[Exemple RPF avec krigeage.png]]
 
 ## Remarques :
 

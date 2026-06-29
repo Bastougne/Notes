@@ -24,16 +24,16 @@
 
 - pour T = 600, N_s = 500, N_e = 1000, N_seuil = 0.5 * N_s :
 	- taux de succès = 26.90%, RMSE = 0.34 km
-	- convergence : ![[PF MATLAB 1.png]]
-	- appauvrissement des particules + divergence : ![[PF MATLAB 2.png]]
-	- appauvrissement + divergence : ![[PF MATLAB 3.png]]
+	- convergence : ![[exemple PF 1.png]]
+	- appauvrissement des particules + divergence : ![[exemple PF 2.png]]
+	- appauvrissement + divergence : ![[exemple PF 3.png]]
 
 ## Remarques :
 
 - [[Choix de la fonction d'importance du SIS]]
 - on a résolu le problème de dégénérescence particulaires
 - mais les nouvelles particules sont crées à l'endroit des anciennes particules de poids fort
-- donc perte de diversité particulaires (appauvrissement) : ![[Particle impoverishment.png]]
+- donc perte de diversité particulaires (appauvrissement) : ![[Appauvrissement particulaire.png]]
 - pistes d'améliorations :
 	- [[Regularised Particle Filter]]
 	- [[Auxiliary Particle Filter]]

@@ -35,7 +35,7 @@ where $N_{th}$ is a predetermined threshold value, typically chosen proportional
 Though resampling resolves weight degeneracy, it introduces a new issue, called particle impoverishment. Indeed, after resampling, particles with high weights are replicated multiple times, while those with low weight are discarded. As a result, multiple particles collapse to a single point in the state-space. This loss of particle diversity is particularly severe in low evolution noise or high-dimensional settings, as little diversity is re-introduced at the propagation step. This phenomenon is illustrated by \Cref{fig:impoverishment}.
 
 \begin{figure}[ht]
-	\centering\includegraphics[width=0.6\textwidth]{../../Images/particle_impoverishment.png}
+	\centering\includegraphics[width=0.6\textwidth]{../../Images/Appauvrissement particulaire.png}
 	\caption{The resampling step is triggered when a small subset of particles hold most of the total mass. After resampling, most of the negligible particles are discarded, while the heavier particles are duplicated into many new ones. By eliminating lighter particles, the effective support of the empirical approximation shrinks, reducing the ability of the PF to represent diffuse or multimodal regions of the PDF, and ultimately degrading long-term exploration of the state space.}\label{fig:impoverishment}
 \end{figure}
 
@@ -44,7 +44,7 @@ Though resampling resolves weight degeneracy, it introduces a new issue, called 
 The regularised particle filter (RPF) addresses particle impoverishment by replacing the discrete empirical measure $S^N$ of \Cref{th:empirical_measure} with a continuous kernel mixture after resampling. The idea behind this is to use kernel density estimation to expand the support of the approximated density and restore particle diversity, as shown in \Cref{fig:regularisation}. This is formally introduced by \Cref{th:regularisation_kernel,th:KDE}.
 
 \begin{figure}[ht]
-	\centering\includegraphics[width=0.8\textwidth]{../../Images/regularisation.png}
+	\centering\includegraphics[width=0.8\textwidth]{../../Images/Régularisation par noyau.png}
 	\caption{Instead of approximating the PDF by a mixture of Dirac distributions $\displaystyle p(x_k|\mathbf{z}_{1:k})\:dx\approx\sum_{i=1}^Nw_k^{(i)}\:\delta\left(x_k-X_k^{(i)}\right)$, the RPF approximates it by a mixture of smooth kernels $\displaystyle p(x_k|\mathbf{z}_{1:k})\approx\sum_{i=1}^Nw_k^{(i)}\:\mathcal{K}_h\left(x_k-X_k^{(i)}\right)$. New particles are drawn from this continuous approximation rather than from the discrete set, which restores diversity.}\label{fig:regularisation}
 \end{figure}
 

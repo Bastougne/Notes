@@ -16,7 +16,7 @@ $$ avec $f$ décroissante
 
 ## Fenêtrage autour de l'état prédit :
 
-- présenté dans [[Adaptive Kriging Particle Filter and its Application to Terrain Aided Navigation.pdf]] et [[Présentation Fusion 2024.pdf]]
+- présenté dans [[Adaptive Kriging Particle Filter and its Application to Terrain Aided Navigation.pdf]]
 - une heuristique simple consiste à sélectionner uniquement les échantillons à l'intérieur d'une hypersphère
 - puisque l'étape de krigeage intervient entre la prédiction et la correction, le centre de cette hypersphère est l'état prédit du filtre $\hat{x}_{k|k-1}$, _i.e._ le barycentre des particules à kriger
 - le rayon de l'hypersphère va dépendre de l'ellipsoïde de confiance à $3\sigma$ car, pour une variable aléatoire $X\sim\mathcal{N}(\mu,\sigma)$, $$
@@ -26,7 +26,7 @@ $$ et donc la plupart des particules se trouvent en général dans cet ensemble
 \max_{\lambda\in\text{sp}(\hat{P}_{k|k-1})}\left(3\sqrt{\lambda}\right)
 $$ permet de sélectionner des échantillons uniformément dans l'espace, ce qui ne serait pas le cas si on sélectionnait selon la matrice de covariance d'une distribution très resserrée suivant certaines dimensions par rapport à d'autres
 - on dilate ce rayon d'un facteur $\alpha$ afin de s'assurer que les particules les plus proches de l'extérieur soient interpolées et non extrapolées
-- la sélection se fait donc comme illustré ci-dessous ![[Fenêtre de krigeage.png]]
+- la sélection se fait donc comme illustré ci-dessous ![[Fenêtrage du krigeage adaptatif.pdf]]
 - finalement, l'ensemble de sélection associé à cette méthode est $$
 S_\text{fenêtrage}:=\mathcal{B}\left(\hat{x}_{k|k-1},\alpha\times\max_{\lambda\in\text{sp}(\hat{P}_{k|k-1})}\left(3\sqrt{\lambda}\right)\right),\quad\quad\alpha\geq1
 $$

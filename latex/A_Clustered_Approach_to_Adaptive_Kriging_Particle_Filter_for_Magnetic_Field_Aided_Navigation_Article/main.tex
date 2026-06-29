@@ -297,7 +297,7 @@ Algorithm \ref{alg:CAK-APF} presents the pseudo-code of CAK-APF using the same c
 The use case chosen in this paper to illustrate CAK-APF is an unmanned aerial vehicle (UAV) flying in a rectilinear uniform motion over Mexico, as shown by figure \ref{fig:trajectory}.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=0.4\textwidth]{../../Images/MAG_trajectoire.png}}
+\centerline{\includegraphics[width=0.4\textwidth]{../../Images/Trajectoire EUSIPCO 2025 large.png}}
 \caption{Trajectory of the UAV over Mexico's magnetic anomaly field} \label{fig:trajectory}
 \vspace{-\baselineskip}
 \end{figure}
@@ -350,12 +350,12 @@ For each filter, their root mean square error (RMSE) has been calculated accordi
 where $\varphi:\begin{bmatrix}p_x&p_y&v_x&v_y\end{bmatrix}^T\mapsto\begin{bmatrix}p_x&p_y\end{bmatrix}^T$ is the projector on the positions, $x_k$ is the true state at time $k$, and $\hat{x}_{k,m}$ is the corresponding estimation by the $m$-th Monte-Carlo run. A histogram of the number of the samples used to perform the kriging step for each filter has also been computed. Figure \ref{fig:RMSE} gives the RMSEs over time of the four filters, and figure \ref{fig:histogram} presents their corresponding histogram.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=0.4\textwidth]{../../Images/RMSE.png}}
+\centerline{\includegraphics[width=0.4\textwidth]{../../Images/RMSE EUSIPCO 2025.png}}
 \caption{RMSE over time of the tested filters} \label{fig:RMSE}
 \end{figure}
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=0.4\textwidth]{../../Images/histogrammes.png}}
+\centerline{\includegraphics[width=0.4\textwidth]{../../Images/Histogramme du nombre de données krigées EUSIPCO 2025.png}}
 \caption{Histogram of the number of selected sampled used in the tested filters} \label{fig:histogram}
 \vspace{-\baselineskip}
 \end{figure}

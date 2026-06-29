@@ -3,7 +3,7 @@
 - [[Resampling in Particle Filtering Comparison.pdf]]
 - [[Resampling Methods for Particle Filtering Classification Implementation and Strategies.pdf]]
 - basé sur la fonction de répartition des poids (_cumulative distribution function_ ou CDF en anglais) :
-![[CDF resampling.png]]
+![[Rééchantillonnage CDF.png]]
 - certains algorithmes de filtrage particulaire se servent de l'indice de la particule parent de la nouvelle particule $i^{(j)}$, on la calcule donc ici directement
 
 ## Rééchantillonnage multinomial

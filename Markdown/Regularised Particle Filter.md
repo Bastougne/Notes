@@ -88,5 +88,5 @@ $$ avec $h$ le facteur de dilatation (_bandwidth_ en anglais)
 
 - pour T = 600, N_s = 500, N_e = 1000, N_seuil = 0.5 * N_s, mu = 0.3 :
 	- taux de succès = 84.00%, RMSE = 4.63km
-	- convergence : ![[PostRPF MATLAB 1.png]]
-	- convergence : ![[PostRPF MATLAB 2.png]]
+	- convergence : ![[exemple RPF 1.png]]
+	- convergence : ![[Exemple RPF 2.png]]

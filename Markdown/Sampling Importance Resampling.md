@@ -34,9 +34,9 @@ $$
 
 - pour T = 600, N_s = 500 et N_e = 1000 :
 	- taux de succès = 16.60 %, RMSE = 0.38 km
-	- appauvrissement des particules : ![[SIR MATLAB 1.png]]
-	- appauvrissement + divergence : ![[SIR MATLAB 2.png]]
-	- appauvrissement + divergence : ![[SIR MATLAB 3.png]]
+	- appauvrissement des particules : ![[exemple SIR 1.png]]
+	- appauvrissement + divergence : ![[exemple SIR 2.png]]
+	- appauvrissement + divergence : ![[exemple SIR 3.png]]
 
 ## Remarques :
 

@@ -84,8 +84,8 @@ $$
 
 - pour T=600 itérations du système, N_s=500 particules et N_e=1000 itérations de Monte-Carlo :
 	- taux de succès=13.80 %, RMSE=0.67 km
-	- dégénérescence des poids : ![[SIS MATLAB 1.png]]
-	- dégénérescence + divergence : ![[SIS MATLAB 2.png]]
+	- dégénérescence des poids : ![[exemple SIS 1.png]]
+	- dégénérescence + divergence : ![[exemple SIS 2.png]]
 
 ## Remarques :
 

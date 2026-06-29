@@ -5,10 +5,8 @@
 ## Liens utiles :
 
 - [[Algorithmes de Navigation par Champ Magnétique Terrestre pour des Véhicules Aérospatiaux.pdf]]
-- [[Présentations]]
 - documents [[à lire]]
 - [[Thèses en lien]] avec mon sujet
-- [[Scripts MATLAB]]
 
 ## Estimation bayésienne :
 

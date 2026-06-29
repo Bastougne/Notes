@@ -192,7 +192,7 @@ is the innovation term associated with particle $x_k^i$, and follows the law of 
 However, if the system only has access to sparse data (\textit{e.g.} from a previous reconnaissance mission), a simple bilinear interpolation of the map is likely to yield poor results. What is more, the uncertainty of the interpolation will be unknown, so the filter might be overconfident in the reconstructed map, and fail to converge. Figure \ref{fig:interpolation} illustrates the situation.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=7cm]{../../Images/interpolation.pdf}}
+\centerline{\includegraphics[width=7cm]{../../Images/Étapes du krigeage.pdf}}
 \caption{Steps to reconstructing the unknown map by interpolating scarce data sampled during a reconnaissance mission prior to the current mission} \label{fig:interpolation}
 \end{figure}
 
@@ -296,7 +296,7 @@ where $P_{k|k-1} \triangleq \mathbb{V}(\hat{x}_{k|k-1}) = \sum_{i=1}^{N_p} w_{k-
 Figure \ref{fig:fenêtre} shows a diagram representing the kriging window and the computation of its radius.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=7cm]{../../Images/fenêtre.pdf}}
+\centerline{\includegraphics[width=7cm]{../../Images/Fenêtrage du krigeage adaptatif.pdf}}
 \caption{The adaptive kriging window corresponds to the circumcircle of $3\sigma$-ellipsoid of the predicted state enlarged by a factor $\alpha_W$} \label{fig:fenêtre}
 \end{figure}
 
@@ -366,7 +366,7 @@ x = [p_x, \: p_y, \: p_z, \: v_x, \: v_y, \: v_z]^T \label{eq:x}
 with $p_i$ being the $i^{th}$ position coordinate, and $v_i$ being its associated velocity. The precise location at any given time of the UAV is unknown, but a radar altimeter gives access to a noisy estimation of the altitude above the ground, as depicted in Figure \ref{fig:TAN}.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=7cm]{../../Images/TAN.pdf}}
+\centerline{\includegraphics[width=7cm]{../../Images/Schéma de la corrélation de terrain.pdf}}
 \caption{The TAN measurement model uses a radar altimeter to estimate the distance between the UAV and the ground as the difference between the UAV's vertical position and the elevation of the terrain below} \label{fig:TAN}
 \end{figure}
 
@@ -391,7 +391,7 @@ where $\Delta_t$ is the sampling period of the filter and $I_3$ is the identity 
 Figure \ref{fig:terrain} shows the elevation of the overflown terrain as a function of time.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=6cm]{../../Images/terrain.pdf}}
+\centerline{\includegraphics[width=6cm]{../../Images/Élevation de terrain FUSION 2024.pdf}}
 \caption{True terrain elevation under the UAV trajectory for each iteration of the navigation algorithm} \label{fig:terrain}
 \end{figure}
 
@@ -456,7 +456,7 @@ $\alpha_W$ & $2$ \\
 Figure \ref{fig:navigation} shows a top view of a successful AK-RPF simulation for $N_{GP} = 80^2$. The true trajectory is in black, while the estimated trajectory is in red. The elevation map is given in the background according to the colormap on the right of the figure as an indication, and the kriging points are represented by black crosses. The position of each particle at the end of the simulation is shown in yellow, and the kriging window as well as the selected kriging data at the same time are respectively represented by red and black circles.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=6cm]{../../Images/navigation.png}}
+\centerline{\includegraphics[width=6cm]{../../Images/Trajectoire FUSION 2024.png}}
 \caption{Visual output of the AK-RPF for a UAV TAN simulation using $N_{GP} = 80^2$ kriging points} \label{fig:navigation}
 \end{figure}
 
@@ -535,7 +535,7 @@ However, the amount of information required for both filter is far from being si
 Figure \ref{fig:detail} shows in detail the evolution of the RMSE of 4 filters over the duration of the simulation: the fully-known map RPF, the $100^2$ points bilinear RPF, and the $N_{GP}=50^2$ and $N_{GP}=80^2$ AK-RPF.
 
 \begin{figure}[ht]
-\centerline{\includegraphics[width=8cm]{../../Images/detail.png}}
+\centerline{\includegraphics[width=8cm]{../../Images/RMSEs FUSION 2024.png}}
 \caption{Evolution of the RMSE over time for \mbox{RPF (known map)}, \mbox{RPF ($100^2$ points)}, AK-RPF ($N_{GP}=50^2$) and AK-RPF ($N_{GP}=80^2$)} \label{fig:detail}
 \end{figure}
 
