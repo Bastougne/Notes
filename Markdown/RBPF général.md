@@ -41,11 +41,11 @@ Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-T} \: {Q_k^{ln}}^T -
 Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: {Q_k^{ln}}^T +
 Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: Q_k^n \: {Q_k^{n\phantom{l\!}}}^{-T} \: {Q_k^{ln}}^T \\
 & = Q_k^l -
-Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: Q_k^{ln} -
-Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: Q_k^{ln} +
-Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: Q_k^{ln} \\
+Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: {Q_k^{ln}}^T -
+Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: {Q_k^{ln}}^T +
+Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: {Q_k^{ln}}^T \\
 & = Q_k^l -
-Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: Q_k^{ln}
+Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: {Q_k^{ln}}^T
 \end{align}$$
 - on a alors : $$
 \begin{align}
@@ -123,7 +123,7 @@ $$
 		- $\hat{z}_k^{(2)} = \hat{x}_{k+1|k}^n - \left(f_k^n(\hat{x}_{k|k}^n) + B_k^n \: u_k\right) = \tilde{y}_k^{(2)} + \tilde F_k^n \: {\hat{x}_{k|k}^l}^*$
 		- $\tilde{\overline{F_k^l}} = \tilde F_k^l - Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: \tilde F_k^n$
 		- $\hat{x}_{k+1|k}^l = \tilde{\overline{F_k^l}} \: \hat{x}_{k|k}^l + f_k^l(\hat{x}_{k|k}^n) + B_k^l \: u_k + Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: z_k^{(2)}$
-		- $P_{k+1|k} = \tilde{\overline{F_k^l}} \: P_{k|k} \: {\tilde{\overline{F_k^l}}}^T + \left(Q_k^l - Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: Q_k^{ln}\right)$
+		- $P_{k+1|k} = \tilde{\overline{F_k^l}} \: P_{k|k} \: {\tilde{\overline{F_k^l}}}^T + \left(Q_k^l - Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: {Q_k^{ln}}^T\right)$
 - en remplaçant $\overline{F_k^l}$ par son expression dans le calcul de $\hat{x}_{k+1|k}^l$, on obtient $$
 \begin{align}
 \hat{x}_{k+1|k}^l & = \tilde{\overline{F_k^l}} \: \hat{x}_{k|k}^l + f_k^l(\hat{x}_{k|k}^n) + B_k^l \: u_k + Q_k^{ln} \: {Q_k^{n\phantom{l\!}}}^{-1} \: z_k^{(2)} \\

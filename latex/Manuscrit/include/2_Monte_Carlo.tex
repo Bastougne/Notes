@@ -69,8 +69,6 @@ Since $\mu$ is a continuous measure, computing \eqref{eq:varphi_expectation_mu} 
 	\end{align}
 \end{proposition}
 
-In particular, the MC estimator converges a.s. at a rate of $1/\sqrt{N}$ independently of the dimension $d_x$ of the state-space.
-
 Informally, this means that:
 \begin{equation}
 	S^N(\mu)=\frac{1}{N}\sum_{i=1}^N\delta_{X^{(i)}}\approx\mu
@@ -271,7 +269,7 @@ A fundamental limitation of SIS is that the variance of the importance weights i
 	\begin{equation}
 		\mathbb{V}_{q\left(\cdot|x_{k-1}^{(i)},z_k\right)}\left[\tilde{w}_k^{(i)}\right]
 	\end{equation}
-	is non-decreasing in $k$, and equals zero if and only if $q=p$ almost surely.
+	is non-decreasing in $k$, and equals zero if and only if the proposal is the optimal density $q(x_k|x_{k-1},z_k)=p(x_k|x_{k-1},z_k)$.
 \end{proposition}
 
 \begin{proof}

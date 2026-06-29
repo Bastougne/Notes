@@ -12,21 +12,21 @@ The goal of this chapter is to formally introduce the tools necessary to solve t
 Formally, for $d_x,d_z,d_{\varphi}\in\mathbb{N}^*$, we consider a hidden Markov chain $(x_k)_{k\geq0}$ taking values in $\mathbb{R}^{d_x}$ and a series of observations $(z_k)_{k\geq1}$ taking values in $\mathbb{R}^{d_z}$, each associated with the unknown state $x_k$. The quantity of interest is a mapping of the state under a known function $\varphi:\mathbb{R}^{d_x}\to\mathbb{R}^{d_{\varphi}}$, which allows us to target any derived quantity of the state (\textit{e.g.} position, velocity, or a subset of coordinates). When solving a navigation problem, the state and observation processes are linked by the state-space model:
 \begin{equation}
 	\left\{\begin{aligned}
-	x_k&=f_k(x_{k-1})+w_k\\
-	z_k&=h_k(x_k)+n_k
+	x_k&=f_k(x_{k-1},w_k)\\
+	z_k&=h_k(x_k,n_k)
 	\end{aligned}\right.\label{eq:navigation_problem}
 \end{equation}
-where the processes $w_k\in\mathbb{R}^{d_w}$ and $n_k\in\mathbb{R}^{d_n}$ denote the evolution and observation noises respectively, and are assumed Gaussian white noises mutually independent and independent of $x_0$.
+where the processes $w_k\in\mathbb{R}^{d_w}$ and $n_k\in\mathbb{R}^{d_n}$ denote the evolution and observation noises respectively, and are assumed to be white noises (\textit{i.e.} temporally independent, centered noises of finite variance), mutually independent and independent of $x_0$.
 
 The known data of this problem are:
 \begin{equation}
 	\left\{\begin{array}{ll}
 	p_0&\text{the probability density of the initial state }x_0\\
 	f_k&\text{the evolution function}\\
-	Q_k&\text{the covariance of the evolution noise }w_k\\
+	p_k^{(e)}&\text{the probability density of the evolution noise }w_k\\
 	z_k&\text{the current noisy observation}\\
 	h_k&\text{the observation function}\\
-	R_k&\text{the covariance of the observation noise }n_k
+	p_k^{(o)}&\text{the probability density of the observation noise }n_k
 	\end{array}\right.
 \end{equation}
 
@@ -53,10 +53,10 @@ This thesis focuses on the filtering problem. The rest of this chapter is organi
 
 The first issue to tackle is to define precisely the meaning of "best estimator" of $\varphi(x_k)$ given $\mathbf{z}_{1:k}$. Formally, given a functional metric space $(\mathcal{F},\rho)$, it amounts to finding a measurable function $\psi\in\mathcal{F}$ that minimises the expected loss:
 \begin{equation}
-	\underset{\psi\in\mathcal{F}}{\textup{argmin}}(\rho(\psi(\mathbf{z}_{1:k}),\varphi(x_k)))
+	\underset{\psi\in\mathcal{F}}{\textup{argmin}}(\rho(\psi(\mathbf{z}_{1:k}),\varphi(x_k)))\label{eq:loss_function_with_k}
 \end{equation}
 
-Depending on the considered space and distance, different optimal estimators arise. We present three classical ones below. For the sake of simplicity, we write $Z$ for a generic observation vector and $X$ for the underlying state. At a fixed time step $k$, \eqref{eq:loss_function} thus becomes:
+Depending on the considered space and distance, different optimal estimators arise. We present three classical ones below. For the sake of simplicity, we write $Z$ for a generic observation vector and $X$ for the underlying state. At a fixed time step $k$, \eqref{eq:loss_function_with_k} thus becomes:
 \begin{equation}
 	\underset{\psi\in\mathcal{F}}{\textup{argmin}}(\rho(\psi(Z),\varphi(X)))\label{eq:loss_function}
 \end{equation}
@@ -252,7 +252,7 @@ In the Bayesian filtering framework, the PDF can be propagated recursively throu
 	\end{equation}
 \end{assumption}
 
-Both assumptions are natural consequences of the state-space model \eqref{eq:navigation_problem}. Building on them, the optimal estimation algorithm computes the PDF in two steps: prediction and correction.
+Both assumptions follow from the state-space model \eqref{eq:navigation_problem} and, in particular, from the whiteness of $w_k$ and $n_k$ and their independence from $x_0$. Building on them, the optimal estimation algorithm computes the PDF in two steps: prediction and correction.
 
 \textbf{Prediction.} The prior density at time $k$ can be obtained by marginalising the previous PDF:
 \begin{equation}

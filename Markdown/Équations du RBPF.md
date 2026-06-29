@@ -9,7 +9,7 @@ x_k^l&=&F_k^l(x_{k-1}^n)\:x_{k-1}^l&+&f_k^l(x_{k-1}^n)&+&b_k^{le}&+&w_k^l\\
 z_k&=&H_k(x_k^n)\:x_k^l&+&h_k(x_k^n)&+&b_k^o&+&n_k
 \end{matrix}\right.
 $$ avec $$
-w_k=\begin{bmatrix}w_k^n\\w_k^l\end{bmatrix}\sim\mathcal{N}\left(0,\begin{bmatrix}Q_k^n&Q_k^{nl}\\(Q_k^{nl})^T&Q_k^l\end{bmatrix}\right),\quad n_k\sim\mathcal{N}(0,R_k)
+w_k=\begin{bmatrix}w_k^n\\w_k^l\end{bmatrix}\sim\mathcal{N}\left(0,\begin{bmatrix}Q_k^n&(Q_k^{nl})^T\\Q_k^{nl}&Q_k^l\end{bmatrix}\right),\quad n_k\sim\mathcal{N}(0,R_k)
 $$
 - on suppose aussi que $x_0^l$ est gaussien, et que la loi de $x_0^n$ est connue
 - on souhaite utiliser un filtre de Kalman pour obtenir une estimation de $x_k^l$ connaissant $x_k^n$ et $z_k$
@@ -32,8 +32,8 @@ $$
 &\phantom{\mathbb{E}((}Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left(w_k^n\:(w_k^l)^T\right)+Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left(w_k^n\:(w_k^n)^T\right)\:(Q_k^n)^{-T}\:(Q_k^{nl})^T\\
 \\
 =&Q_k^l-Q_k^{nl}\:(Q_k^n)^{-T}\:(Q_k^{nl})^T-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^T+Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\:(Q_k^n)^{-T}\:(Q_k^{nl})^T\\
-=&Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^{nl}-Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^{nl}+Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^{nl}\\
-=&Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^{nl}
+=&Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^T-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^T+Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^T\\
+=&Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^T
 \end{align}
 $$
 - on a alors $$

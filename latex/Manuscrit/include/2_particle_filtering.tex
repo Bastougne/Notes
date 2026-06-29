@@ -62,7 +62,7 @@ The regularised particle filter (RPF) addresses particle impoverishment by repla
 	Furthermore, for $K$ a regularisation kernel and $h>0$, we define the rescaled kernel $K_h$ of bandwidth $h$ as:
 	\begin{equation}
 		K_h:\left\{\begin{aligned}
-		\mathbb{R}^{d_x}&\to\mathbb{R}^{d_x}\\
+		\mathbb{R}^{d_x}&\to\mathbb{R}\\
 		x&\mapsto\frac{1}{h^{d_x}}K\left(\frac{x}{h}\right)
 		\end{aligned}\right.
 	\end{equation}
@@ -98,7 +98,7 @@ The choice of bandwidth $h$ is critical to the performance of the RPF. If $h$ is
 	\begin{equation}
 		c_{d_x}=\frac{\pi^{d_x/2}}{\Gamma(d_x/2+1)}
 	\end{equation}
-	is the volume of the $\mathbb{R}^{d_x}$ unit sphere, and $\Gamma$ is the Gamma function.
+	is the volume of the $\mathbb{R}^{d_x}$ unit ball, and $\Gamma$ is the Gamma function.
 	\item\textbf{Gaussian kernel.} While suboptimal with respect to the Epanechnikov kernel, it is simpler to compute. Its expression is given by:
 	\begin{equation}
 		\left\{\begin{aligned}
@@ -236,7 +236,7 @@ with:
 \begin{equation}
 	w_k=\begin{bmatrix}w_k^n\\w_k^l\end{bmatrix}
 	\sim\mathcal{N}\left(0,\begin{bmatrix}
-	Q_k^n&Q_k^{nl}\\(Q_k^{nl})^\top&Q_k^l
+	Q_k^n&(Q_k^{nl})^\top\\Q_k^{nl}&Q_k^l
 	\end{bmatrix}\right),\quad n_k\sim\mathcal{N}(0,R_k)
 \end{equation}
 $x_0^n$ of known distribution, and $x_0^l$ Gaussian.
@@ -261,8 +261,8 @@ whose expectation is $0$, and its covariance is:
 	&=\mathbb{E}\left[w_k^l\:(w_k^l)^\top\right]-\mathbb{E}\left[w_k^l\:(w_k^n)^\top\right](Q_k^n)^{-\top}\:(Q_k^{nl})^\top-\\
 	&\qquad Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^l)^\top\right]+Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^n)^\top\right]\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
 	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
-	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^{nl}-Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^{nl}+Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^{nl}\\
-	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^{nl}
+	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top\\
+	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top
 	\end{aligned}
 \end{equation}
 
@@ -325,20 +325,19 @@ In full generality, a standard RBPF is computed in six steps:
 	\begin{align}
 		\tilde{F}_k^{l(i)}&=\overline{F}_k^l\left(x_{k-1}^{n(i)}\right)\label{eq:RBPF_prediction_debut}\\
 		\hat{x}_{k|k-1}^{l(i)}&=\tilde{F}_k^{l(i)}\:\hat{x}_{k-1|k-1}^{l(i)}+\overline{f}_k^l\left(x_{k-1}^{n(i)}\right)+Q_k^{nl}\:(Q_k^n)^{-1}\:x_k^{n(i)}\\
-		P_{k|k-1}^{l(i)}&=\tilde{F}_k^{l(i)}\:P_{k-1|k-1}^{l(i)}\:\left(\tilde{F}_k^{l(i)}\right)^\top+\overline{Q}_k^l\label{eq:RBPF_prediction_fin}
+		P_{k|k-1}^{l(i)}&=\tilde{F}_k^{l(i)}\:P_{k-1|k-1}^{l(i)}\:\left(\tilde{F}_k^{l(i)}\right)^\top+\overline{Q}_k^l\\
+		\tilde{H}_k^{(i)}&=H_k\left(x_k^{n(i)}\right)\\
+		y_k^{l(i)}&=z_k-\left(\tilde{H}_k^{(i)}\:\hat{x}_{k|k-1}^{l(i)}+h_k\left(x_k^{n(i)}\right)\right)\\
+		S_k^{l(i)}&=\tilde{H}_k^{(i)}\:P_{k|k-1}^{l(i)}\left(\tilde{H}_k^{(i)}\right)^\top+R_k\label{eq:RBPF_prediction_fin}
 	\end{align}
 	\item\textbf{Weight update.} The weights corresponding to each particle are updated with respect to the new observation:
 	\begin{align}
-		x_k^{(i)}&=\left[x_k^{n(i)},\hat{x}_{k|k-1}^{l(i)}\right]\label{eq:RBPF_update_debut}\\
-		\tilde{w}_k^{n(i)}&=w_{k-1}^{n(i)}\:\dfrac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}\\
+		\tilde{w}_k^{n(i)}&=w_{k-1}^{n(i)}\:\dfrac{\tilde{p}\left(z_k|x_k^{n(i)}\right)\:\tilde{p}\left(x_k^{n(i)}|x_{k-1}^{n(i)}\right)}{\tilde{q}\left(x_k^{n(i)}|x_{k-1}^{n(i)},z_k\right)}\label{eq:RBPF_update_debut}\\
 		w_k^{n(i)}&=\left.\tilde{w}_k^{n(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{n(j)}\right.\label{eq:RBPF_update_fin}
 	\end{align}
 	\item\textbf{Kalman correction.} The linear state is corrected through the standard Kalman correction for $(S_2)$:
 	\begin{align}
-		\tilde{H}_k^{(i)}&=H_k\left(x_k^{n(i)}\right)\label{eq:RBPF_correction_debut}\\
-		y_k^{l(i)}&=z_k-\left(\tilde{H}_k^{(i)}\:\hat{x}_{k|k-1}^{l(i)}+h_k\left(x_k^{n(i)}\right)\right)\\
-		S_k^{l(i)}&=\tilde{H}_k^{(i)}\:P_{k|k-1}^{l(i)}\left(\tilde{H}_k^{(i)}\right)^\top+R_k\\
-		K_k^{l(i)}&=P_{k|k-1}^{l(i)}\left(\tilde{H}_k^{(i)}\right)^\top\left(S_k^{l(i)}\right)^{-1}\\
+		K_k^{l(i)}&=P_{k|k-1}^{l(i)}\left(\tilde{H}_k^{(i)}\right)^\top\left(S_k^{l(i)}\right)^{-1}\label{eq:RBPF_correction_debut}\\
 		\hat{x}_{k|k}^{l(i)}&=\hat{x}_{k|k-1}^{l(i)}+K_k^{l(i)}\:y_k^{l(i)}\\
 		P_{k|k}^{l(i)}&=\left(I-K_k^{l(i)}\:\tilde{H}_k^{(i)}\right)P_{k|k-1}^{l(i)}\label{eq:RBPF_correction_fin}
 	\end{align}
@@ -363,7 +362,7 @@ The full RBPF algorithm is summarised in \Cref{alg:RBPF}.
 	\end{algorithmic}\caption{Rao-Blackwellised Particle Filter}\label{alg:RBPF}
 \end{algorithm}
 
-It must be noted that the version presented by \Cref{alg:RBPF} uses a simple SIS to handle the particles, but any more advanced algorithm presented in this section can be used instead. In particular, the Kalman correction step must be performed after the weight update in situations where a resampling step is involved.
+It must be noted that the version presented by \Cref{alg:RBPF} uses a simple SIS to handle the particles, but any more advanced algorithm presented in this section can be used instead. Furthermore, the likelihood $\tilde{p}\left(z_k|x_k^{n(i)}\right)$ and the transition $\tilde{p}\left(x_k^{n(i)}|x_{k-1}^{n(i)}\right)$ in the weight update are white Gaussian densities, with covariances $S_k^{l(i)}$ and $S_k^{n(i)}$ respectively. This is why $S_k^{l(i)}$ is computed within the Kalman prediction step, before the weight update. However, the Kalman correction step itself must be performed after the weight update in situations where a resampling step is involved.
 
 \begin{remark}[Single Kalman filter]
 	In general, one Kalman filter is required per particle, since $\tilde{F}_k^{n(i)}$, $\tilde{F}_k^{l(i)}$ and $\tilde{H}_k^{(i)}$ all depend on $x_{k-1}^{n(i)}$ and $x_k^{n(i)}$. However, if these matrices do not depend on the non-linear state, then the gains $K_k^{n(i)}$ and $K_k^{l(i)}$, and the covariances $P_{k|k}^{l(i)}$ are identical for all particles. In this scenario, a single Kalman filter can be used for the whole particle set, which substantially reduces the computational cost of the RBPF.
