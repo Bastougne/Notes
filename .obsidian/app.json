@@ -1,0 +1,24 @@
+{
+  "alwaysUpdateLinks": true,
+  "showUnsupportedFiles": true,
+  "newLinkFormat": "shortest",
+  "userIgnoreFilters": [
+    "/Latex\\/.*\\/main\\.(pdf|synctex\\.gz)/",
+    "/Latex\\/.*\\/build\\//"
+  ],
+  "strictLineBreaks": true,
+  "livePreview": false,
+  "readableLineLength": true,
+  "showLineNumber": true,
+  "rightToLeft": false,
+  "defaultViewMode": "preview",
+  "autoConvertHtml": false,
+  "focusNewTab": false,
+  "pdfExportSettings": {
+    "includeName": true,
+    "pageSize": "A4",
+    "landscape": false,
+    "margin": "2",
+    "downscalePercent": 100
+  }
+}
