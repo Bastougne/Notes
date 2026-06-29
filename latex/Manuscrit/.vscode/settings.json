@@ -1,0 +1,32 @@
+{
+	"latex-workshop.latex.tools": [
+	{
+		"name": "latexmk",
+		"command": "latexmk",
+		"args": [
+			"-pdf",
+			"-outdir=build",
+			"-interaction=nonstopmode",
+			"-synctex=1",
+			"%DOC%"
+		]
+	},
+	{
+		"name": "copy outputs",
+		"command": "cmd.exe",
+		"args": [
+			"/c",
+			"for %E in (pdf synctex.gz) do copy build\\%DOCFILE%.%E ."
+		]
+	}
+	],
+	"latex-workshop.latex.recipes": [
+		{
+			"name": "latexmk",
+			"tools": [
+				"latexmk",
+				"copy outputs"
+			]
+		}
+	]
+}

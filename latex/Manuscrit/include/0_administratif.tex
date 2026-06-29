@@ -1,0 +1,236 @@
+% Environnement pour les remerciements etc
+
+\DeclareDocumentEnvironment{section_titre}{m}{
+	\chapter*{#1}
+	\addcontentsline{toc}{chapter}{#1}
+	\markboth{\uppercase{#1}}{\uppercase{#1}}
+}{}
+
+% Commande pour simuler une ligne de table des matières
+
+\newcommand{\lignetoc}[2]{
+    #1\leaders\hbox to 0.79em{\hss.\hss}\hfill #2\par
+}
+
+% Page de garde
+
+\frontmatter % numéros de pages en chiffres latins
+\thispagestyle{empty}
+\newgeometry{
+	top=1.5cm,
+	bottom=2cm,
+	left=2cm,
+	right=2cm
+}
+
+\hspace{0.5cm}
+\includegraphics[height=1.7cm]{figures/logo_Bordeaux.pdf}
+\hfill
+\includegraphics[height=1.7cm]{figures/logo_Bordeaux.pdf}
+\hspace{0.5cm}
+
+\begin{center}
+	\doublespacing
+
+	\textsc{\Large Thèse présentée\\pour obtenir le grade de}\\
+	\textsc{\textbf{\LARGE Docteur\\de l'Université de Bordeaux}}\\[0.8cm]
+
+	\textsc{\Large École doctorale Sciences Physiques \& de l'Ingénieur}\\
+	\textsc{Automatique, Productique, Signal et Image, Ingénierie cognique}\\[0.8cm]
+
+	{\Large Par \textbf{Bastien HUBERT}}\\[0.8cm]
+
+	{\Large Cartographie et Navigation Autonome sur Champs Physiques par Filtrage Particulaire à Processus Gaussiens}\\[0.8cm]
+
+	{\large Autonomous Navigation and Mapping on Physical Fields via\\Gaussian Process Particle Filtering}\\[0.8cm]
+
+	\singlespacing
+	\begin{tabular}{rl}
+		Sous la direction de :&\textbf{Audrey GIREMUS}\\
+		la co-direction de :&\textbf{Karim DAHIA}\\
+		et l'encadrement de :&\textbf{Nicolas MERLINGE}\\
+	\end{tabular}
+\end{center}
+
+\vfill
+
+{\large Thèse soutenue le 00 janvier 0000}
+\vspace{0.7cm}
+
+\hspace{1cm}Membres du jury :
+
+\begin{center}
+	\begin{tabular}{lllr}
+		Manon KOK&Professeure associée&TU Delft&Rapporteure\\
+		Carl MILNER&Professeur associé&ENAC&Rapporteur\\
+		Vincent FREMONT&Professeur&Centrale Nantes&Examinateur\\
+		Pierre MINVIELLE&Ingénieur de recherche&CEA&Examinateur\\
+		Audrey GIREMUS&Professeure&Université de Bordeaux&Directrice\\
+		Karim DAHIA&Ingénieur de Recherche&ONERA&Co-directeur\\
+		Nicolas MERLINGE&Ingénieur de Recherche&ONERA&Encadrant\\
+	\end{tabular}
+\end{center}
+
+\restoregeometry
+
+% Page vierge
+
+\newpage \
+\thispagestyle{empty}
+
+% Remerciements
+
+\begin{section_titre}{Acknowledgements}
+\end{section_titre}
+
+% Abstracts
+
+\begin{section_titre}{Abstracts}
+\end{section_titre}
+
+% Résumé étendu en français
+
+\begin{section_titre}{Résumé étendu en français}
+\end{section_titre}
+
+% Table des matières
+
+\tableofcontents
+\addcontentsline{toc}{chapter}{\contentsname}
+
+% Figures
+
+\renewcommand{\listfigurename}{Figures}
+\listoffigures
+\addcontentsline{toc}{chapter}{\listfigurename}
+
+% Tables
+
+\renewcommand{\listtablename}{Tables}
+\listoftables
+\addcontentsline{toc}{chapter}{\listtablename}
+
+% Algorithmes
+
+\renewcommand{\listalgorithmname}{Algorithms}
+\listofalgorithms
+\addcontentsline{toc}{chapter}{\listalgorithmname}
+
+% Abbreviations
+
+\begin{section_titre}{Abbreviations}
+	\lignetoc{APF}{Auxiliary Particle Filter}
+	\lignetoc{a.s.}{almost surely}
+	\lignetoc{CDF}{Cumulative Distribution Function}
+	\lignetoc{EKF}{Extended Kalman Filter}
+	\lignetoc{GP}{Gaussian Process}
+	\lignetoc{IEKF}{Iterative Extended Kalman Filter}
+	\lignetoc{i.i.d.}{independent and identically distributed}
+	\lignetoc{MC}{Monte Carlo}
+	\lignetoc{MAP}{Maximum \textit{A Posteriori}}
+	\lignetoc{MISE}{Mean Integrated Squared Error}
+	\lignetoc{MLE}{Maximum Likelihood Error}
+	\lignetoc{MMAE}{Minimum Mean Absolute Error}
+	\lignetoc{MMSE}{Minimum Mean Squared Error}
+	\lignetoc{PDF}{Posterior Probability Density Function}
+	\lignetoc{PF}{Particle Filter}
+	\lignetoc{RBPF}{Rao-Blackwellised Particle Filter}
+	\lignetoc{RPF}{Regularised Particle Filter}
+	\lignetoc{SIR}{Sampling Importance Resampling}
+	\lignetoc{SIS}{Sequential Importance Sampling}
+	\lignetoc{SO-EKF}{Second-Order Extended Kalman Filter}
+	\lignetoc{SPD}{Symmetric Positive Definite}
+	\lignetoc{SPSD}{Symmetric Positive Semi-Definite}
+	\lignetoc{SVD}{Singular Values Decomposition}
+\end{section_titre}
+
+% Symboles
+
+\begin{section_titre}{Symbols}
+	\lignetoc{$\triangleq$}{Equality by definition}
+	\lignetoc{$\propto$}{Proportionality}
+	\lignetoc{$\sim$}{"is distributed according to"}
+	\lignetoc{$\overset{i.i.d.}{\sim}$}{Independently and identically distributed according to}
+	\lignetoc{$\overset{a.s.}{\longrightarrow}$}{Almost sure convergence}
+	\lignetoc{$\overset{\mathcal{L}}{\longrightarrow}$}{Convergence in law}
+	\lignetoc{$\cdot\succeq0$}{Symmetric positive semi-definiteness}
+	\lignetoc{$\cdot\succ0$}{Symmetric positive definiteness}
+	\lignetoc{$\langle\cdot|\cdot\rangle$}{Inner product}
+	\lignetoc{$\langle\cdot,\cdot\rangle$}{Measure/function duality pairing, $\langle\mu,\varphi\rangle=\int\varphi d\mu$}
+	\lignetoc{$\|\cdot\|,\|\cdot\|_2,\|\cdot\|_F$}{Generic, Euclidean and Frobenius norms}
+	\lignetoc{$\cdot^\top$}{Transpose of a matrix}
+	\lignetoc{$\cdot^{-1}$}{Inverse of a matrix}
+	\lignetoc{$*$}{Convolution operator}
+	\lignetoc{$\circ$}{Function composition}
+	\lignetoc{$\mathbbm{1}$}{Indicator function}
+	\lignetoc{$[\![\cdot,\cdot]\!]$}{Discrete interval}
+	\lignetoc{$\cdot_{m|n}$}{"at time $m$ conditioned on the observations from $1$ to $n$"}
+	\lignetoc{$\alpha_{reg}$}{Bandwidth modulation factor}
+	\lignetoc{$\delta_x$}{Dirac measure at $x$}
+	\lignetoc{$\lambda_k^{(i)}$}{Auxiliary weights}
+	\lignetoc{$\lambda_{\min}$}{Smallest eigenvalue of a matrix}
+	\lignetoc{$\mu$}{Target probability measure, of density $p$}
+	\lignetoc{$\mu_k^{(i)}$}{Auxiliary particle}
+	\lignetoc{$\nu$}{Proposal (importance) measure}
+	\lignetoc{$\pi_k$}{Projection of a trajectory onto its last component}
+	\lignetoc{$\rho$}{Distance on the estimator space $\mathcal{F}$}
+	\lignetoc{$\varphi$}{Mapping of the state}
+	\lignetoc{$\hat{\psi}_{\textup{MMSE}},\hat{\psi}_{\textup{MMAE}},\hat{\psi}_{\textup{MAP}},\hat{\psi}_{\textup{MLE}}$}{State estimators}
+	\lignetoc{$\textup{argmin}$, $\textup{argmax}$}{Argument of the minimum, of the maximum}
+	\lignetoc{$b_k^{(e)},b_k^{(o)}$}{Evolution and observation bias vectors}
+	\lignetoc{$\textup{cdf}$}{Cumulative distribution function}
+	\lignetoc{$d_x,d_z,d_{\varphi}$}{Dimensions of the state, observation, and mapping}
+	\lignetoc{$d_w,d_n$}{Dimensions of the evolution and observation noises}
+	\lignetoc{$d_{GP}$}{Output dimension of a Gaussian process}
+	\lignetoc{$\mathbb{E}[\cdot]$, $\mathbb{E}_p[\cdot]$}{Expectation, subscript: under the law $p$}
+	\lignetoc{$f_k,f_k^l,f_k^n,\overline{f}_k^n$}{Evolution functions}
+	\lignetoc{$F_k,F_k^l,F_k^n,\overline{F}_k^n$}{Evolution matrices}
+	\lignetoc{$\mathcal{F}$}{Space of admissible estimators}
+	\lignetoc{$\mathcal{GP}(m,k)$}{Gaussian process}
+	\lignetoc{$h,h_{Epa},h_{Gauss}$}{Kernel bandwidths}
+	\lignetoc{$h_k$}{Observation function}
+	\lignetoc{$H_k$}{Observation matrix}
+	\lignetoc{$I$}{Identity matrix}
+	\lignetoc{$J_f$}{Jacobian matrix of a function $f$}
+	\lignetoc{$k$}{Discrete time step}
+	\lignetoc{$k(\cdot,\cdot)$}{Covariance kernel of a Gaussian process}
+	\lignetoc{$K,K_h,K_{Epa},K_{Gauss}$}{Regularisation kernels}
+	\lignetoc{$K_k$}{Kalman gain}
+	\lignetoc{$\mathcal{L}^0,\mathcal{L}^1,\mathcal{L}^2$}{Sets of measurable functions}
+	\lignetoc{$m$}{Mean function of a Gaussian process}
+	\lignetoc{$\mathcal{M}_{m,n}(\mathbb{R})$}{Set of real $m\times n$ matrices}
+	\lignetoc{$n_k$}{Observation noise}
+	\lignetoc{$N$}{Number of particles or samples}
+	\lignetoc{$\hat{N}_{eff},N_{eff}$}{Estimated and real effective sample size}
+	\lignetoc{$N_{th}$}{Resampling threshold}
+	\lignetoc{$\mathbb{N},\mathbb{N}^*$}{Sets of natural and strictly positive natural integers}
+	\lignetoc{$\mathcal{N}(m,P)$}{Gaussian distribution}
+	\lignetoc{$o(\cdot)$}{Landau symbol for asymptotic negligibility}
+	\lignetoc{$\mathcal{O}(\cdot)$}{Landau symbol for asymptotic boundedness}
+	\lignetoc{$p$}{Target probability density}
+	\lignetoc{$p_0$}{Probability density of $x_0$}
+	\lignetoc{$p_{A|B}(a|b)$}{Conditional density of $A$ given $B$}
+	\lignetoc{$P_0,P_{k|k-1},P_{k|k}$}{State covariance matrices}
+	\lignetoc{$\mathbb{P}$}{Probability of an event}
+	\lignetoc{$q$}{Proposal (importance) density}
+	\lignetoc{$Q_k,Q_k^n,Q_k^l,Q_k^{nl},\overline{Q}_k^l$}{Evolution noise covariances}
+	\lignetoc{$R_k$}{Observation noise covariance}
+	\lignetoc{$\mathbb{R},\mathbb{R}_+$}{Sets of real and positive real numbers}
+	\lignetoc{$S^N(\mu),S^N(\mu,\nu),\tilde{S}^N,S^N_{K_h}$}{Monte Carlo measures}
+	\lignetoc{$S_k$}{Innovation covariance}
+	\lignetoc{$\textup{supp}$}{Support of a measure or function}
+	\lignetoc{$\mathcal{U}$}{Input set of a stochastic process}
+	\lignetoc{$\mathcal{U}([a,b])$}{Uniform distribution}
+	\lignetoc{$\mathbb{V}[\cdot]$, $\mathbb{V}_\mu(\cdot)$}{Variance, subscript: under the measure $\mu$}
+	\lignetoc{$w_k,w_k^l,w_k^n,\overline{w}_k^l$}{Evolution noises}
+	\lignetoc{$w_k^{(i)},\tilde{w}_k^{(i)}$}{Normalised and unnormalised particle weights}
+	\lignetoc{$x_k,x_k^n,x_k^l,\mathbf{x}_{0:k}$}{System states and trajectory}
+	\lignetoc{$x_k^{(i)}$}{Particle}
+	\lignetoc{$x_{k|k-1},x_{k|k},\hat{x}_k$}{Predicted, corrected and estimated state}
+	\lignetoc{$y_k$}{Innovation vector}
+	\lignetoc{$z_k,\mathbf{z}_{1:k}$}{Observation vector and sequence}
+	\lignetoc{$Z_\mu,Z_\nu$}{Normalising constants of $\mu$ and $\nu$}
+
+\end{section_titre}
+
+\mainmatter % numéros de pages en chiffres arabes

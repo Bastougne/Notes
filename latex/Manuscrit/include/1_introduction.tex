@@ -1,0 +1,101 @@
+\chapter{Plan global}
+
+\vfill
+\localtableofcontents
+\vfill
+\newpage
+
+\section{Introduction}
+
+\begin{itemize}
+    \item contexte : navigation autonome, pas de GNSS mais des champs physiques
+    \item motivation : limites des méthodes classiques (Kalman, carte embarquée connue)
+    \item objectif : reconstruction de la fonction d'observation par GP, intégration dans le cadre de la navigation bayésienne
+    \item principales contributions
+    \item annonce du plan
+\end{itemize}
+
+Ne pas oublier la progession des problèmes:
+\begin{enumerate}
+    \item drift of inertial navigation
+    \item GNSS data blurred or unavailable
+    \item high initial uncertainty
+    \item non-injective, non-linear, multimodal environments
+    \item undersampled, poorly-known environment model
+    \item weight degeneracy, particle impoverishment
+    \item non-stationarity of the field renders distant samples locally irrelevant
+    \item high computational cost of matrix inversion and multiplications
+    \item no preexisting data about the environment
+\end{enumerate}
+
+\section{Estimation bayésienne}
+
+\begin{itemize}
+    \item principes généraux et rappels de théorie de la mesure (cf cours de Nadia)
+    \item filtre optimal
+    \item filtres de Kalman et limites
+    \item Kalman d'ensemble ?
+\end{itemize}
+
+\section{Filtrage particulaire}
+
+\begin{itemize}
+    \item idem pour les maths
+    \item filtrage particulaire simple et limites
+    \item filtres particulaire avancés : régularisé, auxiliaire, marginalisé
+    \item filtre de Kalman sur RKHS (ailleurs ?)
+\end{itemize}
+
+\section{Processus gaussiens}
+
+\begin{itemize}
+    \item rappels de maths sur les processus stochastiques (s'inspirer Rasmussen)
+    \item krigeage simple, ordinaire
+    \item méthodes de réduction de rang
+    \item lien avec les RKHS
+\end{itemize}
+
+\section{Krigeage sous-échantillonné}
+
+\begin{itemize}
+    \item erreurs théoriques
+    \item heuristiques de sous-échantillonnage (fenêtrage, clusterisation,\\sous-échantillonnage aléatoire)
+    \item parler de l'intérêt pour la navigation ? permet de reconstruire la fonction d'observation ?
+    \item résultats numériques sans navigation
+\end{itemize}
+
+\section{CAK-PF}
+
+\begin{itemize}
+    \item fenêtrage, clustering par Mean-Shift
+    \item apprentissage des hyperparamètres
+    \item étude d'ablation
+    \item précision en fonction du nombre de données disponibles
+    \item résultats numériques (RMSE, temps de calcul, comparaisons avec la BCR)
+\end{itemize}
+
+\section{SLAM}
+
+\begin{itemize}
+    \item GP stationnaires ou stationnaires par morceaux
+    \item multi capteurs en mailles impossibles car dimensions trop proches
+    \item RBPF/méthode de Manon
+    \item RKHS/méthode de Karim
+\end{itemize}
+
+\section{Ouverture sur la fusion de champs ?}
+
+\begin{itemize}
+    \item à voir mais information de Fisher théorique
+    \item tests sur les 2 cas précédents
+\end{itemize}
+
+\section{Conclusion et perspectives}
+
+\begin{itemize}
+    \item résumé des contributions : GP + FP
+    \item adaptation du modèle en fonction de l'état (carte dégradée)
+    \item reconstruction à partir d'un dictionnaire de fonctions de base (sans carte)
+    \item limites des méthodes
+    \item perspectives futures (modèles, méthodologie, ...)
+\end{itemize}

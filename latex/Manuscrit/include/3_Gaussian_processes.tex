@@ -1,0 +1,109 @@
+\chapter{Gaussian Process Estimation}
+
+\vfill
+\localtableofcontents
+\vfill
+\newpage
+
+\section{Introduction}
+
+In \Cref{sec:Bayesian_estimation}, we introduced the filtering problem for autonomous navigation, and presented standard algorithms, from analytical methods to advanced particle filters. While the latter are very versatile techniques, they still require knowledge of the observation function $h_k$. In many practical situations, however, it depends on a physical field that is either unavailable, or known only through scarce and noisy measurements.
+
+This chapter attempts to alleviate this issue by modelling the environment as a Gaussian process (GP),
+
+
+which will the be used to derive reformulations or approximations of $h_k$ for the algorithms of \Cref{sec:Bayesian_estimation} \textbf{TODO: c'est giga moche comme phrase}.
+
+
+\section{Gaussian Processes}
+
+\subsection{Definition and Basic Properties}
+
+A stochastic process generalises the notion of random variable to a random function, \textit{i.e.} a family $(f(u))_{u\in\mathcal{U}}$ of random variables indexed by a set $\mathcal{U}$.
+
+\begin{definition}[Gaussian process]
+	For $d_{GP}\in\mathbb{N}^*$, a stochastic process $(f(u))_{u\in\mathcal{U}}$ on $\mathbb{R}^{d_{GP}}$ is a GP if every finite linear combination of its values follows a Gaussian distribution: for all $n\in\mathbb{N}^*$, all $u_1,\dots,u_n\in\mathcal{U}$, and all $a\in\mathbb{R}^n$, there exists $m\in\mathbb{R}^{d_{GP}}$ and $P\in\mathcal{M}_{d_{GP},d_{GP}}(\mathbb{R})$ with $P\succeq0$ such that:
+	\begin{equation}
+		\sum_{i=1}^na_if(u_i)\sim\mathcal{N}(m,P)
+	\end{equation}
+\end{definition}
+
+A GP is associated with a mean function:
+\begin{equation}
+	m:\left\{\begin{aligned}
+	\mathcal{U}&\rightarrow\mathbb{R}^{d_{GP}}\\
+	u&\mapsto\mathbb{E}[f(u)]
+	\end{aligned}\right.
+\end{equation}
+and its covariance kernel:
+\begin{equation}
+	k:\left\{\begin{aligned}
+	\mathcal{U}\times\mathcal{U}&\rightarrow\mathcal{M}_{d_{GP},d_{GP}}(\mathbb{R})\\
+	u,v&\mapsto\mathbb{E}[(f(u)-m(u))(f(v)-m(v))^\top]
+	\end{aligned}\right.
+\end{equation}
+
+\Cref{th:GP_marginals} proves that a GP is entirely characterised by $m$ and $k$. We thus write $f\sim\mathcal{GP}(m,k)$ to denote that $f$ is a GP with mean function $m$ and covariance kernel $k$.
+
+\textbf{TODO: reprendre ici}
+
+\begin{proposition}[Finite-dimensional marginals]\label{th:GP_marginals}
+	For $n\in\mathbb{N}^*$, let $u_1,\dots,u_n\in\mathcal{U}$. The joint distribution of $f(u_1),\dots,f(u_n)$ is the following multivariate Gaussian distribution:
+	\begin{equation}
+		\begin{bmatrix}
+		f(u_1)\\\vdots\\f(u_n)
+		\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}
+		m(u_1)\\\vdots\\m(u_n)
+		\end{bmatrix},\begin{bmatrix}
+		k(u_1,u_1)&\dots&k(u_1,u_n)\\\vdots&\ddots&\vdots\\k(u_n,u_1)&\dots&k(u_n,u_n)
+		\end{bmatrix}\right)
+	\end{equation}
+	where each block $k(u_i,u_j)\in\mathcal{M}_{d_{GP},d_{GP}}$. A GP is thus a consistent generalisation of the multivariate Gaussian distribution to a countably infinite set of inputs.
+\end{proposition}
+
+The two parameters of a GP have a natural probabilistic interpretation. The mean function $m$ encodes a prior knowledge of about the average behaviour of $f$, while $k$ encodes the spatial correlations between the inputs. In the context of this thesis, $m$ can b interpreted as a simple model of the observation function, and $k$ as a measure of the incertainty and spatial variability of this model.
+
+\subsection{Covariance Kernels}
+
+While the choice of mean function generally depends on the application at hand, it is the covariance kernel that governs the smoothness and correlation structure of the GP, and thus the class of functions it can represent. In this section, we introduce mandatory properties of covariance kernels, and present popular choices of kernels.
+
+For $k$ to be a valid covariance kernel, it must be SPSD, in the sense of \Cref{th:kernel_SPSD}.
+
+\begin{definition}[Kernel symmetric positive definiteness]\label{th:kernel_SPSD}
+	A kernel $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}^{d_{GP}}$ is SPSD if:
+	\begin{itemize}
+		\item\textbf{Symmetry}
+		\begin{equation}
+			\forall u,v\in\mathcal{U},\:k(v,u)=k(u,v)^\top
+		\end{equation}
+		\item\textbf{Positive semi-definiteness} For all $n\in\mathbb{N}^*$, all $u_1,\dots,u_n\in\mathcal{U}$, and all $a_1,\dots,a_n\in\mathbb{R}^{d_{GP}}$:
+		\begin{equation}
+			\sum_{i=1}^n\sum_{j=1}^na_i^\top\:k(u_i,u_j)\:a_j\geq0
+		\end{equation}
+	\end{itemize}
+\end{definition}
+
+It must be noted that the SPSDness of a kernel can be considered as a weker version of \Cref{th:matrix_SPSD}, since it doesn't require every $k(u,v)$ to be SPSD. This is due to cross-covariances that may be non-positive definite when $u\neq v$. However, $k(u,u)$ is always SPSD in the matrix sense.
+
+The rest of this section is structured as follows: \Cref{th:radial_kernel} presents an important category of kernels called radial kernels, and %\Cref{th:Matern} defines the Matérn kernels, a common family of radial kernels. Finally, \Cref{th:SE_kernel} describes a particular case of Matérn kernel, called the squared exponential (SE) kernel.
+
+\begin{definition}[Radial kernel]\label{th:radial_kernel}
+	A kernel $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}^{d_{GP}}$ is radial if there exists a function $f:\mathbb{R}_+\to\mathbb{R}^{d_{GP}}$ and a metric $d$ on $\mathcal{U}$ such that:
+	\begin{equation}
+		k=f\circ d
+	\end{equation}
+\end{definition}
+
+Since our applications rely on using GPs to model a physiacl field, 
+
+\newpage
+
+\subsection{Hyperparameter Estimation}
+
+\section{Gaussian Process Regression}
+\subsection{Simple Kriging}
+\subsection{Ordinary Kriging}
+
+\section{Kernel-Induced Fucntionnal Representations}
+\subsection{Reduced-Rank Approximation}
+\subsection{Reproducing Kernel Hilbert Space Formulation}

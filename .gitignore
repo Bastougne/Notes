@@ -12,3 +12,8 @@
 
 # Plugins (installés localement, pas à versionner)
 .obsidian/plugins/
+
+# Sorties de compilation LaTeX (uniquement dans latex/*/)
+latex/*/main.pdf
+latex/*/main.synctex.gz
+latex/*/build/

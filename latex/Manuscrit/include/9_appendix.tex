@@ -1,0 +1,252 @@
+\chapter{Useful Matrix Identities}
+
+\vfill
+\localtableofcontents
+\vfill
+\newpage
+
+\section{Gaussian Conditioning Formula}
+
+\begin{proposition}[Gaussian conditioning]\label{th:Gaussian_conditioning}
+	For $n,p\in\mathbb{N}$, let $A\in\mathcal{M}_{n,n}(\mathbb{R})$, $B\in\mathcal{M}_{n,p}(\mathbb{R})$, and $D\in\mathcal{M}_{p,p}(\mathbb{R})$. Assuming $A\succ0$ and $D\succ0$, we define the random variables $U$ and $V$ of respective means $\mu_U$ and $\mu_V$, such that:
+	\begin{equation}
+		\begin{bmatrix}U\\V\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}\mu_U\\\mu_V\end{bmatrix},\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}\right)
+	\end{equation}
+	The conditional distribution of $U$ given $V=v$ is:
+	\begin{equation}
+		U|V=v\sim\mathcal{N}\left(\mu_U+BD^{-1}(v-\mu_V),\:A-BD^{-1}B^\top\right)\label{eq:Gaussian_conditioning}
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	Using the inferior right Schur inversion formula (see \Cref{th:Schur}) to invert the joint covariance by blocks yields:
+	\begin{equation}
+		\begin{bmatrix}\bar{A}&\bar{B}\\\bar{C}&\bar{D}\end{bmatrix}\triangleq\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}^{-1}
+	\end{equation}
+
+	For some realisation $u$ of $U$, we define $\tilde{u}\triangleq u-\mu_U$ and $\tilde{v}\triangleq v-\mu_V$, and we compute:
+	\begin{equation}
+		\begin{aligned}
+		\alpha&\triangleq\begin{bmatrix}\tilde{u}\\\tilde{v}\end{bmatrix}^\top\begin{bmatrix}\bar{A}&\bar{B}\\\bar{C}&\bar{D}\end{bmatrix}\begin{bmatrix}\tilde{u}\\\tilde{v}\end{bmatrix}\\
+		&=\tilde{u}^\top\bar{A}\tilde{u}+\tilde{u}^\top\bar{B}\tilde{v}+\tilde{v}^\top\bar{C}\tilde{u}+\tilde{v}^\top\bar{D}\tilde{v}\\
+		&=\tilde{u}^\top S^{-1}\tilde{u}+\tilde{u}^\top S^{-1}\left(-BD^{-1}\tilde{v}\right)+\left(-BD^{-1}\tilde{v}\right)^\top S^{-1}\tilde{u}+\\
+		&\qquad\left(-BD^{-1}\tilde{v}\right)^\top S^{-1}\left(-BD^{-1}\tilde{v}\right)+\tilde{v}^\top D^{-1}\tilde{v}\\
+		&=(\tilde{u}-BD^{-1}\tilde{v})^\top S^{-1}(\tilde{u}-BD^{-1}\tilde{v})+\tilde{v}^\top D^{-1}\tilde{v}
+		\end{aligned}
+	\end{equation}
+	where $S\triangleq A-BD^{-1}B^\top$ is the Schur complement with respect to $D$.
+
+	The conditional density is thus:
+	\begin{equation}
+		\begin{aligned}
+		p\left(\tilde{u}|\tilde{v}\right)&\propto\frac{\displaystyle p\left(\tilde{u},\tilde{v}\right)}{\displaystyle p\left(\tilde{v}\right)}\\
+		&\propto\frac{\displaystyle\exp\left(-\frac{1}{2}\alpha\right)}{\displaystyle\exp\left(-\frac{1}{2}\tilde{v}^\top D^{-1}\tilde{v}\right)}\\
+		&\propto\exp\left(-\frac{1}{2}(\tilde{u}-BD^{-1}\tilde{v})^\top S^{-1}(\tilde{u}-BD^{-1}\tilde{v})\right)
+		\end{aligned}
+	\end{equation}
+
+	With this formulation, it comes that $U|V=v$ is Gaussian with mean:
+	\begin{equation}
+		\mu_{U|V}\triangleq\mu_U+BD^{-1}\left(v-\mu_V\right)
+	\end{equation}
+	and covariance:
+	\begin{equation}
+		P_{U|V}\triangleq S=A-BD^{-1}B^\top
+	\end{equation}
+\end{proof}
+
+\begin{remark}[Kalman gain]
+	By defining the Kalman gain:
+	\begin{equation}
+		K\triangleq BD^{-1}
+	\end{equation}
+	the conditional distribution \eqref{eq:Gaussian_conditioning} can be rewritten as:
+	\begin{equation}
+		U|V=v\sim\mathcal{N}\left(\mu_U+K(v-\mu_V),\:A-KB^\top\right)
+	\end{equation}
+\end{remark}
+
+\section{Schur Inversion Formula}
+
+\begin{proposition}[Schur inversion formula]\label{th:Schur}
+	For $n,p\in\mathbb{N}$, let $A\in\mathcal{M}_{n,n}(\mathbb{R})$, $B\in\mathcal{M}_{n,p}(\mathbb{R})$, $C\in\mathcal{M}_{p,n}(\mathbb{R})$, and $D\in\mathcal{M}_{p,p}(\mathbb{R})$. We assume that $A$ is invertible, and we define:
+	\begin{equation}
+		M\triangleq\begin{bmatrix}A&B\\C&D\end{bmatrix}
+	\end{equation}
+
+	Then $M$ is invertible and:
+	\begin{equation}
+		M^{-1}=\begin{bmatrix}A^{-1}+A^{-1}B(M/A)^{-1}CA^{-1}&-A^{-1}B(M/A)^{-1}\\-(M/A)^{-1}CA^{-1}&(M/A)^{-1}\end{bmatrix}
+	\end{equation}
+	where $M/A$ is the Schur complement of $M$ with respect to $A$:
+	\begin{equation}
+		M/A\triangleq D-CA^{-1}B
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	Let $\bar{M}$ be the matrix defined by the right-hand side of the formula, and write its blocks as:
+	\begin{equation}
+		\begin{bmatrix}\bar{A}&\bar{B}\\\bar{C}&\bar{D}\end{bmatrix}=\bar{M}
+	\end{equation}
+
+	The identity $M\bar{M}=I$ yields:
+	\begin{equation}
+		\left\{\begin{aligned}
+		A\bar{A}+B\bar{C}&=I\\
+		A\bar{B}+B\bar{D}&=0\\
+		C\bar{A}+D\bar{C}&=0\\
+		C\bar{B}+D\bar{D}&=I\\
+		\end{aligned}\right.
+	\end{equation}
+
+	In particular, the second equation can be rewritten as:
+	\begin{equation}
+		\bar{B}=-A^{-1}B\bar{D}\label{eq:bar_B}
+	\end{equation}
+	which can be plugged into the fourth equation to give:
+	\begin{equation}
+		\begin{aligned}
+		&C\bar{B}+D\bar{D}=I\\
+		\iff\quad&-CA^{-1}B\bar{D}+D\bar{D}=I\\
+		\iff\quad&(D-CA^{-1}B)\bar{D}=I\\
+		\iff\quad&(M/A)\bar{D}=I
+		\end{aligned}
+	\end{equation}
+
+	Since $(M/A)$ and $\bar{D}$ are square matrices, $M/A$ is invertible, and:
+	\begin{equation}
+		\bar{D}=(M/A)^{-1}
+	\end{equation}
+
+	\eqref{eq:bar_B} can then be solved:
+	\begin{equation}
+		\bar{B}=-A^{-1}B(M/A)^{-1}
+	\end{equation}
+
+	A similar operation can be performed on the two remaining equations to obtain:
+	\begin{equation}
+		\bar{A}=A^{-1}(I-B\bar{C})
+	\end{equation}
+	and:
+	\begin{equation}
+		\begin{aligned}
+		&C\bar{A}+D\bar{C}=0\\
+		\iff\quad&CA^{-1}(I-B\bar{C})+D\bar{C}=0\\
+		\iff\quad&CA^{-1}+(D-CA^{-1}B)\bar{C}=0\\
+		\iff\quad&CA^{-1}+(M/A)\bar{C}=0\\
+		\iff\quad&\bar{C}=-(M/A)^{-1}CA^{-1}
+		\end{aligned}
+	\end{equation}
+
+	Finally:
+	\begin{equation}
+		\bar{A}=A^{-1}(I-B\bar{C})=A^{-1}+A^{-1}B(M/A)^{-1}CA^{-1}
+	\end{equation}
+
+	It can be verified by direct calculations that:
+	\begin{equation}
+		M\bar{M}=\bar{M}M=I
+	\end{equation}
+	which proves that $M$ is indeed invertible with inverse $\bar{M}$.
+\end{proof}
+
+\begin{remark}[Inversion with respect to $D$]
+	If $D$ is assumed to be invertible instead of $A$, a block inversion formula can still be exhibited. Let $M/D$ denote the Schur complement with respect to $D$:
+	\begin{equation}
+		M/D\triangleq A-BD^{-1}C
+	\end{equation}
+
+	We have:
+	\begin{equation}
+		M^{-1}=\begin{bmatrix}(M/D)^{-1}&-(M/D)^{-1}BD^{-1}\\-D^{-1}C(M/D)^{-1}&D^{-1}+D^{-1}C(M/D)^{-1}BD^{-1}\end{bmatrix}
+	\end{equation}
+\end{remark}
+
+\begin{remark}[Combining both formulations]
+	When both $A$ and $D$ are invertible, the Woodbury lemma proves that the two formulations give the same matrices for each block. In particular, they can be combined block by block at will.
+\end{remark}
+
+\section{Woodbury Inversion Formula}
+
+\begin{proposition}[Inversion identity]\label{th:simplified_Woodbury}
+	For $n\in\mathbb{N}$, let $P\in\mathcal{M}_{n,n}(\mathbb{R})$ such that $I+P$ is invertible. Then:
+	\begin{equation}
+		(I+P)^{-1}=I-(I+P)^{-1}P
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	This result is direct from:
+	\begin{equation}
+		I=(I+P)^{-1}(I+P)=(I+P)^{-1}+(I+P)^{-1}P
+	\end{equation}
+\end{proof}
+
+\begin{proposition}[Push-through identity]\label{th:push_through}
+	For $n,p\in\mathbb{N}$, let $P\in\mathcal{M}_{n,p}(\mathbb{R})$ and $Q\in\mathcal{M}_{p,n}(\mathbb{R})$ such that $I_n+PQ$ is invertible. Then $I_p+QP$ is also invertible and:
+	\begin{equation}
+		(I_n+PQ)^{-1}P=P(I_p+QP)^{-1}
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	We start by using the identity:
+	\begin{equation}
+		P+PQP=P(I_p+QP)=(I_n+PQ)P
+	\end{equation}
+
+	Thus:
+	\begin{equation}
+		\begin{aligned}
+		&&P(I_p+QP)&=(I_n+PQ)P\\
+		\iff&&P&=(I_n+PQ)P(I_p+QP)^{-1}\\
+		\iff&&(I_n+PQ)^{-1}P&=P(I_p+QP)^{-1}
+		\end{aligned}
+	\end{equation}
+
+	This also shows that $I_p+QP$ admits a right inverse, hence is invertible.
+\end{proof}
+
+\begin{proposition}[Generalised Woodbury formula]
+	For $n,p\in\mathbb{N}$, let $A\in\mathcal{M}_{n,n}(\mathbb{R})$, $B\in\mathcal{M}_{n,p}(\mathbb{R})$, $C\in\mathcal{M}_{p,n}(\mathbb{R})$, and $D\in\mathcal{M}_{p,p}(\mathbb{R})$. We assume that $A$, $D$, and $D+CA^{-1}B$ are invertible. Then $A+BD^{-1}C$ is also invertible, and:
+	\begin{equation}
+		\left(A+BD^{-1}C\right)^{-1}=A^{-1}-A^{-1}B\left(D+CA^{-1}B\right)^{-1}CA^{-1}
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	We first factorise:
+	\begin{equation}
+		\begin{aligned}
+		\left(A+BD^{-1}C\right)^{-1}&=\left(A(I+A^{-1}BD^{-1}C)\right)^{-1}\\
+		&=\left(I+A^{-1}BD^{-1}C\right)^{-1}A^{-1}
+		\end{aligned}
+	\end{equation}
+
+	Applying \Cref{th:simplified_Woodbury} to $A^{-1}BD^{-1}C$ yields:
+	\begin{equation}
+		\begin{aligned}
+		\left(A+BD^{-1}C\right)^{-1}&=\left(I-\left(I+A^{-1}BD^{-1}C\right)^{-1}A^{-1}BD^{-1}C\right)A^{-1}\\
+		&=A^{-1}-\left(I+A^{-1}BD^{-1}C\right)^{-1}A^{-1}BD^{-1}CA^{-1}
+		\end{aligned}
+	\end{equation}
+
+	Using \Cref{th:push_through} with $P=A^{-1}B$ and $Q=DC$ further gives:
+	\begin{equation}
+		\left(I+A^{-1}BD^{-1}C\right)^{-1}A^{-1}B=A^{-1}B\left(I+D^{-1}CA^{-1}B\right)^{-1}
+	\end{equation}
+
+	Therefore:
+	\begin{equation}
+		\begin{aligned}
+		\left(A+BD^{-1}C\right)^{-1}&=A^{-1}-A^{-1}B\left(I+D^{-1}CA^{-1}B\right)^{-1}D^{-1}CA^{-1}\\
+		&=A^{-1}-A^{-1}B\left(D(I+D^{-1}CA^{-1}B)\right)^{-1}CA^{-1}\\
+		&=A^{-1}-A^{-1}B\left(D+CA^{-1}B\right)^{-1}CA^{-1}
+		\end{aligned}
+	\end{equation}
+\end{proof}
+
+\begin{remark}[Rank reduction]
+	One of the main numerical uses of the Woodbury inversion formula is to find the correct decomposition $M=A+BD^{-1}C$ such that $A$ is easy to invert, and $p$ is smaller than $n$. When these conditions are met, inverting M amounts to inverting $\tilde{M}=D+CA^{-1}B$, which has a complexity of $\mathcal{O}(p^3)$ instead of the standard $\mathcal{O}(n^3)$. This method is called inversion by rank reduction because $n$ and $p$ are the respective ranks of $M$ and $\tilde{M}$.
+\end{remark}

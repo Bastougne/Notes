@@ -1,0 +1,75 @@
+\documentclass[
+	12pt,
+	UKenglish,
+	a4paper
+	]{book}
+
+\usepackage[
+	margin=2.5cm,
+	bindingoffset=1cm,
+	]{geometry}
+
+\usepackage[T1]{fontenc} % autorise les petites majuscules en gras
+
+\usepackage[Glenn]{fncychap} % headers de chapitres etc encadrés
+
+\makeatletter
+\let\ps@plain\ps@headings % headers de pages de chapitres comme pour les pages usuelles
+\makeatother
+
+\usepackage{etoc} % sommaire par chapitre
+
+\usepackage{amsmath,amsthm,amsfonts,amssymb,bbm} % packages de maths
+\usepackage{algorithm,algpseudocode} % packages d'info
+
+\makeatletter
+\renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}} % identifiants de lignes uniques pour les algorithmes
+\makeatother
+
+\usepackage[
+	colorlinks=true,
+	linkcolor=blue
+	]{hyperref} % références interactibles
+
+\usepackage{
+	cleveref, % références avec noms automatiques
+	graphicx, % pour ajouter des images
+	indentfirst, % indenter les premiers paragraphes
+	setspace % double/single spacing
+}
+
+\numberwithin{figure}{chapter}
+\numberwithin{table}{chapter}
+\numberwithin{algorithm}{chapter}
+
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{assumption}{Assumption}[chapter]
+\newtheorem{proposition}{Proposition}[chapter]
+\newtheorem{remark}{Remark}[chapter]
+
+\crefname{assumption}{assumption}{assumptions}
+
+\begin{document}
+
+\input{include/0_administratif.tex}
+
+\input{include/1_introduction.tex}
+
+\part{Mathematical Foundations}
+
+\input{include/2_bayesian_estimation.tex}
+\input{include/2_Monte_Carlo.tex}
+\input{include/2_particle_filtering.tex}
+
+\input{include/3_Gaussian_processes.tex}
+%\input{3_gaussian_processes_Claude.tex}
+
+\part{Navigating on Gaussian Processes}
+
+\part{Appendix}
+
+\appendix
+
+\input{include/9_appendix.tex}
+
+\end{document}
