@@ -1,4 +1,4 @@
-\chapter{Gaussian Process Estimation}
+\chapter{Gaussian Process Regression}\label{sec:Gaussian_processes}
 
 \vfill
 \localtableofcontents
@@ -7,103 +7,511 @@
 
 \section{Introduction}
 
-In \Cref{sec:Bayesian_estimation}, we introduced the filtering problem for autonomous navigation, and presented standard algorithms, from analytical methods to advanced particle filters. While the latter are very versatile techniques, they still require knowledge of the observation function $h_k$. In many practical situations, however, it depends on a physical field that is either unavailable, or known only through scarce and noisy measurements.
+The analytical and Monte Carlo methods of \cref{sec:Bayesian_estimation} all assume that the observation function $h_k$ is fully known. In many navigation scenarios, however, $h_k$ depends on a physical field --- a terrain elevation map, a magnetic anomaly map --- that is either unavailable or known only through scarce and noisy measurements. This chapter models such a field as a Gaussian process (GP), a probability distribution over functions that encodes both a prior expectation of the field and its spatial correlation structure. The resulting estimator of the field, together with its uncertainty, can then serve as a surrogate observation model for the filters of \cref{sec:Bayesian_estimation}.
 
-This chapter attempts to alleviate this issue by modelling the environment as a Gaussian process (GP),
+The chapter is organised as follows:
+\begin{itemize}
+	\item\Cref{sec:GP_definition} defines Gaussian processes, shows that they are entirely characterised by a mean function and a covariance kernel, and discusses the choice of kernel and the estimation of its hyperparameters.
+	\item\Cref{sec:kriging} derives Gaussian process regression, or kriging, as the posterior estimate of the field: simple kriging when the mean is known, and ordinary kriging when it is an unknown constant.
+	\item\Cref{sec:functional_representations} presents two kernel-induced functional representations exploited later in this thesis: reduced-rank approximations, which alleviate the cubic cost of exact kriging, and the reproducing kernel Hilbert space, which gives a deterministic interpretation of kriging as minimum-norm interpolation.
+\end{itemize}
 
+\section{Gaussian Processes}\label{sec:GP_definition}
 
-which will the be used to derive reformulations or approximations of $h_k$ for the algorithms of \Cref{sec:Bayesian_estimation} \textbf{TODO: c'est giga moche comme phrase}.
-
-
-\section{Gaussian Processes}
+\textbf{TODO: partie à faire plus tard}
 
 \subsection{Definition and Basic Properties}
 
-A stochastic process generalises the notion of random variable to a random function, \textit{i.e.} a family $(f(u))_{u\in\mathcal{U}}$ of random variables indexed by a set $\mathcal{U}$.
+A stochastic process generalises the notion of random variable to a random function, \textit{i.e.} a family $(f(u))_{u\in\mathcal{U}}$ of random variables indexed by a set $\mathcal{U}$, which may represent time $\mathbb{R}_+$, physical space $\mathbb{R}^2$ or $\mathbb{R}^3$, or any other domain.
 
-\begin{definition}[Gaussian process]
-	For $d_{GP}\in\mathbb{N}^*$, a stochastic process $(f(u))_{u\in\mathcal{U}}$ on $\mathbb{R}^{d_{GP}}$ is a GP if every finite linear combination of its values follows a Gaussian distribution: for all $n\in\mathbb{N}^*$, all $u_1,\dots,u_n\in\mathcal{U}$, and all $a\in\mathbb{R}^n$, there exists $m\in\mathbb{R}^{d_{GP}}$ and $P\in\mathcal{M}_{d_{GP},d_{GP}}(\mathbb{R})$ with $P\succeq0$ such that:
+\begin{definition}[Gaussian process]\label{th:GP_definition}
+	For $d_z\in\mathbb{N}^*$, a stochastic process $(f(u))_{u\in\mathcal{U}}$ taking values in $\mathbb{R}^{d_z}$ is a GP if every finite linear combination of its values follows a Gaussian distribution: for all $n\in\mathbb{N}^*$, all $u_1,\dots,u_n\in\mathcal{U}$ and all $a\in\mathbb{R}^n$, there exist $m\in\mathbb{R}^{d_z}$ and $P\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$ with $P\succeq0$ such that:
 	\begin{equation}
-		\sum_{i=1}^na_if(u_i)\sim\mathcal{N}(m,P)
+		\sum_{i=1}^na_i\:f(u_i)\sim\mathcal{N}(m,P)
 	\end{equation}
 \end{definition}
 
 A GP is associated with a mean function:
 \begin{equation}
 	m:\left\{\begin{aligned}
-	\mathcal{U}&\rightarrow\mathbb{R}^{d_{GP}}\\
+	\mathcal{U}&\rightarrow\mathbb{R}^{d_z}\\
 	u&\mapsto\mathbb{E}[f(u)]
 	\end{aligned}\right.
 \end{equation}
-and its covariance kernel:
+and a covariance kernel:
 \begin{equation}
 	k:\left\{\begin{aligned}
-	\mathcal{U}\times\mathcal{U}&\rightarrow\mathcal{M}_{d_{GP},d_{GP}}(\mathbb{R})\\
-	u,v&\mapsto\mathbb{E}[(f(u)-m(u))(f(v)-m(v))^\top]
+	\mathcal{U}\times\mathcal{U}&\rightarrow\mathcal{M}_{d_z,d_z}(\mathbb{R})\\
+	(u,v)&\mapsto\mathbb{E}\left[(f(u)-m(u))(f(v)-m(v))^\top\right]
 	\end{aligned}\right.
 \end{equation}
-
-\Cref{th:GP_marginals} proves that a GP is entirely characterised by $m$ and $k$. We thus write $f\sim\mathcal{GP}(m,k)$ to denote that $f$ is a GP with mean function $m$ and covariance kernel $k$.
-
-\textbf{TODO: reprendre ici}
+We write $f\sim\mathcal{GP}(m,k)$ for a GP with mean function $m$ and covariance kernel $k$. As shown by \Cref{th:GP_marginals}, this notation is justified: $m$ and $k$ entirely characterise the law of $f$.\textbf{TODO: établir le lien : argument de continuité de Kolmogorov !}
 
 \begin{proposition}[Finite-dimensional marginals]\label{th:GP_marginals}
-	For $n\in\mathbb{N}^*$, let $u_1,\dots,u_n\in\mathcal{U}$. The joint distribution of $f(u_1),\dots,f(u_n)$ is the following multivariate Gaussian distribution:
+	For $n\in\mathbb{N}^*$, let $u_1,\dots,u_n\in\mathcal{U}$. The joint distribution of $F\triangleq[f(u_1),\dots,f(u_n)]^\top$ is the multivariate Gaussian:
 	\begin{equation}
 		\begin{bmatrix}
 		f(u_1)\\\vdots\\f(u_n)
 		\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}
 		m(u_1)\\\vdots\\m(u_n)
 		\end{bmatrix},\begin{bmatrix}
-		k(u_1,u_1)&\dots&k(u_1,u_n)\\\vdots&\ddots&\vdots\\k(u_n,u_1)&\dots&k(u_n,u_n)
-		\end{bmatrix}\right)
+		k(u_1,u_1)&\cdots&k(u_1,u_n)\\\vdots&\ddots&\vdots\\k(u_n,u_1)&\cdots&k(u_n,u_n)
+		\end{bmatrix}\right)\label{eq:GP_marginal}
 	\end{equation}
-	where each block $k(u_i,u_j)\in\mathcal{M}_{d_{GP},d_{GP}}$. A GP is thus a consistent generalisation of the multivariate Gaussian distribution to a countably infinite set of inputs.
+	where each block $k(u_i,u_j)\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$.
 \end{proposition}
 
-The two parameters of a GP have a natural probabilistic interpretation. The mean function $m$ encodes a prior knowledge of about the average behaviour of $f$, while $k$ encodes the spatial correlations between the inputs. In the context of this thesis, $m$ can b interpreted as a simple model of the observation function, and $k$ as a measure of the incertainty and spatial variability of this model.
+\begin{proof}
+	By \Cref{th:GP_definition}, every linear combination of the blocks $f(u_i)$ is Gaussian, so $F$ is a Gaussian vector of $\mathbb{R}^{nd_z}$. Such a vector is entirely determined by its mean and covariance, so it suffices to compute them. By linearity of the expectation:
+	\begin{equation}
+		\mathbb{E}[F]=\begin{bmatrix}\mathbb{E}[f(u_1)]\\\vdots\\\mathbb{E}[f(u_n)]\end{bmatrix}=\begin{bmatrix}m(u_1)\\\vdots\\m(u_n)\end{bmatrix}
+	\end{equation}
+	and the $(i,j)$ block of the covariance is, by definition of $k$:\textbf{TODO: à améliorer}
+	\begin{equation}
+		\mathbb{V}[F]_{i,j}=\mathbb{E}\left[(f(u_i)-m(u_i))(f(u_j)-m(u_j))^\top\right]=k(u_i,u_j)
+	\end{equation}
+	which is \eqref{eq:GP_marginal}. Since this holds for every finite collection $u_1,\dots,u_n$, the whole family of finite-dimensional marginals of $f$, and hence its law, depends only on $m$ and $k$.
+\end{proof}
+
+A GP is thus a consistent generalisation of the multivariate Gaussian distribution to an infinite index set. Both of its parameters admit a direct interpretation. The mean function $m$ encodes prior knowledge about the average behaviour of $f$, while the kernel $k$ encodes the correlation structure: the diagonal blocks $k(u,u)$ measure the variance of $f$ at $u$, and the off-diagonal blocks $k(u,v)$ for $u\neq v$ capture how the values at $u$ and $v$ co-vary. In the context of this thesis, $m$ is interpreted as a simplified model of the observation function, and $k$ as a measure of the uncertainty and spatial variability around this model.
 
 \subsection{Covariance Kernels}
 
-While the choice of mean function generally depends on the application at hand, it is the covariance kernel that governs the smoothness and correlation structure of the GP, and thus the class of functions it can represent. In this section, we introduce mandatory properties of covariance kernels, and present popular choices of kernels.
+While the mean function generally reflects application-specific prior knowledge, it is the covariance kernel that governs the smoothness and correlation structure of the GP, and thus the class of functions it can represent. For $k$ to be a valid covariance kernel, it must be SPSD in the sense of \Cref{th:kernel_SPSD}.
 
-For $k$ to be a valid covariance kernel, it must be SPSD, in the sense of \Cref{th:kernel_SPSD}.
-
-\begin{definition}[Kernel symmetric positive definiteness]\label{th:kernel_SPSD}
-	A kernel $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}^{d_{GP}}$ is SPSD if:
+\begin{definition}[Kernel symmetric positive semi-definiteness]\label{th:kernel_SPSD}
+	A kernel $k:\mathcal{U}\times\mathcal{U}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is SPSD if it is:
 	\begin{itemize}
 		\item\textbf{Symmetry}
 		\begin{equation}
 			\forall u,v\in\mathcal{U},\:k(v,u)=k(u,v)^\top
 		\end{equation}
-		\item\textbf{Positive semi-definiteness} For all $n\in\mathbb{N}^*$, all $u_1,\dots,u_n\in\mathcal{U}$, and all $a_1,\dots,a_n\in\mathbb{R}^{d_{GP}}$:
+		\item\textbf{Positive semi-definiteness} For all $n\in\mathbb{N}^*$, all $u_1,\dots,u_n\in\mathcal{U}$, and all $a_1,\dots,a_n\in\mathbb{R}^{d_z}$:
 		\begin{equation}
 			\sum_{i=1}^n\sum_{j=1}^na_i^\top\:k(u_i,u_j)\:a_j\geq0
 		\end{equation}
 	\end{itemize}
 \end{definition}
 
-It must be noted that the SPSDness of a kernel can be considered as a weker version of \Cref{th:matrix_SPSD}, since it doesn't require every $k(u,v)$ to be SPSD. This is due to cross-covariances that may be non-positive definite when $u\neq v$. However, $k(u,u)$ is always SPSD in the matrix sense.
+\begin{remark}[SPSD kernels and SPSD matrices]
+	The SPSDness of a kernel can be considered as a weaker version of \Cref{th:matrix_SPSD}, as it does not require every $k(u,v)$ to be SPSD. For instance, a cross-covariance $k(u,v)$ with $u\neq v$ may be non-positive or even non-symmetric. It does, however, guarantee that the joint covariance matrix in \eqref{eq:GP_marginal} is SPSD for every finite number of inputs, which is exactly the condition for that matrix to be a valid Gaussian covariance matrix. In particular, each diagonal block $k(u,u)$ is SPSD in the matrix sense.
+\end{remark}
 
-The rest of this section is structured as follows: \Cref{th:radial_kernel} presents an important category of kernels called radial kernels, and %\Cref{th:Matern} defines the Matérn kernels, a common family of radial kernels. Finally, \Cref{th:SE_kernel} describes a particular case of Matérn kernel, called the squared exponential (SE) kernel.
+The rest of this section is structured as follows: \Cref{th:radial_kernel} presents an important category of kernels called radial kernels, and \Cref{th:Matérn} defines the Matérn kernels, a common family of radial kernels. Finally, \Cref{th:SE_kernel} describes a particular case of Matérn kernel, called the squared exponential (SE) kernel.
+
+For the remainder of this thesis, the GP models a scalar physical field, so we take $d_z=1$ and restrict our attention to \textit{stationary} kernels, which depend on $x$ and $x'$ only through their difference $x-x'$, and more specifically to \textit{isotropic} ones, which depend only on the distance $r\triangleq\|x-x'\|$ --- also known as radial basis functions. For such kernels, the regularity of the sample paths is governed by the behaviour of $k$ near the origin: the process is $p$ times mean-square differentiable when $k$ is $2p$ times differentiable at $r=0$. We present the two families used in this thesis in order of increasing smoothness, namely the Matérn family, whose regularity is tunable, and the squared exponential kernel, recovered as its infinitely smooth limit.
 
 \begin{definition}[Radial kernel]\label{th:radial_kernel}
 	A kernel $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}^{d_{GP}}$ is radial if there exists a function $f:\mathbb{R}_+\to\mathbb{R}^{d_{GP}}$ and a metric $d$ on $\mathcal{U}$ such that:
 	\begin{equation}
 		k=f\circ d
 	\end{equation}
+	To simplify notations, we identify $f$ with $k$ in the remainder of this document, such that we write:
+	\begin{equation}
+		\forall u,v\in\mathcal{U},\:k(u,v)=k(d(u,v))
+	\end{equation}
 \end{definition}
 
-Since our applications rely on using GPs to model a physiacl field, 
+\begin{definition}[Matérn kernel]\label{th:Matérn}
+	Let $\nu>0$ and $l>0$. The Matérn kernel of smoothness $\nu$ and correlation scale $l$ is the radial kernel defined as:
+	\begin{equation}
+		k_{\nu,l}:r\in\mathbb{R}_+\mapsto\frac{2^{1-\nu}}{\Gamma(\nu)}\left(\frac{\sqrt{2\nu}\:r}{l}\right)^\nu K_\nu\left(\frac{\sqrt{2\nu}\:r}{l}\right)
+	\end{equation}
+	where $\Gamma$ is the Gamma function, and $K_\nu$ is the modified Bessel function of the second kind
+\end{definition}
 
-\newpage
+The parameter $\nu$ controls the regularity: the process is $p$ times mean-square differentiable if and only if $\nu>p$. For half-integer $\nu=p+\tfrac{1}{2}$ with $p\in\mathbb{N}$, the kernel is the product of an exponential and a polynomial of degree $p$; the cases most used in practice are:
+\begin{align}
+	k_{1/2}(r)&=\sigma_f^2\:\exp\left(-\frac{r}{l}\right)\\
+	k_{3/2}(r)&=\sigma_f^2\left(1+\frac{\sqrt{3}\:r}{l}\right)\exp\left(-\frac{\sqrt{3}\:r}{l}\right)\\
+	k_{5/2}(r)&=\sigma_f^2\left(1+\frac{\sqrt{5}\:r}{l}+\frac{5\:r^2}{3\:l^2}\right)\exp\left(-\frac{\sqrt{5}\:r}{l}\right)
+\end{align}
+The case $\nu=\tfrac{1}{2}$ is the exponential kernel, whose paths are continuous but nowhere differentiable (in dimension one, the Ornstein-Uhlenbeck process). The values $\nu=\tfrac{3}{2}$ and $\nu=\tfrac{5}{2}$, which yield once- and twice-differentiable paths, are usually the most relevant for physical fields; beyond $\nu\geq\tfrac{7}{2}$, the paths can hardly be distinguished from infinitely smooth ones given finite noisy data.
 
-\subsection{Hyperparameter Estimation}
+\subsubsection{Squared Exponential Kernel}
 
-\section{Gaussian Process Regression}
+As $\nu\to\infty$, the Matérn kernel converges to the squared exponential (SE) kernel, the most widely used kernel in practice:
+\begin{equation}
+	k_{SE}(x,x')\triangleq\sigma_f^2\:\exp\left(-\frac{1}{2}(x'-x)^\top M\:(x'-x)\right),\qquad M\triangleq\textup{diag}(l)^{-2}\label{eq:SE_kernel}
+\end{equation}
+written here in anisotropic form, where $l\in(\mathbb{R}_+^*)^{d}$ is a vector of length scales: $l_i$ sets the characteristic distance along dimension $i$ beyond which the values of $f$ become essentially uncorrelated, the isotropic case corresponding to $l_i\equiv l$. Being infinitely differentiable at the origin, the SE kernel produces infinitely smooth sample paths. A sum of SE kernels with distinct length scales captures local fluctuations and global trends simultaneously:
+\begin{equation}
+	k(x,x')=\sum_{j=1}^J\sigma_{f_j}^2\:\exp\left(-\frac{1}{2}(x'-x)^\top M_j\:(x'-x)\right),\qquad M_j\triangleq\textup{diag}(l_j)^{-2}\label{eq:SE_mixture}
+\end{equation}
+
+\begin{remark}[Smoothness and physical fields]
+	The infinite smoothness assumed by the SE kernel is often deemed unrealistic for physical processes, for which a finite-regularity Matérn kernel --- typically $\nu=\tfrac{3}{2}$ or $\tfrac{5}{2}$ --- is usually preferred. The SE kernel nonetheless remains a convenient default and, through its Gaussian spectral density, underlies the reduced-rank approximation of \cref{sec:reduced_rank}.
+\end{remark}
+
+\subsection{Hyperparameter Estimation}\label{sec:hyperparameters}
+
+The kernel depends on hyperparameters $\theta$ --- for instance $\sigma_f^2$ and $l$ for the SE kernel --- that must be inferred from the data. Given training inputs $X$ and the corresponding observations $Z$, the standard approach maximises the marginal likelihood of the observations, a procedure known as evidence maximisation. Writing $K_\theta\triangleq k_\theta(X,X)$ for the kernel matrix and assuming, in the absence of prior information, a zero mean function, the observations are jointly Gaussian:
+\begin{equation}
+	p(Z|X,\theta)=\frac{\displaystyle\exp\left(-\frac{1}{2}Z^\top K_\theta^{-1}Z\right)}{\sqrt{(2\pi)^n\:\textup{det}(K_\theta)}}\label{eq:marginal_likelihood}
+\end{equation}
+
+\begin{proposition}[Maximum likelihood hyperparameters]\label{th:GP_MLE}
+	A hyperparameter vector $\theta$ maximising \eqref{eq:marginal_likelihood} satisfies, for each component $\theta_i$:
+	\begin{equation}
+		\textup{tr}\left[\left((K_\theta^{-1}Z)(K_\theta^{-1}Z)^\top-K_\theta^{-1}\right)\frac{\partial K_\theta}{\partial\theta_i}\right]=0\label{eq:GP_MLE}
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	Maximising \eqref{eq:marginal_likelihood} is equivalent to maximising its logarithm:
+	\begin{equation}
+		\ell(\theta)\triangleq\log p(Z|X,\theta)=-\frac{1}{2}\left(Z^\top K_\theta^{-1}Z+\log\textup{det}(K_\theta)\right)-\frac{n}{2}\log(2\pi)
+	\end{equation}
+	A maximiser cancels every partial derivative. Using the differential of the matrix inverse, $\frac{\partial}{\partial\theta_i}K_\theta^{-1}=-K_\theta^{-1}\frac{\partial K_\theta}{\partial\theta_i}K_\theta^{-1}$, and Jacobi's formula, $\frac{\partial}{\partial\theta_i}\log\textup{det}(K_\theta)=\textup{tr}\left(K_\theta^{-1}\frac{\partial K_\theta}{\partial\theta_i}\right)$, it comes that:
+	\begin{equation}
+		\begin{aligned}
+		\frac{\partial\ell}{\partial\theta_i}=0
+		\iff&\:Z^\top K_\theta^{-1}\frac{\partial K_\theta}{\partial\theta_i}K_\theta^{-1}Z-\textup{tr}\left(K_\theta^{-1}\frac{\partial K_\theta}{\partial\theta_i}\right)=0\\
+		\iff&\:\textup{tr}\left[\left((K_\theta^{-1}Z)(K_\theta^{-1}Z)^\top-K_\theta^{-1}\right)\frac{\partial K_\theta}{\partial\theta_i}\right]=0
+		\end{aligned}
+	\end{equation}
+	using the cyclic property of the trace to rewrite the scalar quadratic form $Z^\top K_\theta^{-1}\frac{\partial K_\theta}{\partial\theta_i}K_\theta^{-1}Z$ as $\textup{tr}\left((K_\theta^{-1}Z)(K_\theta^{-1}Z)^\top\frac{\partial K_\theta}{\partial\theta_i}\right)$, since $K_\theta^{-1}$ is symmetric.
+\end{proof}
+
+\begin{remark}[Non-convexity]
+	The log-marginal-likelihood is generally non-convex in $\theta$, so \eqref{eq:GP_MLE} is solved numerically by gradient-based optimisation, and may admit several local maxima corresponding to different interpretations of the data, \textit{e.g.} a low-noise rapidly-varying field versus a high-noise slowly-varying one.
+\end{remark}
+
+\textbf{TODO: fin de la zone à reprendre}
+
+\section{Kriging}\label{sec:kriging}
+
+Gaussian process regression, or kriging, estimates the value of a field at an unobserved location using noisy measurements of the same field at known locations. Formally, let $f\sim\mathcal{GP}(m,k):\mathcal{U}\to\mathbb{R}^{d_z}$, and $x\in\mathcal{U}$. We wish to estimate the law of:
+\begin{equation}
+	z\triangleq f(x)+\varepsilon,\qquad\varepsilon\sim\mathcal{N}(0,R),\qquad R\succeq0
+\end{equation}
+
+Without further information regarding $f$, we would only be able to state that $z$ follows a Gaussian distribution of expectation $m(x)$ and covariance $k(x,x)+R$. However, we are given $\tilde{n}\in\mathbb{N}^*$ training points $\tilde{\mathbf{x}}\triangleq[\tilde{x}_1,\cdots,\tilde{x}_{\tilde{n}}]^\top$ and their corresponding noisy observations:
+\begin{equation}
+	\tilde{\mathbf{z}}\triangleq\begin{bmatrix}
+		f(\tilde{x}_1)+\varepsilon_1\\\vdots\\f(\tilde{x}_{\tilde{n}})+\varepsilon_{\tilde{n}}
+	\end{bmatrix},\qquad\varepsilon_i\sim\mathcal{N}(0,\tilde{R}),\qquad\tilde{R}\succeq0
+\end{equation}
+where the observation noises are also independent of $f$.
+
+The goal of this section is to derive the best linear unbiased estimator (BLUE) of $z$ with respect to $\tilde{\mathbf{z}}$, \textit{i.e.} the estimator:
+\begin{equation}
+	\hat{z}=\Lambda^\top\tilde{\mathbf{z}}
+\end{equation}
+parametrised by a weight matrix:
+\begin{equation}
+	\Lambda=[\lambda_1,\cdots,\lambda_{\tilde{n}}]^\top\in\mathcal{M}_{\tilde{n}d_z,d_z}(\mathbb{R})
+\end{equation}
+such that the error vector has an expectation of $0$ and a minimum covariance. Since $\hat{z}-z$ is a vector, its covariance is a matrix, and cannot be minimised as such.
+
+To alleviate this issue, we minimise its trace, which is exactly the total mean error:
+\begin{equation}
+	\textup{tr}(\mathbb{V}[\hat{z}-z])=\mathbb{E}\left[\|\hat{z}-z\|^2\right]\label{eq:error_covariance}
+\end{equation}
+
+In the following, we present three kriging estimates, based on increasingly relaxed assumptions made on the underlying GP. \textbf{TODO: introduire la matrice de Gram et les notations k(x,X) ici ? ok pour Gram, mais on introduira les notations vectorielles plus haut. il faut aussi introduire le symbole de Kronecker}
+
 \subsection{Simple Kriging}
+
+Simple kriging is the simplest form of kriging, and assumes that the mean function $m$ is known. \Cref{th:simple_kriging} gives a closed-form expression of the simple kriging estimator and its associated covariance matrix, while \Cref{th:simple_kriging_conditional} shows that is coincides with the conditional distribution of $z$ given $\tilde{\mathbf{z}}$.
+
+\begin{proposition}[Simple kriging estimator]\label{th:simple_kriging}
+	Using the notaions introduced in \cref{sec:kriging}, the simple kriging estimator of $z$ and its error covariance are:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\hat{z}_s(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=m(x)+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\:(\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}}))\\
+		\hat{R}_s(x,\tilde{\mathbf{x}})&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\:k\left(\tilde{\mathbf{x}},x\right)
+		\end{aligned}\right.\label{eq:simple_kriging_equations}
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	Since $m$ is known, we may assume it to be equal to $0$ by working with $f-m$ instead of $f$, without any loss of generality. In the centred case, \eqref{eq:error_covariance} can be developped as follows:
+	\begin{equation}
+		\mathbb{V}[\Lambda^\top\tilde{\mathbf{z}}-z]=\Lambda^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-\Lambda^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:\Lambda+k(x,x)+R
+	\end{equation}
+
+	By symmetry of $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$, differentiating \eqref{eq:error_covariance} with respect to $\Lambda$ yields:
+	\begin{equation}
+		\begin{aligned}
+		&\frac{\partial}{\partial\Lambda}\left(\textup{tr}\left(\Lambda^\top\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\Lambda-\Lambda^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:\Lambda+k(x,x)+R\right)\right)=0\\
+		\iff\quad&\frac{\partial}{\partial\Lambda}\left(\textup{tr}\left(\Lambda^\top\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\Lambda\right)\right)-2\frac{\partial}{\partial\Lambda}\left(\textup{tr}\left(\Lambda^\top k(\tilde{\mathbf{x}},x)\right)\right)=0\\
+		\iff\quad&2G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-2k(\tilde{\mathbf{x}},x)=0\\
+		\iff\quad&\Lambda=G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)
+		\end{aligned}
+	\end{equation}
+
+	The simple kriging estimator is thus:
+	\begin{equation}
+		\hat{z}_s=\Lambda^\top\tilde{\mathbf{z}}=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}
+	\end{equation}
+	and its corresponding covariance:
+	\begin{equation}
+		\begin{aligned}
+		\hat{R}_s&=\Lambda^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-\Lambda^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:\Lambda+k(x,x)+R\\
+		&=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
+		&\qquad-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)+k(x,x)+R\\
+		&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)
+		\end{aligned}
+	\end{equation}
+
+	The general case is obtained by adding $m$ back into $f$.
+\end{proof}
+
+\begin{remark}[Error covariance minimisation]
+	While the simple kriging weights $\Lambda=G^{-1}k(\tilde{X},x)$ were obtained by minimising the trace of $\mathbb{V}[\hat{z}-z]$, they actually minimise the whole covariance in the SPSD sense. Indeed:
+	\begin{equation}
+		\begin{aligned}
+		\mathbb{V}[\hat{z}-z]-\hat{R}_s&=\Lambda^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-\Lambda^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:\Lambda+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
+		&=\left(\Lambda-G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\left(\Lambda-G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)\\
+		&\succeq0
+		\end{aligned}
+	\end{equation}
+	with equality if and only if $\Lambda=G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)$ since $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\succ0$ is an invertible covariance matrix.
+\end{remark}
+
+\begin{proposition}[Gaussian conditioning interpretation]\label{th:simple_kriging_conditional}
+	The conditional distribution of $z$ knowing $\tilde{\mathbf{z}}$ is Gaussian with mean $\hat{z}_s$ and covariance $\hat{R}_s$:
+	\begin{equation}
+		z|\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_s(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m),\hat{R}_s(x,\tilde{\mathbf{x}})\right)
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	Since they are evaluations of the same GP under an additive Gaussian white noise, $z$ and $\tilde{\mathbf{z}}$ are jointly Gaussian. Their joint distribution is:
+	\begin{equation}
+		\begin{bmatrix}
+		z\\\tilde{\mathbf{z}}
+		\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}
+		m(x)\\m(\tilde{\mathbf{x}})
+		\end{bmatrix},\begin{bmatrix}
+		k(x,x)+R&k(x,\tilde{\mathbf{x}})\\k(\tilde{\mathbf{x}},x)&G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})
+		\end{bmatrix}\right)
+	\end{equation}
+
+	The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) directly gives the desired result.
+\end{proof}
+
+This result is a special case of the more general result established in \Cref{th:MMSE_estimator}. Since the unbiased hypothesis of the BLUE is automatically verified by the simple kriging estimator, the minimisation criterion \eqref{eq:error_covariance} amounts to finding the MMMSE estimator of $z$ given $\tilde{\mathbf{z}}$, which is always the conditional expectation.
+
+\begin{remark}[Simultaneous estimation]
+	The simultaneous estimation of $f$ ate several query points $\mathbf{x}=(x_1,\cdots,x_n)\in\mathcal{U}^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. However, one must be carefull to only compute the block diagonal of $\hat{R}_s(\mathbf{x},\tilde{\mathbf{x}})$, as it would otherwise increase the computational cost from $\mathcal{O}\left(n\tilde{n}^3\right)$ to $\mathcal{O}\left(n^3\tilde{n}^3\right)$ due to matrix multiplications and inversions. In practice, if the Gram matrix $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$ is precomputed before performing the estimation, their is no computational difference between successive and simultaneous kriging.
+\end{remark}
+
 \subsection{Ordinary Kriging}
 
-\section{Kernel-Induced Fucntionnal Representations}
-\subsection{Reduced-Rank Approximation}
-\subsection{Reproducing Kernel Hilbert Space Formulation}
+Assuming the mean function to be known is a very strong assumption, that is often not verified in real case scenarios. While an approximated model could be used instead of the real $m$, this would cause the kriging estimator to be over-confident in its estimation. The ordinary kriging extends its simple counterpart by assuming that $m$ is an unknown constant $m\in\mathbb{R}^{d_z}$, and learning $m$ alongside the weights.
+
+The unbiased assumption of the ordinary kriging estimator yields:
+\begin{equation}
+	\begin{aligned}
+	&\mathbb{E}[\hat{z}-z]=0\\
+	\iff\quad&\Lambda^\top\mathbb{E}[\tilde{\mathbf{z}}]-\mathbb{E}[z]=0\\
+	\iff\quad&\left(\sum_{i=1}^{\tilde{n}}\lambda_i^\top-I_{d_z}\right)m=0\\
+	\iff\quad&C^\top\Lambda-I_{d_z}=0
+	\end{aligned}\label{eq:ordinary_kriging_constraint}
+\end{equation}
+with:
+\begin{equation}
+	C\triangleq\mathbf{1}_{\tilde{n}}\otimes I_{d_z}
+\end{equation}
+
+The ordinary kriging weights thus minimise \eqref{eq:kriging_variance} under the constraint \eqref{eq:ordinary_kriging_constraint}. Using the Lagrange multiplier method, \Cref{th:ordinary_kriging} derives the corresponding estimator and covariance matrix, and \Cref{th:ordinary_simple_kriging_link} establishes the link between ordinary and simple kriging.
+
+\begin{proposition}[Ordinary kriging estimator]\label{th:ordinary_kriging}
+	The ordinary kriging estimator of $z$ given $\tilde{\mathbf{z}}$ and its error covariance are:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\hat{z}_o(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-C\:m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\right)\\
+		\hat{R}_o(x,\tilde{\mathbf{x}})&=\hat{R}_{m_o}(x,\tilde{\mathbf{x}})+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\:k\left(\tilde{\mathbf{x}},x\right)
+		\end{aligned}\right.\label{eq:ordinary_kriging_equations}
+	\end{equation}
+	with:
+	\begin{equation}
+		\left\{\begin{aligned}
+		m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=\left(C^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C\right)^{-1}C^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
+		\hat{R}_{m_o}(x,\tilde{\mathbf{x}})&=\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C\right)\left(C^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C\right)^{-1}\\
+		&\qquad\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C\right)^\top
+		\end{aligned}\right.\label{eq:kriged_ordinary_mean}
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	Let:
+	\begin{equation}
+		\mathcal{L}(\Lambda,\xi)\triangleq\textup{tr}\left(\mathbb{V}\left[\Lambda^\top\tilde{\mathbf{z}}-z\right]\right)+2\:\textup{tr}\left(\xi^\top\left(C^\top\Lambda-I_{d_z}\right)\right)
+	\end{equation}
+	be the Lagrangian associated with the optimisation problem \eqref{eq:kriging_variance} under the constraint \eqref{eq:ordinary_kriging_constraint}, and $\xi\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$ the corresponding Lagrange multiplier.
+
+	This problem is solved by finding the minimum of $\mathcal{L}$, \textit{i.e.} finding a zero of its derivative. The same properties used in the proof of \Cref{th:simple_kriging} give:
+	\begin{equation}
+		\begin{aligned}
+		&\frac{\partial\mathcal{L}}{\partial\Lambda}(\Lambda,\xi)=0\\
+		\iff\quad&2G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-2k(\tilde{\mathbf{x}},x)+2\frac{\partial}{\partial\Lambda}\left(\textup{tr}\left(\xi^\top\left(C^\top\Lambda-I_{d_z}\right)\right)\right)=0\\
+		\iff\quad&2G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-2k(\tilde{\mathbf{x}},x)+2C\xi=0\\
+		\iff\quad&G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda+C\xi=k(\tilde{\mathbf{x}},x)
+		\end{aligned}
+	\end{equation}
+
+	Together with the constraint $C^\top\Lambda=I_{d_z}$, this yields the block system:
+	\begin{equation}
+		\begin{bmatrix}
+		G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})&C\\C^\top&0
+		\end{bmatrix}\begin{bmatrix}
+		\Lambda\\\xi
+		\end{bmatrix}=\begin{bmatrix}
+		k(\tilde{\mathbf{x}},x)\\I_{d_z}
+		\end{bmatrix}
+	\end{equation}
+
+	The left matrix block can be inverted using the upper left Schur inversion formula from \Cref{th:Schur}. Its Schur complement,
+	\begin{equation}
+		S\triangleq0-C^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C=-C^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C,
+	\end{equation}
+	is invertible since $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\succ0$ and $C$ has full column rank. Writing $G$ for $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$, the convention of \Cref{th:Schur} gives the top block row of the inverse:
+	\begin{equation}
+		\bar{A}=G^{-1}+G^{-1}C\:S^{-1}C^\top G^{-1},\qquad\bar{B}=-G^{-1}C\:S^{-1}
+	\end{equation}
+
+	In particular, it comes that:
+	\begin{equation}
+		\begin{aligned}
+		\Lambda&=\bar{A}\:k(\tilde{\mathbf{x}},x)+\bar{B}\:I_{d_z}\\
+		&=\left(G^{-1}+G^{-1}C\:S^{-1}C^\top G^{-1}\right)k(\tilde{\mathbf{x}},x)-G^{-1}C\:S^{-1}\:I_{d_z}\\
+		&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:S^{-1}\left(C^\top G^{-1}k(\tilde{\mathbf{x}},x)-I_{d_z}\right)\\
+		&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\left(C^\top G^{-1}C\right)^{-1}\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)
+		\end{aligned}
+	\end{equation}
+
+	The ordinary kriging estimator is thus:
+	\begin{equation}
+		\begin{aligned}
+		\hat{z}_o&=\Lambda^\top\tilde{\mathbf{z}}\\
+		&=k(x,\tilde{\mathbf{x}})G^{-1}\tilde{\mathbf{z}}+\left(I_{d_z}-k(x,\tilde{\mathbf{x}})G^{-1}C\right)\left(C^\top G^{-1}C\right)^{-1}C^\top G^{-1}\tilde{\mathbf{z}}\\
+		&=\left(C^\top G^{-1}C\right)^{-1}C^\top G^{-1}\tilde{\mathbf{z}}+k(x,\tilde{\mathbf{x}})\:G^{-1}\left(\tilde{\mathbf{z}}-C\left(C^\top G^{-1}C\right)^{-1}C^\top G^{-1}\tilde{\mathbf{z}}\right)
+		\end{aligned}
+	\end{equation}
+
+	The covariance matrix is obtained in a similar fashion. \textbf{TODO: à rajouter quand-même ?}
+\end{proof}
+
+\begin{remark}[Comparison between simple and ordinary kriging]\label{th:ordinary_simple_kriging_link}
+	The formulas obtained in \eqref{eq:ordinary_kriging_equations} closely resemble those of the simple kriging. In fact, they can be rewritten as follows:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\hat{z}_o(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=\hat{z}_o(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}}))\\
+		\hat{R}_o(x,\tilde{\mathbf{x}})&=\hat{R}_{m_o}(x,\tilde{\mathbf{x}})+\hat{R}_s(x,\tilde{\mathbf{x}})
+		\end{aligned}\right.
+	\end{equation}
+	where, by abuse of notation, $m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$ denotes either the estimated mean vector or its replication for each the training point $\tilde{\mathbf{x}}$, namely:
+	\begin{equation}
+		\underbrace{\begin{bmatrix}
+		m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}}),\cdots,m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
+		\end{bmatrix}}_{\tilde{n}\text{ times}}=C\:m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
+	\end{equation}
+
+	Ordinary kriging can therefore be interpreted as simple kriging in which the mean $m_o$ is concurrently estimated from the observations. The uncertainty associated with this second estimation is captured by the covariance term $\hat{R}_{m_o}\succeq0$, and is added to the simple kriging covariance.
+\end{remark}
+
+\subsection{Universal Kriging}
+
+\textbf{TODO}
+
+\section{Kernel-Induced Functional Representations}\label{sec:functional_representations}
+
+Beyond regression, the covariance kernel induces functional representations exploited later in this thesis. \Cref{sec:reduced_rank} replaces the GP by a finite-dimensional projection to alleviate the cubic cost of kriging, and \cref{sec:RKHS} interprets kriging as minimum-norm interpolation in a reproducing kernel Hilbert space.
+
+\subsection{Reduced-Rank Approximation}\label{sec:reduced_rank}
+
+The dominant cost of kriging is the inversion of the $\tilde{n}\times\tilde{n}$ Gram matrix $G$, which scales as $\mathcal{O}(\tilde{n}^3)$ and becomes prohibitive for large training sets. Reduced-rank methods approximate the kernel by a finite sum $k(x,x')\approx\sum_{j=1}^r s_j\:\phi_j(x)\:\phi_j(x')$ over $r\ll\tilde{n}$ fixed basis functions, which turns the $\tilde{n}\times\tilde{n}$ inversion into an $r\times r$ one. We follow the Hilbert-space method, tailored to stationary kernels, whose basis does not depend on the kernel hyperparameters.
+
+Assume $k$ to be stationary and isotropic, \textit{i.e.} $k(x,x')=k(\|x-x'\|)$. By Bochner's theorem, $k$ is then the inverse Fourier transform of a non-negative spectral density $S$, a duality known as the Wiener-Khinchin theorem:
+\begin{equation}
+	k(r)=\frac{1}{(2\pi)^d}\int_{\mathbb{R}^d}S(\omega)\:e^{i\omega^\top r}\:d\omega,\qquad S(\omega)=\int_{\mathbb{R}^d}k(r)\:e^{-i\omega^\top r}\:dr
+\end{equation}
+For the squared exponential kernel \eqref{eq:SE_kernel}, the spectral density is itself a Gaussian:
+\begin{equation}
+	S(\omega)=\sigma_f^2\:(2\pi)^{d/2}\left(\prod_{i=1}^dl_i\right)\exp\left(-\frac{1}{2}\omega^\top\textup{diag}(l)^2\:\omega\right)
+\end{equation}
+
+Restricting the field to a bounded domain $\Omega\subset\mathbb{R}^d$, let $(\lambda_j,\phi_j)_{j\geq1}$ be the eigenpairs of the negative Laplacian on $\Omega$ with Dirichlet boundary conditions:
+\begin{equation}
+	-\nabla^2\phi_j=\lambda_j\:\phi_j\:\text{ on }\Omega,\qquad\phi_j=0\:\text{ on }\partial\Omega
+\end{equation}
+which form an orthonormal basis of $L^2(\Omega)$. The stationary covariance operator $\varphi\mapsto\int k(\cdot,x')\:\varphi(x')\:dx'$ is a function of the Laplacian whose transfer function is the spectral density $S$; replacing the frequency $\|\omega\|^2$ by the Laplacian eigenvalues $\lambda_j$ yields the approximation:
+\begin{equation}
+	k(x,x')\approx\sum_{j=1}^rS\left(\sqrt{\lambda_j}\right)\phi_j(x)\:\phi_j(x')\label{eq:reduced_rank_kernel}
+\end{equation}
+On a box domain $\Omega=\prod_{i=1}^d[-L_i,L_i]$, the eigenpairs are explicit, indexed by $j=(j_1,\dots,j_d)\in(\mathbb{N}^*)^d$:
+\begin{equation}
+	\phi_j(x)=\prod_{i=1}^d\frac{1}{\sqrt{L_i}}\sin\left(\frac{\pi\:j_i\:(x_i+L_i)}{2L_i}\right),\qquad\lambda_j=\sum_{i=1}^d\left(\frac{\pi\:j_i}{2L_i}\right)^2
+\end{equation}
+
+Collecting the basis functions in $\Phi(x)\triangleq\begin{bmatrix}\phi_1(x)&\cdots&\phi_r(x)\end{bmatrix}^\top$ and the spectral weights in the diagonal matrix $\Lambda\triangleq\textup{diag}\left(S(\sqrt{\lambda_1}),\dots,S(\sqrt{\lambda_r})\right)$, \eqref{eq:reduced_rank_kernel} reads $k(x,x')\approx\Phi(x)^\top\Lambda\:\Phi(x')$. The regularised Gram matrix thus becomes $G\approx\Phi_{\tilde{X}}\:\Lambda\:\Phi_{\tilde{X}}^\top+\tilde{R}\:I_{\tilde{n}}$, where $\Phi_{\tilde{X}}\triangleq\begin{bmatrix}\Phi(\tilde{x}_1)&\cdots&\Phi(\tilde{x}_{\tilde{n}})\end{bmatrix}^\top\in\mathcal{M}_{\tilde{n},r}(\mathbb{R})$. As this is a rank-$r$ perturbation of a multiple of the identity, the Woodbury inversion formula (\Cref{th:Woodbury}) reduces the $\tilde{n}\times\tilde{n}$ inversion to an $r\times r$ one, and the simple kriging estimator \eqref{eq:simple_kriging_estimator} becomes, in the centred case:
+\begin{equation}
+	z_s^*\approx\Phi(x)^\top\left(\Phi_{\tilde{X}}^\top\Phi_{\tilde{X}}+\tilde{R}\:\Lambda^{-1}\right)^{-1}\Phi_{\tilde{X}}^\top\tilde{Z}
+\end{equation}
+bringing the overall cost down from $\mathcal{O}(\tilde{n}^3)$ to $\mathcal{O}(r^2\tilde{n})$.
+
+\begin{remark}[Hyperparameter-independent basis]
+	A decisive advantage of \eqref{eq:reduced_rank_kernel} is that the basis functions $\phi_j$, being eigenfunctions of the Laplacian, do not depend on the kernel hyperparameters $\theta$: only the diagonal weights $S(\sqrt{\lambda_j})$ do. Evidence maximisation (\Cref{th:GP_MLE}) thus recomputes only the diagonal $\Lambda$, the costly product $\Phi_{\tilde{X}}^\top\Phi_{\tilde{X}}$ being formed once and for all. The approximation becomes exact as the rank $r$ and the domain $\Omega$ grow to infinity; for the squared exponential kernel, the truncation error even decreases at a rate independent of the input dimension $d$.
+\end{remark}
+
+\begin{remark}[Weight-space view]
+	Equation \eqref{eq:reduced_rank_kernel} amounts to the Bayesian linear model $f(x)=\Phi(x)^\top w$ with weight prior $w\sim\mathcal{N}(0,\Lambda)$. This weight-space formulation is the starting point for the random Fourier features and kernel recursive least-squares methods used for the SLAM application of this thesis.
+\end{remark}
+
+\subsection{Reproducing Kernel Hilbert Space Formulation}\label{sec:RKHS}
+
+The covariance kernel also induces a deterministic, function-analytic counterpart to GP regression. Let $k:\mathcal{X}\times\mathcal{X}\to\mathbb{R}$ be a scalar SPSD kernel on $\mathcal{X}\subseteq\mathbb{R}^d$.
+
+\begin{definition}[Reproducing kernel Hilbert space]\label{th:RKHS}
+	The reproducing kernel Hilbert space (RKHS) $\mathcal{H}_k$ associated with $k$ is the completion of the span of $\{k(\cdot,x)\:|\:x\in\mathcal{X}\}$ for the inner product defined on the generators by:
+	\begin{equation}
+		\langle k(\cdot,x)\:|\:k(\cdot,x')\rangle_{\mathcal{H}_k}\triangleq k(x,x')
+	\end{equation}
+	It is characterised by the reproducing property: for all $\psi\in\mathcal{H}_k$ and $x\in\mathcal{X}$,
+	\begin{equation}
+		\psi(x)=\langle\psi\:|\:k(\cdot,x)\rangle_{\mathcal{H}_k}\label{eq:reproducing_property}
+	\end{equation}
+\end{definition}
+
+The reproducing property \eqref{eq:reproducing_property} states that point evaluation is a continuous linear functional on $\mathcal{H}_k$, which endows the space with a regularity entirely dictated by $k$. This space provides a variational reading of kriging.
+
+\begin{proposition}[Kriging as minimum-norm interpolation]\label{th:RKHS_kriging}
+	In the centred case, the simple kriging estimator \eqref{eq:simple_kriging_estimator} is the solution of the penalised least-squares problem in $\mathcal{H}_k$:
+	\begin{equation}
+		z_s^*=\underset{\psi\in\mathcal{H}_k}{\textup{argmin}}\left(\frac{1}{\tilde{R}}\sum_{i=1}^{\tilde{n}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\|\psi\|_{\mathcal{H}_k}^2\right)\label{eq:RKHS_regularisation}
+	\end{equation}
+	which, in the noise-free limit $\tilde{R}\to0$, reduces to the minimum-norm interpolant $\textup{argmin}\{\|\psi\|_{\mathcal{H}_k}\:|\:\psi(\tilde{x}_i)=\tilde{z}_i\}$.
+\end{proposition}
+
+\begin{proof}
+	By the representer theorem, a minimiser of \eqref{eq:RKHS_regularisation} lies in the finite-dimensional span of $\{k(\cdot,\tilde{x}_i)\}_{i=1}^{\tilde{n}}$, \textit{i.e.} $\psi=\sum_i\alpha_i\:k(\cdot,\tilde{x}_i)$. The reproducing property gives $\psi(\tilde{x}_j)=\sum_i\alpha_i\:k(\tilde{x}_j,\tilde{x}_i)$ and $\|\psi\|_{\mathcal{H}_k}^2=\alpha^\top k(\tilde{X},\tilde{X})\:\alpha$, so \eqref{eq:RKHS_regularisation} becomes the quadratic problem $\textup{argmin}_\alpha\:\tilde{R}^{-1}\|k(\tilde{X},\tilde{X})\alpha-\tilde{Z}\|^2+\alpha^\top k(\tilde{X},\tilde{X})\alpha$. Cancelling its gradient gives $\alpha=G^{-1}\tilde{Z}$, hence $\psi(x)=k(x,\tilde{X})\:G^{-1}\tilde{Z}$, which is \eqref{eq:simple_kriging_estimator} for $m=0$.
+\end{proof}
+
+\begin{remark}[GP and RKHS correspondence]
+	The two viewpoints are complementary: the GP model gives a probabilistic reading of kriging (posterior mean and variance under a Gaussian prior), while the RKHS gives a deterministic one (minimum-norm interpolant in a function space). Writing the Mercer decomposition of the kernel over its eigenpairs $(\beta_j,\phi_j)_{j\geq1}$ as $k(x,x')=\sum_{j\geq1}\beta_j\:\phi_j(x)\:\phi_j(x')$, a function $\psi=\sum_{j\geq1}c_j\:\phi_j$ belongs to $\mathcal{H}_k$ with squared norm $\|\psi\|_{\mathcal{H}_k}^2=\sum_{j\geq1}c_j^2/\beta_j$; the norm thus penalises most the components carried by low-eigenvalue, rapidly oscillating eigenfunctions, so the decay of the eigenvalues $\beta_j$ sets the smoothness enforced by $k$. Choosing a kernel therefore amounts to choosing a regularity class for the unknown field: a smooth kernel such as the SE kernel yields infinitely differentiable interpolants, whereas a rougher Matérn kernel admits functions of limited smoothness.
+\end{remark}
+
+\begin{equation}
+	todo\label{eq:simple_kriging_estimator}
+\end{equation}
+\begin{equation}
+	todo\label{eq:simple_kriging_variance}
+\end{equation}
+\begin{equation}
+	todo\label{th:SE_kernel}
+\end{equation}
+\begin{equation}
+	todo\label{eq:kriging_variance}
+\end{equation}
+\begin{equation}
+	todo\label{eq:kriging_trace}
+\end{equation}
+\begin{equation}
+	todo\label{eq:OK_estimator}
+\end{equation}
+\begin{equation}
+	todo\label{eq:OK_variance}
+\end{equation}

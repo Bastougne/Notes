@@ -46,7 +46,7 @@ Since $\mu$ is a continuous measure, computing \eqref{eq:varphi_expectation_mu} 
 		\begin{aligned}
 		\mathbb{E}_p\left[\left\langle S^N(\mu),\varphi\right\rangle\right]&=\frac{1}N\sum_{i=1}^N\mathbb{E}_p\left[\varphi\left(X^{(i)}\right)\right]\\
 		&=\frac{1}{N}\left(\int{\varphi(x)\:p(x)\:dx}\right)\\
-		&=\frac{1}N\sum_{i=1}^N(\langle\mu,\varphi\rangle)\\
+		&=\frac{1}N\sum_{i=1}^N\langle\mu,\varphi\rangle\\
 		&=\langle\mu,\varphi\rangle
 		\end{aligned}
 	\end{equation}
@@ -73,7 +73,7 @@ Informally, this means that:
 \begin{equation}
 	S^N(\mu)=\frac{1}{N}\sum_{i=1}^N\delta_{X^{(i)}}\approx\mu
 \end{equation}
-in the sense that, for any bounded measurable function $\phi$:
+in the sense that, for any measurable function $\phi$:
 \begin{equation}
 	\left\langle S^N(\mu),\phi\right\rangle=\frac{1}{N}\sum_{i=1}^N\phi\left(X^{(i)}\right)\approx\langle\mu,\phi\rangle
 \end{equation}
@@ -125,7 +125,7 @@ The density $\frac{d\mu}{d\nu}$ is known as the Radon-Nikodym derivative. This m
 	\begin{align}
 		\tilde{S}^N(\mu,\nu)&\triangleq\sum_{i=1}^Nw^{(i)}\:\delta_{X^{(i)}}\label{eq:self_normalised_estimator}\\
 		w^{(i)}&\triangleq\left.\tilde{w}^{(i)}\middle/\sum_{j=1}^N\tilde{w}^{(j)}\right.\\
-		\tilde{w}^{(i)}&\triangleq\frac{\tilde{p}\left(X^{(i)}\right)}{\tilde{q}\left(X^{(i)}\right)}=\frac{d\tilde{\mu}\left(X^{(i)}\right)}{d\tilde{\nu}\left(X^{(i)}\right)}
+		\tilde{w}^{(i)}&\triangleq\frac{\tilde{p}\left(X^{(i)}\right)}{\tilde{q}\left(X^{(i)}\right)}=\frac{d\tilde{\mu}}{d\tilde{\nu}}\left(X^{(i)}\right)
 	\end{align}
 	where $X^{(1)}, \dots,X^{(N)}\overset{i.i.d.}{\sim}\tilde{\nu}$, $\tilde{\mu}=Z_\mu\mu$ and $\tilde{\nu}=Z_\nu\nu$.
 

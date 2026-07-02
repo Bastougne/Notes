@@ -80,7 +80,7 @@ Let $\|\cdot\|$ be the norm associated with $\langle\cdot|\cdot\rangle$. In $\ma
 
 An estimator solving \eqref{eq:MMSE_problem} is called a minimum mean squared error (MMSE) estimator.
 
-\begin{proposition}[MMSE estimator]
+\begin{proposition}[MMSE estimator]\label{th:MMSE_estimator}
 	The unique solution to \eqref{eq:MMSE_problem} is the posterior expectation:
 	\begin{equation}
 		\hat{\psi}_{\textup{MMSE}}(z)\triangleq\mathbb{E}[\varphi(X)|Z=z]
@@ -233,6 +233,8 @@ As it does not take any prior information on $\varphi(X)$ into account, this est
 \section{Analytical Density Estimation}\label{sec:analytical_estimation}
 
 As established in \cref{sec:state_estimation}, all three estimators ultimately rely on the PDF $p(x_k|\mathbf{z}_{1:k})$, from which an estimate of $\varphi(x_k)$ can be derived. The goal of this section is thus to present algorithms that propagate this density recursively at each discrete time step $k$ in order to solve the inference problem presented by \eqref{eq:navigation_problem}.
+
+\textbf{TODO: image du filtrage général}
 
 \subsection{Optimal Bayesian Filtering Algorithm}
 
@@ -459,12 +461,12 @@ Assuming that $f_k$ and $h_k$ are differentiable along the state trajectory, we 
 
 \begin{algorithm}[ht]
 	\begin{algorithmic}
-	\State{$\tilde{F}_k=J_{f_k}(\hat{x}_{k-1|k-1})$}\Comment{Evolution Jacobian}
-	\State{$\hat{x}_{k|k-1}=f_k(\hat{x}_{k-1|k-1})+b_k^{(e)}$}\Comment{State prediction}
+	\State{$\tilde{F}_k=J_{f_k}\left(\hat{x}_{k-1|k-1}\right)$}\Comment{Evolution Jacobian}
+	\State{$\hat{x}_{k|k-1}=f_k\left(\hat{x}_{k-1|k-1}\right)+b_k^{(e)}$}\Comment{State prediction}
 	\State{$P_{k|k-1}=\tilde{F}_k\:P_{k-1|k-1}\:\tilde{F}_k^\top+Q_k$}\Comment{Covariance prediction}
 	\State{}
-	\State{$\tilde{H}_k=J_{h_k}(\hat{x}_{k|k-1})$}\Comment{Observation Jacobian}
-	\State{$y_k=z_k-\left(h_k(\hat{x}_{k|k-1})+b_k^{(o)}\right)$}\Comment{Innovation}
+	\State{$\tilde{H}_k=J_{h_k}\left(\hat{x}_{k|k-1}\right)$}\Comment{Observation Jacobian}
+	\State{$y_k=z_k-\left(h_k\left(\hat{x}_{k|k-1}\right)+b_k^{(o)}\right)$}\Comment{Innovation}
 	\State{$S_k=\tilde{H}_k\:P_{k|k-1}\:\tilde{H}_k^\top+R_k$}\Comment{Innovation covariance}
 	\State{$K_k=P_{k|k-1}\:\tilde{H}_k^\top\:S_k^{-1}$}\Comment{Kalman gain}
 	\State{$\hat{x}_{k|k}=\hat{x}_{k|k-1}+K_k\:y_k$}\Comment{State correction}
@@ -514,4 +516,4 @@ The second-order EKF (SO-EKF) extends the linearisation \eqref{eq:first_order_ex
 
 \subsubsection{Unscented Kalman Filter}
 
-\textbf{TODO}
+\textbf{TODO+teaser le kernel Kalman filter}
