@@ -301,7 +301,7 @@ After a sufficient number of steps, all weight is thus concentrated on a single 
 	By induction, it comes that $w_k^{(i)}$ does not depend on $x_k^{(i)}$. Thus:
 	\begin{equation}
 		\begin{aligned}
-		\mathbb{V}_{q\left(\cdot|x_{k-1}^{(i)},z_k\right)}\left[\tilde{w}_k^{(i)}\right]&=\mathbb{E}_{q\left(\cdot|x_{k-1}^{(i)},z_k\right)}\left[{w_k^{(i)}}^2\right]-\mathbb{E}_{q\left(\cdot|x_{k-1}^{(i)},z_k\right)}\left[w_k^{(i)}\right]^2\\
+		\mathbb{V}_{q\left(\cdot|x_{k-1}^{(i)},z_k\right)}\left[\tilde{w}_k^{(i)}\right]\hspace{-5mm}&\hspace{5mm}=\mathbb{E}_{q\left(\cdot|x_{k-1}^{(i)},z_k\right)}\left[{w_k^{(i)}}^2\right]-\mathbb{E}_{q\left(\cdot|x_{k-1}^{(i)},z_k\right)}\left[w_k^{(i)}\right]^2\\
 		&\propto\int{{w_k^{(i)}}^2q\left(x_k^{(i)}|x_{k-1}^{(i)},z_k\right)\:dx_k^{(i)}}-\left(\int{w_k^{(i)}q\left(x_k^{(i)}|x_{k-1}^{(i)},z_k\right)\:dx_k^{(i)}}\right)^2\\
 		&\propto{w_k^{(i)}}^2\int{q\left(x_k^{(i)}|x_{k-1}^{(i)},z_k\right)\:dx_k^{(i)}}-{w_k^{(i)}}^2\left(\int{q\left(x_k^{(i)}|x_{k-1}^{(i)},z_k\right)\:dx_k^{(i)}}\right)^2\\
 		&\propto{w_k^{(i)}}^2-{w_k^{(i)}}^2\\

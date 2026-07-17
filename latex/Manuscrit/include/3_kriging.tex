@@ -15,27 +15,40 @@ where the observation noises are also independent of $f$.
 
 The goal of this section is to derive the best linear unbiased estimator (BLUE) of $z$ with respect to $\tilde{\mathbf{z}}$, \textit{i.e.} the estimator:
 \begin{equation}
-	\hat{z}=\Lambda^\top\tilde{\mathbf{z}}
+	\hat{z}=W^\top\tilde{\mathbf{z}}
 \end{equation}
 parametrised by a weight matrix:
 \begin{equation}
-	\Lambda=[\lambda_1,\cdots,\lambda_{\tilde{n}}]^\top\in\mathcal{M}_{\tilde{n}d_z,d_z}(\mathbb{R})
+	W=\begin{bmatrix}
+	w_1\\\vdots\\w_{\tilde{n}}
+	\end{bmatrix}\in\mathcal{M}_{\tilde{n}d_z,d_z}(\mathbb{R})
 \end{equation}
-such that the error vector has an expectation of $0$ and a minimum covariance. \textbf{TODO: choisir un autre symbole pour les poids ? c'est déjà les vps des matrices}
+such that the error vector has an expectation of $0$ and a minimum covariance.
 
 Since $\hat{z}-z$ is a vector, its covariance is a matrix, and cannot be minimised as such. To alleviate this issue, we minimise its trace, which is exactly the total mean error:
 \begin{equation}
 	\textup{tr}(\mathbb{V}[\hat{z}-z])=\mathbb{E}\left[\|\hat{z}-z\|^2\right]\label{eq:error_covariance}
 \end{equation}
 
-In the following, we present three kriging estimates, based on increasingly relaxed assumptions made on the underlying GP. \textbf{TODO: introduire la matrice de Gram et les notations k(x,X) ici ? ok pour Gram, mais on introduira les notations vectorielles plus haut. il faut aussi introduire le symbole de Kronecker}
+In the following, we present three kriging estimates, based on increasingly relaxed assumptions made on the underlying GP. Each method relies on the inversion of the Gram matrix:
+\begin{equation}
+	\begin{aligned}
+	G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})&\triangleq k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{n}}\otimes\tilde{R}\\
+	&=\begin{bmatrix}
+	k(\tilde{x}_1,\tilde{x}_1)+\tilde{R}&\cdots&k(\tilde{x}_1,\tilde{x}_{\tilde{n}})\\\vdots&\ddots&\vdots\\k(\tilde{x}_{\tilde{n}},\tilde{x}_1)&\cdots&k(\tilde{x}_{\tilde{n}},\tilde{x}_{\tilde{n}})+\tilde{R}
+	\end{bmatrix}
+	\end{aligned}
+\end{equation}
+of $\tilde{\mathbf{x}}$ with respect to $f$, where $\otimes$ is the Kronecker matrix product.
+
+As this inversion has a computational cost of $\mathcal{O}\left(\tilde{n}^3\right)$, \cref{sec:reduced_rank_kernel} approximates the kernel $k$ by a reduced-rank kernel to reduce the effective complexity of kriging methods.
 
 \subsection{Simple Kriging}
 
-Simple kriging is the simplest form of kriging, and assumes that the mean function $m$ is known. \Cref{th:simple_kriging} gives a closed-form expression of the simple kriging estimator and its associated covariance matrix, while \Cref{th:simple_kriging_conditional} shows that is coincides with the conditional distribution of $z$ given $\tilde{\mathbf{z}}$.
+Simple kriging is the simplest form of kriging, and assumes that the mean function $m$ is known. \Cref{th:simple_kriging} gives a closed-form expression of the simple kriging estimator and its associated covariance matrix, while \Cref{th:simple_kriging_conditional} shows that it coincides with the conditional distribution of $z$ given $\tilde{\mathbf{z}}$.
 
 \begin{proposition}[Simple kriging estimator]\label{th:simple_kriging}
-	Using the notaions introduced in \cref{sec:kriging}, the simple kriging estimator of $z$ and its error covariance are:
+	Using the notations introduced in \cref{sec:kriging}, the simple kriging estimator of $z$ and its error covariance are:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{z}_s(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=m(x)+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\:(\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}}))\\
@@ -45,29 +58,29 @@ Simple kriging is the simplest form of kriging, and assumes that the mean functi
 \end{proposition}
 
 \begin{proof}
-	Since $m$ is known, we may assume it to be equal to $0$ by working with $f-m$ instead of $f$, without any loss of generality. In the centred case, \eqref{eq:error_covariance} can be developped as follows:
+	Since $m$ is known, we may assume it to be equal to $0$ by working with $f-m$ instead of $f$, without any loss of generality. In the centred case, \eqref{eq:error_covariance} can be developed as follows:
 	\begin{equation}
-		\mathbb{V}[\Lambda^\top\tilde{\mathbf{z}}-z]=\Lambda^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-\Lambda^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:\Lambda+k(x,x)+R
+		\mathbb{V}[W^\top\tilde{\mathbf{z}}-z]=W^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R
 	\end{equation}
 
-	By symmetry of $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$, differentiating \eqref{eq:error_covariance} with respect to $\Lambda$ yields:
+	By symmetry of $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$, differentiating \eqref{eq:error_covariance} with respect to $W$ yields:
 	\begin{equation}
 		\begin{aligned}
-		&\frac{\partial}{\partial\Lambda}\left(\textup{tr}\left(\Lambda^\top\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\Lambda-\Lambda^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:\Lambda+k(x,x)+R\right)\right)=0\\
-		\iff\quad&\frac{\partial}{\partial\Lambda}\left(\textup{tr}\left(\Lambda^\top\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\Lambda\right)\right)-2\frac{\partial}{\partial\Lambda}\left(\textup{tr}\left(\Lambda^\top k(\tilde{\mathbf{x}},x)\right)\right)=0\\
-		\iff\quad&2G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-2k(\tilde{\mathbf{x}},x)=0\\
-		\iff\quad&\Lambda=G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)
+		&\frac{\partial}{\partial W}\left(\textup{tr}\left(W^\top\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\right)\right)=0\\
+		\iff\quad&\frac{\partial}{\partial W}\left(\textup{tr}\left(W^\top\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})W\right)\right)-2\frac{\partial}{\partial W}\left(\textup{tr}\left(W^\top k(\tilde{\mathbf{x}},x)\right)\right)=0\\
+		\iff\quad&2G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:W-2k(\tilde{\mathbf{x}},x)=0\\
+		\iff\quad&W=G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)
 		\end{aligned}
 	\end{equation}
 
 	The simple kriging estimator is thus:
 	\begin{equation}
-		\hat{z}_s=\Lambda^\top\tilde{\mathbf{z}}=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}
+		\hat{z}_s=W^\top\tilde{\mathbf{z}}=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}
 	\end{equation}
 	and its corresponding covariance:
 	\begin{equation}
 		\begin{aligned}
-		\hat{R}_s&=\Lambda^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-\Lambda^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:\Lambda+k(x,x)+R\\
+		\hat{R}_s&=W^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
 		&=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
 		&\qquad-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)+k(x,x)+R\\
 		&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)
@@ -78,15 +91,15 @@ Simple kriging is the simplest form of kriging, and assumes that the mean functi
 \end{proof}
 
 \begin{remark}[Error covariance minimisation]
-	While the simple kriging weights $\Lambda=G^{-1}k(\tilde{X},x)$ were obtained by minimising the trace of $\mathbb{V}[\hat{z}-z]$, they actually minimise the whole covariance in the SPSD sense. Indeed:
+	While the simple kriging weights $W=G^{-1}k(\tilde{\mathbf{x}},x)$ were obtained by minimising the trace of $\mathbb{V}[\hat{z}-z]$, they actually minimise the whole covariance in the SPSD sense. Indeed:
 	\begin{equation}
 		\begin{aligned}
-		\mathbb{V}[\hat{z}-z]-\hat{R}_s&=\Lambda^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-\Lambda^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:\Lambda+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
-		&=\left(\Lambda-G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\left(\Lambda-G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)\\
+		\mathbb{V}[\hat{z}-z]-\hat{R}_s&=W^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\hspace{-1mm}\\
+		&=\left(W-G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\left(W-G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)\\
 		&\succeq0
 		\end{aligned}
 	\end{equation}
-	with equality if and only if $\Lambda=G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)$ since $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\succ0$ is an invertible covariance matrix.
+	with equality if and only if $W=G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)$ since $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\succ0$ is an invertible covariance matrix.
 \end{remark}
 
 \begin{proposition}[Gaussian conditioning interpretation]\label{th:simple_kriging_conditional}
@@ -111,10 +124,12 @@ Simple kriging is the simplest form of kriging, and assumes that the mean functi
 	The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) directly gives the desired result.
 \end{proof}
 
-This result is a special case of the more general result established in \Cref{th:MMSE_estimator}. Since the unbiased hypothesis of the BLUE is automatically verified by the simple kriging estimator, the minimisation criterion \eqref{eq:error_covariance} amounts to finding the MMMSE estimator of $z$ given $\tilde{\mathbf{z}}$, which is always the conditional expectation.
+This result is a special case of the more general result established in \Cref{th:MMSE_estimator}. Since the unbiased hypothesis of the BLUE is automatically verified by the simple kriging estimator, the minimisation criterion \eqref{eq:error_covariance} amounts to finding the MMSE estimator of $z$ given $\tilde{\mathbf{z}}$, which is always the conditional expectation.
 
 \begin{remark}[Simultaneous estimation]
-	The simultaneous estimation of $f$ ate several query points $\mathbf{x}=(x_1,\cdots,x_n)\in\mathcal{U}^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. However, one must be carefull to only compute the block diagonal of $\hat{R}_s(\mathbf{x},\tilde{\mathbf{x}})$, as it would otherwise increase the computational cost from $\mathcal{O}\left(n\tilde{n}^3\right)$ to $\mathcal{O}\left(n^3\tilde{n}^3\right)$ due to matrix multiplications and inversions. In practice, if the Gram matrix $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$ is precomputed before performing the estimation, their is no computational difference between successive and simultaneous kriging.
+	The simultaneous estimation of $f$ at several query points $\mathbf{x}=(x_1,\cdots,x_n)\in\mathcal{U}^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. In particular, the $\mathcal{O}\left(\tilde{n}^3\right)$ cost of inverting $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$ can be shared across the $n$ estimations whether they are performed successively or simultaneously.
+
+	However, computing only the $n$ diagonal blocks of $\hat{R}_s(\mathbf{x},\tilde{\mathbf{x}})$ costs $\mathcal{O}(\tilde{n}^3+n\tilde{n}^2)$, whereas forming the full matrix before discarding its off-diagonal blocks costs $\mathcal{O}(\tilde{n}^3+n\tilde{n}^2+n^2\tilde{n})$ due to the extra off-diagonal matrix products. One must therefore be careful to only compute the block diagonal of $\hat{R}_s(\mathbf{x},\tilde{\mathbf{x}})$ to avoid unnecessary calculations.
 \end{remark}
 
 \subsection{Ordinary Kriging}
@@ -125,14 +140,14 @@ The unbiased assumption of the ordinary kriging estimator yields:
 \begin{equation}
 	\begin{aligned}
 	&\mathbb{E}[\hat{z}-z]=0\\
-	\iff\quad&\Lambda^\top\mathbb{E}[\tilde{\mathbf{z}}]-\mathbb{E}[z]=0\\
-	\iff\quad&\left(\sum_{i=1}^{\tilde{n}}\lambda_i^\top-I_{d_z}\right)m=0\\
-	\iff\quad&C^\top\Lambda-I_{d_z}=0
+	\iff\quad&W^\top\mathbb{E}[\tilde{\mathbf{z}}]-\mathbb{E}[z]=0\\
+	\iff\quad&\left(\sum_{i=1}^{\tilde{n}}w_i^\top-I_{d_z}\right)m=0\\
+	\iff\quad&C^\top W-I_{d_z}=0
 	\end{aligned}\label{eq:ordinary_kriging_constraint}
 \end{equation}
 with:
 \begin{equation}
-	C\triangleq\mathbf{1}_{\tilde{n}}\otimes I_{d_z}
+	C\triangleq\mathbf{1}_{\tilde{n}}\otimes I_{d_z},\qquad\mathbf{1}_{\tilde{n}}\triangleq\begin{bmatrix}1\\\vdots\\1\end{bmatrix}\in\mathbb{R}^{\tilde{n}}
 \end{equation}
 
 The ordinary kriging weights thus minimise \eqref{eq:error_covariance} under the constraint \eqref{eq:ordinary_kriging_constraint}. Using the Lagrange multiplier method, \Cref{th:ordinary_kriging} derives the corresponding estimator and covariance matrix, and \Cref{th:ordinary_simple_kriging_link} establishes the link between ordinary and simple kriging.
@@ -158,26 +173,26 @@ The ordinary kriging weights thus minimise \eqref{eq:error_covariance} under the
 \begin{proof}
 	Let:
 	\begin{equation}
-		\mathcal{L}(\Lambda,\xi)\triangleq\textup{tr}\left(\mathbb{V}\left[\Lambda^\top\tilde{\mathbf{z}}-z\right]\right)+2\:\textup{tr}\left(\xi^\top\left(C^\top\Lambda-I_{d_z}\right)\right)
+		\mathcal{L}(W,\xi)\triangleq\textup{tr}\left(\mathbb{V}\left[W^\top\tilde{\mathbf{z}}-z\right]\right)+2\:\textup{tr}\left(\xi^\top\left(C^\top W-I_{d_z}\right)\right)
 	\end{equation}
 	be the Lagrangian associated with the optimisation problem \eqref{eq:error_covariance} under the constraint \eqref{eq:ordinary_kriging_constraint}, and $\xi\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$ the corresponding Lagrange multiplier.
 
-	This problem is solved by finding the minimum of $\mathcal{L}$, \textit{i.e.} finding a zero of its derivative. The same properties used in the proof of \Cref{th:simple_kriging} give:
+	This problem is solved by finding the minimum of $\mathcal{L}$, \textit{i.e.} finding a zero of its derivative. Writing $G$ for $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$, the same properties used in the proof of \Cref{th:simple_kriging} give:
 	\begin{equation}
 		\begin{aligned}
-		&\frac{\partial\mathcal{L}}{\partial\Lambda}(\Lambda,\xi)=0\\
-		\iff\quad&2G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-2k(\tilde{\mathbf{x}},x)+2\frac{\partial}{\partial\Lambda}\left(\textup{tr}\left(\xi^\top\left(C^\top\Lambda-I_{d_z}\right)\right)\right)=0\\
-		\iff\quad&2G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda-2k(\tilde{\mathbf{x}},x)+2C\xi=0\\
-		\iff\quad&G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\Lambda+C\xi=k(\tilde{\mathbf{x}},x)
+		&\frac{\partial\mathcal{L}}{\partial W}(W,\xi)=0\\
+		\iff\quad&2G\:W-2k(\tilde{\mathbf{x}},x)+2\frac{\partial}{\partial W}\left(\textup{tr}\left(\xi^\top\left(C^\top W-I_{d_z}\right)\right)\right)=0\\
+		\iff\quad&2G\:W-2k(\tilde{\mathbf{x}},x)+2C\xi=0\\
+		\iff\quad&G\:W+C\xi=k(\tilde{\mathbf{x}},x)
 		\end{aligned}
 	\end{equation}
 
-	Together with the constraint $C^\top\Lambda=I_{d_z}$, this yields the block system:
+	Together with the constraint $C^\top W=I_{d_z}$, this yields the block system:
 	\begin{equation}
 		\begin{bmatrix}
-		G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})&C\\C^\top&0
+		G&C\\C^\top&0
 		\end{bmatrix}\begin{bmatrix}
-		\Lambda\\\xi
+		W\\\xi
 		\end{bmatrix}=\begin{bmatrix}
 		k(\tilde{\mathbf{x}},x)\\I_{d_z}
 		\end{bmatrix}
@@ -185,9 +200,9 @@ The ordinary kriging weights thus minimise \eqref{eq:error_covariance} under the
 
 	The left matrix block can be inverted using the upper left Schur inversion formula from \Cref{th:Schur}. Its Schur complement,
 	\begin{equation}
-		S\triangleq0-C^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C=-C^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C,
+		S\triangleq0-C^\top G^{-1}C=-C^\top G^{-1}C,
 	\end{equation}
-	is invertible since $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\succ0$ and $C$ has full column rank. Writing $G$ for $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$, the convention of \Cref{th:Schur} gives the top block row of the inverse:
+	is invertible since $G\succ0$ and $C$ has full column rank. The convention of \Cref{th:Schur} gives the top block row of the inverse:
 	\begin{equation}
 		\bar{A}=G^{-1}+G^{-1}C\:S^{-1}C^\top G^{-1},\qquad\bar{B}=-G^{-1}C\:S^{-1}
 	\end{equation}
@@ -195,7 +210,7 @@ The ordinary kriging weights thus minimise \eqref{eq:error_covariance} under the
 	In particular, it comes that:
 	\begin{equation}
 		\begin{aligned}
-		\Lambda&=\bar{A}\:k(\tilde{\mathbf{x}},x)+\bar{B}\:I_{d_z}\\
+		W&=\bar{A}\:k(\tilde{\mathbf{x}},x)+\bar{B}\:I_{d_z}\\
 		&=\left(G^{-1}+G^{-1}C\:S^{-1}C^\top G^{-1}\right)k(\tilde{\mathbf{x}},x)-G^{-1}C\:S^{-1}\:I_{d_z}\\
 		&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:S^{-1}\left(C^\top G^{-1}k(\tilde{\mathbf{x}},x)-I_{d_z}\right)\\
 		&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\left(C^\top G^{-1}C\right)^{-1}\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)
@@ -205,7 +220,7 @@ The ordinary kriging weights thus minimise \eqref{eq:error_covariance} under the
 	The ordinary kriging estimator is thus:
 	\begin{equation}
 		\begin{aligned}
-		\hat{z}_o&=\Lambda^\top\tilde{\mathbf{z}}\\
+		\hat{z}_o&=W^\top\tilde{\mathbf{z}}\\
 		&=k(x,\tilde{\mathbf{x}})G^{-1}\tilde{\mathbf{z}}+\left(I_{d_z}-k(x,\tilde{\mathbf{x}})G^{-1}C\right)\left(C^\top G^{-1}C\right)^{-1}C^\top G^{-1}\tilde{\mathbf{z}}\\
 		&=\left(C^\top G^{-1}C\right)^{-1}C^\top G^{-1}\tilde{\mathbf{z}}+k(x,\tilde{\mathbf{x}})\:G^{-1}\left(\tilde{\mathbf{z}}-C\left(C^\top G^{-1}C\right)^{-1}C^\top G^{-1}\tilde{\mathbf{z}}\right)
 		\end{aligned}
@@ -236,167 +251,176 @@ The ordinary kriging weights thus minimise \eqref{eq:error_covariance} under the
 
 \textbf{TODO}
 
-\subsection{Reduced-Rank Kernel Approximation}
+\subsection{Reduced-Rank Kernel Approximation}\label{sec:reduced_rank_kernel}
 
-Exact GP regression requires inverting the $\tilde{n}d_z\times\tilde{n}d_z$ Gram matrix $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$, which scales as $\mathcal{O}\left(\tilde{n}^3d_z^3\right)$. When the number of training points is large, such methods become prohibitive. Reduced-rank methods circumvent this issue by approximating the kernel as a linear combination of $r\in\mathbb{N}^*$ basis functions, which lowers the inversion cost to $\mathcal{O}\left(\tilde{n}r^2+r^3d_z^3\right)$. A common construction relies on the Bochner-Cramér theorem (\Cref{th:Bochner}). However, this theorem only applies to integrable isotropic kernels defined on $\mathcal{U}=\mathbb{R}^{d_x}$. While restrictive, these assumptions are already satisfied by the Matérn and SE kernels, making reduced-rank techniques practical in many scenarios.
+Exact GP regression requires inverting the $\tilde{n}d_z\times\tilde{n}d_z$ Gram matrix $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$, which scales as $\mathcal{O}\left(\tilde{n}^3\right)$. When the number of training points is large, such methods become prohibitive. Reduced-rank methods circumvent this issue by approximating the kernel as a linear combination of $r\in\mathbb{N}^*$ basis functions, which lowers the inversion cost to $\mathcal{O}\left(r^3\right)$ when $r<\tilde{n}$. Mercer's theorem, presented in \Cref{th:Mercer}, establishes the existence of such a decomposition as soon as $k$ is a continuous SPSD kernel, and $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$.
 
-\begin{proposition}[Bochner-Cramér theorem]\label{th:Bochner}
-	Let $k$ be a continuous, isotropic, SPSD kernel. There exists a matrix-valued measure $F$ on $\mathbb{R}^{d_x}$, whose value $F(A)$ on every Borel set $A$ is SPSD, such that:
+We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\mathcal{L}^2(\mathcal{U})$.
+
+\begin{definition}[Operator self-adjoint positive semi-definiteness]
+	A functional operator $T$ on $\mathcal{L}^2(\mathcal{U})$ is self-adjoint positive semi-definite (SPSD) if:
 	\begin{equation}
-		\forall x,x'\in\mathbb{R}^{d_x},\:k(x-x')=\int_{\mathbb{R}^{d_x}}{\exp\left(i\omega^\top(x-x')\right)dF(\omega)}
+		\left\{\begin{array}{ll}
+		\forall f,g\in\mathcal{L}^2(\mathcal{U}),\:\langle Tf|g\rangle=\langle f|Tg\rangle&\text{self-adjoint}\\
+		\forall f\in\mathcal{L}^2(\mathcal{U}),\:\langle f|Tf\rangle\geq0&\text{positive semi-definite}
+		\end{array}\right.
 	\end{equation}
-
-	Furthermore, when $k$ is integrable, $F$ admits a continuous density $S$. Thus:
+	where $\langle\cdot|\cdot\rangle$ is the following scalar product:
 	\begin{equation}
-		\forall x,x'\in\mathbb{R}^{d_x},\:k(x-x')=\frac{1}{(2\pi)^{d_x}}\int_{\mathbb{R}^{d_x}}{\exp\left(i\omega^\top(x-x')\right)S(\omega)\:d\omega}\label{eq:wiener_khinchin}
+		\forall f,g\in\mathcal{L}^2(\mathcal{U})\mapsto\langle f|g\rangle\triangleq\int_{\mathcal{U}}{f(x)^\top g(x)\:dx}
 	\end{equation}
-\end{proposition}
+\end{definition}
 
-The latter equation of \Cref{th:Bochner} means that $k$ admits a Fourier transform, and that $S$ is its unique corresponding spectral density. In particular, the expression of $S$ is given by:
-\begin{equation}
-	\forall\omega\in\mathbb{R}^{d_x},\:S(\omega)=\int_{\mathbb{R}^{d_x}}{\exp\left(-i\omega^\top x\right)k(x)\:dx}
-\end{equation}
-
-Since $k$ is isotropic, so is $S$:
-\begin{equation}
-	\forall\omega\in\mathbb{R}^{d_x},\:S(\omega)=S(\|\omega\|_2)
-\end{equation}
-
-By positivity of the Euclidean norm, $S$ factors through the squared norm: there exists a function $\psi:\mathbb{R}_+\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ such that $S(\omega)=\psi\!\left(\|\omega\|_2^2\right)$.
-
-Restricting the field to a bounded domain $\Omega\subset\mathbb{R}^{d_x}$, let $(\lambda_j,\phi_j)_{j\geq1}$ be the eigenpairs of the negative Laplacian on $\Omega$ with Dirichlet boundary conditions:
-\begin{equation}
-	-\nabla^2\phi_j=\lambda_j\:\phi_j\:\text{ on }\Omega,\qquad\phi_j=0\:\text{ on }\partial\Omega
-\end{equation}
-which form an orthonormal basis of $L^2(\Omega)$. The existence of this eigenbasis, and of the resulting decomposition, holds in any dimension and does not require the explicit form of the $\phi_j$.
-
-\begin{proposition}[Existence of the reduced-rank decomposition]\label{th:RR_existence}
-	Let $\Omega\subset\mathbb{R}^{d_x}$ be a bounded domain.
-	\begin{enumerate}
-		\item[\textup{(i)}] The negative Dirichlet Laplacian on $\Omega$ admits real eigenpairs $(\lambda_j,\phi_j)_{j\geq1}$, with $0<\lambda_1\leq\lambda_2\leq\cdots\to+\infty$ and $(\phi_j)_{j\geq1}$ an orthonormal basis of $L^2(\Omega)$. In particular, the rank-$r$ approximation $\sum_{j=1}^{r}S(\sqrt{\lambda_j})\,\phi_j(x)\phi_j(x')$ is well-defined for every $r$, in any input dimension $d_x$ and output dimension $d_z$.
-		\item[\textup{(ii)}] If moreover $\textup{tr}\,S\in L^1(\mathbb{R}^{d_x})$, the series $\sum_{j\geq1}S(\sqrt{\lambda_j})\,\phi_j(x)\phi_j(x')$ defines a trace-class positive operator on $L^2(\Omega)\otimes\mathbb{R}^{d_z}$, hence a well-defined SPSD reduced-rank kernel.
-	\end{enumerate}
+\begin{proposition}[Mercer operator]\label{th:covariance_operator}
+	Assume that $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$ and $k$ is a continuous SPSD kernel. The Mercer operator:
+	\begin{equation}
+		\mathcal{K}:\left\{\begin{aligned}
+		\mathcal{L}^2(\mathcal{U})&\to\mathcal{L}^2(\mathcal{U})\\
+		f&\mapsto\left(x\mapsto\int_{\mathcal{U}}{k(x,y)\:f(y)\:dy}\right)
+		\end{aligned}\right.
+	\end{equation}
+	is a compact SPSD functional operator.
 \end{proposition}
 
 \begin{proof}
-	\textup{(i)} The Dirichlet Laplacian is the self-adjoint operator associated with the coercive closed bilinear form $(u,v)\mapsto\int_\Omega\nabla u\cdot\nabla v$ on $H^1_0(\Omega)$. As $\Omega$ is bounded, the embedding $H^1_0(\Omega)\hookrightarrow L^2(\Omega)$ is compact (Rellich--Kondrachov theorem), so the resolvent of the Laplacian is compact and self-adjoint; the spectral theorem then provides the orthonormal eigenbasis, with $\lambda_j\to+\infty$ and real eigenfunctions since the operator is real. The rank-$r$ approximation then involves only $\phi_1,\dots,\phi_r$ and is well-defined regardless of $d_x$ and $d_z$.
+	As $\mathcal{U}$ is compact and $k$ continuous, $k$ is bounded on $\mathcal{U}\times\mathcal{U}$, and $\mathcal{K}$ is compact.
 
-	\textup{(ii)} By Weyl's law, $\sum_{j\geq1}\textup{tr}\,S(\sqrt{\lambda_j})$ is comparable to $\frac{|\Omega|}{(2\pi)^{d_x}}\int_{\mathbb{R}^{d_x}}\textup{tr}\,S(\|\omega\|)\:d\omega=|\Omega|\,\textup{tr}\,k(0)<\infty$. The operator $\sum_{j\geq1}S(\sqrt{\lambda_j})\,\phi_j\otimes\phi_j$ is therefore trace-class, and positive since each $S(\sqrt{\lambda_j})\succeq0$; its partial sums are SPSD, and for the smooth spectral densities considered here Mercer's theorem makes the series converge uniformly to a continuous SPSD kernel.
+	Let $f,g\in\mathcal{L}^2(\mathcal{U})$. Cauchy-Schwarz inequality ensures that there exists a constant $c\in\mathbb{R}_+$ such that:
+	\begin{equation}
+		\iint_{\mathcal{U}\times\mathcal{U}}{\left|f(y)^\top k(x,y)^\top g(x)\right|\:dx\:dy}\leq c\:\sqrt{\langle f|f\rangle}\:\sqrt{\langle g|g\rangle}<+\infty
+	\end{equation}
+
+	Fubini's integration theorem then yields:
+	\begin{equation}
+		\begin{aligned}
+		\langle\mathcal{K}f|g\rangle&=\int_{\mathcal{U}}{(\mathcal{K}f)(x)^\top g(x)\:dx}\\
+		&=\int_{\mathcal{U}}{\left(\int_{\mathcal{U}}{k(x,y)\:f(y)\:dy}\right)^\top g(x)\:dx}\\
+		&=\int_{\mathcal{U}}{\int_{\mathcal{U}}{f(y)^\top k(x,y)^\top g(x)\:dy}\:dx}\\
+		&=\int_{\mathcal{U}}{\int_{\mathcal{U}}{f(y)^\top k(y,x)\:g(x)\:dx}\:dy}\\
+		&=\int_{\mathcal{U}}{f(y)^\top\left(\int_{\mathcal{U}}{k(y,x)\:g(x)\:dx}\right)dy}\\
+		&=\int_{\mathcal{U}}{f(y)^\top(\mathcal{K}g)(y)\:dy}\\
+		&=\langle f|\mathcal{K}g\rangle
+		\end{aligned}
+	\end{equation}
+	which proves self-adjointness.
+
+	Let $f:\mathcal{U}\to\mathbb{R}^{d_z}$ be a continuous function, and let $n\in\mathbb{N}^*$. We define $\left(\mathcal{U}_i^{(n)}\right)_{i\in[\![1,n]\!]}$ a partition of $\mathcal{U}$ such that the diameter of each $\mathcal{U}_i^{(n)},\:i\in[\![1,n]\!]$ tends to $0$ when $n\rightarrow+\infty$. For $i\in[\![1,n]\!]$, we define $x_i^{(n)}\in\mathcal{U}_i^{(n)}$, and we let:
+	\begin{equation}
+		a_i^{(n)}\triangleq\left(\int_{\mathcal{U}_i^{(n)}}{dx}\right)f\left(x_i^{(n)}\right)
+	\end{equation}
+
+	By continuity of $f$, the function:
+	\begin{equation}
+		(x,y)\mapsto f(x)^\top k(x,y)\:f(y)
+	\end{equation}
+	is continuous on the compact $\mathcal{U}\times\mathcal{U}$, so its Riemann sums converge:
+	\begin{equation}
+		\sum_{i=1}^n\sum_{j=1}^n\left(a_i^{(n)}\right)^\top\:k\left(x_i^{(n)},x_j^{(n)}\right)a_j^{(n)}\underset{n\rightarrow+\infty}{\longrightarrow}\iint_{\mathcal{U}\times\mathcal{U}}{f(x)^\top k(x,y)\:f(y)\:dx\:dy}=\langle f|\mathcal{K}f\rangle
+	\end{equation}
+
+	The SPSDness of $k$ ensures that each Riemann sum is non-negative. By passing to the limit, it follows that:
+	\begin{equation}
+		\langle f|\mathcal{K}f\rangle\geq0\label{eq:fKf_geq0}
+	\end{equation}
+	for every continuous function $f$.
+
+	Finally, recall that the set of continuous functions of $\mathcal{U}$ is dense in $\mathcal{L}^2(\mathcal{U})$. By continuity of:
+	\begin{equation}
+		f\in\mathcal{L}^2(\mathcal{U})\mapsto\langle f|\mathcal{K}f\rangle
+	\end{equation}
+	the inequality \eqref{eq:fKf_geq0} extends to all $f\in\mathcal{L}^2(\mathcal{U})$.
 \end{proof}
 
-These eigenfunctions are scalar and purely spatial: they do not depend on the output dimension. The stationary covariance operator, acting here on vector fields $\varphi:\Omega\to\mathbb{R}^{d_z}$ through $\varphi\mapsto\int k(\cdot-x')\:\varphi(x')\:dx'$, is the function $\psi$ of the negative Laplacian, $\psi(-\nabla^2)$, in the functional calculus of that self-adjoint operator: $-\nabla^2$ scales the $\omega$-th frequency component by $\|\omega\|^2$, and the covariance operator by the matrix $\psi(\|\omega\|^2)=S(\omega)$, coupling the $d_z$ outputs. Replacing the continuous spectrum $\|\omega\|^2$ by the discrete eigenvalues $\lambda_j$ on $\Omega$ --- that is, evaluating $\psi(\lambda_j)=S(\sqrt{\lambda_j})$ --- and truncating to the $r$ leading terms yields the reduced-rank approximation:
-\begin{equation}
-	k(x,x')\approx\sum_{j=1}^{r}S\left(\sqrt{\lambda_j}\right)\phi_j(x)\:\phi_j(x')\label{eq:RR_kernel_approx}
-\end{equation}
-in which each scalar product $\phi_j(x)\phi_j(x')$ now weights a symmetric positive semi-definite matrix $S(\sqrt{\lambda_j})\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$, so the truncation is itself a valid SPSD kernel. On a box domain $\Omega=\prod_{i=1}^{d_x}[-L_i,L_i]$, the eigenpairs are explicit and cheap to evaluate, indexed by $j=(j_1,\dots,j_{d_x})\in(\mathbb{N}^*)^{d_x}$:
-\begin{equation}
-	\phi_j(x)=\prod_{i=1}^{d_x}\frac{1}{\sqrt{L_i}}\sin\left(\frac{\pi\:j_i\:(x_i+L_i)}{2L_i}\right),\qquad\lambda_j=\sum_{i=1}^{d_x}\left(\frac{\pi\:j_i}{2L_i}\right)^2\label{eq:box_eigenfunctions}
-\end{equation}
-
-Beyond its existence, the reduced-rank kernel converges to $k$ as the domain grows to fill $\mathbb{R}^{d_x}$ --- for \emph{any} domain shape --- under a mild condition on the spectral density.
-
-\begin{assumption}[Complete monotonicity]\label{th:RR_hypotheses}
-	The map $\lambda\mapsto S(\sqrt{\lambda})$ is completely monotone. Equivalently, by Bernstein's theorem, there is a positive measure $\mu$ on $[0,\infty)$ --- a positive matrix measure $M$ when $d_z>1$ --- such that
+\begin{proposition}[Mercer's theorem]\label{th:Mercer}
+	Under the assumptions of \Cref{th:covariance_operator}, there exist a non-increasing sequence $(\lambda_i)_{i\in\mathbb{N}^*}$ of non-negative eigenvalues of $\mathcal{K}$ converging to $0$, and an associated orthonormal family $(\psi_i)_{i\in\mathbb{N}^*}$ of continuous $\mathbb{R}^{d_z}$-valued eigenfunctions, such that:
 	\begin{equation}
-		S(\omega)=\int_0^\infty e^{-t\|\omega\|^2}\,d\mu(t).\label{eq:RR_subordination}
+		\forall x,x'\in\mathcal{U},\:k(x,x')=\sum_{i=1}^{+\infty}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top\label{eq:Mercer}
 	\end{equation}
-\end{assumption}
 
-By Schoenberg's theorem, \eqref{eq:RR_subordination} is exactly the condition for $k$ to be an isotropic SPSD kernel in every dimension. It holds for the whole Matérn family, whose spectral density is $\propto(\alpha^2+\lambda)^{-\nu-d_x/2}$ in $\lambda=\|\omega\|^2$, and for the squared exponential kernel, $\propto e^{-\ell^2\lambda/2}$.
-
-\begin{proposition}[Convergence of the reduced-rank kernel]\label{th:RR_convergence}
-	Let $(\Omega_n)_{n\geq1}$ be an increasing sequence of bounded domains with $\bigcup_n\Omega_n=\mathbb{R}^{d_x}$, and $\tilde{k}_{\Omega_n}$ the untruncated reduced-rank kernel ($r=\infty$ in \eqref{eq:RR_kernel_approx}) on $\Omega_n$. Under \Cref{th:RR_hypotheses}, for every fixed $x,x'$,
-	\begin{equation}
-		\tilde{k}_{\Omega_n}(x,x')\ \longrightarrow\ k(x-x')\qquad(n\to\infty),\label{eq:RR_domain_convergence}
-	\end{equation}
-	monotonically from below (in the Loewner order when $d_z>1$). Together with the truncation convergence of \Cref{th:RR_existence}\,\textup{(ii)}, this gives $\tilde{k}^{(r)}_{\Omega_n}\to k$.
+	Furthermore, this series converges absolutely and uniformly on $\mathcal{U}\times\mathcal{U}$.
 \end{proposition}
 
 \begin{proof}
-	Let $p_t^\Omega(x,x')=\sum_{j\geq1}e^{-t\lambda_j}\phi_j(x)\phi_j(x')$ be the Dirichlet heat kernel on $\Omega$, \textit{i.e.} the integral kernel of the semigroup $e^{t\nabla^2}$ in the eigenbasis of \Cref{th:RR_existence}. Evaluating \eqref{eq:RR_subordination} at $\|\omega\|^2=\lambda_j$ gives $S(\sqrt{\lambda_j})=\int_0^\infty e^{-t\lambda_j}\,d\mu(t)$; substituting and exchanging the positive sum and integral by Tonelli,
+	By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\mathcal{U})$. The spectral theorem thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\mathcal{U})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing. Furthermore, since $\mathcal{K}$ is SPSD, it comes that:
 	\begin{equation}
-		\tilde{k}_\Omega(x,x')=\sum_{j\geq1}S(\sqrt{\lambda_j})\,\phi_j(x)\phi_j(x')=\int_0^\infty p_t^\Omega(x,x')\,d\mu(t).
+		\lambda_1\geq\lambda_2\geq\cdots\geq0
 	\end{equation}
-	On $\mathbb{R}^{d_x}$ the heat kernel is the Gaussian $p_t(z)=(4\pi t)^{-d_x/2}e^{-\|z\|^2/4t}$, and the same identity reads $k(x-x')=\int_0^\infty p_t(x-x')\,d\mu(t)$, its Fourier transform being $\int_0^\infty e^{-t\|\omega\|^2}d\mu(t)=S(\omega)$. Finally, the Dirichlet heat kernel increases to the free one along any exhaustion, $p_t^{\Omega_n}(x,x')\uparrow p_t(x-x')$: probabilistically, $p_t^{\Omega_n}(x,x')$ is the transition density of a Brownian motion from $x$ to $x'$ in time $t$ conditioned to stay in $\Omega_n$, and enlarging the domain kills fewer paths. Monotone convergence in \eqref{eq:RR_subordination} then yields \eqref{eq:RR_domain_convergence}.
+
+	Let $i\in\mathbb{N}^*$ such that $\lambda_i\neq0$. Since $k$ is uniformly continuous on the compact $\mathcal{U}\times\mathcal{U}$, $\mathcal{K}f$ is continuous for every $f\in\mathcal{L}^2(\mathcal{U})$. Hence:
+	\begin{equation}
+		\psi_i=\lambda_i^{-1}\mathcal{K}\psi_i
+	\end{equation}
+	is continuous. Since only terms with non-zero eigenvalues contribute to \eqref{eq:Mercer}, the continuity of eigenfunctions associated with $\lambda_i=0$ is irrelevant.
+
+	Since $(\psi_i)_{i\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{L}^2(\mathcal{U})$, the family:
+	\begin{equation}
+		(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}
+	\end{equation}
+	is an orthonormal basis of $\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$. Let $\langle\cdot|\cdot\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}$ denote:
+	\begin{equation}
+		\forall f,g\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})\mapsto\langle f|g\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}\triangleq\iint_{\mathcal{U}\times\mathcal{U}}{\textup{tr}\left(f(x,y)^\top g(x,y)\right)\:dx\:dy}
+	\end{equation}
+
+	Let $i,j\in\mathbb{N}^*$. It comes that:
+	\begin{equation}
+		\begin{aligned}
+			\langle k|\psi_i\:\psi_j^\top\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}&=\iint_{\mathcal{U}\times\mathcal{U}}{\textup{tr}\left(k(x,y)^\top\psi_i(x)\:\psi_j(y)^\top\right)dx\:dy}\\
+			&=\iint_{\mathcal{U}\times\mathcal{U}}{\psi_j(y)^\top k(x,y)^\top\psi_i(x)\:dx\:dy}\\
+			&=\int_{\mathcal{U}}{\psi_j(y)^\top\left(\int_{\mathcal{U}}{k(y,x)\:\psi_i(x)\:dx}\right)dy}\\
+			&=\int_{\mathcal{U}}{\psi_j(y)^\top\:\mathcal{K}\psi_i(y)\:dy}\\
+			&=\lambda_i\int_{\mathcal{U}}{\psi_j(y)^\top\:\psi_i(y)\:dy}\\
+			&=\lambda_i\:\delta_{i,j}
+		\end{aligned}
+	\end{equation}
+	where:
+	\begin{equation}
+		\delta_{i,j}\triangleq\left\{\begin{aligned}
+		1&\quad\text{if }i=j\\0&\quad\text{if }i\neq j
+		\end{aligned}\right.
+	\end{equation}
+	is the Kronecker symbol.
+
+	By completeness of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ and since $k\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$, it comes that:
+	\begin{equation}
+		k_r(x,x')\triangleq\sum_{i=1}^{r}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top
+	\end{equation}
+	converges to $k$ in the $\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$ sense.
+
+	It must be noted that $\mathcal{L}^2$ convergence only identifies $k$ up to a Lebesgue-null subset of $\mathcal{U}\times\mathcal{U}$, and gives no control at any specific point of the domain. In particular, it is not enough to justify substituting $k_r$ for $k$ in kriging scenarios. However, since $k$ is continuous on $\mathcal{U}\times\mathcal{U}$ and not merely square-integrable, the convergence can be extended to absolute and uniform convergence on the whole of $\mathcal{U}\times\mathcal{U}$. While we will not dive into details of this demonstration, it is obtained via Dini's theorem applied to the non-decreasing sequence of:
+	\begin{equation}
+		\left(x\mapsto\textup{tr}\:k_r(x,x)\right)_{r\in\mathbb{N}^*}
+	\end{equation}
 \end{proof}
 
-\begin{remark}[A geometry-free, real-variable argument]
-	The proof uses neither an eigenfunction formula nor any property of $\partial\Omega$: its sole geometric input is the domain monotonicity of the heat kernel, valid for any shape, any input dimension $d_x$, and (entrywise) any output dimension $d_z$. It is moreover purely real-variable --- the subordination \eqref{eq:RR_subordination} involves only real $t$ and $\lambda$ --- so the complex singularities of $S$, such as the poles $\pm i\alpha$ of a Matérn density, and the radius of convergence of any power series of $S$, play no role. Analyticity would matter only for the formal operator expansion $\psi(-\nabla^2)=a_0+a_1(-\nabla^2)+\cdots$ motivating the pseudo-differential reading of \eqref{eq:RR_kernel_approx}, which underpins none of the above.
-\end{remark}
-
-On a box $\Omega=\prod_{i=1}^{d_x}[-L_i,L_i]$ the construction becomes fully explicit. The eigenbasis \eqref{eq:box_eigenfunctions} and the heat kernel both factorise over the axes,
-\begin{equation}
-	p_t^\Omega(x,x')=\prod_{i=1}^{d_x}p_t^{[-L_i,L_i]}(x_i,x_i'),
-\end{equation}
-each factor being the one-dimensional Dirichlet heat kernel, recovered from the free Gaussian by the method of images:
-\begin{equation}
-	p_t^{[-L,L]}(a,b)=\sum_{n\in\mathbb{Z}}\Big[p_t(a-b+4Ln)-p_t(a+b+2L+4Ln)\Big].
-\end{equation}
-As $L_i\to\infty$ each factor increases to $p_t(x_i-x_i')$ --- the image charges recede to infinity --- so \Cref{th:RR_convergence} specialises here to a product of elementary one-dimensional monotone limits. The box moreover affords a convergence \emph{rate}, through a direct quadrature of the Wiener-Khinchin integral \eqref{eq:wiener_khinchin}.
-
-\begin{proposition}[Convergence rate on the interval]\label{th:RR_rate}
-	Let $d_x=1$, $\Omega=[-L,L]$, and write $\tilde{k}^{(r)}_L$ for the rank-$r$ approximation and $\tilde{k}^{(\infty)}_L$ for its untruncated sum. If, in addition, every entry of $S$ is $C^2$ on $\mathbb{R}$ with first and second derivatives in $L^1(\mathbb{R})$, then, for fixed $x,x'$,
+\begin{proposition}[Reduced-rank approximation]\label{th:reduced_rank}
+	For a continuous SPSD kernel $k$, we define the rank of $k$ as the dimension of the image of $\mathcal{L}^2(\mathcal{U})$ by its associated Mercer operator:
 	\begin{equation}
-		\tilde{k}^{(\infty)}_L(x,x')=k(x-x')-\frac{S(0)}{4L}+O\!\left(\frac{1}{L}\right),\label{eq:RR_rate}
+		\textup{rank}(k)\triangleq\textup{dim}\left(\mathcal{K}\left(\mathcal{L}^2(\mathcal{U})\right)\right)
 	\end{equation}
-	and the rank-$r$ truncation error satisfies
+
+	Under the assumptions of \Cref{th:covariance_operator}, the sequence $(k_r)_{r\in\mathbb{N}^*}$ of truncated kernels:
 	\begin{equation}
-		\left\|\tilde{k}^{(\infty)}_L(x,x')-\tilde{k}^{(r)}_L(x,x')\right\|\leq\frac{2}{\pi}\int_{\omega_r}^{\infty}\left\|S(\omega)\right\|\:d\omega+o(1)\xrightarrow[r\to\infty]{}0,\qquad\omega_r=\sqrt{\lambda_r}.\label{eq:RR_truncation}
+		k_r:\left\{\begin{aligned}
+		\mathcal{U}\times\mathcal{U}&\to\mathcal{M}_{d_z,d_z}(\mathbb{R})\\
+		x,x'&\mapsto\sum_{i=1}^{r}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top
+		\end{aligned}\right.
 	\end{equation}
+	are continuous SPSD kernels of rank at most $r$ which converge uniformly towards $k$ as $r\to+\infty$, and minimise $\left\|k-k_r\right\|_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}$ among all kernels of rank at most $r$.
 \end{proposition}
 
 \begin{proof}
-	Set $\omega_j=\sqrt{\lambda_j}=\frac{\pi j}{2L}$ and $h=\omega_j-\omega_{j-1}=\frac{\pi}{2L}$, so that $\omega_j=jh$ and $\frac{1}{2L}=\frac{h}{\pi}$. Write $u=x-x'$ and $v=x+x'$. Specialising the box eigenfunctions to $d_x=1$, $\phi_j(x)=\frac{1}{\sqrt{L}}\sin\!\left(\frac{\pi j(x+L)}{2L}\right)$, the identity $\sin A\sin B=\tfrac12\left[\cos(A-B)-\cos(A+B)\right]$ together with $\cos(\theta+\pi j)=(-1)^j\cos\theta$ gives
+	Let $r\in\mathbb{N}^*$ and $f\in\mathcal{L}^2(\mathcal{U})$. We have:
 	\begin{equation}
-		\phi_j(x)\:\phi_j(x')=\frac{h}{\pi}\left[\cos(\omega_j u)-(-1)^j\cos(\omega_j v)\right].
+		\mathcal{K}_rf=\sum_{i=1}^r\lambda_i\langle f|\psi_i\rangle\:\psi_i
 	\end{equation}
-	Injecting this into $\tilde{k}^{(\infty)}_L=\sum_{j\geq1}S(\omega_j)\,\phi_j(x)\phi_j(x')$ splits it as $\tilde{k}^{(\infty)}_L=M_L-B_L$, with
-	\begin{equation}
-		M_L=\frac{h}{\pi}\sum_{j\geq1}S(\omega_j)\cos(\omega_j u),\qquad B_L=\frac{h}{\pi}\sum_{j\geq1}(-1)^j\,S(\omega_j)\cos(\omega_j v).
-	\end{equation}
+	where $\mathcal{K}_r$ is the Mercer operator associated with $k_r$. Every $\mathcal{K}_rf$ thus belongs to the subspace of continuous functions spanned by $\psi_1,\cdots,\psi_r$. The orthonormality of the basis ensures that this subspace is of dimension $r$, and thus the rank of $k_r$ is at most $r$. The uniform convergence of $(k_r)_{r\in\mathbb{N}^*}$ has already been proven by \Cref{th:Mercer}.
 
-	\noindent\textbf{Main term $M_L$ (Wiener-Khinchin quadrature).} Let $g(\omega)=S(\omega)\cos(\omega u)$. By \textup{(A2)} and the Leibniz rule, $\|g''\|_{L^1}\leq\|S''\|_{L^1}+2|u|\,\|S'\|_{L^1}+u^2\,\|S\|_{L^1}<\infty$. The composite trapezoidal rule on $[0,\infty)$ at the nodes $jh$ then gives
+	Finally, applying the Eckart-Young-Mirsky theorem to $\mathcal{K}$ and using the orthonormality of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ yields:
 	\begin{equation}
-		h\left[\tfrac12\,g(0)+\sum_{j\geq1}g(jh)\right]=\int_{0}^{\infty}g(\omega)\:d\omega+E,\qquad\|E\|\leq\frac{h^2}{12}\,\|g''\|_{L^1}.
+		\underset{\substack{\tilde{k}\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})\\\textup{rank}(\tilde{k})\leq r}}{\min}\|k-\tilde{k}\|_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}^2=\sum_{j>r}\lambda_j^2=\|k-k_r\|_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}^2
 	\end{equation}
-	Isolating the sum, multiplying by $1/\pi$, and using that \eqref{eq:wiener_khinchin} reads, for $d_x=1$ and even $S$, $k(x-x')=\frac{1}{\pi}\int_0^\infty S(\omega)\cos(\omega u)\,d\omega$, together with $g(0)=S(0)$,
-	\begin{equation}
-		M_L=\frac{1}{\pi}\int_{0}^{\infty}S(\omega)\cos(\omega u)\:d\omega-\frac{h}{2\pi}\,S(0)+O(h^2)=k(x-x')-\frac{S(0)}{4L}+O\!\left(\frac{1}{L^2}\right).
-	\end{equation}
-
-	\noindent\textbf{Boundary term $B_L$ (summation by parts).} Put $a_j=S(\omega_j)\cos(\omega_j v)$ and $g_v(\omega)=S(\omega)\cos(\omega v)$. Since $\bigl|\sum_{j=1}^N(-1)^j\bigr|\leq1$, Abel summation gives, uniformly in $N$,
-	\begin{equation}
-		\left\|\sum_{j=1}^N(-1)^j a_j\right\|\leq\|a_N\|+\sum_{j\geq1}\|a_{j+1}-a_j\|\leq\|S\|_{\infty}+\int_{0}^{\infty}\|g_v'(\omega)\|\:d\omega,
-	\end{equation}
-	with $\int_0^\infty\|g_v'\|\leq\|S'\|_{L^1}+|v|\,\|S\|_{L^1}<\infty$ by \textup{(A2)} and $\|S\|_{\infty}<\infty$ by \textup{(A1)--(A2)}. Hence $\|B_L\|\leq\frac{h}{\pi}\bigl(\|S\|_{\infty}+\int_0^\infty\|g_v'\|\bigr)=O(h)=O\!\left(L^{-1}\right)$.
-
-	Adding the two terms, $\tilde{k}^{(\infty)}_L=M_L-B_L=k(x-x')-\frac{S(0)}{4L}+O(L^{-1})$, which is \eqref{eq:RR_domain_convergence}; the boundary term $B_L$ is the vanishing trace of the Dirichlet condition at $\pm L$.
-
-	\noindent\textbf{Truncation.} From $|\phi_j(x)|\leq1/\sqrt{L}$ one has $|\phi_j(x)\phi_j(x')|\leq1/L=2h/\pi$, so
-	\begin{equation}
-		\left\|\tilde{k}^{(\infty)}_L-\tilde{k}^{(r)}_L\right\|\leq\frac{2h}{\pi}\sum_{j>r}\|S(\omega_j)\|\leq\frac{2}{\pi}\int_{\omega_r}^{\infty}\|S(\omega)\|\:d\omega+\frac{2h}{\pi}\int_{\omega_r}^{\infty}\|S'(\omega)\|\:d\omega.
-	\end{equation}
-	The first term tends to $0$ as $r\to\infty$ because $S\in L^1$; the second is $O(h)=o(1)$ by \textup{(A2)}. The final statement follows from \eqref{eq:RR_domain_convergence} and the triangle inequality.
 \end{proof}
 
-\begin{remark}[Real-axis regularity, not analyticity]
-	The proof relies only on \textup{(A1)--(A2)}: the boundedness, $C^2$ regularity, and integrability of $S$ \emph{on the real axis}. Its mechanism is a trapezoidal quadrature of \eqref{eq:wiener_khinchin} at the real nodes $\omega_j=\sqrt{\lambda_j}$, so that only the values of $S$ at those points enter. The location of any complex singularities of $S$ --- for instance the poles $\pm i\alpha$ of a Matérn spectral density --- is immaterial, and the radius of convergence of a power series of $S$ plays no role. Analyticity is needed only for the \emph{formal} power-series form $\psi(-\nabla^2)=a_0+a_1(-\nabla^2)+a_2(-\nabla^2)^2+\cdots$ sometimes invoked to introduce \eqref{eq:RR_kernel_approx}; neither the functional calculus above nor the convergence proved here require it.
-\end{remark}
-
-\begin{remark}[Extension to $d_x>1$ and to vector fields]
-	Existence of the decomposition in arbitrary dimension is \Cref{th:RR_existence}. The quantitative estimate \eqref{eq:RR_domain_convergence} also extends to $\Omega=\prod_{i=1}^{d_x}[-L_i,L_i]$: the eigenbasis tensorises, with $\lambda_{\mathbf{j}}=\sum_{i=1}^{d_x}(\pi j_i/2L_i)^2$ and $S$ evaluated at $\sqrt{\lambda_{\mathbf{j}}}$, so \eqref{eq:RR_domain_convergence} becomes a genuine $d_x$-dimensional quadrature of the Wiener-Khinchin integral. Since the isotropic weight $S(\|\omega\|)$ couples the coordinate directions, this requires the multivariate analogue of \Cref{th:RR_hypotheses} --- integrable mixed derivatives up to order two --- rather than a product of one-dimensional estimates, unless $S$ is itself separable, as for the squared exponential kernel. The vector-valued case is always entrywise, the $\phi_j$ staying scalar and only $S(\omega_j)$ being a matrix.
-\end{remark}
-
-Collecting the scalar eigenfunctions in $\Phi(x)\triangleq[\phi_1(x),\dots,\phi_r(x)]^\top\in\mathbb{R}^r$ and the spectral matrices in the block-diagonal weight $\Lambda\triangleq\textup{blockdiag}(S(\sqrt{\lambda_1}),\dots,S(\sqrt{\lambda_r}))\in\mathcal{M}_{rd_z,rd_z}(\mathbb{R})$, the approximation \eqref{eq:RR_kernel_approx} takes the separable form:
-\begin{equation}
-	k(x,x')\approx\left(\Phi(x)\otimes I_{d_z}\right)^\top\Lambda\left(\Phi(x')\otimes I_{d_z}\right)\label{eq:RR_kernel_decomposition}
-\end{equation}
-The regularised Gram matrix then becomes $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\approx\left(\Phi_{\tilde{\mathbf{x}}}\otimes I_{d_z}\right)\Lambda\left(\Phi_{\tilde{\mathbf{x}}}\otimes I_{d_z}\right)^\top+I_{\tilde{n}}\otimes\tilde{R}$, with $\Phi_{\tilde{\mathbf{x}}}\triangleq[\Phi(\tilde{x}_1),\dots,\Phi(\tilde{x}_{\tilde{n}})]^\top\in\mathcal{M}_{\tilde{n},r}(\mathbb{R})$. Being a rank-$rd_z$ perturbation of the block-diagonal $I_{\tilde{n}}\otimes\tilde{R}$, its inverse follows from the Woodbury identity (\Cref{th:Woodbury}), which reduces the $\tilde{n}d_z\times\tilde{n}d_z$ inversion to an $rd_z\times rd_z$ one. The Kronecker structure further collapses the data-dependent term to $\Phi_{\tilde{\mathbf{x}}}^\top\Phi_{\tilde{\mathbf{x}}}\otimes\tilde{R}^{-1}$, bringing the overall cost down to $\mathcal{O}(\tilde{n}r^2+r^3d_z^3)$ instead of $\mathcal{O}(\tilde{n}^3d_z^3)$.
-
-\begin{remark}[Separable kernels]
-	A general matrix spectral density $S(\|\omega\|)$ is rarely specified directly. The standard tractable model is the separable, or intrinsic coregionalisation, kernel $k(x,x')=\kappa(x,x')\:B$, with $\kappa$ a scalar isotropic kernel and $B\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$ a constant SPSD coregionalisation matrix. Its spectral density is $S(\sqrt{\lambda_j})=S_\kappa(\sqrt{\lambda_j})\:B$, so $\Lambda=\textup{diag}(S_\kappa(\sqrt{\lambda_1}),\dots,S_\kappa(\sqrt{\lambda_r}))\otimes B$ and the whole approximation factorises as a Kronecker product. Diagonalising $B=Q\:\textup{diag}(\beta)\:Q^\top$ then decouples the field into $d_z$ independent scalar reduced-rank Gaussian processes, sharing the basis $\phi_j$ and differing only through the output-variance scalings $\beta_i$.
-\end{remark}
-
-\begin{remark}[Hyperparameter-independent basis]
-	A decisive advantage of \eqref{eq:RR_kernel_approx} is that the basis functions $\phi_j$, being eigenfunctions of the Laplacian, do not depend on the kernel hyperparameters $\theta$: only the spectral matrices $S_\theta(\sqrt{\lambda_j})$ do. Evidence maximisation (\Cref{th:GP_MLE}) thus recomputes only the block-diagonal weight $\Lambda$, the $d_z$-independent product $\Phi_{\tilde{\mathbf{x}}}^\top\Phi_{\tilde{\mathbf{x}}}$ being formed once and for all. By \Cref{th:RR_convergence}, the approximation becomes exact as the domain $\Omega$ and the rank $r$ grow to infinity; for the squared exponential kernel, the truncation error even decreases at a rate independent of the input dimension $d_x$.
+\begin{remark}[Construction of the eigenfunctions]
+	While Mercer's theorem establishes the existence of the decomposition presented by \eqref{eq:Mercer}, it provides no means to compute a closed-form expression of $k_r$. In practice, additional assumptions on $k$, namely radial properties, are usually made in order to derive an explicit approximation of the form of \Cref{th:reduced_rank}.
 \end{remark}

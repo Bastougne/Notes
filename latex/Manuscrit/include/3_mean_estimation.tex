@@ -6,7 +6,7 @@ Beyond regression, the covariance kernel induces functional representations expl
 
 The dominant cost of kriging is the inversion of the $\tilde{n}\times\tilde{n}$ Gram matrix $G$, which scales as $\mathcal{O}(\tilde{n}^3)$ and becomes prohibitive for large training sets. Reduced-rank methods approximate the kernel by a finite sum $k(x,x')\approx\sum_{j=1}^r s_j\:\phi_j(x)\:\phi_j(x')$ over $r\ll\tilde{n}$ fixed basis functions, which turns the $\tilde{n}\times\tilde{n}$ inversion into an $r\times r$ one. We follow the Hilbert-space method, tailored to stationary kernels, whose basis does not depend on the kernel hyperparameters.
 
-Assume $k$ to be stationary and isotropic on $\mathcal{U}=\mathbb{R}^{d_x}$, \textit{i.e.} $k(x,x')=k(\|x-x'\|)$. By Bochner's theorem, $k$ is then the inverse Fourier transform of a non-negative spectral density $S$, a duality known as the Wiener-Khinchin theorem:
+Assume $k$ to be stationary and radial on $\mathcal{U}=\mathbb{R}^{d_x}$, \textit{i.e.} $k(x,x')=k(\|x-x'\|)$. By Bochner's theorem, $k$ is then the inverse Fourier transform of a non-negative spectral density $S$, a duality known as the Wiener-Khinchin theorem:
 \begin{equation}
 	k(r)=\frac{1}{(2\pi)^{d_x}}\int_{\mathbb{R}^{d_x}}S(\omega)\:e^{i\omega^\top r}\:d\omega,\qquad S(\omega)=\int_{\mathbb{R}^{d_x}}k(r)\:e^{-i\omega^\top r}\:dr
 \end{equation}
