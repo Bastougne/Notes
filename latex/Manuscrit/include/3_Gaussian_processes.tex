@@ -13,6 +13,7 @@ This chapter is organised as follows:
 \begin{itemize}
 	\item\Cref{sec:GP_definition} defines GPs through their mean functions and covariance kernels. It discusses the choice of kernel and the estimation of its hyperparameters.
 	\item\Cref{sec:kriging} then introduces kriging as a map reconstruction tool in situations where we are given preexisting data samples.
+	\item\Cref{sec:reduced_rank} addresses the cost of inverting large Gram matrices in kriging by approximating $k$ with a reduced-rank kernel, therefore lowering the effective complexity of kriging methods.
 	\item Finally, \cref{sec:functional_representations} derives two representations of the mean function over a dictionary of functions, used to reconstruct the field when no prior knowledge is available.
 \end{itemize}
 
@@ -23,10 +24,12 @@ This chapter is organised as follows:
 Formally, a stochastic process generalises the notion of random variable to a random function, \textit{i.e.} a family $(f(x))_{x\in\mathcal{U}}$ of random variables indexed by a set $\mathcal{U}$, which may represent time $\mathbb{R}_+$, physical space $\mathbb{R}^2$ or $\mathbb{R}^3$, or any other domain. As shown by \Cref{th:GP_definition}, a GP is a special case of stochastic process.
 
 \begin{definition}[Gaussian process]\label{th:GP_definition}
-	For $d_z\in\mathbb{N}^*$, a stochastic process $(f(x))_{x\in\mathcal{U}}$ taking values in $\mathbb{R}^{d_z}$ is a GP if every finite linear combination of its values follows a Gaussian distribution: for all $n\in\mathbb{N}^*$, all $x_1,\dots,x_n\in\mathcal{U}$ and all $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, there exist $m\in\mathbb{R}$ and $\sigma^2\geq0$ such that:
+	For $d_z\in\mathbb{N}^*$, a stochastic process $(f(x))_{x\in\mathcal{U}}$ taking values in $\mathbb{R}^{d_z}$ is a GP if every finite linear combination of its values follows a Gaussian distribution. Formally, for all $n\in\mathbb{N}^*$, all $x_1,\dots,x_n\in\mathcal{U}$ and all $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, there exist $m\in\mathbb{R}$ and $\sigma^2\geq0$ such that:
 	\begin{equation}
 		\sum_{i=1}^na_i^\top\:f(x_i)\sim\mathcal{N}(m,\sigma^2)
 	\end{equation}
+
+	The GP is said to be non-degenerate if $\sigma^2>0$ whenever the points $x_1,\dots,x_n$ are pairwise distinct and the coefficients $a_1,\dots,a_n$ are not all zero.
 \end{definition}
 
 A GP is associated with a mean function:
@@ -49,7 +52,7 @@ and a covariance kernel:
 As shown by \Cref{th:GP_marginals}, $m$ and $k$ entirely characterise every finite-dimen\-sional marginal of $f$. By Kolmogorov's extension theorem, they also uniquely determine the law of $f$. We thus write $f\sim\mathcal{GP}(m,k)$ for a GP with mean function $m$ and covariance kernel $k$.
 
 \begin{proposition}[Finite-dimensional marginals]\label{th:GP_marginals}
-	For $n\in\mathbb{N}^*$, let $x_1,\dots,x_n\in\mathcal{U}$. The joint distribution of $F\triangleq\left[f(x_1)^\top,\dots,f(x_n)^\top\right]^\top$ is the multivariate Gaussian:
+	For $n\in\mathbb{N}^*$, let $x_1,\dots,x_n$ be pairwise distinct points of $\mathcal{U}$. The joint distribution of $F\triangleq\left[f(x_1)^\top,\dots,f(x_n)^\top\right]^\top$ is the multivariate Gaussian:
 	\begin{equation}
 		\begin{bmatrix}
 		f(x_1)\\\vdots\\f(x_n)
@@ -101,20 +104,12 @@ For two tuples of inputs $\mathbf{x}\triangleq(x_1,\dots,x_n)\in\mathcal{U}^n$ a
 	\end{bmatrix}
 \end{align}
 
-In particular, when $\mathbf{x}'=\mathbf{x}$, the matrix:
-\begin{equation}
-	k(\mathbf{x},\mathbf{x})=\begin{bmatrix}
-	k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)
-	\end{bmatrix}
-\end{equation}
-is called the Gram matrix of $\mathbf{x}$.
-
 Using these notations, \Cref{th:GP_marginals} reads compactly:
 \begin{equation}
-	\forall n\in\mathbb{N}^*,\:\forall\mathbf{x}\in\mathcal{U}^n,\:f(\mathbf{x})\sim\mathcal{N}\left(m(\mathbf{x}),k(\mathbf{x},\mathbf{x})\right)
+	\forall n\in\mathbb{N}^*,\:\forall\mathbf{x}\in\mathcal{U}^n\text{ pairwise distinct},\:f(\mathbf{x})\sim\mathcal{N}\left(m(\mathbf{x}),k(\mathbf{x},\mathbf{x})\right)
 \end{equation}
 
-A GP is thus a consistent generalisation of the multivariate Gaussian distribution to an infinite index set. Both of its parameters admit a direct interpretation. The mean function $m$ encodes prior knowledge about the average behaviour of $f$, while the kernel $k$ encodes the correlation structure: the diagonal blocks $k(x,x)$ measure the variance of $f$ at $x$, and the off-diagonal blocks $k(x,x')$ for $x\neq x'$ capture how the values at $x$ and $x'$ co-vary. In the context of this thesis, $m$ is interpreted as a simplified model of the observation function, and $k$ as a measure of the uncertainty and spatial variability around this model.
+A GP is thus a consistent generalisation of the multivariate Gaussian distribution to an infinite index set. Both of its parameters admit a direct interpretation. The mean function $m$ encodes prior knowledge about the average behaviour of $f$, while the kernel $k$ encodes the correlation structure. The diagonal blocks $k(x,x)$ measure the variance of $f$ at $x$, and the off-diagonal blocks $k(x,x')$ for $x\neq x'$ capture how the values at $x$ and $x'$ co-vary. In the context of this thesis, $m$ is interpreted as a simplified model of the observation function, and $k$ as a measure of the uncertainty and spatial variability around this model.
 
 The estimation of the mean function is deferred to \cref{sec:functional_representations}. Instead, the remainder of this section focuses on the choice of covariance kernel and, in particular, the estimation of its hyperparameters.
 
@@ -122,10 +117,10 @@ The estimation of the mean function is deferred to \cref{sec:functional_represen
 
 While the mean function generally reflects application-specific prior knowledge, it is the covariance kernel that governs the smoothness and correlation structure of the GP, and thus the class of functions it can represent.
 
-For the GP to be valid, every Gram matrix $k(\mathbf{x},\mathbf{x})$ must be SPSD in the sense of \Cref{th:matrix_SPSD}. \Cref{th:kernel_SPSD} recasts this as a condition on $k$ alone, and \Cref{th:kernel_gram_equivalence} proves the equivalence between the two.
+For the GP to be non-degenerate, every matrix $k(\mathbf{x},\mathbf{x})$ at distinct points must be SPD in the sense of \Cref{th:matrix_SPSD}. \Cref{th:kernel_SPSD} recasts this as a condition on $k$ alone, and \Cref{th:kernel_gram_equivalence} proves the equivalence between the two.
 
-\begin{definition}[Kernel symmetric positive semi-definiteness]\label{th:kernel_SPSD}
-	A kernel $k:\mathcal{U}\times\mathcal{U}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is SPSD if it is:
+\begin{definition}[Kernel symmetric positive definiteness]\label{th:kernel_SPSD}
+	A kernel $k:\mathcal{U}\times\mathcal{U}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is symmetric positive semi-definite (SPSD) if it is:
 	\begin{itemize}
 		\item\textbf{Symmetric:}
 		\begin{equation}
@@ -139,13 +134,15 @@ For the GP to be valid, every Gram matrix $k(\mathbf{x},\mathbf{x})$ must be SPS
 			\end{gathered}
 		\end{equation}
 	\end{itemize}
+
+	If the inequality is strict for every choice of pairwise distinct points $x_1,\dots,x_n$ and coefficients $a_1,\dots,a_n$ not all zero, then $k$ is symmetric positive definite (SPD).
 \end{definition}
 
-\begin{proposition}[Kernel/matrix SPSDness equivalence]\label{th:kernel_gram_equivalence}
-	The two following assertions are equivalent:
+\begin{proposition}[Kernel/matrix definiteness equivalence]\label{th:kernel_gram_equivalence}
+	The following equivalences hold:
 	\begin{itemize}
-		\item $k:\mathcal{U}\times\mathcal{U}\rightarrow\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is a SPSD kernel.
-		\item For every $n\in\mathbb{N}^*$ and every $\mathbf{x}\triangleq(x_1,\dots,x_n)\in\mathcal{U}^n$, $k(\mathbf{x},\mathbf{x})\in\mathcal{M}_{nd_z,nd_z}(\mathbb{R})$ is a SPSD matrix.
+		\item $k:\mathcal{U}\times\mathcal{U}\rightarrow\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is a SPSD kernel if and only if, for every $n\in\mathbb{N}^*$ and every $\mathbf{x}\in\mathcal{U}^n$, $k(\mathbf{x},\mathbf{x})\in\mathcal{M}_{nd_z,nd_z}(\mathbb{R})$ is a SPSD matrix.
+		\item $k$ is a SPD kernel if and only if, for every such tuple $\mathbf{x}$ of pairwise distinct points, $k(\mathbf{x},\mathbf{x})$ is a SPD matrix.
 	\end{itemize}
 \end{proposition}
 
@@ -202,17 +199,29 @@ For the GP to be valid, every Gram matrix $k(\mathbf{x},\mathbf{x})$ must be SPS
 		&\geq0
 		\end{aligned}
 	\end{equation}
+
+	\textbf{Strict version.} The same computations hold with strict inequalities, provided the inputs are pairwise distinct and the coefficients not all zero.
 \end{proof}
 
-\begin{remark}[Non-diagonal blocks]
-	While \Cref{th:kernel_gram_equivalence} equates the SPSDness of $k$ with that of all its Gram matrices, it does not amount to $k(x,x')$ being SPSD for every $x,x'\in\mathcal{U}$: for $x\neq x'$, $k(x,x')$ may be non-positive or even non-symmetric.
+\begin{remark}[Necessity of distinct points]
+	Pairwise distinctness does not intervene in the computation of the strict version above, yet it is necessary for the SPD condition to be satisfiable. Indeed, at coinciding inputs $x_1=x_2$, the choice $a_1=-a_2=1$, with the other coefficients set to zero, cancels the quadratic form for non-zero coefficients, so without it no kernel could be SPD.
 \end{remark}
+
+\begin{remark}[Non-diagonal blocks]
+	While \Cref{th:kernel_gram_equivalence} equates the SPDness of $k$ with that of $k(\mathbf{x},\mathbf{x})$ at distinct points, it does not make the off-diagonal blocks $k(x,x')$ SPD themselves. For $x\neq x'$, these may be non-positive or even non-symmetric.
+\end{remark}
+
+The SPD kernel hypothesis is formalised by \Cref{th:SPD_assumption}, and will be used throughout the rest of this document to ensure we only work with non-degenerate GPs.
+
+\begin{assumption}[SPD kernel and distinct points]\label{th:SPD_assumption}
+	The covariance kernel $k$ is SPD, and the points of every collection $\mathbf{x}=(x_1,\dots,x_n)\in\mathcal{U}^n$ are pairwise distinct.
+\end{assumption}
 
 \subsubsection{Common Kernels}
 
 Assume in this section that $\mathcal{U}$ is a finite-dimensional normed vector space, \textit{i.e.} $\mathcal{U}=\mathbb{R}^{d_x}$ up to isomorphism. A natural way to build kernels on $\mathcal{U}$ is to let the correlation between the field values at two points $x,x'$ depend only on the distance $\|x-x'\|$ between them. Kernels of this form are called radial kernels, and are formally defined by \Cref{th:radial_kernel}.
 
-Since $f$ typically represents a physical field, observations tend to become less correlated as the distance between them increases. \Cref{th:Matérn} derives a common family of radial kernels, called the Matérn kernels, and that model this behavior.
+Since $f$ typically represents a physical field, observations tend to become less correlated as the distance between them increases. \Cref{th:Matérn} derives a common family of radial kernels, called the Matérn kernels, which model this behaviour.
 
 \begin{definition}[Radial kernel]\label{th:radial_kernel}
 	A kernel $k:\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is radial if there exists a function $f:\mathbb{R}_+\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ and a norm $\|\cdot\|$ on $\mathbb{R}^{d_x}$ such that:
@@ -237,7 +246,7 @@ Since $f$ typically represents a physical field, observations tend to become les
 	where $\Gamma$ is the Gamma function, and $K_\nu$ is the modified Bessel function of the second kind.
 \end{definition}
 
-The parameter $\nu$ controls the regularity: for $p\in\mathbb{N}$, it can be shown that a GP equipped with $k_\nu$ is $p$ times mean-square differentiable if and only if $\nu>p$. For half-integer $\nu=p+\tfrac{1}{2}$, Matérn kernels can be written as the product of an exponential and a polynomial function of degree $p$:
+The parameter $\nu$ controls the regularity. For $p\in\mathbb{N}$, it can be shown that a GP equipped with $k_\nu$ is $p$ times mean-square differentiable if and only if $\nu>p$. For half-integer $\nu=p+\tfrac{1}{2}$, Matérn kernels can be written as the product of an exponential and a polynomial function of degree $p$:
 \begin{equation}
 	k_{p+1/2}(r)=\sigma_f^2\:\exp\left(-\frac{\sqrt{2\nu}r}{l}\right)\frac{\Gamma(p+1)}{\Gamma(2p+1)}\:\sum_{i=0}^p\frac{(p+i)!}{i!(p-i)!}\left(\frac{2\sqrt{2\nu}r}{l}\right)^{p-i}
 \end{equation}
@@ -269,6 +278,8 @@ As $\nu\to+\infty$, the Matérn kernel converges to the infinitely differentiabl
 	$\nu\in\{1/2,3/2,5/2\}$ and their limit as $\nu\to+\infty$.}\label{fig:Matérn}
 \end{figure}
 
+\textbf{TODO : Matérn vérifie SPD}
+
 \begin{remark}[Anisotropic kernels]
 	The norm used in \Cref{th:radial_kernel} does not necessarily need to be the canonical norm of $\mathbb{R}^{d_x}$. In particular, for $M\succ0$, the Mahalanobis norm:
 	\begin{equation}
@@ -278,11 +289,11 @@ As $\nu\to+\infty$, the Matérn kernel converges to the infinitely differentiabl
 \end{remark}
 
 \begin{remark}[Multi-scale kernels]
-	It can be easily verified that a linear combination of SPSD kernels with positive weights is itself a SPSD kernel. In particular, for $n\in\mathbb{N}^*$, $\sigma_1^2,\cdots,\sigma_n^2\in\mathbb{R}_+^*$ and $k^{(1)},\cdots,k^{(n)}$ Matérn kernels of correlation lengths $l_1<\cdots<l_n\in\mathbb{R}_+^*$, the multi-scale kernel:
+	It can be easily verified that a linear combination of SPD kernels with positive weights is itself a SPD kernel. In particular, for $n\in\mathbb{N}^*$, $\sigma_1^2,\cdots,\sigma_n^2\in\mathbb{R}_+^*$ and $k^{(1)},\cdots,k^{(n)}$ Matérn kernels of correlation lengths $l_1<\cdots<l_n\in\mathbb{R}_+^*$, the multi-scale kernel:
 	\begin{equation}
 		k_{MS}(r)\triangleq\sum_{i=1}^n\sigma_i^2\:k^{(i)}(r)
 	\end{equation}
-	is a valid SPSD kernel. When the correlation lengths have different orders of magnitude, such kernels can be used to capture local fluctuations and global trends simultaneously.
+	is a valid SPD kernel. When the correlation lengths have different orders of magnitude, such kernels can be used to capture local fluctuations and global trends simultaneously.
 \end{remark}
 
 \subsection{Hyperparameter Estimation}

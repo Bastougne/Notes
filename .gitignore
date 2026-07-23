@@ -1,13 +1,6 @@
-# Étate de session Obsidian
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
-
-# Cache et données temporaires
-.obsidian/cache
-.obsidian/.trash/
-
-# Plugins locaux
-.obsidian/plugins/
+# Configurations Obsidian sauf app.json
+.obsidian/*
+!.obsidian/app.json
 
 # Sorties de compilation LaTeX
 Latex/*/main.pdf

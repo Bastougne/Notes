@@ -5,7 +5,7 @@ Gaussian process regression, also known as kriging, estimates the value of a fie
 	z\triangleq f(x)+\varepsilon,\qquad\varepsilon\sim\mathcal{N}(0,R),\qquad R\succeq0
 \end{equation}
 
-Without further information regarding $f$, we would only be able to state that $z$ follows a Gaussian distribution of expectation $m(x)$ and covariance $k(x,x)+R$. However, we are given $\tilde{n}\in\mathbb{N}^*$ training points $\tilde{\mathbf{x}}\triangleq[\tilde{x}_1,\cdots,\tilde{x}_{\tilde{n}}]^\top$ and their corresponding noisy observations:
+Without further information regarding $f$, we would only be able to state that $z$ follows a Gaussian distribution of expectation $m(x)$ and covariance $k(x,x)+R$. However, we are given $\tilde{n}\in\mathbb{N}^*$ distinct training points $\tilde{\mathbf{x}}\triangleq[\tilde{x}_1,\cdots,\tilde{x}_{\tilde{n}}]^\top$ and their corresponding noisy observations:
 \begin{equation}
 	\tilde{\mathbf{z}}\triangleq\begin{bmatrix}
 		f(\tilde{x}_1)+\varepsilon_1\\\vdots\\f(\tilde{x}_{\tilde{n}})+\varepsilon_{\tilde{n}}
@@ -30,18 +30,20 @@ Since $\hat{z}-z$ is a vector, its covariance is a matrix, and cannot be minimis
 	\textup{tr}(\mathbb{V}[\hat{z}-z])=\mathbb{E}\left[\|\hat{z}-z\|^2\right]\label{eq:error_covariance}
 \end{equation}
 
-In the following, we present three kriging estimates, based on increasingly relaxed assumptions made on the underlying GP. Each method relies on the inversion of the Gram matrix:
+In the following, we present three kriging estimates, based on increasingly relaxed assumptions made on our knwoledge of the underlying GP. Each method relies on the inversion of the Gram matrix:
 \begin{equation}
 	\begin{aligned}
-	G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})&\triangleq k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{n}}\otimes\tilde{R}\\
+	G(\tilde{\mathbf{x}})&\triangleq k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{n}}\otimes\tilde{R}\\
 	&=\begin{bmatrix}
 	k(\tilde{x}_1,\tilde{x}_1)+\tilde{R}&\cdots&k(\tilde{x}_1,\tilde{x}_{\tilde{n}})\\\vdots&\ddots&\vdots\\k(\tilde{x}_{\tilde{n}},\tilde{x}_1)&\cdots&k(\tilde{x}_{\tilde{n}},\tilde{x}_{\tilde{n}})+\tilde{R}
 	\end{bmatrix}
-	\end{aligned}
+	\end{aligned}\label{eq:Gram_matrix}
 \end{equation}
-of $\tilde{\mathbf{x}}$ with respect to $f$, where $\otimes$ is the Kronecker matrix product.
+of $\tilde{\mathbf{x}}$ with respect to $f$, where $\otimes$ is the Kronecker matrix product. Since $k$ is SPD and the training points are distinct according to \Cref{th:SPD_assumption}, $G(\tilde{\mathbf{x}})$ is SPD, and thus invertible, even in the noiseless case $\tilde{R}=0$.
 
-As this inversion has a computational cost of $\mathcal{O}\left(\tilde{n}^3\right)$, \cref{sec:reduced_rank_kernel} approximates the kernel $k$ by a reduced-rank kernel to reduce the effective complexity of kriging methods.
+We further assume that the query point $x$ differs from the training points $\tilde{\mathbf{x}}$, so that the joint law of $(z,\tilde{\mathbf{z}})$ is non-degenerate. This hypothesis is not restrictive and is only needed for the proofs. Indeed, when $m$ and $k$ are continuous, the estimators are continuous in $x$ and remain valid at the training points by continuity.
+
+\textbf{TODO : krigeage interpolant si pas de bruit}
 
 \subsection{Simple Kriging}
 
@@ -51,8 +53,8 @@ Simple kriging is the simplest form of kriging, and assumes that the mean functi
 	Using the notations introduced in \cref{sec:kriging}, the simple kriging estimator of $z$ and its error covariance are:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_s(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=m(x)+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\:(\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}}))\\
-		\hat{R}_s(x,\tilde{\mathbf{x}})&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\:k\left(\tilde{\mathbf{x}},x\right)
+		\hat{z}_s(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=m(x)+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\:(\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}}))\\
+		\hat{R}_s(x,\tilde{\mathbf{x}})&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\:k\left(\tilde{\mathbf{x}},x\right)
 		\end{aligned}\right.\label{eq:simple_kriging_equations}
 	\end{equation}
 \end{proposition}
@@ -60,30 +62,30 @@ Simple kriging is the simplest form of kriging, and assumes that the mean functi
 \begin{proof}
 	Since $m$ is known, we may assume it to be equal to $0$ by working with $f-m$ instead of $f$, without any loss of generality. In the centred case, \eqref{eq:error_covariance} can be developed as follows:
 	\begin{equation}
-		\mathbb{V}[W^\top\tilde{\mathbf{z}}-z]=W^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R
+		\mathbb{V}[W^\top\tilde{\mathbf{z}}-z]=W^\top G(\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R
 	\end{equation}
 
-	By symmetry of $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$, differentiating \eqref{eq:error_covariance} with respect to $W$ yields:
+	By symmetry of $G(\tilde{\mathbf{x}})$, differentiating \eqref{eq:error_covariance} with respect to $W$ yields:
 	\begin{equation}
 		\begin{aligned}
-		&\frac{\partial}{\partial W}\left(\textup{tr}\left(W^\top\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\right)\right)=0\\
-		\iff\quad&\frac{\partial}{\partial W}\left(\textup{tr}\left(W^\top\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})W\right)\right)-2\frac{\partial}{\partial W}\left(\textup{tr}\left(W^\top k(\tilde{\mathbf{x}},x)\right)\right)=0\\
-		\iff\quad&2G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:W-2k(\tilde{\mathbf{x}},x)=0\\
-		\iff\quad&W=G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)
+		&\frac{\partial}{\partial W}\left(\textup{tr}\left(W^\top\:G(\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\right)\right)=0\\
+		\iff\quad&\frac{\partial}{\partial W}\left(\textup{tr}\left(W^\top\:G(\tilde{\mathbf{x}})\:W\right)\right)-2\frac{\partial}{\partial W}\left(\textup{tr}\left(W^\top k(\tilde{\mathbf{x}},x)\right)\right)=0\\
+		\iff\quad&2G(\tilde{\mathbf{x}})\:W-2k(\tilde{\mathbf{x}},x)=0\\
+		\iff\quad&W=G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)
 		\end{aligned}
 	\end{equation}
 
 	The simple kriging estimator is thus:
 	\begin{equation}
-		\hat{z}_s=W^\top\tilde{\mathbf{z}}=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}
+		\hat{z}_s=W^\top\tilde{\mathbf{z}}=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}
 	\end{equation}
 	and its corresponding covariance:
 	\begin{equation}
 		\begin{aligned}
-		\hat{R}_s&=W^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
-		&=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
-		&\qquad-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)+k(x,x)+R\\
-		&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)
+		\hat{R}_s&=W^\top G(\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
+		&=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}G(\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
+		&\qquad-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)+k(x,x)+R\\
+		&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)
 		\end{aligned}
 	\end{equation}
 
@@ -94,12 +96,12 @@ Simple kriging is the simplest form of kriging, and assumes that the mean functi
 	While the simple kriging weights $W=G^{-1}k(\tilde{\mathbf{x}},x)$ were obtained by minimising the trace of $\mathbb{V}[\hat{z}-z]$, they actually minimise the whole covariance in the SPSD sense. Indeed:
 	\begin{equation}
 		\begin{aligned}
-		\mathbb{V}[\hat{z}-z]-\hat{R}_s&=W^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\hspace{-1mm}\\
-		&=\left(W-G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\left(W-G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)\\
+		\mathbb{V}[\hat{z}-z]-\hat{R}_s&=W^\top G(\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\hspace{-1mm}\\
+		&=\left(W-G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)^\top G(\tilde{\mathbf{x}})\left(W-G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)\\
 		&\succeq0
 		\end{aligned}
 	\end{equation}
-	with equality if and only if $W=G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)$ since $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\succ0$ is an invertible covariance matrix.
+	with equality if and only if $W=G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)$ since $G(\tilde{\mathbf{x}})\succ0$.
 \end{remark}
 
 \begin{proposition}[Gaussian conditioning interpretation]\label{th:simple_kriging_conditional}
@@ -117,17 +119,17 @@ Simple kriging is the simplest form of kriging, and assumes that the mean functi
 		\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}
 		m(x)\\m(\tilde{\mathbf{x}})
 		\end{bmatrix},\begin{bmatrix}
-		k(x,x)+R&k(x,\tilde{\mathbf{x}})\\k(\tilde{\mathbf{x}},x)&G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})
+		k(x,x)+R&k(x,\tilde{\mathbf{x}})\\k(\tilde{\mathbf{x}},x)&G(\tilde{\mathbf{x}})
 		\end{bmatrix}\right)
 	\end{equation}
 
-	The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) directly gives the desired result.
+	As noted at the start of this section, this joint covariance is SPD. The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) can thus be used to give the desired result.
 \end{proof}
 
 This result is a special case of the more general result established in \Cref{th:MMSE_estimator}. Since the unbiased hypothesis of the BLUE is automatically verified by the simple kriging estimator, the minimisation criterion \eqref{eq:error_covariance} amounts to finding the MMSE estimator of $z$ given $\tilde{\mathbf{z}}$, which is always the conditional expectation.
 
 \begin{remark}[Simultaneous estimation]
-	The simultaneous estimation of $f$ at several query points $\mathbf{x}=(x_1,\cdots,x_n)\in\mathcal{U}^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. In particular, the $\mathcal{O}\left(\tilde{n}^3\right)$ cost of inverting $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$ can be shared across the $n$ estimations whether they are performed successively or simultaneously.
+	The simultaneous estimation of $f$ at several query points $\mathbf{x}=(x_1,\cdots,x_n)\in\mathcal{U}^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. In particular, the $\mathcal{O}\left(\tilde{n}^3\right)$ cost of inverting $G(\tilde{\mathbf{x}})$ can be shared across the $n$ estimations whether they are performed successively or simultaneously.
 
 	However, computing only the $n$ diagonal blocks of $\hat{R}_s(\mathbf{x},\tilde{\mathbf{x}})$ costs $\mathcal{O}(\tilde{n}^3+n\tilde{n}^2)$, whereas forming the full matrix before discarding its off-diagonal blocks costs $\mathcal{O}(\tilde{n}^3+n\tilde{n}^2+n^2\tilde{n})$ due to the extra off-diagonal matrix products. One must therefore be careful to only compute the block diagonal of $\hat{R}_s(\mathbf{x},\tilde{\mathbf{x}})$ to avoid unnecessary calculations.
 \end{remark}
@@ -156,16 +158,16 @@ The ordinary kriging weights thus minimise \eqref{eq:error_covariance} under the
 	The ordinary kriging estimator of $z$ given $\tilde{\mathbf{z}}$ and its error covariance are:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_o(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-C\:m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\right)\\
-		\hat{R}_o(x,\tilde{\mathbf{x}})&=\hat{R}_{m_o}(x,\tilde{\mathbf{x}})+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\:k\left(\tilde{\mathbf{x}},x\right)
+		\hat{z}_o(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-C\:m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\right)\\
+		\hat{R}_o(x,\tilde{\mathbf{x}})&=\hat{R}_{m_o}(x,\tilde{\mathbf{x}})+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\:k\left(\tilde{\mathbf{x}},x\right)
 		\end{aligned}\right.\label{eq:ordinary_kriging_equations}
 	\end{equation}
 	with:
 	\begin{equation}
 		\left\{\begin{aligned}
-		m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=\left(C^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C\right)^{-1}C^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
-		\hat{R}_{m_o}(x,\tilde{\mathbf{x}})&=\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C\right)\left(C^\top G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C\right)^{-1}\\
-		&\qquad\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})^{-1}C\right)^\top
+		m_o(\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=\left(C^\top G(\tilde{\mathbf{x}})^{-1}C\right)^{-1}C^\top G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
+		\hat{R}_{m_o}(x,\tilde{\mathbf{x}})&=\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}C\right)\left(C^\top G(\tilde{\mathbf{x}})^{-1}C\right)^{-1}\\
+		&\qquad\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}C\right)^\top
 		\end{aligned}\right.\label{eq:kriged_ordinary_mean}
 	\end{equation}
 \end{proposition}
@@ -177,7 +179,7 @@ The ordinary kriging weights thus minimise \eqref{eq:error_covariance} under the
 	\end{equation}
 	be the Lagrangian associated with the optimisation problem \eqref{eq:error_covariance} under the constraint \eqref{eq:ordinary_kriging_constraint}, and $\xi\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$ the corresponding Lagrange multiplier.
 
-	This problem is solved by finding the minimum of $\mathcal{L}$, \textit{i.e.} finding a zero of its derivative. Writing $G$ for $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$, the same properties used in the proof of \Cref{th:simple_kriging} give:
+	This problem is solved by finding the minimum of $\mathcal{L}$, \textit{i.e.} finding a zero of its derivative. Writing $G$ for $G(\tilde{\mathbf{x}})$, the same properties used in the proof of \Cref{th:simple_kriging} give:
 	\begin{equation}
 		\begin{aligned}
 		&\frac{\partial\mathcal{L}}{\partial W}(W,\xi)=0\\
@@ -251,9 +253,13 @@ The ordinary kriging weights thus minimise \eqref{eq:error_covariance} under the
 
 \textbf{TODO}
 
-\subsection{Reduced-Rank Kernel Approximation}\label{sec:reduced_rank_kernel}
+\section{Reduced-Rank Kernel Approximation}\label{sec:reduced_rank}
 
-Exact GP regression requires inverting the $\tilde{n}d_z\times\tilde{n}d_z$ Gram matrix $G(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$, which scales as $\mathcal{O}\left(\tilde{n}^3\right)$. When the number of training points is large, such methods become prohibitive. Reduced-rank methods circumvent this issue by approximating the kernel as a linear combination of $r\in\mathbb{N}^*$ basis functions, which lowers the inversion cost to $\mathcal{O}\left(r^3\right)$ when $r<\tilde{n}$. Mercer's theorem, presented in \Cref{th:Mercer}, establishes the existence of such a decomposition as soon as $k$ is a continuous SPSD kernel, and $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$.
+Exact GP regression requires inverting the $\tilde{n}d_z\times\tilde{n}d_z$ Gram matrix $G(\tilde{\mathbf{x}})$, which scales as $\mathcal{O}\left(\tilde{n}^3\right)$. When the number of training points is large, this operation becomes prohibitive. Reduced-rank methods circumvent this issue by approximating the kernel as a linear combination of $r\in\mathbb{N}^*$ basis functions, with $r<\tilde{n}$. The inversion cost is reduced to $\mathcal{O}\left(r^3\right)$, bringing down the overall kriging cost to $\mathcal{O}\left(r^2\tilde{n}\right)$.
+
+Mercer's theorem, presented in \Cref{th:Mercer}, establishes the existence of such a decomposition as soon as $k$ is a continuous SPD kernel, and $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$. The Woodbury inversion formula is then used to rewrite the kriging estimator in a computationally efficient expression.
+
+\subsection{Mercer's Theorem}
 
 We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\mathcal{L}^2(\mathcal{U})$.
 
@@ -272,7 +278,7 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 \end{definition}
 
 \begin{proposition}[Mercer operator]\label{th:covariance_operator}
-	Assume that $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$ and $k$ is a continuous SPSD kernel. The Mercer operator:
+	Assume that $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$ and $k$ is a continuous SPD kernel. The Mercer operator:
 	\begin{equation}
 		\mathcal{K}:\left\{\begin{aligned}
 		\mathcal{L}^2(\mathcal{U})&\to\mathcal{L}^2(\mathcal{U})\\
@@ -290,7 +296,7 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 		\iint_{\mathcal{U}\times\mathcal{U}}{\left|f(y)^\top k(x,y)^\top g(x)\right|\:dx\:dy}\leq c\:\sqrt{\langle f|f\rangle}\:\sqrt{\langle g|g\rangle}<+\infty
 	\end{equation}
 
-	Fubini's integration theorem then yields:
+	Fubini's integration theorem can thus be used to give:
 	\begin{equation}
 		\begin{aligned}
 		\langle\mathcal{K}f|g\rangle&=\int_{\mathcal{U}}{(\mathcal{K}f)(x)^\top g(x)\:dx}\\
@@ -302,7 +308,6 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 		&=\langle f|\mathcal{K}g\rangle
 		\end{aligned}
 	\end{equation}
-	which proves self-adjointness.
 
 	Let $f:\mathcal{U}\to\mathbb{R}^{d_z}$ be a continuous function, and let $n\in\mathbb{N}^*$. We define $\left(\mathcal{U}_i^{(n)}\right)_{i\in[\![1,n]\!]}$ a partition of $\mathcal{U}$ such that the diameter of each $\mathcal{U}_i^{(n)},\:i\in[\![1,n]\!]$ tends to $0$ when $n\rightarrow+\infty$. For $i\in[\![1,n]\!]$, we define $x_i^{(n)}\in\mathcal{U}_i^{(n)}$, and we let:
 	\begin{equation}
@@ -332,7 +337,7 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 \end{proof}
 
 \begin{proposition}[Mercer's theorem]\label{th:Mercer}
-	Under the assumptions of \Cref{th:covariance_operator}, there exist a non-increasing sequence $(\lambda_i)_{i\in\mathbb{N}^*}$ of non-negative eigenvalues of $\mathcal{K}$ converging to $0$, and an associated orthonormal family $(\psi_i)_{i\in\mathbb{N}^*}$ of continuous $\mathbb{R}^{d_z}$-valued eigenfunctions, such that:
+	Under the assumptions of \Cref{th:covariance_operator}, there exist a non-increasing sequence $(\lambda_i)_{i\in\mathbb{N}^*}$ of strictly positive eigenvalues of $\mathcal{K}$ converging to $0$, and an associated orthonormal family $(\psi_i)_{i\in\mathbb{N}^*}$ of continuous $\mathbb{R}^{d_z}$-valued eigenfunctions, such that:
 	\begin{equation}
 		\forall x,x'\in\mathcal{U},\:k(x,x')=\sum_{i=1}^{+\infty}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top\label{eq:Mercer}
 	\end{equation}
@@ -341,27 +346,14 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 \end{proposition}
 
 \begin{proof}
-	By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\mathcal{U})$. The spectral theorem thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\mathcal{U})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing. Furthermore, since $\mathcal{K}$ is SPSD, it comes that:
-	\begin{equation}
-		\lambda_1\geq\lambda_2\geq\cdots\geq0
-	\end{equation}
+	By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\mathcal{U})$. The spectral theorem thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\mathcal{U})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing.
 
-	Let $i\in\mathbb{N}^*$ such that $\lambda_i\neq0$. Since $k$ is uniformly continuous on the compact $\mathcal{U}\times\mathcal{U}$, $\mathcal{K}f$ is continuous for every $f\in\mathcal{L}^2(\mathcal{U})$. Hence:
-	\begin{equation}
-		\psi_i=\lambda_i^{-1}\mathcal{K}\psi_i
-	\end{equation}
-	is continuous. Since only terms with non-zero eigenvalues contribute to \eqref{eq:Mercer}, the continuity of eigenfunctions associated with $\lambda_i=0$ is irrelevant.
-
-	Since $(\psi_i)_{i\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{L}^2(\mathcal{U})$, the family:
-	\begin{equation}
-		(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}
-	\end{equation}
-	is an orthonormal basis of $\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$. Let $\langle\cdot|\cdot\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}$ denote:
+	Since $(\psi_i)_{i\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{L}^2(\mathcal{U})$, the family $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$. Let $\langle\cdot|\cdot\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}$ denote:
 	\begin{equation}
 		\forall f,g\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})\mapsto\langle f|g\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}\triangleq\iint_{\mathcal{U}\times\mathcal{U}}{\textup{tr}\left(f(x,y)^\top g(x,y)\right)\:dx\:dy}
 	\end{equation}
 
-	Let $i,j\in\mathbb{N}^*$. It comes that:
+	Let $i,j\in\mathbb{N}^*$. We have:
 	\begin{equation}
 		\begin{aligned}
 			\langle k|\psi_i\:\psi_j^\top\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}&=\iint_{\mathcal{U}\times\mathcal{U}}{\textup{tr}\left(k(x,y)^\top\psi_i(x)\:\psi_j(y)^\top\right)dx\:dy}\\
@@ -380,32 +372,56 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 	\end{equation}
 	is the Kronecker symbol.
 
-	By completeness of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ and since $k\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$, it comes that:
+	Since $k\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$, it follows from the completeness of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ that:
 	\begin{equation}
 		k_r(x,x')\triangleq\sum_{i=1}^{r}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top
 	\end{equation}
 	converges to $k$ in the $\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$ sense.
 
-	It must be noted that $\mathcal{L}^2$ convergence only identifies $k$ up to a Lebesgue-null subset of $\mathcal{U}\times\mathcal{U}$, and gives no control at any specific point of the domain. In particular, it is not enough to justify substituting $k_r$ for $k$ in kriging scenarios. However, since $k$ is continuous on $\mathcal{U}\times\mathcal{U}$ and not merely square-integrable, the convergence can be extended to absolute and uniform convergence on the whole of $\mathcal{U}\times\mathcal{U}$. While we will not dive into details of this demonstration, it is obtained via Dini's theorem applied to the non-decreasing sequence of:
+	It must be noted that $\mathcal{L}^2$ convergence only identifies $k$ up to a Lebesgue-null subset of $\mathcal{U}\times\mathcal{U}$, and gives no control at any specific point of the domain. In particular, it is not enough to justify substituting $k_r$ for $k$ in kriging scenarios. However, since $k$ is continuous on $\mathcal{U}\times\mathcal{U}$, the convergence can be extended to absolute and uniform convergence on the entire $\mathcal{U}\times\mathcal{U}$. While we will not dive into the details of this demonstration, it is obtained via Dini's theorem applied to the non-decreasing sequence $\left(x\mapsto\textup{tr}\:k_r(x,x)\right)_{r\in\mathbb{N}^*}$.
+
+	Since $\mathcal{K}$ is SPSD, it comes that, every eigenvalue is non-negative. Assume for a moment that there exists a rank $r_0\in\mathbb{N}$ such that $\lambda_i=0$ as soon as $i>0$. Then:
 	\begin{equation}
-		\left(x\mapsto\textup{tr}\:k_r(x,x)\right)_{r\in\mathbb{N}^*}
+		k=\sum_{i=1}^{r_0}\lambda_i\:\psi_i\:\psi_i^\top
 	\end{equation}
+	would be a finite sum, whose Gram matrices have rank at most $r_0$ and are thus singular at any $n$ distinct points with $nd_z>r_0$, contradicting the SPDness of $k$ by \Cref{th:kernel_gram_equivalence}. Consequently:
+	\begin{equation}
+		\lambda_1\geq\lambda_2\geq\cdots>0
+	\end{equation}
+
+	Finally, since $k$ is uniformly continuous on the compact $\mathcal{U}\times\mathcal{U}$, $\mathcal{K}f$ is continuous for every $f\in\mathcal{L}^2(\mathcal{U})$, so that each eigenfunction:
+	\begin{equation}
+		\psi_i=\lambda_i^{-1}\mathcal{K}\psi_i
+	\end{equation}
+	is also continuous.
 \end{proof}
 
+\begin{remark}[Almost SPD Mercer operator]
+	It is moreover almost SPD if the positivity is strict, that is if $\langle f|Tf\rangle>0$ for every $f\neq0$. Contrary to an SPD matrix, an almost SPD operator may fail to be invertible, hence the qualifier.\textbf{TODO: à reformuler}
+
+	Since the eigenvalues $\lambda_i$ are strictly positive, the quadratic form:
+	\begin{equation}
+		f\in\mathcal{L}^2(\mathcal{U})\mapsto\langle f|\mathcal{K}f\rangle=\sum_{i=1}^{+\infty}\lambda_i\:\langle f|\psi_i\rangle^2
+	\end{equation}
+	is strictly positive for every $f\neq0$, so that $\mathcal{K}$ is almost SPD. One might then expect it to be SPD, yet it is not. Being compact with $\lambda_i\to0$, $\mathcal{K}$ admits no positive lower bound on the unit sphere, so $0$ belongs to its spectrum and $\mathcal{K}^{-1}$ is unbounded. In finite dimension, strict positivity and invertibility coincide and jointly characterise SPD matrices, whereas in infinite dimension they part ways, precisely the situation captured by the almost SPD qualifier. This is not restrictive here, as only the finite Gram matrices induced by $k$ are ever inverted.
+\end{remark}
+
+\subsection{Efficient Kriging Estimation}
+
 \begin{proposition}[Reduced-rank approximation]\label{th:reduced_rank}
-	For a continuous SPSD kernel $k$, we define the rank of $k$ as the dimension of the image of $\mathcal{L}^2(\mathcal{U})$ by its associated Mercer operator:
+	For a continuous SPD kernel $k$, we define the rank of $k$ as the dimension of the image of $\mathcal{L}^2(\mathcal{U})$ by its associated Mercer operator:
 	\begin{equation}
 		\textup{rank}(k)\triangleq\textup{dim}\left(\mathcal{K}\left(\mathcal{L}^2(\mathcal{U})\right)\right)
 	\end{equation}
 
-	Under the assumptions of \Cref{th:covariance_operator}, the sequence $(k_r)_{r\in\mathbb{N}^*}$ of truncated kernels:
+	Under the assumptions of \Cref{th:covariance_operator}, the truncated kernel:
 	\begin{equation}
 		k_r:\left\{\begin{aligned}
 		\mathcal{U}\times\mathcal{U}&\to\mathcal{M}_{d_z,d_z}(\mathbb{R})\\
 		x,x'&\mapsto\sum_{i=1}^{r}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top
 		\end{aligned}\right.
 	\end{equation}
-	are continuous SPSD kernels of rank at most $r$ which converge uniformly towards $k$ as $r\to+\infty$, and minimise $\left\|k-k_r\right\|_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}$ among all kernels of rank at most $r$.
+	is a continuous SPSD kernel of rank at most $r\in\mathbb{N}^*$. The sequence $(k_r)_{r\in\mathbb{N}^*}$ converges uniformly towards $k$ as $r\to+\infty$, and $k_r$ minimises $\left\|k-k_r\right\|_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}$ among all kernels of rank at most $r$.
 \end{proposition}
 
 \begin{proof}
@@ -419,6 +435,117 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 	\begin{equation}
 		\underset{\substack{\tilde{k}\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})\\\textup{rank}(\tilde{k})\leq r}}{\min}\|k-\tilde{k}\|_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}^2=\sum_{j>r}\lambda_j^2=\|k-k_r\|_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}^2
 	\end{equation}
+\end{proof}
+
+\textbf{TODO : à vérifier avec les nouvelles SPD etc}
+
+In compact form, the eigenfunctions are collected into:
+\begin{equation}
+	\Psi(x)\triangleq\begin{bmatrix}
+	\psi_1(x)&\cdots&\psi_r(x)
+	\end{bmatrix}\in\mathcal{M}_{d_z,r}(\mathbb{R})
+\end{equation}
+and the corresponding eigenvalues are gathered as:
+\begin{equation}
+	\Lambda\triangleq\begin{bmatrix}
+	\lambda_1&&(0)\\&\ddots&\\(0)&&\lambda_r
+	\end{bmatrix}\in\mathcal{M}_{r,r}(\mathbb{R})
+\end{equation}
+
+By \Cref{th:Mercer}, the eigenvalues $\lambda_i$ are strictly positive, so that $\Lambda\succ0$ and $\Lambda^{-1}$ is well-defined.
+
+\Cref{th:reduced_rank} can thus be rewritten as:
+\begin{equation}
+	k(x,x')\approx\Psi(x)\:\Lambda\:\Psi(x')^\top
+\end{equation}
+and then:
+\begin{equation}
+	G(\tilde{\mathbf{x}})\approx\Psi(\tilde{\mathbf{x}})\:\Lambda\:\Psi(\tilde{\mathbf{x}})^\top+I_{\tilde{n}}\otimes\tilde{R},
+	\qquad\Psi(\tilde{\mathbf{x}})\triangleq\begin{bmatrix}\Psi(\tilde{x}_1)\\\vdots\\\Psi(\tilde{x}_{\tilde{n}})\end{bmatrix}\label{eq:reduced_rank_Gram}
+\end{equation}
+
+\begin{proposition}[Reduced-rank simple kriging]\label{th:reduced_rank_kriging}
+	Let:
+	\begin{equation}
+		\tilde{G}(\tilde{\mathbf{x}})\triangleq\Lambda^{-1}+\Psi(\tilde{\mathbf{x}})^\top\left(I_{\tilde{n}}\otimes\tilde{R}\right)^{-1}\Psi(\tilde{\mathbf{x}})\in\mathcal{M}_{r,r}(\mathbb{R})
+	\end{equation}
+	be the reduced-rank Gram matrix. Under the reduced-rank approximation of \eqref{eq:reduced_rank_Gram}, the centred simple kriging estimator of \Cref{th:simple_kriging} and its error covariance matrix reduce to:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\hat{z}_s(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top\left(I_{\tilde{n}}\otimes\tilde{R}\right)^{-1}\tilde{\mathbf{z}}\\
+		\hat{R}_s(x,\tilde{\mathbf{x}})&\approx R+\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(x)^\top
+		\end{aligned}\right.\label{eq:reduced_rank_kriging}
+	\end{equation}
+	which require only the inversion of $\tilde{G}(\tilde{\mathbf{x}})$.
+
+	When there exists $\sigma>0$ such that $\tilde{R}=\sigma^2I$, \eqref{eq:reduced_rank_kriging} further simplify to:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\hat{z}_s(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\approx\Psi(x)\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}\Psi(\tilde{\mathbf{x}})^\top\tilde{\mathbf{z}}\\
+		\hat{R}_s(x,\tilde{\mathbf{x}})&\approx R+\sigma^2\Psi(x)\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}\Psi(x)^\top
+		\end{aligned}\right.
+	\end{equation}
+
+	These expressions remain valid at $\sigma=0$ provided $\Psi(\tilde{\mathbf{x}})$ has full column rank.
+\end{proposition}
+
+\begin{proof}
+	As \eqref{eq:reduced_rank_Gram} is a rank $r$ perturbation of $A\triangleq I_{\tilde{n}}\otimes\tilde{R}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{n}d_z\times\tilde{n}d_z$ inversion of $G(\tilde{\mathbf{x}})$ to an $r\times r$ one:
+	\begin{equation}
+		G(\tilde{\mathbf{x}})^{-1}\approx A^{-1}-A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}
+	\end{equation}
+
+	Computing the centred simple kriging estimator from \Cref{th:simple_kriging} using this approximation and the push-through identity (see \Cref{th:push_through}) yields:
+	\begin{equation}
+		\begin{aligned}
+		\hat{z}_s(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
+		&\approx\Psi(x)\:\Lambda\:\Psi(\tilde{\mathbf{x}})^\top\left(I-A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top\right)A^{-1}\tilde{\mathbf{z}}\\
+		&=\Psi(x)\:\Lambda\left(I-\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\right)\Psi(\tilde{\mathbf{x}})^\top A^{-1}\tilde{\mathbf{z}}
+		\end{aligned}\label{eq:z_s_up_to_tilde_G}
+	\end{equation}
+
+	Recall that, by definition of $\tilde{G}(\tilde{\mathbf{x}})$:
+	\begin{equation}
+		\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}=\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})
+	\end{equation}
+	which gives:
+	\begin{equation}
+		\begin{aligned}
+		I-\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}&=I-\left(\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}\right)\tilde{G}(\tilde{\mathbf{x}})^{-1}\\
+		&=I-I+\Lambda^{-1}\tilde{G}(\tilde{\mathbf{x}})^{-1}\\
+		&=\Lambda^{-1}\tilde{G}(\tilde{\mathbf{x}})^{-1}
+		\end{aligned}\label{eq:reduced_rank_lemma}
+	\end{equation}
+
+	Plugging this result into \eqref{eq:z_s_up_to_tilde_G} and using $A^{-1}=I_{\tilde{n}}\otimes\tilde{R}^{-1}$ finally gives:
+	\begin{equation}
+		\hat{z}_s(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}\tilde{\mathbf{z}}
+	\end{equation}
+
+	For $\hat{R}_s$, reusing:
+	\begin{equation}
+		k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}
+	\end{equation}
+	together with \eqref{eq:reduced_rank_lemma} yields:
+	\begin{equation}
+		\begin{aligned}
+		\hat{R}_s&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
+		&\approx\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}\times\Psi(\tilde{\mathbf{x}})\:\Lambda\:\Psi(x)^\top\\
+		&=\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\left(\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}\right)\Lambda\:\Psi(x)^\top\\
+		&=\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\left(\Lambda-\tilde{G}(\tilde{\mathbf{x}})^{-1}\right)\Psi(x)^\top\\
+		&=R+\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(x)^\top
+		\end{aligned}
+	\end{equation}
+
+	Finally, when $\tilde{R}=\sigma^2I_{d_z}$ with $\sigma>0$, substituting $A^{-1}=\sigma^{-2}I_{\tilde{n}d_z}$ yields the announced simplifications. For such $\sigma>0$, the matrix:
+	\begin{equation}
+		\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\succ0
+	\end{equation}
+	is SPD, as the sum of the SPSD matrix $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})$ and the SPD matrix $\sigma^2\Lambda^{-1}$ ($\Lambda\succ0$). The map:
+	\begin{equation}
+		\sigma\in\mathbb{R}_+^*\mapsto\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}
+	\end{equation}
+	is thus well-defined and continuous, and extends continuously to $\sigma=0$ if and only if $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})\succ0$, \textit{i.e.} when $\Psi(\tilde{\mathbf{x}})$ has full column rank. As the estimator depends on $\sigma$ only through this inverse, and its error covariance additionally through an explicit factor $\sigma^2$, both expressions remain valid at $\sigma=0$ under this condition.
 \end{proof}
 
 \begin{remark}[Construction of the eigenfunctions]

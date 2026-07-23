@@ -2,7 +2,7 @@
 
 While they alleviate, to a degree, the limitations induced by \eqref{eq:Kalman_assumptions}, Kalman-based methods all rely on the assumption that the PDF admits a Gaussian closed-form expression at each time step. This assumption is often violated in practice, as navigation problems frequently involve highly non-linear and non-injective functions. In turn, these functions induce multimodal or heavy-tailed distributions which cannot be adequately characterised by Gaussian hypotheses.
 
-Monte Carlo (MC) methods offer an alternative approach that is asymptotically optimal under very weak assumptions, at the cost of higher computational cost. This section introduces the main concepts for MC-based algorithms to solve the navigation problem \eqref{eq:navigation_problem}.
+Monte Carlo (MC) methods offer an alternative approach that remains consistent under very mild assumptions. Their acccuracy improves asymptotcally with the number of samples, at the expense of an increased computational cost. This section introduces the main concepts for MC-based algorithms to solve the navigation problem \eqref{eq:navigation_problem}.
 
 \subsection{Monte Carlo Integration}
 
@@ -18,7 +18,7 @@ Let $\mu(dx)\triangleq p(x)\:dx$ be the probability measure with density $p$ wit
 	\langle\mu,\varphi\rangle\triangleq\int{\varphi(x)\:\mu(dx)}=\mathbb{E}_p[\varphi(X)]\label{eq:varphi_expectation_mu}
 \end{equation}
 
-Since $\mu$ is a continuous measure, computing \eqref{eq:varphi_expectation_mu} is analytically intractable in general. The MC method aims to approximate $\mu$ by an empirical measure induced by $N$ independent samples, as presented by \Cref{th:empirical_measure} and \Cref{th:MC_estimator}.
+Since $\mu$ is a continuous measure, evaluating \eqref{eq:varphi_expectation_mu} exactly is intractable in most practical situations. The MC method aims to approximate $\mu$ by an empirical measure induced by $N$ independent samples, as presented by \Cref{th:empirical_measure} and \Cref{th:MC_estimator}.
 
 \begin{definition}[Empirical measure]\label{th:empirical_measure}
 	Let $N\in\mathbb{N}^*$ and $X^{(1)},\dots,X^{(N)}$ be independent and identically distributed (i.i.d.) random variables drawn from $\mu$. The empirical measure associated with $\left(X^{(i)}\right)_{i\in[\![1,N]\!]}$ is defined as:
@@ -37,7 +37,11 @@ Since $\mu$ is a continuous measure, computing \eqref{eq:varphi_expectation_mu} 
 	\begin{equation}
 		\mathbb{E}_p\left[\left|\left\langle S^N(\mu)-\mu,\varphi\right\rangle\right|^2\right]=\frac{1}{N}\mathbb{V}_\mu[\varphi]
 	\end{equation}
-	where $\mathbb{V}_\mu[\varphi]\triangleq\left\langle\mu,|\varphi-\langle\mu,\varphi\rangle|^2\right\rangle=\left\langle\mu,|\varphi|^2\right\rangle-|\langle\mu,\varphi\rangle|^2$.
+	where $\mathbb{V}_\mu[\varphi]\triangleq\left\langle\mu,|\varphi-\langle\mu,\varphi\rangle|^2\right\rangle=\left\langle\mu,|\varphi|^2\right\rangle-|\langle\mu,\varphi\rangle|^2$. Moreover, it is consistent, and its rescaled error converges in distribution to a centred Gaussian:
+	\begin{align}
+		\left\langle S^N(\mu),\varphi\right\rangle&\overset{a.s.}{\longrightarrow}\langle\mu,\varphi\rangle=\mathbb{E}_p[\varphi(X)]\\
+		\sqrt{N}\left\langle S^N(\mu)-\mu,\varphi\right\rangle&\overset{\mathcal{L}}{\longrightarrow}\mathcal{N}(0,\mathbb{V}_\mu[\varphi])
+	\end{align}
 \end{proposition}
 
 \begin{proof}
@@ -59,15 +63,9 @@ Since $\mu$ is a continuous measure, computing \eqref{eq:varphi_expectation_mu} 
 		&=\frac{1}{N}\mathbb{V}_\mu[\varphi]
 		\end{aligned}
 	\end{equation}
-\end{proof}
 
-\begin{proposition}[Convergence]
-	By the strong law of large numbers and the central limit theorem:
-	\begin{align}
-		\left\langle S^N(\mu),\varphi\right\rangle&\overset{a.s.}{\longrightarrow}\langle\mu,\varphi\rangle=\mathbb{E}_p[\varphi(X)]\\
-		\sqrt{N}\left\langle S^N(\mu)-\mu,\varphi\right\rangle&\overset{\mathcal{L}}{\longrightarrow}\mathcal{N}(0,\mathbb{V}_\mu[\varphi])
-	\end{align}
-\end{proposition}
+	Finally, the a.s. convergence and the convergence in distribution follow respectively from the strong law of large numbers and the central limit theorem, applied to the i.i.d. variables $\varphi\left(X^{(i)}\right)$.
+\end{proof}
 
 Informally, this means that:
 \begin{equation}
@@ -82,7 +80,7 @@ in the sense that, for any measurable function $\phi$:
 
 The standard MC method requires sampling directly from $\mu$, which can be complex in practice. Importance sampling circumvents this issue by drawing from a chosen importance, or proposal, distribution $\nu$ with density $q$.
 
-Using the identity $p(x)=\frac{p(x)}{q(x)}\:q(x)$, it follows that:
+It follows from the identity $p(x)=\frac{p(x)}{q(x)}\:q(x)$ and the transfer theorem that:
 \begin{equation}
 	\mathbb{E}_p[\varphi(X)]=\int{\left(\varphi(x)\:\frac{p(x)}{q(x)}\right)\:q(x)\:dx}=\mathbb{E}_q\left[\varphi(X)\:\frac{p(X)}{q(X)}\right]
 \end{equation}
@@ -108,39 +106,62 @@ The density $\frac{d\mu}{d\nu}$ is known as the Radon-Nikodym derivative. This m
 	\end{equation}
 	is unbiased with mean squared error:
 	\begin{equation}
-		\mathbb{E}_p\left[\left|\left\langle S^N(\mu,\nu)-\mu,\varphi\right\rangle\right|^2\right]=\frac{1}{N}\mathbb{V}_\mu\left[\frac{d\mu}{d\nu}\:\varphi\right]
+		\mathbb{E}_q\left[\left|\left\langle S^N(\mu,\nu)-\mu,\varphi\right\rangle\right|^2\right]=\frac{1}{N}\mathbb{V}_\nu\left[\frac{d\mu}{d\nu}\:\varphi\right]
 	\end{equation}
+
+	As with the standard estimator, the weighted estimator is consistent and asymptotically Gaussian:
+	\begin{align}
+		\left\langle S^N(\mu,\nu),\varphi\right\rangle&\overset{a.s.}{\longrightarrow}\mathbb{E}_p[\varphi(X)]\\
+		\sqrt{N}\left\langle S^N(\mu,\nu)-\mu,\varphi\right\rangle&\overset{\mathcal{L}}{\longrightarrow}\mathcal{N}\left(0,\mathbb{V}_\nu\left[\frac{d\mu}{d\nu}\:\varphi\right]\right)
+	\end{align}
 \end{proposition}
 
 \begin{proof}
 	This is direct using the results of \Cref{th:MC_estimator}.
 \end{proof}
 
-\begin{remark}[Self-normalised measure]
-	For $\varphi\equiv1$, the total weight:
-	\begin{equation}
-		\left\langle S^N(\mu,\nu),1\right\rangle=\frac{1}{N}\sum_{i=1}^N\frac{p\left(X^{(i)}\right)}{q\left(X^{(i)}\right)}
-	\end{equation}
-	is not always normalised to $1$. Furthermore, $p$ and $q$ are often known only up to normalising constants $\tilde{p}=Z_\mu p$ and $\tilde{q}=Z_\nu q$. In practice, the self-normalised measure is preferred:
+For $\varphi\equiv1$, the total weight:
+\begin{equation}
+	\left\langle S^N(\mu,\nu),1\right\rangle=\frac{1}{N}\sum_{i=1}^N\frac{p\left(X^{(i)}\right)}{q\left(X^{(i)}\right)}
+\end{equation}
+is not always normalised to $1$. Furthermore, $p$ and $q$ are often known only up to normalising constants $\tilde{p}=Z_\mu p$ and $\tilde{q}=Z_\nu q$. To alleviate these issues, \Cref{th:self_normalised_measure} introduces the self-normalised measure, whose estimator remains consistent despite these unknown constants, as proven by \Cref{th:self_normalised_estimator}.
+
+\begin{definition}[Self-normalised measure]\label{th:self_normalised_measure}
+	Let $X^{(1)}, \dots,X^{(N)}\overset{i.i.d.}{\sim}\nu$, with $\tilde{\mu}=Z_\mu\mu$ and $\tilde{\nu}=Z_\nu\nu$. The self-normalised measure is:
 	\begin{align}
 		\tilde{S}^N(\mu,\nu)&\triangleq\sum_{i=1}^Nw^{(i)}\:\delta_{X^{(i)}}\label{eq:self_normalised_estimator}\\
 		w^{(i)}&\triangleq\left.\tilde{w}^{(i)}\middle/\sum_{j=1}^N\tilde{w}^{(j)}\right.\\
 		\tilde{w}^{(i)}&\triangleq\frac{\tilde{p}\left(X^{(i)}\right)}{\tilde{q}\left(X^{(i)}\right)}=\frac{d\tilde{\mu}}{d\tilde{\nu}}\left(X^{(i)}\right)
 	\end{align}
-	where $X^{(1)}, \dots,X^{(N)}\overset{i.i.d.}{\sim}\tilde{\nu}$, $\tilde{\mu}=Z_\mu\mu$ and $\tilde{\nu}=Z_\nu\nu$.
+\end{definition}
 
-	The self-normalised estimator thus becomes:
+\begin{proposition}[Self-normalised estimator]\label{th:self_normalised_estimator}
+	The self-normalised estimator:
 	\begin{equation}
 		\left\langle\tilde{S}^N(\mu,\nu),\varphi\right\rangle=\sum_{i=1}^Nw^{(i)}\:\varphi\left(X^{(i)}\right)
 	\end{equation}
-\end{remark}
+	is biased at finite $N$, but consistent under standard integrability and support assumptions:
+	\begin{equation}
+		\left\langle\tilde{S}^N(\mu,\nu),\varphi\right\rangle\overset{a.s.}{\longrightarrow}\langle\mu,\varphi\rangle
+	\end{equation}
+\end{proposition}
 
-\begin{remark}[Consistency of the self-normalised estimator]
-	While the self-nor\-malised estimator is biased for a finite $N$, it is consistent under standard integrability and support assumptions. By the strong law of large numbers applied separately to both the numerator and denominator, it comes that:
+\begin{proof}
+	By the strong law of large numbers applied separately to both the numerator and denominator, it comes that:
 	\begin{equation}
 		\left\langle\tilde{S}^N(\mu,\nu),\varphi\right\rangle=\frac{\displaystyle\frac{1}{N}\sum_{i=1}^N\tilde{w}^{(i)}\varphi\left(X^{(i)}\right)}{\displaystyle\frac{1}{N}\sum_{i=1}^N\tilde{w}^{(i)}}\overset{a.s.}{\longrightarrow}\frac{\mathbb{E}_\nu\left[\dfrac{d\tilde\mu}{d\tilde\nu}\varphi\right]}{\mathbb{E}_\nu\left[\dfrac{d\tilde\mu}{d\tilde\nu}\right]}=\langle\mu,\varphi\rangle
 	\end{equation}
-\end{remark}
+
+	Although the bias of $\tilde{S}^N(\mu,\nu)$ admits no simple closed-form expression in general, it can be computed for $N=1$. In this situation, the self-normalisation forces the single weight to $1$, such that:
+	\begin{equation}
+		\left\langle\tilde{S}^1(\mu,\nu),\varphi\right\rangle=\varphi\left(X^{(1)}\right)
+	\end{equation}
+	and thus:
+	\begin{equation}
+		\mathbb{E}\left[\left\langle\tilde{S}^1(\mu,\nu),\varphi\right\rangle\right]=\langle\nu,\varphi\rangle\neq\langle\mu,\varphi\rangle
+	\end{equation}
+	in general.
+\end{proof}
 
 \subsection{Sequential Importance Sampling}
 
@@ -196,7 +217,7 @@ with the further simplification under the hypothesis of \eqref{eq:simplification
 While the current formulation allows us to obtain the expectation of the full trajectory $p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$, we often only want to estimate the current state $x_k$. This can be done naturally by letting $\pi_k$ denote the projection of a $(k+1)$-tuple onto its last element:
 \begin{equation}
 	\pi_k:\left\{\begin{aligned}
-	\mathbb{R}^{k+1}&\rightarrow\mathbb{R}\\
+	\left(\mathbb{R}^{d_x}\right)^{k+1}&\rightarrow\mathbb{R}^{d_x}\\
 	(x_0,\dots,x_k)&\mapsto x_k
 	\end{aligned}\right.
 \end{equation}
@@ -360,7 +381,7 @@ Several resampling algorithms can be used in \eqref{eq:resampling}. We present t
 
 \begin{figure}[ht]
 	\centering\includegraphics[width=0.9\textwidth]{../../Images/Rééchantillonnage CDF.png}
-	\caption{The CDF is defined as the integral of the relevant density function $f$ between $-\infty$ and the current value $x$: $\displaystyle\textup{cdf}:x\mapsto\int_{-\infty}^x{f(t)\:dt}$. In our case, the density is discrete, such that the CDF is piecewise constant, with $\textup{cdf}_0=0$ and $\displaystyle\textup{cdf}_i\triangleq\sum_{j=1}^iw_k^{(j)},\:i\in[\![1,N]\!]$.}\label{fig:CDF}
+	\caption{The CDF is defined as the integral of the relevant density function $f$ between $-\infty$ and the current value $x$, \textit{i.e.} $\displaystyle\textup{cdf}:x\mapsto\int_{-\infty}^x{f(t)\:dt}$. In our case, the density is discrete, such that the CDF is piecewise constant, with $\textup{cdf}_0=0$ and $\displaystyle\textup{cdf}_i\triangleq\sum_{j=1}^iw_k^{(j)},\:i\in[\![1,N]\!]$.}\label{fig:CDF}
 \end{figure}
 
 \begin{itemize}

@@ -247,35 +247,46 @@ The idea behind the RBPF is to factorise the PDF as:
 \end{equation}
 where $p(x_k^n|\mathbf{z}_{1:k})$ is estimated via particle filtering techniques, and $p(x_k^l|x_k^n,\mathbf{z}_{1:k})$ is analytically solved by a Kalman filter.
 
-When $Q_k^{nl}\neq 0$, the noises $w_k^l$ and $w_k^n$ are correlated, and the Kalman filter cannot be applied directly. To decouple them, we define the decorrelated noise:
-\begin{equation}
-	\overline{w}_k^l\triangleq w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n
-\end{equation}
-whose expectation is $0$, and its covariance is:
-\begin{equation}
-	\begin{aligned}
-	\overline{Q}_k^l&\triangleq\mathbb{E}\left[\overline{w}_k^l\:{\overline{w}_k^l}^\top\right]\\
-	&=\mathbb{E}\left[(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]\\
-	&=\mathbb{E}\left[w_k^l\:(w_k^l)^\top\right]-\mathbb{E}\left[w_k^l\:(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]-\mathbb{E}\left[(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^l)^\top\right]\\
-	&\qquad+\mathbb{E}\left[(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]\\
-	&=\mathbb{E}\left[w_k^l\:(w_k^l)^\top\right]-\mathbb{E}\left[w_k^l\:(w_k^n)^\top\right](Q_k^n)^{-\top}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^l)^\top\right]\\
-	&\qquad+Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^n)^\top\right]\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
-	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
-	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top\\
-	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top
-	\end{aligned}
-\end{equation}
+When $Q_k^{nl}\neq 0$, the noises $w_k^l$ and $w_k^n$ are correlated, and the Kalman filter cannot be applied directly. \Cref{th:RBPF_decorrelation} decouples them by removing the component of $w_k^l$ correlated with $w_k^n$.
 
-Computing:
-\begin{equation}
-	\begin{aligned}
-	\mathbb{E}\left[\overline{w}_k^l\:(w_k^n)^\top\right]&=\mathbb{E}\left[(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^n)^\top\right]\\
-	&=\mathbb{E}\left[w_k^l\:(w_k^n)^\top\right]-Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^n)^\top\right]\\
-	&=Q_k^{nl}-Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\\
-	&=0
-	\end{aligned}
-\end{equation}
-proves that $\overline{w}_k^l$ and $w_k^n$ are decorrelated.
+\begin{proposition}[Noise decorrelation]\label{th:RBPF_decorrelation}
+	The decorrelated noise:
+	\begin{equation}
+		\overline{w}_k^l\triangleq w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n
+	\end{equation}
+	is centred, uncorrelated with $w_k^n$, and has covariance:
+	\begin{equation}
+		\overline{Q}_k^l\triangleq\mathbb{V}\left[\overline{w}_k^l\right]=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	As a linear combination of the centred noises $w_k^l$ and $w_k^n$, $\overline{w}_k^l$ is centred. Its covariance develops as:
+	\begin{equation}
+		\begin{aligned}
+		\overline{Q}_k^l&=\mathbb{E}\left[\overline{w}_k^l\:{\overline{w}_k^l}^\top\right]\\
+		&=\mathbb{E}\left[(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]\\
+		&=\mathbb{E}\left[w_k^l\:(w_k^l)^\top\right]-\mathbb{E}\left[w_k^l\:(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]-\mathbb{E}\left[(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^l)^\top\right]\\
+		&\qquad+\mathbb{E}\left[(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]\\
+		&=\mathbb{E}\left[w_k^l\:(w_k^l)^\top\right]-\mathbb{E}\left[w_k^l\:(w_k^n)^\top\right](Q_k^n)^{-\top}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^l)^\top\right]\\
+		&\qquad+Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^n)^\top\right]\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
+		&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
+		&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top\\
+		&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top
+		\end{aligned}
+	\end{equation}
+
+	Finally, computing:
+	\begin{equation}
+		\begin{aligned}
+		\mathbb{E}\left[\overline{w}_k^l\:(w_k^n)^\top\right]&=\mathbb{E}\left[(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^n)^\top\right]\\
+		&=\mathbb{E}\left[w_k^l\:(w_k^n)^\top\right]-Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^n)^\top\right]\\
+		&=Q_k^{nl}-Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\\
+		&=0
+		\end{aligned}
+	\end{equation}
+	shows that $\overline{w}_k^l$ and $w_k^n$ are uncorrelated.
+\end{proof}
 
 Let:\begin{align}
 	\overline{F}_k^l(x_{k-1}^n)&\triangleq F_k^l(x_{k-1}^n)-Q_k^{nl}\:(Q_k^n)^{-1}F_k^n(x_{k-1}^n)\\

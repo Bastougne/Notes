@@ -8,23 +8,34 @@
 \section{Gaussian Conditioning Formula}
 
 \begin{proposition}[Gaussian conditioning]\label{th:Gaussian_conditioning}
-	For $n,p\in\mathbb{N}$, let $A\in\mathcal{M}_{n,n}(\mathbb{R})$, $B\in\mathcal{M}_{n,p}(\mathbb{R})$, and $D\in\mathcal{M}_{p,p}(\mathbb{R})$. Assuming $A\succ0$ and $D\succ0$, we define the random variables $U$ and $V$ of respective means $\mu_U$ and $\mu_V$, such that:
+	For $n,p\in\mathbb{N}$, let $U\in\mathbb{R}^n$ and $V\in\mathbb{R}^p$ be jointly Gaussian random variables, of respective means $\mu_U,\mu_V$ and covariance matrices $A\succ0$ and $D\succ0$. There exists $B\in\mathcal{M}_{n,p}(\mathbb{R})$ such that:
 	\begin{equation}
 		\begin{bmatrix}U\\V\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}\mu_U\\\mu_V\end{bmatrix},\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}\right)
 	\end{equation}
-	The conditional distribution of $U$ given $V=v$ is:
+
+	We assume $B$ to be such that this joint covariance is SPD in the sense of \Cref{th:matrix_SPSD}. The conditional distribution of $U$ given $V=v$ is then:
 	\begin{equation}
-		U|V=v\sim\mathcal{N}\left(\mu_U+BD^{-1}(v-\mu_V),\:A-BD^{-1}B^\top\right)\label{eq:Gaussian_conditioning}
+		U|V=v\sim\mathcal{N}\left(\mu_U+BD^{-1}(v-\mu_V),P_{U|V}\right)\label{eq:Gaussian_conditioning}
+	\end{equation}
+	with:
+	\begin{equation}
+		P_{U|V}\triangleq A-BD^{-1}B^\top\succ0
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	Using the inferior right Schur inversion formula (see \Cref{th:Schur}) to invert the joint covariance by blocks yields:
+	The existence of $B$ is direct by definition of jointly Gaussian random variables. As $D\succ0$ is invertible, $S\triangleq A-BD^{-1}B^\top$ the Schur complement with respect to $D$ is well-defined.
+
+	Let $u\neq0$:
+	\begin{equation}
+		\begin{bmatrix}u\\-D^{-1}B^\top u\end{bmatrix}^\top\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}\begin{bmatrix}u\\-D^{-1}B^\top u\end{bmatrix}=u^\top\left(A-BD^{-1}B^\top\right)u>0
+	\end{equation}
+	by SPDness of the joint covariance, the left-hand vector being non-zero. $S$ is thus also invertible, and we can apply the inferior right Schur inversion formula (see \Cref{th:Schur}) to obtain:
 	\begin{equation}
 		\begin{bmatrix}\bar{A}&\bar{B}\\\bar{C}&\bar{D}\end{bmatrix}\triangleq\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}^{-1}
 	\end{equation}
 
-	For some realisation $u$ of $U$, we define $\tilde{u}\triangleq u-\mu_U$ and $\tilde{v}\triangleq v-\mu_V$, and we compute:
+	For some realisation $u$ of $U$ and $v$ of $V$, we define $\tilde{u}\triangleq u-\mu_U$ and $\tilde{v}\triangleq v-\mu_V$, and we compute:
 	\begin{equation}
 		\begin{aligned}
 		\alpha&\triangleq\begin{bmatrix}\tilde{u}\\\tilde{v}\end{bmatrix}^\top\begin{bmatrix}\bar{A}&\bar{B}\\\bar{C}&\bar{D}\end{bmatrix}\begin{bmatrix}\tilde{u}\\\tilde{v}\end{bmatrix}\\
@@ -34,7 +45,6 @@
 		&=(\tilde{u}-BD^{-1}\tilde{v})^\top S^{-1}(\tilde{u}-BD^{-1}\tilde{v})+\tilde{v}^\top D^{-1}\tilde{v}
 		\end{aligned}
 	\end{equation}
-	where $S\triangleq A-BD^{-1}B^\top$ is the Schur complement with respect to $D$.
 
 	The conditional density is thus:
 	\begin{equation}
@@ -51,36 +61,21 @@
 	\end{equation}
 	and covariance:
 	\begin{equation}
-		P_{U|V}\triangleq S=A-BD^{-1}B^\top
+		P_{U|V}\triangleq S=A-BD^{-1}B^\top\succ0
 	\end{equation}
 \end{proof}
-
-\begin{remark}[Kalman gain]
-	By defining the Kalman gain:
-	\begin{equation}
-		K\triangleq BD^{-1}
-	\end{equation}
-	the conditional distribution \eqref{eq:Gaussian_conditioning} can be rewritten as:
-	\begin{equation}
-		U|V=v\sim\mathcal{N}\left(\mu_U+K(v-\mu_V),\:A-KB^\top\right)
-	\end{equation}
-\end{remark}
 
 \section{Schur Inversion Formula}
 
 \begin{proposition}[Schur inversion formula]\label{th:Schur}
-	For $n,p\in\mathbb{N}$, let $A\in\mathcal{M}_{n,n}(\mathbb{R})$, $B\in\mathcal{M}_{n,p}(\mathbb{R})$, $C\in\mathcal{M}_{p,n}(\mathbb{R})$, and $D\in\mathcal{M}_{p,p}(\mathbb{R})$. We assume that $A$ is invertible, and we define:
+	For $n,p\in\mathbb{N}$, let $A\in\mathcal{M}_{n,n}(\mathbb{R})$, $B\in\mathcal{M}_{n,p}(\mathbb{R})$, $C\in\mathcal{M}_{p,n}(\mathbb{R})$, and $D\in\mathcal{M}_{p,p}(\mathbb{R})$, with $A$ invertible. We define the matrix $M$ and its Schur complement with respect to $A$ as:
 	\begin{equation}
-		M\triangleq\begin{bmatrix}A&B\\C&D\end{bmatrix}
+		M\triangleq\begin{bmatrix}A&B\\C&D\end{bmatrix},\qquad M/A\triangleq D-CA^{-1}B
 	\end{equation}
 
-	Then $M$ is invertible and:
+	If $M/A$ is invertible, then $M$ is invertible and:
 	\begin{equation}
 		M^{-1}=\begin{bmatrix}A^{-1}+A^{-1}B(M/A)^{-1}CA^{-1}&-A^{-1}B(M/A)^{-1}\\-(M/A)^{-1}CA^{-1}&(M/A)^{-1}\end{bmatrix}
-	\end{equation}
-	where $M/A$ is the Schur complement of $M$ with respect to $A$:
-	\begin{equation}
-		M/A\triangleq D-CA^{-1}B
 	\end{equation}
 \end{proposition}
 
@@ -110,13 +105,9 @@
 		&C\bar{B}+D\bar{D}=I\\
 		\iff\quad&-CA^{-1}B\bar{D}+D\bar{D}=I\\
 		\iff\quad&(D-CA^{-1}B)\bar{D}=I\\
-		\iff\quad&(M/A)\bar{D}=I
+		\iff\quad&(M/A)\bar{D}=I\\
+		\iff\quad&\bar{D}=(M/A)^{-1}
 		\end{aligned}
-	\end{equation}
-
-	Since $(M/A)$ and $\bar{D}$ are square matrices, $M/A$ is invertible, and:
-	\begin{equation}
-		\bar{D}=(M/A)^{-1}
 	\end{equation}
 
 	\eqref{eq:bar_B} can then be solved:
@@ -152,12 +143,12 @@
 \end{proof}
 
 \begin{remark}[Inversion with respect to $D$]
-	If $D$ is assumed to be invertible instead of $A$, a block inversion formula can still be exhibited. Let $M/D$ denote the Schur complement with respect to $D$:
+	If $D$ is invertible, one can instead introduce the Schur complement with respect to $D$:
 	\begin{equation}
 		M/D\triangleq A-BD^{-1}C
 	\end{equation}
 
-	We have:
+	When $M/D$ is also invertible, an analogous block inversion formula holds:
 	\begin{equation}
 		M^{-1}=\begin{bmatrix}(M/D)^{-1}&-(M/D)^{-1}BD^{-1}\\-D^{-1}C(M/D)^{-1}&D^{-1}+D^{-1}C(M/D)^{-1}BD^{-1}\end{bmatrix}
 	\end{equation}
@@ -204,8 +195,7 @@
 		\iff&&(I_n+PQ)^{-1}P&=P(I_p+QP)^{-1}
 		\end{aligned}
 	\end{equation}
-
-	This also shows that $I_p+QP$ admits a right inverse, hence is invertible.
+	with $I_p+QP$ admitting a right inverse, hence being invertible.
 \end{proof}
 
 \begin{proposition}[Generalised Woodbury formula]\label{th:Woodbury}
@@ -246,7 +236,3 @@
 		\end{aligned}
 	\end{equation}
 \end{proof}
-
-\begin{remark}[Rank reduction]
-	One of the main numerical uses of the Woodbury inversion formula is to find the correct decomposition $M=A+BD^{-1}C$ such that $A$ is easy to invert, and $p$ is smaller than $n$. When these conditions are met, inverting M amounts to inverting $\tilde{M}=D+CA^{-1}B$, which has a complexity of $\mathcal{O}(p^3)$ instead of the standard $\mathcal{O}(n^3)$. This method is called inversion by rank reduction because $n$ and $p$ are the respective ranks of $M$ and $\tilde{M}$.
-\end{remark}

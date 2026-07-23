@@ -211,7 +211,7 @@ since the normalising constant $p_Z(z)$ is independent of $u$.
 The MAP estimator is computationally attractive when the posterior has a known parametric form such as a Gaussian distribution, but it is sensitive to multimodalities. For example, in a bimodal posterior, it returns only the most probable mode and ignores the overall structure of the posterior distribution.
 
 \begin{remark}[MAP optimisation problem]
-	The MAP estimator can be seen as the solution of an optimisation problem of the form \eqref{eq:loss_function}, associated with the threshold losses:
+	The MAP estimator can be seen as the solution of an optimisation problem of the form \eqref{eq:loss_function}, associated with the threshold loss:
 	\begin{equation}
 		\forall\varepsilon>0,\:(A,B)\in\mathcal{F}^2\mapsto\rho_\varepsilon(A,B)\triangleq\mathbbm{1}_{\|A(Z)-B(Z)\|>\varepsilon}
 	\end{equation}
@@ -236,7 +236,7 @@ As established in \cref{sec:state_estimation}, all three estimators ultimately r
 
 \subsection{Optimal Bayesian Filtering Algorithm}
 
-In the Bayesian filtering framework, the PDF can be propagated recursively through two steps. However, each step relies on a specific conditional independence assumption as presented by \Cref{th:Markov,th:observation_independence}.
+In the Bayesian filtering framework, the PDF can be propagated recursively through two steps. However, each step relies on a specific conditional independence hypotheses as presented by \Cref{th:Markov,th:observation_independence}.
 
 \begin{assumption}[Markov property]\label{th:Markov}
 	The state sequence $(x_k)_{k\geq0}$ is a Markov chain. As such, it verifies:
@@ -304,7 +304,7 @@ While the optimal estimation algorithm cannot be used in the form given by \Cref
 	n_k&\sim\mathcal{N}(0,R_k)\text{, independent of }x_0\text{ and }w_k
 	\end{array}\right.\label{eq:Kalman_assumptions}
 \end{equation}
-where $F_k\in\mathcal{M}_{d_x,d_x}(\mathbb{R})$ and $H_k\in\mathcal{M}_{d_z,d_x}(\mathbb{R})$ are known matrices, and $b_k^{(e)}\in\mathbb{R}^{d_x}$ and $b_k^{(o)}\in\mathbb{R}^{d_z}$ are known bias vectors. $Q_k\succ0$ and $R_k\succ0$ are the evolution and observation noise covariance matrices, with $\succ0$ denoting symmetric positive definiteness (SPD):
+where $F_k\in\mathcal{M}_{d_x,d_x}(\mathbb{R})$ and $H_k\in\mathcal{M}_{d_z,d_x}(\mathbb{R})$ are known matrices, and $b_k^{(e)}\in\mathbb{R}^{d_x}$ and $b_k^{(o)}\in\mathbb{R}^{d_z}$ are known bias vectors. $P_0\succ0$ is the initial state covariance, and $Q_k\succ0$ and $R_k\succ0$ are the evolution and observation noise covariance matrices. Here, $\succ0$ denotes the symmetric positive definiteness (SPD) of a matrix, as introduced by \Cref{th:matrix_SPSD}.
 
 \begin{definition}[Matrix symmetric positive definiteness]\label{th:matrix_SPSD}
 	Let $n\in\mathbb{N}^*$ and $M\in\mathcal{M}_{n,n}(\mathbb{R})$. $M$ is symmetric positive semi-definite (SPSD), denoted $M\succeq0$, if it is:
@@ -329,14 +329,14 @@ In particular, the state-space model \eqref{eq:navigation_problem} becomes:
 Finally, $x_0$, $(w_k)_{k\geq0}$ and $(n_k)_{k\geq0}$ are assumed to be mutually independent. Under these assumptions, the true state $x_k$ follows a Gaussian distribution at each time step as an affine transformation of Gaussian random variables.
 
 \begin{proposition}[Gaussian closure under affine assumptions]
-	For $m,n\in\mathbb{N}$, let the index $m|n$ denote "at time $m$ conditioned on the observations from $1$ to $n$". Under the assumptions of \eqref{eq:Kalman_assumptions}, if $p(x_{k-1}|\mathbf{z}_{1:k-1})=\mathcal{N}\left(\hat{x}_{k-1|k-1},P_{k-1|k-1}\right)$, then:
+	For $m,n\in\mathbb{N}$, let the index $m|n$ denote "at time $m$ conditioned on the observations from $1$ to $n$". Under the hypotheses of \eqref{eq:Kalman_assumptions}, if $p(x_{k-1}|\mathbf{z}_{1:k-1})=\mathcal{N}\left(\hat{x}_{k-1|k-1},P_{k-1|k-1}\right)$, then:
 	\begin{equation}
 		\left\{\begin{aligned}
 		p(x_k|\mathbf{z}_{1:k-1})&=\mathcal{N}\left(\hat{x}_{k|k-1},P_{k|k-1}\right)\\
 		p(x_k|\mathbf{z}_{1:k})&=\mathcal{N}\left(\hat{x}_{k|k},P_{k|k}\right)
 		\end{aligned}\right.
 	\end{equation}
-	where the predicted and corrected states $\hat{x}_{k|k-1}$ and $\hat{x}_{k|k}$ and covariances are given by \Cref{alg:Kalman_filter}.
+	where the predicted and corrected states $\hat{x}_{k|k-1}$ and $\hat{x}_{k|k}$, and covariances $P_{k|k-1}\succ0$ and $P_{k|k}\succ0$ are given by \Cref{alg:Kalman_filter}.
 \end{proposition}
 
 \begin{proof}
@@ -362,6 +362,8 @@ Finally, $x_0$, $(w_k)_{k\geq0}$ and $(n_k)_{k\geq0}$ are assumed to be mutually
 		\end{aligned}
 	\end{equation}
 
+	The predicted covariance is thus SPD as the sum of an SPSD matrix and the SPD matrix $Q_k$.
+
 	\textbf{Correction.} The joint distribution of $(x_k,z_k)$ given $\mathbf{z}_{1:k-1}$ is also Gaussian, since $z_k=H_k\:x_k+b_k^{(o)}+n_k$ is an affine transformation of the independent Gaussian variables $x_k|\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k|k-1},P_{k|k-1}\right)$ and $n_k\sim\mathcal{N}(0,R_k)$. It comes that:
 	\begin{equation}
 		\left.\begin{bmatrix}
@@ -385,7 +387,14 @@ Finally, $x_0$, $(w_k)_{k\geq0}$ and $(n_k)_{k\geq0}$ are assumed to be mutually
 		y_k\triangleq z_k-\left(H_k\:\hat{x}_{k|k-1}+b_k^{(o)}\right)
 	\end{equation}
 
-	By the Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}), the posterior distribution is:
+	Since $R_k\succ0$, the independent pair $(x_k,n_k)$ has the covariance:
+	\begin{equation}
+		\begin{bmatrix}
+		P_{k|k-1}&0\\0&R_k
+		\end{bmatrix}\succ0
+	\end{equation}
+
+	Its image under the invertible linear map $(x,n)\mapsto(x,H_k\:x+n)$ therefore has an SPD covariance as well. The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) can thus be applied to give the posterior distribution:
 	\begin{align}
 		\hat{x}_{k|k}&=\hat{x}_{k|k-1}+K_k\:y_k\\
 		P_{k|k}&=(I-K_k\:H_k)\:P_{k|k-1}
@@ -395,6 +404,12 @@ Finally, $x_0$, $(w_k)_{k\geq0}$ and $(n_k)_{k\geq0}$ are assumed to be mutually
 		K_k\triangleq P_{k|k-1}\:H_k^\top\:S_k^{-1}
 	\end{equation}
 	is the Kalman gain.
+
+	Finally, \Cref{th:Gaussian_conditioning} proves that the Schur complement of the SPD joint covariance:
+	\begin{equation}
+		P_{k|k-1}-\left(P_{k|k-1}\:H_k^\top\right)S_k^{-1}\left(H_k\:P_{k|k-1}\right)=P_{k|k-1}-K_k\:H_k\:P_{k|k-1}=P_{k|k}
+	\end{equation}
+	is itself SPD, so $P_{k|k}\succ0$.
 \end{proof}
 
 The resulting algorithm, known as the Kalman filter, is depicted by \Cref{fig:Kalman_filter} and presented in \Cref{alg:Kalman_filter}.
@@ -436,7 +451,7 @@ In finite-precision arithmetic, the standard update $P_{k|k}=(I-K_k\:H_k)\:P_{k|
 	\end{aligned}
 \end{equation}
 
-Under this more robust form, $P_{k|k}$ is SPD as the sum of two SPSD matrices, the second of which is strictly positive definite.
+Under this more robust form, $P_{k|k}$ is SPSD as the sum of two SPSD matrices.
 
 \subsection{Extended Kalman Filter}
 
