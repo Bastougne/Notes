@@ -24,13 +24,13 @@ The reproducing property \eqref{eq:reproducing_property} states that point evalu
 \begin{proposition}[Kriging as minimum-norm interpolation]\label{th:RKHS_kriging}
 	In the centred case, the simple kriging estimator \eqref{eq:simple_kriging_equations} is the solution of the penalised least-squares problem in $\mathcal{H}_k$:
 	\begin{equation}
-		z_s^*=\underset{\psi\in\mathcal{H}_k}{\textup{argmin}}\left(\frac{1}{\tilde{R}}\sum_{i=1}^{\tilde{n}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\|\psi\|_{\mathcal{H}_k}^2\right)\label{eq:RKHS_regularisation}
+		z_s^*=\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}\left(\frac{1}{\tilde{R}}\sum_{i=1}^{\tilde{n}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\|\psi\|_{\mathcal{H}_k}^2\right)\label{eq:RKHS_regularisation}
 	\end{equation}
-	which, in the noise-free limit $\tilde{R}\to0$, reduces to the minimum-norm interpolant $\textup{argmin}\{\|\psi\|_{\mathcal{H}_k}\:|\:\psi(\tilde{x}_i)=\tilde{z}_i\}$.
+	which, in the noise-free limit $\tilde{R}\to0$, reduces to the minimum-norm interpolant $\operatorname{argmin}\{\|\psi\|_{\mathcal{H}_k}\:|\:\psi(\tilde{x}_i)=\tilde{z}_i\}$.
 \end{proposition}
 
 \begin{proof}
-	By the representer theorem, a minimiser of \eqref{eq:RKHS_regularisation} lies in the finite-dimensional span of $\{k(\cdot,\tilde{x}_i)\}_{i=1}^{\tilde{n}}$, \textit{i.e.} $\psi=\sum_i\alpha_i\:k(\cdot,\tilde{x}_i)$. The reproducing property gives $\psi(\tilde{x}_j)=\sum_i\alpha_i\:k(\tilde{x}_j,\tilde{x}_i)$ and $\|\psi\|_{\mathcal{H}_k}^2=\alpha^\top k(\tilde{X},\tilde{X})\:\alpha$, so \eqref{eq:RKHS_regularisation} becomes the quadratic problem $\textup{argmin}_\alpha\:\tilde{R}^{-1}\|k(\tilde{X},\tilde{X})\alpha-\tilde{Z}\|^2+\alpha^\top k(\tilde{X},\tilde{X})\alpha$. Cancelling its gradient gives $\alpha=G^{-1}\tilde{Z}$, hence $\psi(x)=k(x,\tilde{X})\:G^{-1}\tilde{Z}$, which is \eqref{eq:simple_kriging_equations} for $m=0$.
+	By the representer theorem, a minimiser of \eqref{eq:RKHS_regularisation} lies in the finite-dimensional span of $\{k(\cdot,\tilde{x}_i)\}_{i=1}^{\tilde{n}}$, \textit{i.e.} $\psi=\sum_i\alpha_i\:k(\cdot,\tilde{x}_i)$. The reproducing property gives $\psi(\tilde{x}_j)=\sum_i\alpha_i\:k(\tilde{x}_j,\tilde{x}_i)$ and $\|\psi\|_{\mathcal{H}_k}^2=\alpha^\top k(\tilde{X},\tilde{X})\:\alpha$, so \eqref{eq:RKHS_regularisation} becomes the quadratic problem $\operatorname{argmin}_\alpha\:\tilde{R}^{-1}\|k(\tilde{X},\tilde{X})\alpha-\tilde{Z}\|^2+\alpha^\top k(\tilde{X},\tilde{X})\alpha$. Cancelling its gradient gives $\alpha=G^{-1}\tilde{Z}$, hence $\psi(x)=k(x,\tilde{X})\:G^{-1}\tilde{Z}$, which is \eqref{eq:simple_kriging_equations} for $m=0$.
 \end{proof}
 
 \begin{remark}[GP and RKHS correspondence]

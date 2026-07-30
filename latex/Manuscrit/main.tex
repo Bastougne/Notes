@@ -13,6 +13,8 @@
 
 \usepackage[Glenn]{fncychap} % headers de chapitres etc encadrés
 
+\raggedbottom % pas d'étirement vertical pour remplir les pages
+
 \makeatletter
 \let\ps@plain\ps@headings % headers de pages de chapitres comme pour les pages usuelles
 \makeatother
@@ -21,10 +23,6 @@
 
 \usepackage{amsmath,amsthm,amsfonts,amssymb,bbm} % packages de maths
 \usepackage{algorithm,algpseudocode} % packages d'info
-
-\makeatletter
-\renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}} % identifiants de lignes uniques pour les algorithmes
-\makeatother
 
 \usepackage[
 	colorlinks=true,

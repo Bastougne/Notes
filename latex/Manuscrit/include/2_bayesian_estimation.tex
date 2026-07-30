@@ -53,21 +53,30 @@ This thesis focuses on the filtering problem. The rest of this chapter is organi
 
 The first issue to tackle is to define precisely the meaning of "best estimator" of $\varphi(x_k)$ given $\mathbf{z}_{1:k}$. Formally, given a functional metric space $(\mathcal{F},\rho)$, it amounts to finding a measurable function $\psi\in\mathcal{F}$ that minimises the expected loss:
 \begin{equation}
-	\underset{\psi\in\mathcal{F}}{\textup{argmin}}(\rho(\psi(\mathbf{z}_{1:k}),\varphi(x_k)))\label{eq:loss_function_with_k}
+	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}(\rho(\psi(\mathbf{z}_{1:k}),\varphi(x_k)))\label{eq:loss_function_with_k}
 \end{equation}
 
-Depending on the considered space and distance, different optimal estimators arise. We present three classical ones below. For the sake of simplicity, we write $Z$ for a generic observation vector and $X$ for the underlying state. At a fixed time step $k$, \eqref{eq:loss_function_with_k} thus becomes:
+Depending on the considered space and distance, different optimal estimators arise. We present three classical ones below. For the sake of simplicity, we write $Z$ for a generic observation vector and $X$ for the underlying state, as opposed to the time-indexed processes $x_k$ and $z_k$. At a fixed time step $k$, \eqref{eq:loss_function_with_k} thus becomes:
 \begin{equation}
-	\underset{\psi\in\mathcal{F}}{\textup{argmin}}(\rho(\psi(Z),\varphi(X)))\label{eq:loss_function}
+	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}(\rho(\psi(Z),\varphi(X)))\label{eq:loss_function}
 \end{equation}
+
+For the remainder of this document, we let, for $d,d',p\in\mathbb{N}^*$:
+\begin{equation}
+	\begin{aligned}
+	\mathcal{L}^0\left(\mathbb{R}^{d'},\mathbb{R}^{d}\right)&\triangleq\left\{f:\mathbb{R}^{d'}\to\mathbb{R}^{d}\:\middle|\:f\text{ measurable}\right\}\\
+	\mathcal{L}^p\left(\mathbb{R}^{d}\right)&\triangleq\left\{A\text{ an }\mathbb{R}^{d}\text{-valued random variable}\:\middle|\:\mathbb{E}\left[\|A\|^p\right]<\infty\right\}
+	\end{aligned}
+\end{equation}
+where almost surely equal random variables are identified.
 
 \subsection{Posterior Expectation Estimator}
 
 Let:
 \begin{equation}
-	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_Z},\mathbb{R}^{d_{\varphi}}\right)\:|\:\mathbb{E}\left[\|\psi(Z)\|^2\right]<\infty\right\}
+	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)\:|\:\mathbb{E}\left[\|\psi(Z)\|^2\right]<\infty\right\}
 \end{equation}
-where $\mathcal{L}^0(\mathbb{R}^{d_Z},\mathbb{R}^{d_{\varphi}})$ is the set of measurable functions from $\mathbb{R}^{d_Z}$ to $\mathbb{R}^{d_{\varphi}}$. To simplify notations, we identify each estimator $\psi\in\mathcal{F}$ with the random variable $\psi(Z)$ it produces. Under this identification, $\mathcal{F}$ is a closed subspace of $\mathcal{L}^2\left(\mathbb{R}^{d_{\varphi}}\right)$, and can be equipped with the inner product:
+To simplify notations, we identify each estimator $\psi\in\mathcal{F}$ with the random variable $\psi(Z)$ it produces. Under this identification, $\mathcal{F}$ is a closed subspace of $\mathcal{L}^2\left(\mathbb{R}^{d_{\varphi}}\right)$, and can be equipped with the inner product:
 \begin{equation}
 	(A,B)\in\mathcal{F}^2\mapsto\langle A|B\rangle\triangleq\mathbb{E}\left[A(Z)^\top B(Z)\right]
 \end{equation}
@@ -75,7 +84,7 @@ where $\mathbb{E}[X]$ denotes the expectation of the random variable $X$.
 
 Let $\|\cdot\|$ be the norm associated with $\langle\cdot|\cdot\rangle$. In $\mathcal{F}$, the minimisation problem \eqref{eq:loss_function} is equivalent to:
 \begin{equation}
-	\underset{\psi\in\mathcal{F}}{\textup{argmin}}\left(\mathbb{E}\left[\|\psi(Z)-\varphi(X)\|^2\right]\right)\label{eq:MMSE_problem}
+	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}\left(\mathbb{E}\left[\|\psi(Z)-\varphi(X)\|^2\right]\right)\label{eq:MMSE_problem}
 \end{equation}
 
 An estimator solving \eqref{eq:MMSE_problem} is called a minimum mean squared error (MMSE) estimator.
@@ -132,7 +141,7 @@ The posterior mean $\hat{\psi}_{\textup{MMSE}}(z)=\mathbb{E}[\varphi(X)|Z=z]$ is
 
 Since the MMSE estimator is highly sensitive to extreme values, it is not suited for highly multimodal or heavy-tailed distributions. To mitigate this, one can replace the squared loss by an absolute loss. In dimension $d_{\varphi}=1$, let:
 \begin{equation}
-	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_Z},\mathbb{R}\right)\:|\:\mathbb{E}[|\psi(Z)|]<\infty\right\}
+	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}\right)\:|\:\mathbb{E}[|\psi(Z)|]<\infty\right\}
 \end{equation}
 
 As previously, $\mathcal{F}$ is identified as a subspace of $\mathcal{L}^1(\mathbb{R})$, and is equipped with the following non-Euclidean distance:
@@ -142,13 +151,13 @@ As previously, $\mathcal{F}$ is identified as a subspace of $\mathcal{L}^1(\math
 
 The minimisation problem \eqref{eq:loss_function} thus becomes:
 \begin{equation}
-	\underset{\psi\in\mathcal{F}}{\textup{argmin}}(\mathbb{E}[|\psi(Z)-\varphi(X)|])\label{eq:median_problem}
+	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}(\mathbb{E}[|\psi(Z)-\varphi(X)|])\label{eq:median_problem}
 \end{equation}
 
 While the terminology is less standard than MMSE, an estimator solving \eqref{eq:median_problem} is often called a minimum mean absolute error (MMAE) estimator.
 
 \begin{proposition}[MMAE estimator, simplified assumptions]
-	Assume that, for every $z$, the conditional distribution of $\varphi(X)$ given $Z=z$ is absolutely continuous with a strictly positive density. Then, the unique solution to \eqref{eq:median_problem} is the posterior median of $\varphi(X)$ given $Z=z$, \textit{i.e.} the real $\hat{\psi}_{\textup{MMAE}}(z)$ that satisfies:
+	Assume that, for every $z$, the conditional distribution of $\varphi(X)$ given $Z=z$ is absolutely continuous with a strictly positive density. Then, the unique solution to \eqref{eq:median_problem} is the posterior median of $\varphi(X)$ given $Z=z$, \textit{i.e.} the value $\hat{\psi}_{\textup{MMAE}}(z)\in\mathbb{R}$ that satisfies:
 	\begin{equation}
 		\mathbb{P}\left(\varphi(X)\geq\hat{\psi}_{\textup{MMAE}}(z)|Z=z\right)=\mathbb{P}\left(\varphi(X)<\hat{\psi}_{\textup{MMAE}}(z)|Z=z\right)=\frac{1}{2}\label{eq:median_estimator}
 	\end{equation}
@@ -162,7 +171,7 @@ While the terminology is less standard than MMSE, an estimator solving \eqref{eq
 
 	Since the outer expectation is over non-negative quantities, this is minimised by minimising the inner integral pointwise for each $z$, \textit{i.e.} by solving:
 	\begin{equation}
-		\underset{u\in\mathbb{R}}{\textup{argmin}}\int{|\varphi(x)-u|\:p(dx|Z=z)}\label{eq:median_pointwise}
+		\underset{u\in\mathbb{R}}{\operatorname{argmin}}\int{|\varphi(x)-u|\:p(dx|Z=z)}\label{eq:median_pointwise}
 	\end{equation}
 
 	As $u\mapsto|\varphi(x)-u|$ is convex, so is the integral, hence any stationary point is a global minimum. Since the conditional law is absolutely continuous, the integral is differentiable in $u$. By differentiating this expression with respect to $u\in\mathbb{R}$, it follows that:
@@ -192,19 +201,19 @@ While the terminology is less standard than MMSE, an estimator solving \eqref{eq
 
 \subsection{Maximum \textit{a Posteriori} Estimator}
 
-Let $\mathcal{F}\triangleq\mathcal{L}^0\left(\mathbb{R}^{d_Z},\mathbb{R}^{d_{\varphi}}\right)$, with no integrability constraint. The maximum \textit{a posteriori} (MAP) estimator is defined as the global mode of the posterior density of $\varphi(X)$:
+Let $\mathcal{F}\triangleq\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)$, with no integrability constraint. The maximum \textit{a posteriori} (MAP) estimator is defined as the global mode of the posterior density of $\varphi(X)$:
 \begin{equation}
-	\hat{\psi}_{\textup{MAP}}\triangleq\underset{\psi\in\mathcal{F}}{\textup{argmax}}\left(\mathbb{E}\left[p_{\varphi(X)|Z}(\psi(Z)|Z)\right]\right)
+	\hat{\psi}_{\textup{MAP}}\triangleq\underset{\psi\in\mathcal{F}}{\operatorname{argmax}}\left(\mathbb{E}\left[p_{\varphi(X)|Z}(\psi(Z)|Z)\right]\right)
 \end{equation}
 
 As the objective is separable over $z$, the maximisation can be carried out pointwise, yielding for each $z$:
 \begin{equation}
-	\hat{\psi}_{\textup{MAP}}(z)=\underset{u\in\mathbb{R}^{d_{\varphi}}}{\textup{argmax}}\left(p_{\varphi(X)|Z}(u|z)\right)
+	\hat{\psi}_{\textup{MAP}}(z)=\underset{u\in\mathbb{R}^{d_{\varphi}}}{\operatorname{argmax}}\left(p_{\varphi(X)|Z}(u|z)\right)
 \end{equation}
 
 Using Bayes' theorem, this is equivalent to:
 \begin{equation}
-	\hat{\psi}_{\textup{MAP}}(z)=\underset{u\in\mathbb{R}^{d_{\varphi}}}{\textup{argmax}}\left(p_{Z|\varphi(X)}(z|u)\:p_{\varphi(X)}(u)\right)\label{eq:MAP_Bayes}
+	\hat{\psi}_{\textup{MAP}}(z)=\underset{u\in\mathbb{R}^{d_{\varphi}}}{\operatorname{argmax}}\left(p_{Z|\varphi(X)}(z|u)\:p_{\varphi(X)}(u)\right)\label{eq:MAP_Bayes}
 \end{equation}
 since the normalising constant $p_Z(z)$ is independent of $u$.
 
@@ -217,7 +226,7 @@ The MAP estimator is computationally attractive when the posterior has a known p
 	\end{equation}
 	in the limit $\varepsilon\to0^+$:
 	\begin{equation}
-		\hat{\psi}_{\textup{MAP}}=\lim_{\varepsilon\to0^+}\ \underset{\psi\in\mathcal{F}}{\textup{argmin}}(\rho_\varepsilon(\psi(Z),\varphi(X)))
+		\hat{\psi}_{\textup{MAP}}=\lim_{\varepsilon\to0^+}\ \underset{\psi\in\mathcal{F}}{\operatorname{argmin}}(\rho_\varepsilon(\psi(Z),\varphi(X)))
 	\end{equation}
 \end{remark}
 
@@ -225,7 +234,7 @@ The MAP estimator is computationally attractive when the posterior has a known p
 
 In the special case where no prior distribution on $\varphi(X)$ is assumed, \eqref{eq:MAP_Bayes} reduces to the maximum likelihood estimator (MLE):
 \begin{equation}
-	\hat{\psi}_{\textup{MLE}}(z)\triangleq\underset{u\in\mathbb{R}^{d_{\varphi}}}{\textup{argmax}}\left(p_{Z|\varphi(X)}(z|u)\right)
+	\hat{\psi}_{\textup{MLE}}(z)\triangleq\underset{u\in\mathbb{R}^{d_{\varphi}}}{\operatorname{argmax}}\left(p_{Z|\varphi(X)}(z|u)\right)
 \end{equation}
 
 As it does not take any prior information on $\varphi(X)$ into account, this estimator is not a Bayesian estimator and may be poorly suited when the available data is scarce. While it coincides with the MAP estimator under a uniform prior, it will not be considered in the rest of this document.
@@ -243,6 +252,7 @@ In the Bayesian filtering framework, the PDF can be propagated recursively throu
 	\begin{equation}
 		p(x_k|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1})=p(x_k|x_{k-1})
 	\end{equation}
+	with $\mathbf{x}_{0:k}\triangleq(x_0,\dots,x_k)$.
 \end{assumption}
 
 \begin{assumption}[Conditional observation independence]\label{th:observation_independence}
@@ -281,12 +291,12 @@ where the likelihood $p(z_k|x_k)$ depends on the observation model $z_k=h_k(x_k,
 
 These two equations allow for a recursive algorithm to compute the PDF of the system at each time step. This algorithm, usually referred to as the optimal Bayesian filter, is given by \Cref{alg:optimal_estimation}.
 
-\begin{algorithm}[ht]
+\begin{algorithm}[H]
 	\begin{algorithmic}
 	\State{Compute $p(x_k|\mathbf{z}_{1:k-1})$ using \eqref{eq:Chapman_Kolmogorov}}\Comment{Prediction}
 	\State{Compute $p(x_k|\mathbf{z}_{1:k})$ using \eqref{eq:Bayes_theorem}}\Comment{Correction}
 	\State{Estimate $\varphi(x_k)$ using an estimator from \cref{sec:state_estimation}}\Comment{Estimation}
-	\end{algorithmic}\caption{Optimal Bayesian Filtering Algorithm}\label{alg:optimal_estimation}
+	\end{algorithmic}\caption{Optimal Bayesian Filter}\label{alg:optimal_estimation}
 \end{algorithm}
 
 While theoretically optimal, this algorithm has no closed-form solution in general. The integrands in both \eqref{eq:Chapman_Kolmogorov} and \eqref{eq:Bayes_theorem} are analytically intractable for arbitrary $f_k$, $h_k$.
@@ -414,12 +424,12 @@ Finally, $x_0$, $(w_k)_{k\geq0}$ and $(n_k)_{k\geq0}$ are assumed to be mutually
 
 The resulting algorithm, known as the Kalman filter, is depicted by \Cref{fig:Kalman_filter} and presented in \Cref{alg:Kalman_filter}.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 	\centering\includegraphics[width=\textwidth]{../../Images/Étapes du filtre de Kalman avec équations.png}
-	\caption{Schematic representation of the Kalman filter prediction/correction cycle. At each time step, the previous PDF $\mathcal{N}\left(\hat{x}_{k-1|k-1}, P_{k-1|k-1}\right)$ is propagated through the state transition model (prediction), then updated using the new observation $z_k$ (correction). Each ellipsoid represents a confidence region associated with its corresponding Gaussian density.}\label{fig:Kalman_filter}
+	\caption{Schematic representation of the Kalman filter prediction/correction cycle. Each ellipsoid represents a confidence region associated with its corresponding Gaussian density.}\label{fig:Kalman_filter}
 \end{figure}
 
-\begin{algorithm}[ht]
+\begin{algorithm}[H]
 	\begin{algorithmic}
 	\State{$\hat{x}_{k|k-1}=F_k\:\hat{x}_{k-1|k-1}+b_k^{(e)}$}\Comment{State prediction}
 	\State{$P_{k|k-1}=F_k\:P_{k-1|k-1}\:F_k^\top+Q_k$}\Comment{Covariance prediction}
@@ -434,7 +444,7 @@ The resulting algorithm, known as the Kalman filter, is depicted by \Cref{fig:Ka
 \end{algorithm}
 
 \begin{remark}[Precomputation of gains]
-	Under the assumptions of \eqref{eq:Kalman_assumptions}, the matrices $P_{k|k-1}$, $K_k$ and $P_{k|k}$ depend only on the system matrices $F_k$, $H_k$, $Q_k$, $R_k$ and the initial covariance $P_0$, but not on the observations $z_k$. They can therefore be computed offline before any measurement is received.
+	Under the assumptions of \eqref{eq:Kalman_assumptions}, the matrices $P_{k|k-1}$, $K_k$ and $P_{k|k}$ depend only on the system matrices $F_k$, $H_k$, $Q_k$, $R_k$ and the initial covariance $P_0$, but not on the observations $z_k$. They can therefore be computed before any measurement is received.
 \end{remark}
 
 \subsubsection{Joseph's Formula}
@@ -473,7 +483,7 @@ and $f^{(i)}$ and $x^{(j)}$ respectively denote the $i$-th and $j$-th component 
 
 Assuming that $f_k$ and $h_k$ are differentiable along the state trajectory, we can apply the first-order expansion \eqref{eq:first_order_expansion} to the evolution and observation model. Successive linearisations at each time step can then be used to apply the Kalman filter equations locally. The resulting algorithm is given by \Cref{alg:EKF}.
 
-\begin{algorithm}[ht]
+\begin{algorithm}[H]
 	\begin{algorithmic}
 	\State{$\tilde{F}_k=J_{f_k}\left(\hat{x}_{k-1|k-1}\right)$}\Comment{Evolution Jacobian}
 	\State{$\hat{x}_{k|k-1}=f_k\left(\hat{x}_{k-1|k-1}\right)+b_k^{(e)}$}\Comment{State prediction}
@@ -493,7 +503,7 @@ While less restrictive than the standard Kalman filter, the EKF is suboptimal fo
 \begin{itemize}
 	\item First, $f_k$ and $h_k$ must be differentiable along the state trajectory, which excludes discontinuous or piecewise-defined models.
 	\item Second, the linearisation in \eqref{eq:first_order_expansion} neglects higher-order terms of the Taylor expansion, which introduces an approximation error that grows with the degree of nonlinearity of $f_k$ and $h_k$. This error increases over time as it propagates through the equations of the Kalman filter due to the sequential formulation.
-	\item Finally, it relies on Gaussian assumptions, and thus fails to handle multimodal or heavy-tailed distributions as its affine counterpart.
+	\item Finally, it relies on Gaussian assumptions and thus fails to handle multimodal or heavy-tailed distributions, as does its affine counterpart.
 \end{itemize}
 
 \subsection{Other Suboptimal Kalman Filters}
