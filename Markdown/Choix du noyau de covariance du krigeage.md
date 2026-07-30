@@ -16,3 +16,4 @@
 ## Noyaux de Matérn
 
 **TODO**
+- ![[Noyaux de Matérn.png]]

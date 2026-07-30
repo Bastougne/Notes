@@ -5,6 +5,7 @@
 - [[2_Monte_Carlo.tex]]
 - [[2_particle_filtering.tex]]
 - [[3_Gaussian_processes.tex]]
-- [[3_gaussian_processes_Claude.tex]]
+- [[3_kriging.tex]]
+- [[3_mean_estimation.tex]]
 - [[9_appendix.tex]]
 - [[Latex/Manuscrit/include/biblio.bib|Biblio]]
