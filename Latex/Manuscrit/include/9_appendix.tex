@@ -7,7 +7,7 @@
 
 \section{Gaussian Conditioning Formula}
 
-\begin{proposition}[Gaussian conditioning]\label{th:Gaussian_conditioning}
+\begin{proposition}[Gaussian conditioning \cite{bib:multivariate-normal}]\label{th:Gaussian_conditioning}
 	For $n,p\in\mathbb{N}$, let $U\in\mathbb{R}^n$ and $V\in\mathbb{R}^p$ be jointly Gaussian random variables, of respective means $\mu_U,\mu_V$ and covariance matrices $A\succ0$ and $D\succ0$. There exists $B\in\mathcal{M}_{n,p}(\mathbb{R})$ such that:
 	\begin{equation}
 		\begin{bmatrix}U\\V\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}\mu_U\\\mu_V\end{bmatrix},\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}\right)
@@ -67,7 +67,7 @@
 
 \section{Schur Inversion Formula}
 
-\begin{proposition}[Schur inversion formula]\label{th:Schur}
+\begin{proposition}[Schur inversion formula \cite{bib:Schur-complement}]\label{th:Schur}
 	For $n,p\in\mathbb{N}$, let $A\in\mathcal{M}_{n,n}(\mathbb{R})$, $B\in\mathcal{M}_{n,p}(\mathbb{R})$, $C\in\mathcal{M}_{p,n}(\mathbb{R})$, and $D\in\mathcal{M}_{p,p}(\mathbb{R})$, with $A$ invertible. We define the matrix $M$ and its Schur complement with respect to $A$ as:
 	\begin{equation}
 		M\triangleq\begin{bmatrix}A&B\\C&D\end{bmatrix},\qquad M/A\triangleq D-CA^{-1}B
@@ -174,7 +174,7 @@
 	\end{equation}
 \end{proof}
 
-\begin{proposition}[Push-through identity]\label{th:push_through}
+\begin{proposition}[Push-through identity \cite{bib:matrix-cookbook}]\label{th:push_through}
 	For $n,p\in\mathbb{N}$, let $P\in\mathcal{M}_{n,p}(\mathbb{R})$ and $Q\in\mathcal{M}_{p,n}(\mathbb{R})$ such that $I_n+PQ$ is invertible. Then $I_p+QP$ is also invertible and:
 	\begin{equation}
 		(I_n+PQ)^{-1}P=P(I_p+QP)^{-1}
@@ -198,7 +198,7 @@
 	with $I_p+QP$ admitting a right inverse, hence being invertible.
 \end{proof}
 
-\begin{proposition}[Generalised Woodbury formula]\label{th:Woodbury}
+\begin{proposition}[Generalised Woodbury formula \cite{bib:Woodbury}]\label{th:Woodbury}
 	For $n,p\in\mathbb{N}$, let $A\in\mathcal{M}_{n,n}(\mathbb{R})$, $B\in\mathcal{M}_{n,p}(\mathbb{R})$, $C\in\mathcal{M}_{p,n}(\mathbb{R})$, and $D\in\mathcal{M}_{p,p}(\mathbb{R})$. We assume that $A$, $D$, and $D+CA^{-1}B$ are invertible. Then $A+BD^{-1}C$ is also invertible, and:
 	\begin{equation}
 		\left(A+BD^{-1}C\right)^{-1}=A^{-1}-A^{-1}B\left(D+CA^{-1}B\right)^{-1}CA^{-1}

@@ -1,6 +1,6 @@
 \section{Kriging}\label{sec:kriging}
 
-Gaussian process regression, also known as kriging, estimates the value of a field at an unobserved location using noisy measurements of the same field at known locations. Formally, let $f\sim\mathcal{GP}(m,k):\mathcal{U}\to\mathbb{R}^{d_z}$, and $x\in\mathcal{U}$. We wish to estimate the law of:
+Gaussian process regression, also known as kriging \cite{bib:Matheron,bib:Rasmussen-regression,bib:GP-intro}, estimates the value of a field at an unobserved location using noisy measurements of the same field at known locations. Formally, let $f\sim\mathcal{GP}(m,k):\mathcal{U}\to\mathbb{R}^{d_z}$, and $x\in\mathcal{U}$. We wish to estimate the law of:
 \begin{equation}
 	z\triangleq f(x)+\varepsilon,\qquad\varepsilon\sim\mathcal{N}(0,R),\qquad R\succeq0
 \end{equation}
@@ -94,7 +94,7 @@ Simple kriging is the simplest form of kriging, and assumes that the mean functi
 	While the simple kriging weights $W=G^{-1}k(\tilde{\mathbf{x}},x)$ were obtained by minimising the trace of $\mathbb{V}[\hat{z}-z]$, they actually minimise the whole covariance in the SPSD sense. Indeed:
 	\begin{equation}
 		\begin{aligned}
-		\mathbb{V}[\hat{z}-z]-\hat{R}_s&=W^\top G(\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\hspace{-1mm}\\
+		\mathbb{V}[\hat{z}-z]-\hat{R}_s&=W^\top G(\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
 		&=\left(W-G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)^\top G(\tilde{\mathbf{x}})\left(W-G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)\\
 		&\succeq0
 		\end{aligned}
@@ -111,7 +111,7 @@ Simple kriging is the simplest form of kriging, and assumes that the mean functi
 		\end{aligned}\right.
 	\end{equation}
 
-	In particular, the error covariance reduces to the query noise $R$ alone, and vanishes when $R=0$. On the contrary, a positive training noise $\tilde{R}\succ0$ turns kriging into a smoother rather than an interpolator.
+	In particular, the error covariance reduces to the query noise $R$ alone, and vanishes when $R=0$. On the contrary, a positive training noise $\tilde{R}\succ0$ turns kriging into a smoother rather than an interpolator \cite{bib:spline-correspondence}.
 \end{proposition}
 
 \begin{proof}
@@ -293,13 +293,13 @@ The ordinary kriging weights thus minimise \eqref{eq:error_covariance} under the
 
 \subsection{Universal Kriging}
 
-\textbf{TODO}
+\textbf{TODO: on en a besoin pour 3.5.1 mais jsp si il faut démontrer tous les résultats} \cite{bib:universal-kriging}
 
 \section{Reduced-Rank Kernel Approximation}\label{sec:reduced_rank}
 
-Exact GP regression requires inverting the $\tilde{n}d_z\times\tilde{n}d_z$ Gram matrix $G(\tilde{\mathbf{x}})$, which scales as $\mathcal{O}\left(\tilde{n}^3\right)$. When the number of training points is large, this operation becomes prohibitive. Reduced-rank methods circumvent this issue by approximating the kernel as a linear combination of $r\in\mathbb{N}^*$ basis functions, with $r<\tilde{n}$. The inversion cost is reduced to $\mathcal{O}\left(r^3\right)$, bringing down the overall kriging cost to $\mathcal{O}\left(r^2\tilde{n}\right)$.
+Exact GP regression requires inverting the $\tilde{n}d_z\times\tilde{n}d_z$ Gram matrix $G(\tilde{\mathbf{x}})$, which scales as $\mathcal{O}\left(\tilde{n}^3\right)$. When the number of training points is large, this operation becomes prohibitive. Reduced-rank methods \cite{bib:Nystrom,bib:inducing-points} circumvent this issue by approximating the kernel as a linear combination of $r\in\mathbb{N}^*$ basis functions, with $r<\tilde{n}$. The inversion cost is reduced to $\mathcal{O}\left(r^3\right)$, bringing down the overall kriging cost to $\mathcal{O}\left(r^2\tilde{n}\right)$.
 
-Mercer's theorem, presented in \Cref{th:Mercer}, establishes the existence of such a decomposition as soon as $k$ is a continuous SPD kernel, and $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$. The Woodbury inversion formula is then used to rewrite the kriging estimator in a computationally efficient expression.
+Mercer's theorem \cite{bib:Mercer}, presented in \Cref{th:Mercer}, establishes the existence of such a decomposition as soon as $k$ is a continuous SPD kernel, and $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$. The Woodbury inversion formula is then used to rewrite the kriging estimator in a computationally efficient expression.
 
 \subsection{Mercer's Theorem}
 
@@ -388,7 +388,7 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 \end{proposition}
 
 \begin{proof}
-	By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\mathcal{U})$. The spectral theorem thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\mathcal{U})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing.
+	By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\mathcal{U})$. The spectral theorem \cite{bib:spectral-theorem} thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\mathcal{U})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing.
 
 	Since $k$ is uniformly continuous on the compact $\mathcal{U}\times\mathcal{U}$, $\mathcal{K}f$ is continuous for every $f\in\mathcal{L}^2(\mathcal{U})$. In particular, for each $i\in\mathbb{N}^*$ such that $\lambda_i\neq0$, the eigenfunction:
 	\begin{equation}
@@ -473,7 +473,7 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 	\end{equation}
 	where $\mathcal{K}_r$ is the Mercer operator associated with $k_r$. Every $\mathcal{K}_rf$ thus belongs to the subspace of continuous functions spanned by $\psi_1,\dots,\psi_r$. The orthonormality of the basis ensures that this subspace is of dimension $r$, and thus the rank of $k_r$ is at most $r$. The uniform convergence of $(k_r)_{r\in\mathbb{N}^*}$ has already been proven by \Cref{th:Mercer}.
 
-	Finally, applying the Eckart-Young-Mirsky theorem to $\mathcal{K}$ and using the orthonormality of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ yields:
+	Finally, applying the Eckart-Young-Mirsky theorem \cite{bib:Eckart-Young,bib:Mirsky} to $\mathcal{K}$ and using the orthonormality of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ yields:
 	\begin{equation}
 		\underset{\substack{\tilde{k}\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})\\\operatorname{rank}(\tilde{k})\leq r}}{\min}\|k-\tilde{k}\|_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}^2=\sum_{j>r}\lambda_j^2=\|k-k_r\|_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}^2
 	\end{equation}
@@ -587,5 +587,5 @@ and then:
 \end{proof}
 
 \begin{remark}[Construction of the eigenfunctions]
-	While Mercer's theorem establishes the existence of the decomposition presented by \eqref{eq:Mercer}, it provides no means to compute a closed-form expression of $k_r$. In practice, additional assumptions on $k$, namely radial properties, are usually made in order to derive an explicit approximation of the form of \Cref{th:reduced_rank}.
+	While Mercer's theorem establishes the existence of the decomposition presented by \eqref{eq:Mercer}, it provides no means to compute a closed-form expression of $k_r$. In practice \cite{bib:reduced-rank}, additional assumptions on $k$, namely radial properties, are usually made in order to derive an explicit approximation of the form of \Cref{th:reduced_rank}.
 \end{remark}

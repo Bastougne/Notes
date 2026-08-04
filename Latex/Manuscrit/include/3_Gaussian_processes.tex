@@ -1,4 +1,4 @@
-\chapter{Gaussian Process Regression}\label{sec:Gaussian_processes}
+\chapter{Gaussian Processes}\label{sec:Gaussian_processes}
 
 \vfill
 \localtableofcontents
@@ -7,9 +7,19 @@
 
 \section{Introduction}
 
-The analytical and Monte Carlo methods of \cref{sec:Bayesian_estimation} all assume the observation function $h_k$ to be fully known. However, many navigation scenarios depend on a physical field that is either unavailable or known only through scarce and noisy measurements. This chapter models such fields as a Gaussian process (GP), an adaptable framework that encodes both a prior expectation of the field and its spatial correlation structure. Together with its uncertainty, the resulting estimator can then serve as a surrogate observation model for the filters of \cref{sec:Bayesian_estimation}.
+The analytical and Monte Carlo methods of \cref{sec:Bayesian_estimation} all assume the observation function $h_k$ to be fully known. However, many navigation scenarios depend on a physical field that is either unavailable or known only through scarce and noisy measurements.
 
-This chapter is organised as follows:
+A first way to fill this gap is to reconstruct the field directly from the measurements:
+\begin{itemize}
+	\item deterministic interpolation, through nearest-neighbour selection, multilinear interpolation over a regular grid, or spline fitting;
+	\item linear regression on a fixed basis, such as polynomials or sinusoids;
+	\item more expressive models, such as neural networks.
+\end{itemize}
+All of them return a single value at the queried location, without quantifying how much it can be trusted. Their use in the filters of \cref{sec:Bayesian_estimation}, however, requires the observation likelihood $p(z_k|x_k)$, a full distribution rather than a point prediction. The reconstruction error must then be absorbed into the observation noise, usually as a covariance held constant over the whole domain, although this error is almost zero next to a measurement and grows in sparsely sampled regions.
+
+This chapter instead models such fields as a Gaussian process (GP), an adaptable framework that encodes both a prior expectation of the field and its spatial correlation structure. Together with its uncertainty, the resulting estimator can then serve as a surrogate observation model \cite{bib:GP-BayesFilters,bib:SLAM-GP-terrain} for the filters of \cref{sec:Bayesian_estimation}.
+
+The rest of this chapter is organised as follows:
 \begin{itemize}
 	\item\Cref{sec:GP_definition} defines GPs through their mean functions and covariance kernels. It discusses the choice of kernel and the estimation of its hyperparameters.
 	\item\Cref{sec:kriging} then introduces kriging as a map reconstruction tool in situations where we are given preexisting data samples.
@@ -17,19 +27,17 @@ This chapter is organised as follows:
 	\item Finally, \cref{sec:functional_representations} derives two representations of the mean function over a dictionary of functions, used to reconstruct the field when no prior knowledge is available.
 \end{itemize}
 
-\textbf{TODO: trop court ? jsp quoi dire de plus d'utile}
+\section{Definition and Properties}\label{sec:GP_definition}
 
-\section{Gaussian Processes}\label{sec:GP_definition}
-
-Formally, a stochastic process generalises the notion of random variable to a random function, \textit{i.e.} a family $(f(x))_{x\in\mathcal{U}}$ of random variables indexed by a set $\mathcal{U}$, which may represent time $\mathbb{R}_+$, physical space $\mathbb{R}^2$ or $\mathbb{R}^3$, or any other domain. As shown by \Cref{th:GP_definition}, a GP is a special case of stochastic process.
+Formally, a stochastic process generalises the notion of random variable to a random function, \textit{i.e.} a family $(f(x))_{x\in\mathcal{U}}$ of random variables indexed by a set $\mathcal{U}$, which may represent time $\mathbb{R}_+$, physical space $\mathbb{R}^2$ or $\mathbb{R}^3$, or any other domain. As shown by \Cref{th:GP_definition}, a GP is a special case of stochastic process \cite{bib:random-fields}.
 
 \begin{definition}[Gaussian process]\label{th:GP_definition}
-	For $d_z\in\mathbb{N}^*$, a stochastic process $(f(x))_{x\in\mathcal{U}}$ taking values in $\mathbb{R}^{d_z}$ is a GP if every finite linear combination of its values follows a Gaussian distribution. Formally, for all $n\in\mathbb{N}^*$, all $x_1,\dots,x_n\in\mathcal{U}$ and all $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, there exist $m\in\mathbb{R}$ and $\sigma^2\geq0$ such that:
+	For $d_z\in\mathbb{N}^*$, a stochastic process $(f(x))_{x\in\mathcal{U}}$ taking values in $\mathbb{R}^{d_z}$ is a GP if every finite linear combination of its values follows a Gaussian distribution. Formally, for all $n\in\mathbb{N}^*$, all $x_1,\dots,x_n\in\mathcal{U}$ and all $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, there exist $m\in\mathbb{R}^{d_z}$ and $P\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$ such that $P\succeq0$ and:
 	\begin{equation}
-		\sum_{i=1}^na_i^\top\:f(x_i)\sim\mathcal{N}(m,\sigma^2)
+		\sum_{i=1}^na_i^\top\:f(x_i)\sim\mathcal{N}(m,P)
 	\end{equation}
 
-	The GP is said to be non-degenerate if $\sigma^2>0$ whenever the points $x_1,\dots,x_n$ are pairwise distinct and the coefficients $a_1,\dots,a_n$ are not all zero.
+	The GP is said to be non-degenerate if $P\succ0$ whenever the points $x_1,\dots,x_n$ are pairwise distinct and the coefficients $a_1,\dots,a_n$ are not all zero.
 \end{definition}
 
 A GP is associated with a mean function:
@@ -49,7 +57,7 @@ and a covariance kernel:
 
 \subsection{Basic Properties}
 
-As shown by \Cref{th:GP_marginals}, $m$ and $k$ entirely characterise every finite-dimen\-sional marginal of $f$. By Kolmogorov's extension theorem, they also uniquely determine the law of $f$. We thus write $f\sim\mathcal{GP}(m,k)$ for a GP with mean function $m$ and covariance kernel $k$.
+As shown by \Cref{th:GP_marginals}, $m$ and $k$ entirely characterise every finite-dimensional marginal of $f$. By Kolmogorov's extension theorem, they also uniquely determine the law of $f$. We thus write $f\sim\mathcal{GP}(m,k)$ for a GP with mean function $m$ and covariance kernel $k$.
 
 \begin{proposition}[Finite-dimensional marginals]\label{th:GP_marginals}
 	For $n\in\mathbb{N}^*$, let $x_1,\dots,x_n$ be pairwise distinct points of $\mathcal{U}$. The joint distribution of $F\triangleq\left[f(x_1)^\top,\dots,f(x_n)^\top\right]^\top$ is the multivariate Gaussian:
@@ -70,7 +78,7 @@ As shown by \Cref{th:GP_marginals}, $m$ and $k$ entirely characterise every fini
 	\begin{equation}
 		a^\top F=\sum_{i=1}^na_i^\top f(x_i),\qquad a\triangleq\begin{bmatrix}a_1\\\vdots\\a_n\end{bmatrix}\in\mathbb{R}^{nd_z}
 	\end{equation}
-	is Gaussian. By the Cramér-Wold theorem $F$ is thus also a Gaussian vector of $\mathbb{R}^{nd_z}$.
+	is Gaussian. By the Cramér-Wold theorem \cite{bib:Cramér-Wold} $F$ is thus also a Gaussian vector of $\mathbb{R}^{nd_z}$.
 
 	Such a vector is entirely determined by its mean and covariance, which we compute. By linearity of the expectation, we have:
 	\begin{equation}
@@ -117,7 +125,7 @@ The estimation of the mean function is deferred to \cref{sec:functional_represen
 
 While the mean function generally reflects application-specific prior knowledge, it is the covariance kernel that governs the smoothness and correlation structure of the GP, and thus the class of functions it can represent.
 
-For the GP to be non-degenerate, every matrix $k(\mathbf{x},\mathbf{x})$ at distinct points must be SPD in the sense of \Cref{th:matrix_SPSD}. \Cref{th:kernel_SPSD} recasts this as a condition on $k$ alone, and \Cref{th:kernel_gram_equivalence} proves the equivalence between the two.
+For the GP to be non-degenerate, every matrix $k(\mathbf{x},\mathbf{x})$ at distinct points must be SPD in the sense of \Cref{th:matrix_SPSD}. \Cref{th:kernel_SPSD} recasts this as a condition on $k$ alone \cite{bib:Schoenberg}, and \Cref{th:kernel_gram_equivalence} proves the equivalence between the two.
 
 \begin{definition}[Kernel symmetric positive definiteness]\label{th:kernel_SPSD}
 	A kernel $k:\mathcal{U}\times\mathcal{U}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is symmetric positive semi-definite (SPSD) if it is:
@@ -204,7 +212,7 @@ For the GP to be non-degenerate, every matrix $k(\mathbf{x},\mathbf{x})$ at dist
 \end{proof}
 
 \begin{remark}[Necessity of distinct points]
-	Pairwise distinctness does not intervene in the computation of the strict version above, yet it is necessary for the SPD condition to be satisfiable. Indeed, at coinciding inputs $x_1=x_2$, the choice $a_1=-a_2=1$, with the other coefficients set to zero, cancels the quadratic form for non-zero coefficients, so without it no kernel could be SPD.
+	While pairwise distinctness does not intervene in the computation of the strict version above, it is necessary for the SPD condition to be satisfiable. Indeed, at coinciding inputs $x_1=x_2$, the choice $a_1=-a_2=1$, with the other coefficients set to zero, cancels the quadratic form for non-zero coefficients, so no kernel could be SPD.
 \end{remark}
 
 \begin{remark}[Non-diagonal blocks]
@@ -215,9 +223,9 @@ Throughout the rest of this document, we assume that the covariance kernel $k$ i
 
 \subsubsection{Common Kernels}
 
-Assume in this section that $\mathcal{U}$ is a finite-dimensional normed vector space, \textit{i.e.} $\mathcal{U}=\mathbb{R}^{d_x}$ up to isomorphism. A natural way to build kernels on $\mathcal{U}$ is to let the correlation between the field values at two points $x,x'$ depend only on the distance $\|x-x'\|$ between them. Kernels of this form are called radial kernels, and are formally defined by \Cref{th:radial_kernel}.
+Assume in this section that $\mathcal{U}$ is a finite-dimensional normed vector space, \textit{i.e.} $\mathcal{U}=\mathbb{R}^{d_x}$ up to isomorphism. A natural way to build kernels on $\mathcal{U}$ is to let the correlation between the field values at two points $x,x'$ depend only on the distance $\|x-x'\|$ between them. Kernels of this form are called radial kernels \cite{bib:Stein-kriging}, and are formally defined by \Cref{th:radial_kernel}.
 
-Since $f$ typically represents a physical field, observations tend to become less correlated as the distance between them increases. \Cref{th:Matérn} derives a common family of radial kernels, called the Matérn kernels, which model this behaviour.
+Since $f$ typically represents a physical field, observations tend to become less correlated as the distance between them increases. \Cref{th:Matérn} derives a common family of radial kernels, called the Matérn kernels \cite{bib:Matérn}, which model this behaviour.
 
 \begin{definition}[Radial kernel]\label{th:radial_kernel}
 	A kernel $k:\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is radial if there exists a function $f:\mathbb{R}_+\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ and a norm $\|\cdot\|$ on $\mathbb{R}^{d_x}$ such that:
@@ -268,13 +276,13 @@ As $\nu\to+\infty$, the Matérn kernel converges to the infinitely differentiabl
 	k_{SE}(r)\triangleq k_{\infty}(r)=\sigma_f^2\:\exp\left(-\frac{r^2}{2l^2}\right)\label{eq:SE_kernel}
 \end{equation}
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\centering\includegraphics[width=0.8\textwidth]{../../Images/Noyaux de Matérn.png}
 	\caption{Normalised Matérn kernels ($\sigma_f^2=1,\:l=1$) with smoothness
 	$\nu\in\{1/2,3/2,5/2\}$ and their limit as $\nu\to+\infty$.}\label{fig:Matérn}
 \end{figure}
 
-\textbf{TODO : introduire l'image !!! + Matérn vérifie SPD et continuité}
+\textbf{TODO: introduire l'image !!! + Matérn vérifie SPD et continuité}
 
 \begin{remark}[Anisotropic kernels]
 	The norm used in \Cref{th:radial_kernel} does not necessarily need to be the canonical norm of $\mathbb{R}^{d_x}$. In particular, for $M\succ0$, the Mahalanobis norm:
@@ -289,16 +297,16 @@ As $\nu\to+\infty$, the Matérn kernel converges to the infinitely differentiabl
 	\begin{equation}
 		k_{MS}(r)\triangleq\sum_{i=1}^n\sigma_i^2\:k^{(i)}(r)
 	\end{equation}
-	is a valid SPD kernel. When the correlation lengths have different orders of magnitude, such kernels can be used to capture local fluctuations and global trends simultaneously.
+	is a valid SPD kernel. When the correlation lengths have different orders of magnitude, such kernels can be used to capture local fluctuations and global trends simultaneously \cite{bib:Rasmussen-covariance}.
 \end{remark}
 
 \subsection{Hyperparameter Estimation}
 
 \textbf{TODO: à reprendre}
 
-The kernel depends on hyperparameters $\theta$ --- for instance $\sigma_f^2$ and $l$ for the SE kernel --- that must be inferred from the data. Given training inputs $X$ and the corresponding observations $Z$, the standard approach maximises the marginal likelihood of the observations, a procedure known as evidence maximisation. Writing $K_\theta\triangleq k_\theta(X,X)$ for the kernel matrix and assuming, in the absence of prior information, a zero mean function, the observations are jointly Gaussian:
+The kernel depends on hyperparameters $\theta$ --- for instance $\sigma_f^2$ and $l$ for the SE kernel --- that must be inferred from the data. Given training inputs $X$ and the corresponding observations $Z$, the standard approach maximises the marginal likelihood of the observations, a procedure known as evidence maximisation \cite{bib:Rasmussen-hyperparameters}. Writing $K_\theta\triangleq k_\theta(X,X)$ for the kernel matrix and assuming, in the absence of prior information, a zero mean function, the observations are jointly Gaussian:
 \begin{equation}
-	p(Z|X,\theta)=\frac{\displaystyle\exp\left(-\frac{1}{2}Z^\top K_\theta^{-1}Z\right)}{\sqrt{(2\pi)^n\:\operatorname{det}(K_\theta)}}\label{eq:marginal_likelihood}
+	p(Z|X,\theta)=\frac{\displaystyle\exp\left(-\frac{1}{2}Z^\top K_\theta^{-1}Z\right)}{\sqrt{(2\pi)^n\:\det(K_\theta)}}\label{eq:marginal_likelihood}
 \end{equation}
 
 \begin{proposition}[Maximum likelihood hyperparameters]\label{th:GP_MLE}
@@ -311,9 +319,9 @@ The kernel depends on hyperparameters $\theta$ --- for instance $\sigma_f^2$ and
 \begin{proof}
 	Maximising \eqref{eq:marginal_likelihood} is equivalent to maximising its logarithm:
 	\begin{equation}
-		\ell(\theta)\triangleq\log p(Z|X,\theta)=-\frac{1}{2}\left(Z^\top K_\theta^{-1}Z+\log\operatorname{det}(K_\theta)\right)-\frac{n}{2}\log(2\pi)
+		\ell(\theta)\triangleq\log p(Z|X,\theta)=-\frac{1}{2}\left(Z^\top K_\theta^{-1}Z+\log\det(K_\theta)\right)-\frac{n}{2}\log(2\pi)
 	\end{equation}
-	A maximiser cancels every partial derivative. Using the differential of the matrix inverse, $\frac{\partial}{\partial\theta_i}K_\theta^{-1}=-K_\theta^{-1}\frac{\partial K_\theta}{\partial\theta_i}K_\theta^{-1}$, and Jacobi's formula, $\frac{\partial}{\partial\theta_i}\log\operatorname{det}(K_\theta)=\operatorname{tr}\left(K_\theta^{-1}\frac{\partial K_\theta}{\partial\theta_i}\right)$, it comes that:
+	A maximiser cancels every partial derivative. Using the differential of the matrix inverse, $\frac{\partial}{\partial\theta_i}K_\theta^{-1}=-K_\theta^{-1}\frac{\partial K_\theta}{\partial\theta_i}K_\theta^{-1}$, and Jacobi's formula, $\frac{\partial}{\partial\theta_i}\log\det(K_\theta)=\operatorname{tr}\left(K_\theta^{-1}\frac{\partial K_\theta}{\partial\theta_i}\right)$, it comes that:
 	\begin{equation}
 		\begin{aligned}
 		\frac{\partial\ell}{\partial\theta_i}=0
@@ -321,9 +329,9 @@ The kernel depends on hyperparameters $\theta$ --- for instance $\sigma_f^2$ and
 		\iff&\:\operatorname{tr}\left[\left((K_\theta^{-1}Z)(K_\theta^{-1}Z)^\top-K_\theta^{-1}\right)\frac{\partial K_\theta}{\partial\theta_i}\right]=0
 		\end{aligned}
 	\end{equation}
-	using the cyclic property of the trace to rewrite the scalar quadratic form $Z^\top K_\theta^{-1}\frac{\partial K_\theta}{\partial\theta_i}K_\theta^{-1}Z$ as $\operatorname{tr}\left((K_\theta^{-1}Z)(K_\theta^{-1}Z)^\top\frac{\partial K_\theta}{\partial\theta_i}\right)$, since $K_\theta^{-1}$ is symmetric.
+	using the cyclic property of the trace to rewrite the scalar quadratic form\\$Z^\top K_\theta^{-1}\frac{\partial K_\theta}{\partial\theta_i}K_\theta^{-1}Z$ as $\operatorname{tr}\left((K_\theta^{-1}Z)(K_\theta^{-1}Z)^\top\frac{\partial K_\theta}{\partial\theta_i}\right)$, since $K_\theta^{-1}$ is symmetric.
 \end{proof}
 
 \begin{remark}[Non-convexity]
-	The log-marginal-likelihood is generally non-convex in $\theta$, so \eqref{eq:GP_MLE} is solved numerically by gradient-based optimisation, and may admit several local maxima corresponding to different interpretations of the data, \textit{e.g.} a low-noise rapidly-varying field versus a high-noise slowly-varying one.
+	The log-marginal-likelihood is generally non-convex in $\theta$, so \eqref{eq:GP_MLE} is solved numerically by gradient-based optimisation \cite{bib:evidence}, and may admit several local maxima corresponding to different interpretations of the data, \textit{e.g.} a low-noise rapidly-varying field versus a high-noise slowly-varying one.
 \end{remark}

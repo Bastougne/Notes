@@ -1,10 +1,12 @@
 \section{Monte Carlo Methods}\label{sec:Monte_Carlo}
 
-While they alleviate, to a degree, the limitations induced by \eqref{eq:Kalman_assumptions}, Kalman-based methods all enforce the PDF to be Gaussian at each time step. This assumption is often violated in practice, as navigation problems frequently involve highly non-linear and non-injective functions. In turn, these functions induce multimodal or heavy-tailed distributions which cannot be adequately characterised by Gaussian hypotheses.
+While Kalman-based extensions can alleviate some of the limitations of the original Kalman filter, they all enforce the PDF to be Gaussian at each time step. This assumption is often violated in practice, as navigation problems frequently involve highly non-linear and non-injective functions. In turn, these functions induce multimodal or heavy-tailed distributions, which cannot be adequately characterised by Gaussian hypotheses.
 
-Monte Carlo (MC) methods offer an alternative approach that remains consistent under very mild assumptions. Their accuracy improves asymptotically with the number of samples, at the expense of an increased computational cost. This section introduces the main concepts for MC-based algorithms to solve the navigation problem \eqref{eq:navigation_problem}.
+Monte Carlo (MC) methods \cite{bib:Metropolis,bib:SOD333-MC} offer an alternative approach that remains consistent under very mild assumptions. Their accuracy improves asymptotically with the number of samples, at the expense of an increased computational cost. This section introduces the main concepts for MC-based algorithms to solve the navigation problem \eqref{eq:navigation_problem}.
 
 \subsection{Monte Carlo Integration}
+
+Even though MC methods originally stem from the computation of expectations, they approximate the entire distribution \cite{bib:MC-integration}, from which every estimator of \cref{sec:state_estimation} can be derived. Being itself an expectation, the MMSE estimator is simply the most immediate, and is where we begin.
 
 Let $X$ be a random variable taking values in $\mathbb{R}^{d_x}$ with probability density $p$, and let $\varphi\in\mathcal{L}^0(\mathbb{R}^{d_x},\mathbb{R}^{d_{\varphi}})$ such that $\varphi(X)\in\mathcal{L}^1(\mathbb{R}^{d_{\varphi}})$. We wish to compute the expectation of $\varphi(X)$:
 \begin{equation}
@@ -32,9 +34,10 @@ Since $\mu$ is a continuous measure, evaluating \eqref{eq:varphi_expectation_mu}
 		\left\langle S^N(\mu),\varphi\right\rangle=\frac{1}N\sum_{i=1}^N\varphi\left(X^{(i)}\right)
 	\end{equation}
 	is unbiased and consistent:
-	\begin{equation}
-		\left\langle S^N(\mu),\varphi\right\rangle\overset{a.s.}{\longrightarrow}\langle\mu,\varphi\rangle=\mathbb{E}_p[\varphi(X)]
-	\end{equation}
+	\begin{align}
+		\mathbb{E}_p\left[\left\langle S^N(\mu),\varphi\right\rangle\right]&=\mathbb{E}_p[\varphi(X)]=\langle\mu,\varphi\rangle\\
+		\left\langle S^N(\mu),\varphi\right\rangle&\overset{a.s.}{\longrightarrow}\langle\mu,\varphi\rangle
+	\end{align}
 
 	If moreover $\varphi(X)\in\mathcal{L}^2(\mathbb{R}^{d_{\varphi}})$, its mean squared error is:
 	\begin{equation}
@@ -80,7 +83,7 @@ in the sense that, for any measurable function $\varphi$ such that $\varphi(X)$ 
 
 \subsection{Importance Sampling}
 
-The standard MC method requires sampling directly from $\mu$, which can be complex in practice. Importance sampling circumvents this issue by drawing from a chosen importance, or proposal, distribution $\nu$ with density $q$.
+The standard MC method requires sampling directly from $\mu$, which can be complex in practice. Importance sampling \cite{bib:importance-sampling} circumvents this issue by drawing from a chosen importance, or proposal, distribution $\nu$ with density $q$.
 
 Assuming that $\operatorname{supp}(q)\subseteq\operatorname{supp}(p)$, and for $x\in\operatorname{supp}(q)$, it follows from the identity $p(x)=\frac{p(x)}{q(x)}\:q(x)$ and the transfer theorem that:
 \begin{equation}
@@ -109,9 +112,10 @@ Pairing this measure with a test function $\varphi$ yields the weighted MC estim
 		\left\langle S^N(\mu,\nu),\varphi\right\rangle=\frac{1}{N}\sum_{i=1}^N\frac{p\left(X^{(i)}\right)}{q\left(X^{(i)}\right)}\:\varphi\left(X^{(i)}\right)
 	\end{equation}
 	is unbiased and consistent:
-	\begin{equation}
-		\left\langle S^N(\mu,\nu),\varphi\right\rangle\overset{a.s.}{\longrightarrow}\mathbb{E}_p[\varphi(X)]
-	\end{equation}
+	\begin{align}
+		\mathbb{E}_p\left[\left\langle S^N(\mu,\nu),\varphi\right\rangle\right]&=\mathbb{E}_p[\varphi(X)]\\
+		\left\langle S^N(\mu,\nu),\varphi\right\rangle&\overset{a.s.}{\longrightarrow}\mathbb{E}_p[\varphi(X)]
+	\end{align}
 
 	Furthermore, when $\mathbb{V}_\nu\!\left[\frac{d\mu}{d\nu}\:\varphi\right]<\infty$, its mean squared error and rescaled error satisfy:
 	\begin{align}
@@ -128,7 +132,7 @@ For $\varphi\equiv1$, the total weight:
 \begin{equation}
 	\left\langle S^N(\mu,\nu),1\right\rangle=\frac{1}{N}\sum_{i=1}^N\frac{p\left(X^{(i)}\right)}{q\left(X^{(i)}\right)}
 \end{equation}
-converges a.s. to $1$, but each finite sample is not necessarily normalised. Furthermore, $p$ and $q$ are often known only up to normalising constants $\tilde{p}=C_\mu p$ and $\tilde{q}=C_\nu q$. To alleviate these issues, \Cref{th:self_normalised_measure} introduces the self-normalised measure, whose estimator remains consistent despite these unknown constants, as proven by \Cref{th:self_normalised_estimator}.
+converges a.s. to $1$, but each finite sample is not necessarily normalised. Furthermore, $p$ and $q$ are often known only up to normalising constants $\tilde{p}=C_\mu p$ and $\tilde{q}=C_\nu q$. To alleviate these issues, \Cref{th:self_normalised_measure} introduces the self-normalised measure \cite{bib:self-normalised}, whose estimator remains consistent despite these unknown constants, as proven by \Cref{th:self_normalised_estimator}.
 
 \begin{definition}[Self-normalised measure]\label{th:self_normalised_measure}
 	Let $X^{(1)}, \dots,X^{(N)}\overset{i.i.d.}{\sim}\nu$, with $\tilde{\mu}=C_\mu\mu$ and $\tilde{\nu}=C_\nu\nu$. The self-normalised measure is:
@@ -175,7 +179,7 @@ converges a.s. to $1$, but each finite sample is not necessarily normalised. Fur
 
 \subsection{Sequential Importance Sampling}
 
-In the filtering context, the target distribution is the joint posterior $p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$ over the entire state trajectory. As new observations arrive, this distribution grows in dimension, making a static importance sampling approach impractical. Sequential importance sampling (SIS) addresses this by updating the weights recursively rather than re-approximating the full trajectory at every time step.
+In the filtering context, the target distribution is the joint posterior $p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$ over the entire state trajectory. As new observations arrive, this distribution grows in dimension, making a static importance sampling approach impractical. Sequential importance sampling (SIS) \cite{bib:SMC-Bayesian,bib:intro-SMC} addresses this by updating the weights recursively rather than re-approximating the full trajectory at every time step.
 
 \begin{assumption}[SIS hypotheses]\label{th:SIS_hypotheses}
 	In addition to \Cref{th:Markov,th:observation_independence}, we assume that the proposal density of the previous state does not depend on the current observation:
@@ -224,14 +228,14 @@ with the further simplification under the hypothesis of \eqref{eq:simplification
 	w_k^{(i)}\propto w_{k-1}^{(i)}\:\frac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|x_{k-1}^{(i)},z_k\right)}
 \end{equation}
 
-While the current formulation allows us to approximate the expectation of the full trajectory $p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$, we often only want to estimate the current state $x_k$. This can be done naturally by letting $\pi_k$ denote the projection of a $(k+1)$-tuple onto its last element:
+While the current formulation allows us to approximate the density of the full trajectory $p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$ through the self-normalised measure of \Cref{th:self_normalised_measure}, we often only want to estimate the current state $x_k$. This can be done naturally by letting $\pi_k$ denote the projection of a $(k+1)$-tuple onto its last element:
 \begin{equation}
 	\pi_k:\left\{\begin{aligned}
 	\left(\mathbb{R}^{d_x}\right)^{k+1}&\rightarrow\mathbb{R}^{d_x}\\
 	(x_0,\dots,x_k)&\mapsto x_k
 	\end{aligned}\right.
 \end{equation}
-and computing the self-normalised estimator for $\varphi=\pi_k$:
+and computing the self-normalised estimator for $\varphi=\pi_k$, which approximates the MMSE estimator of \cref{sec:state_estimation}:
 \begin{equation}
 	\hat{x}_k\triangleq\left\langle\tilde{S}^N(\mu_k,\nu_k),\pi_k\right\rangle=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}\approx\mathbb{E}_{p(\cdot|\mathbf{z}_{1:k})}[x_k]
 \end{equation}
@@ -240,15 +244,19 @@ where $\mu_k(dx)\triangleq\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$ and 
 	\hat{P}_k=\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top
 \end{equation}
 
+The other estimators of \cref{sec:state_estimation} remain accessible, though they are not as immediate:
+\begin{itemize}
+	\item For a scalar state, the MMAE estimator only requires the cumulative distribution function, which $\tilde{S}^N(\mu_k,\nu_k)$ does define, and is obtained by accumulating the weights of the sorted particles until the total exceeds $\frac{1}{2}$. Its extension to a vector state is however not straightforward.
+	\item The MAP estimator, on the other hand, calls for a density, which the particle approximation does not possess. In particular, $\hat{\psi}_{\mathrm{MAP}}(\mathbf{z}_{1:k})$ cannot be computed using the weights, since they are importance ratios rather than density values. The heaviest particle maximises the Radon-Nikodym derivative rather than the PDF itself, and maximising $\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$ over the particles only locates a mode among the sampled locations.
+\end{itemize}
+
 As for the optimal and Kalman filters, the SIS algorithm follows the prediction/correction loop. The prediction step corresponds to the sampling of the new particle set through the proposal density, and is often called particle propagation. Conversely, the correction step is the weight update of \eqref{eq:weight_update}. The SIS algorithm is given by \Cref{alg:SIS}.
 
-\begin{algorithm}[H]
+\begin{algorithm}[!htb]
 	\begin{algorithmic}
 	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim q\left(\cdot|x_{k-1}^{(i)},z_k\right)$}\Comment{Particle propagation}
 	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\dfrac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}$}\Comment{Weight update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
-	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}$}\Comment{State estimation}
-	\State{$\displaystyle\hat{P}_k=\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top$}\Comment{State covariance}
 	\end{algorithmic}\caption{Sequential Importance Sampling}\label{alg:SIS}
 \end{algorithm}
 
@@ -257,7 +265,7 @@ As for the optimal and Kalman filters, the SIS algorithm follows the prediction/
 	\begin{equation}
 		p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\propto p(x_0)\prod_{j=1}^kp(x_j|x_{j-1})\times\prod_{j=1}^kp(z_j|x_j)
 	\end{equation}
-	to show that the PDF is a Feynman-Kac distribution, with the transitions $p(x_j|x_{j-1})$ acting as the mutation and the likelihoods $p(z_j|x_j)$ as the selection function. Rather than being an artifice used to cancel the unknown constants, the self-norma\-lisation introduced in \Cref{th:self_normalised_measure} is thus, more fundamentally, the normalisation of this distribution.
+	to show that the PDF is a Feynman-Kac distribution \cite{bib:Feynman-Kac,bib:SOD333-FK}, with the transitions $p(x_j|x_{j-1})$ acting as the mutation and the likelihoods $p(z_j|x_j)$ as the selection function. Rather than being an artifice used to cancel the unknown constants, the self-normalisation introduced in \Cref{th:self_normalised_measure} is thus, more fundamentally, the normalisation of this distribution.
 \end{remark}
 
 \subsubsection{Numerical correction of the covariance matrix}
@@ -274,7 +282,7 @@ If $d_x=1$, the positive real $m_+\in\mathbb{R}_+$ closest to some real $m\in\ma
 
 While this only applies to scalars, a similar operation can be performed in higher dimensions by using the SPSD term of the polar decomposition. The singular values decomposition is used to simplify the computation of the polar decomposition.
 
-Formally, the correction algorithm is as follows:
+Formally, the correction algorithm \cite{bib:nearest-SPD} is as follows:
 \begin{itemize}
 	\item Symmetrisation of $\hat{P}_k$: $M\triangleq\dfrac{\hat{P}_k+\hat{P}_k^\top}{2}$
 	\item Singular values decomposition: $M=UDV^\top$
@@ -301,7 +309,7 @@ For small enough values of $\varepsilon$, $M_+^*$ is the desired matrix.
 
 \subsection{Weight Degeneracy}
 
-A fundamental limitation of SIS is that the variance of the importance weights increases monotonically over time as shown by \Cref{th:variance_weights}.
+A fundamental limitation of SIS is that the variance of the importance weights increases monotonically over time \cite{bib:sequential-imputations} as shown by \Cref{th:variance_weights}.
 
 \begin{proposition}[Weight degeneracy]\label{th:variance_weights}
 	Let $\tilde{w}_{0:k}$ denote the non-normalised weight associated with the entire trajectory:
@@ -379,7 +387,7 @@ However, because the particles are propagated without regard to $z_k$, their inc
 
 \subsection{Sampling Importance Resampling}
 
-Weight degeneracy is intrinsic to SIS and worsens with time unless the proposal distribution is chosen extremely close to the optimal proposal density. The sampling importance resampling (SIR) filter, also known as the bootstrap filter, mitigates this by introducing a resampling step after each weight update. Resampling replaces the weighted particle set $\left\{x_k^{(i)},w_k^{(i)}\right\}_{i=1}^N$ by an unweighted set $\left\{{x_k^*}^{(j)},1/N\right\}_{j=1}^N$ drawn according to a chosen resampling algorithm:
+Weight degeneracy is intrinsic to SIS and worsens with time unless the proposal distribution is chosen extremely close to the optimal proposal density. The sampling importance resampling (SIR) filter \cite{bib:SIR}, also known as the bootstrap filter \cite{bib:bootstrap-filter}, mitigates this by introducing a resampling step after each weight update. Resampling replaces the weighted particle set $\left\{x_k^{(i)},w_k^{(i)}\right\}_{i=1}^N$ by an unweighted set $\left\{{x_k^*}^{(j)},1/N\right\}_{j=1}^N$ drawn according to a chosen resampling algorithm:
 \begin{equation}
 	\left\{{x^*_k}^{(j)}\right\}_{j=1}^N=\operatorname{Resampling}\left(\left\{x_k^{(i)},w_k^{(i)}\right\}_{i=1}^N\right)\label{eq:resampling}
 \end{equation}
@@ -390,20 +398,18 @@ It also uses the transition density as proposal \eqref{eq:prior_proposal}, which
 \end{equation}
 since all weights are reset to $1/N$ after resampling. This makes the SIR applicable under very weak assumptions, only requiring the ability to sample from $p(\cdot|x_{k-1})$ and compute the likelihood $p(z_k|x_k)$. Its pseudo-code is given by \Cref{alg:SIR}.
 
-\begin{algorithm}[H]
+\begin{algorithm}[!htb]
 	\begin{algorithmic}
 	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{(i)}\right)$}\Comment{Particle propagation}
 	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=\tilde{p}\left(z_k|x_k^{(i)}\right)$}\Comment{Weight update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
-	\State{$\left\{{x_k}^{(j)},-,-\right\}_{j=1}^N\gets\operatorname{Resampling}\left(\left\{x_k^{(i)},w_k^{(i)}\right\}_{i=1}^N\right)$}\Comment{Resampling}
-	\State{$\displaystyle\hat{x}_k=\frac{1}{N}\sum_{j=1}^Nx_k^{(j)}$}\Comment{State estimation}
-	\State{$\displaystyle\hat{P}_k=\frac{1}{N}\sum_{j=1}^N\left(x_k^{(j)}-\hat{x}_k\right)\left(x_k^{(j)}-\hat{x}_k\right)^\top$}\Comment{State covariance}
+	\State{$\left\{x_k^{(j)},w_k^{(j)},-\right\}_{j=1}^N\gets\operatorname{Resampling}\left(\left\{x_k^{(i)},w_k^{(i)}\right\}_{i=1}^N\right)$}\Comment{Resampling}
 	\end{algorithmic}\caption{Sampling Importance Resampling}\label{alg:SIR}
 \end{algorithm}
 
 \subsubsection{Resampling Algorithms}
 
-Several resampling algorithms can be used in \eqref{eq:resampling}. We present three algorithms, which all select a new particle set from the particle approximation of the PDF:
+Several resampling algorithms \cite{bib:resampling-methods,bib:resampling-comparison} can be used in \eqref{eq:resampling}. We present three algorithms, which all select a new particle set from the particle approximation of the PDF:
 \begin{equation}
 	p(x_k|\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{(i)}\:\delta_{x_k^{(i)}}
 \end{equation}
@@ -421,7 +427,7 @@ As illustrated by \Cref{fig:CDF}, a draw of $u_j\in[0,1]$ uniquely determines th
 	\operatorname{cdf}_{i-1}\leq u_j<\operatorname{cdf}_i
 \end{equation}
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\centering\includegraphics[width=0.8\textwidth]{../../Images/Rééchantillonnage CDF.png}
 	\caption{An example CDF of the particle weights. The width of each step is equal to the corresponding weight, so heavier particles are more likely to be selected.}\label{fig:CDF}
 \end{figure}
@@ -433,7 +439,7 @@ The main difference between the three algorithms lies in how the $N$ samples $\{
 		u_j\overset{i.i.d.}{\sim}\mathcal{U}([0,1])
 	\end{equation}
 	This is the most natural method, but has the highest resampling variance.
-	\item\textbf{Kitagawa resampling.} A single draw generates all samples via:
+	\item\textbf{Systematic or Kitagawa resampling \cite{bib:Kitagawa}.} A single draw generates all samples via:
 	\begin{equation}
 		\left\{\begin{aligned}
 		u_1&\sim\mathcal{U}([0,1/N])\\
@@ -450,7 +456,7 @@ The main difference between the three algorithms lies in how the $N$ samples $\{
 
 Some advanced filters, such as the auxiliary particle filter, presented in \cref{sec:particle_filtering}, require keeping track of the parent index $i^{(j)}$ of each resampled particle. This value is thus recorded at the creation of each new particle. \Cref{alg:Kitagawa} presents a linear implementation of the Kitagawa resampling algorithm, using the fact that both the CDF values and the Kitagawa samples are increasing to compute the parent indices sequentially.
 
-\begin{algorithm}[H]
+\begin{algorithm}[!htb]
 	\begin{algorithmic}
 	\State{$\operatorname{cdf}_0=0$}\Comment{Computation of the CDF}
 	\State{$\forall i\in[\![1,N]\!],\:\operatorname{cdf}_i=\operatorname{cdf}_{i-1}+w_k^{(i)}$\vspace{0.5\baselineskip}}
@@ -469,5 +475,5 @@ Some advanced filters, such as the auxiliary particle filter, presented in \cref
 \end{algorithm}
 
 \begin{remark}[Loss of independence]\label{th:loss_independence}
-	Because resampling duplicates particles, the resulting set is no longer independent, and the i.i.d. results of \Cref{th:MC_estimator,th:weighted_MC} no longer apply. However, the resampling is unbiased and the propagation step draws the particles independently conditionally on the past. The Feynman-Kac formalism proves that consistency and asymptotic Gaussianity still hold in this scenario, at the price of a variance larger than in the independent case and which accumulates over time.
+	Because resampling duplicates particles, the resulting set is no longer independent, and the i.i.d. results of \Cref{th:MC_estimator,th:weighted_MC} no longer apply. However, the resampling is unbiased and the propagation step draws the particles independently conditionally on the past. The Feynman-Kac formalism proves \cite{bib:PF-convergence,bib:these-Oudjane} that consistency and asymptotic Gaussianity still hold in this scenario, at the price of a variance larger than in the independent case and which accumulates over time.
 \end{remark}

@@ -2,11 +2,17 @@
 
 Beyond regression, the covariance kernel induces functional representations exploited later in this thesis. \Cref{sec:reduced_rank} replaces the GP by a finite-dimensional projection to alleviate the cubic cost of kriging, and \cref{sec:RKHS} interprets kriging as minimum-norm interpolation in a reproducing kernel Hilbert space.
 
+\subsection{Universal Kriging Mean}
+
+\textbf{TODO + kriging update formulas}
+
 \subsection{Karhunen-Loeve Decomposition}
+
+\textbf{TODO} \cite{bib:Karhunen-Loeve}
 
 \subsection{Reproducing Kernel Hilbert Space Formulation}\label{sec:RKHS}
 
-The covariance kernel also induces a deterministic, function-analytic counterpart to GP regression. Let $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}$ be a scalar SPSD kernel on an arbitrary index set $\mathcal{U}$.
+The covariance kernel also induces a deterministic, function-analytic counterpart to GP regression. Let $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}$ be a scalar SPSD kernel on an arbitrary index set $\mathcal{U}$ \cite{bib:Aronszajn,bib:RKHS-twelve-pages}.
 
 \begin{definition}[Reproducing kernel Hilbert space]\label{th:RKHS}
 	The reproducing kernel Hilbert space (RKHS) $\mathcal{H}_k$ associated with $k$ is the completion of the span of $\{k(\cdot,x)\:|\:x\in\mathcal{U}\}$ for the inner product defined on the generators by:
@@ -19,7 +25,7 @@ The covariance kernel also induces a deterministic, function-analytic counterpar
 	\end{equation}
 \end{definition}
 
-The reproducing property \eqref{eq:reproducing_property} states that point evaluation is a continuous linear functional on $\mathcal{H}_k$, which endows the space with a regularity entirely dictated by $k$. This space provides a variational reading of kriging.
+The reproducing property \eqref{eq:reproducing_property} states that point evaluation is a continuous linear functional on $\mathcal{H}_k$, which endows the space with a regularity entirely dictated by $k$. This space provides a variational reading of kriging \cite{bib:GP-kernel-methods}.
 
 \begin{proposition}[Kriging as minimum-norm interpolation]\label{th:RKHS_kriging}
 	In the centred case, the simple kriging estimator \eqref{eq:simple_kriging_equations} is the solution of the penalised least-squares problem in $\mathcal{H}_k$:
@@ -30,9 +36,9 @@ The reproducing property \eqref{eq:reproducing_property} states that point evalu
 \end{proposition}
 
 \begin{proof}
-	By the representer theorem, a minimiser of \eqref{eq:RKHS_regularisation} lies in the finite-dimensional span of $\{k(\cdot,\tilde{x}_i)\}_{i=1}^{\tilde{n}}$, \textit{i.e.} $\psi=\sum_i\alpha_i\:k(\cdot,\tilde{x}_i)$. The reproducing property gives $\psi(\tilde{x}_j)=\sum_i\alpha_i\:k(\tilde{x}_j,\tilde{x}_i)$ and $\|\psi\|_{\mathcal{H}_k}^2=\alpha^\top k(\tilde{X},\tilde{X})\:\alpha$, so \eqref{eq:RKHS_regularisation} becomes the quadratic problem $\operatorname{argmin}_\alpha\:\tilde{R}^{-1}\|k(\tilde{X},\tilde{X})\alpha-\tilde{Z}\|^2+\alpha^\top k(\tilde{X},\tilde{X})\alpha$. Cancelling its gradient gives $\alpha=G^{-1}\tilde{Z}$, hence $\psi(x)=k(x,\tilde{X})\:G^{-1}\tilde{Z}$, which is \eqref{eq:simple_kriging_equations} for $m=0$.
+	By the representer theorem \cite{bib:representer,bib:representer-generalised}, a minimiser of \eqref{eq:RKHS_regularisation} lies in the finite-dimensional span of $\{k(\cdot,\tilde{x}_i)\}_{i=1}^{\tilde{n}}$, \textit{i.e.} $\psi=\sum_i\alpha_i\:k(\cdot,\tilde{x}_i)$. The reproducing property gives $\psi(\tilde{x}_j)=\sum_i\alpha_i\:k(\tilde{x}_j,\tilde{x}_i)$ and $\|\psi\|_{\mathcal{H}_k}^2=\alpha^\top k(\tilde{X},\tilde{X})\:\alpha$, so \eqref{eq:RKHS_regularisation} becomes the quadratic problem $\operatorname{argmin}_\alpha\:\tilde{R}^{-1}\|k(\tilde{X},\tilde{X})\alpha-\tilde{Z}\|^2+\alpha^\top k(\tilde{X},\tilde{X})\alpha$. Cancelling its gradient gives $\alpha=G^{-1}\tilde{Z}$, hence $\psi(x)=k(x,\tilde{X})\:G^{-1}\tilde{Z}$, which is \eqref{eq:simple_kriging_equations} for $m=0$.
 \end{proof}
 
 \begin{remark}[GP and RKHS correspondence]
-	The two viewpoints are complementary. The GP model gives a probabilistic reading of kriging (posterior mean and variance under a Gaussian prior), while the RKHS gives a deterministic one (minimum-norm interpolant in a function space). Writing the Mercer decomposition of the kernel over its eigenpairs $(\beta_j,\phi_j)_{j\geq1}$ as $k(x,x')=\sum_{j\geq1}\beta_j\:\phi_j(x)\:\phi_j(x')$, a function $\psi=\sum_{j\geq1}c_j\:\phi_j$ belongs to $\mathcal{H}_k$ with squared norm $\|\psi\|_{\mathcal{H}_k}^2=\sum_{j\geq1}c_j^2/\beta_j$; the norm thus penalises most the components carried by low-eigenvalue, rapidly oscillating eigenfunctions, so the decay of the eigenvalues $\beta_j$ sets the smoothness enforced by $k$. Choosing a kernel therefore amounts to choosing a regularity class for the unknown field. A smooth kernel such as the SE kernel yields infinitely differentiable interpolants, whereas a rougher Matérn kernel admits functions of limited smoothness.
+	The two viewpoints are complementary \cite{bib:Rasmussen-relationships}. The GP model gives a probabilistic reading of kriging (posterior mean and variance under a Gaussian prior), while the RKHS gives a deterministic one (minimum-norm interpolant in a function space). Writing the Mercer decomposition of the kernel over its eigenpairs $(\beta_j,\phi_j)_{j\geq1}$ as $k(x,x')=\sum_{j\geq1}\beta_j\:\phi_j(x)\:\phi_j(x')$, a function $\psi=\sum_{j\geq1}c_j\:\phi_j$ belongs to $\mathcal{H}_k$ with squared norm $\|\psi\|_{\mathcal{H}_k}^2=\sum_{j\geq1}c_j^2/\beta_j$; the norm thus penalises most the components carried by low-eigenvalue, rapidly oscillating eigenfunctions, so the decay of the eigenvalues $\beta_j$ sets the smoothness enforced by $k$. Choosing a kernel therefore amounts to choosing a regularity class for the unknown field. A smooth kernel such as the SE kernel yields infinitely differentiable interpolants, whereas a rougher Matérn kernel admits functions of limited smoothness.
 \end{remark}

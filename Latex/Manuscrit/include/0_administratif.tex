@@ -130,7 +130,7 @@
 	\lignetoc{MC}{Monte Carlo}
 	\lignetoc{MAP}{Maximum \textit{A Posteriori}}
 	\lignetoc{MISE}{Mean Integrated Squared Error}
-	\lignetoc{MLE}{Maximum Likelihood Estimator}
+	\lignetoc{ML}{Maximum Likelihood}
 	\lignetoc{MMAE}{Minimum Mean Absolute Error}
 	\lignetoc{MMSE}{Minimum Mean Squared Error}
 	\lignetoc{PDF}{Posterior Probability Density Function}
@@ -139,7 +139,6 @@
 	\lignetoc{RPF}{Regularised Particle Filter}
 	\lignetoc{SIR}{Sampling Importance Resampling}
 	\lignetoc{SIS}{Sequential Importance Sampling}
-	\lignetoc{SO-EKF}{Second-Order Extended Kalman Filter}
 	\lignetoc{SPD}{Symmetric Positive Definite}
 	\lignetoc{SPSD}{Symmetric/Self-adjoint Positive Semi-Definite}
 	\textbf{TODO: finir la liste avec le chapitre 3}
@@ -156,7 +155,7 @@
 	\lignetoc{$\overset{\mathcal{L}}{\longrightarrow}$}{Convergence in law}
 	\lignetoc{$\cdot\succeq0$}{Symmetric positive semi-definite}
 	\lignetoc{$\cdot\succ0$}{Symmetric positive definite}
-	\lignetoc{$\langle\cdot|\cdot\rangle$}{Inner product}
+	\lignetoc{$\langle\cdot|\cdot\rangle,\langle\cdot|\cdot\rangle_{\mathcal{E}}$}{Inner product, subscript: of the space $\mathcal{E}$}
 	\lignetoc{$\langle\cdot,\cdot\rangle$}{Measure/function duality pairing, $\langle\mu,\varphi\rangle=\int\varphi\:d\mu$}
 	\lignetoc{$\|\cdot\|,\|\cdot\|_2,\|\cdot\|_F$}{Generic, Euclidean and Frobenius norms}
 	\lignetoc{$\cdot^\top$}{Transpose of a matrix}
@@ -166,17 +165,17 @@
 	\lignetoc{$\mathbbm{1}$}{Indicator function}
 	\lignetoc{$[\![\cdot,\cdot]\!]$}{Discrete interval}
 	\lignetoc{$\cdot_{m|n}$}{"at time $m$ conditioned on the observations from $1$ to $n$"}
-	\lignetoc{$\alpha_{reg}$}{Bandwidth modulation factor}
+	\lignetoc{$\alpha_{\mathrm{reg}}$}{Bandwidth modulation factor}
 	\lignetoc{$\delta_x$}{Dirac measure at $x$}
 	\lignetoc{$\lambda_k^{(i)}$}{Auxiliary weights}
-	\lignetoc{$\lambda_{\min}$}{Smallest eigenvalue of a matrix}
+	\lignetoc{$\lambda_{\min},\lambda_i$}{Smallest and $i$-th eigenvalues of a matrix}
 	\lignetoc{$\mu$}{Target probability measure, of density $p$}
 	\lignetoc{$\mu_k^{(i)}$}{Auxiliary particle}
-	\lignetoc{$\nu$}{Proposal (importance) measure}
+	\lignetoc{$\nu$}{Proposal (importance) measure, of density $q$}
 	\lignetoc{$\pi_k$}{Projection of a trajectory onto its last component}
 	\lignetoc{$\rho$}{Distance on the estimator space $\mathcal{F}$}
 	\lignetoc{$\varphi$}{Mapping of the state}
-	\lignetoc{$\hat{\psi}_{\textup{MMSE}},\hat{\psi}_{\textup{MMAE}},\hat{\psi}_{\textup{MAP}},\hat{\psi}_{\textup{MLE}}$}{State estimators}
+	\lignetoc{$\hat{\psi}_{\mathrm{MMSE}},\hat{\psi}_{\mathrm{MMAE}},\hat{\psi}_{\mathrm{MAP}},\hat{\psi}_{\mathrm{ML}}$}{State estimators}
 	\lignetoc{$\operatorname{argmin}$, $\operatorname{argmax}$}{Argument of the minimum, of the maximum}
 	\lignetoc{$b_k^{(e)},b_k^{(o)}$}{Evolution and observation bias vectors}
 	\lignetoc{$C_\mu,C_\nu$}{Normalising constants of $\mu$ and $\nu$}
@@ -189,22 +188,22 @@
 	\lignetoc{$F_k,F_k^l,F_k^n,\overline{F}_k^n$}{Evolution matrices}
 	\lignetoc{$\mathcal{F}$}{Space of admissible estimators}
 	\lignetoc{$\mathcal{GP}(m,k)$}{Gaussian process}
-	\lignetoc{$h,h_{Epa},h_{Gauss}$}{Kernel bandwidths}
+	\lignetoc{$h,h_{\mathrm{Epa}},h_{\mathrm{Gauss}}$}{Kernel bandwidths}
 	\lignetoc{$h_k$}{Observation function}
 	\lignetoc{$H_k$}{Observation matrix}
-	\lignetoc{$I$}{Identity matrix}
+	\lignetoc{$I,I_n$}{Identity matrix, subscript: of size $n$}
 	\lignetoc{$J_f$}{Jacobian matrix of a function $f$}
 	\lignetoc{$k$}{Discrete time step}
 	\lignetoc{$k(\cdot,\cdot)$}{Covariance kernel of a Gaussian process}
-	\lignetoc{$K,K_h,K_{Epa},K_{Gauss}$}{Regularisation kernels}
+	\lignetoc{$K,K_h,K_{\mathrm{Epa}},K_{\mathrm{Gauss}}$}{Regularisation kernels}
 	\lignetoc{$K_k$}{Kalman gain}
 	\lignetoc{$\mathcal{L}^0,\mathcal{L}^p$}{Sets of measurable functions and $p$-integrable random variables}
 	\lignetoc{$m$}{Mean function of a Gaussian process}
 	\lignetoc{$\mathcal{M}_{m,n}(\mathbb{R})$}{Set of real $m\times n$ matrices}
 	\lignetoc{$n_k$}{Observation noise}
 	\lignetoc{$N$}{Number of particles or samples}
-	\lignetoc{$\hat{N}_{eff},N_{eff}$}{Estimated and real effective sample size}
-	\lignetoc{$N_{th}$}{Resampling threshold}
+	\lignetoc{$\hat{N}_{\mathrm{eff}},N_{\mathrm{eff}}$}{Estimated and real effective sample size}
+	\lignetoc{$N_{\mathrm{th}}$}{Resampling threshold}
 	\lignetoc{$\mathbb{N},\mathbb{N}^*$}{Sets of natural and strictly positive natural integers}
 	\lignetoc{$\mathcal{N}(m,P)$}{Gaussian distribution}
 	\lignetoc{$o(\cdot)$}{Landau symbol for asymptotic negligibility}

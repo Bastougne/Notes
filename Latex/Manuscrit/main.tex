@@ -14,6 +14,7 @@
 \usepackage[Glenn]{fncychap} % headers de chapitres etc encadrés
 
 \raggedbottom % pas d'étirement vertical pour remplir les pages
+\setlength{\emergencystretch}{1em} % meilleure justification du texte
 
 \makeatletter
 \let\ps@plain\ps@headings % headers de pages de chapitres comme pour les pages usuelles
@@ -21,12 +22,20 @@
 
 \usepackage{etoc} % sommaire par chapitre
 
+\usepackage[style=numeric,sorting=none,maxnames=10]{biblatex} % bibliographie
+\addbibresource{include/biblio.bib}
+
 \usepackage{amsmath,amsthm,amsfonts,amssymb,bbm} % packages de maths
 \usepackage{algorithm,algpseudocode} % packages d'info
 
+\makeatletter
+\renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}} % identifiants de lignes uniques pour les algorithmes
+\makeatother
+
 \usepackage[
 	colorlinks=true,
-	linkcolor=blue
+	linkcolor=blue,
+	citecolor=red
 	]{hyperref} % références interactibles
 
 \usepackage{
@@ -65,10 +74,15 @@
 
 \part{Navigating on Gaussian Processes}
 
+\input{include/4_adaptive_kriging.tex}
+
 \part{Appendix}
 
 \appendix
 
 \input{include/9_appendix.tex}
+
+\printbibliography
+\addcontentsline{toc}{chapter}{\bibname}
 
 \end{document}
