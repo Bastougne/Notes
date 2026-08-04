@@ -299,7 +299,7 @@ The ordinary kriging weights thus minimise \eqref{eq:error_covariance} under the
 
 Exact GP regression requires inverting the $\tilde{n}d_z\times\tilde{n}d_z$ Gram matrix $G(\tilde{\mathbf{x}})$, which scales as $\mathcal{O}\left(\tilde{n}^3\right)$. When the number of training points is large, this operation becomes prohibitive. Reduced-rank methods \cite{bib:Nystrom,bib:inducing-points} circumvent this issue by approximating the kernel as a linear combination of $r\in\mathbb{N}^*$ basis functions, with $r<\tilde{n}$. The inversion cost is reduced to $\mathcal{O}\left(r^3\right)$, bringing down the overall kriging cost to $\mathcal{O}\left(r^2\tilde{n}\right)$.
 
-Mercer's theorem \cite{bib:Mercer}, presented in \Cref{th:Mercer}, establishes the existence of such a decomposition as soon as $k$ is a continuous SPD kernel, and $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$. The Woodbury inversion formula is then used to rewrite the kriging estimator in a computationally efficient expression.
+Mercer's theorem \cite{bib:Mercer}, presented in \Cref{th:Mercer}, establishes the existence of such a decomposition as soon as $k$ is a continuous SPD kernel, which Matérn kernels satisfy, as proven by \Cref{th:Matérn_properties}, and $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$. The Woodbury inversion formula is then used to rewrite the kriging estimator in a computationally efficient expression.
 
 \subsection{Mercer's Theorem}
 

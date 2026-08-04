@@ -2,7 +2,7 @@
 
 Even though the SIR applies under very mild assumptions, it has several caveats. Indeed, while resampling at every step eliminates the weight degeneracy of the SIS, it wastes computational load, and erodes particle diversity. Furthermore, the number of particles required grows quickly with the state dimension, a phenomenon known as the curse of dimensionality \cite{bib:PF-dimension}.
 
-The SIR admits several refinements \cite{bib:beyond-Kalman} \textbf{TODO: à déplacer ? + citer chapitre exact ?}, each targeting a specific issue. We first present the generic particle filter, which reduces the SIR's computational cost by only resampling when necessary. We then introduce the regularised and auxiliary particle filters to restore particle diversity and improve on the prior proposal. Finally, we derive the equations of the Rao-Blackwellised particle filter, which reduces the dimension of the explored space under linear-Gaussian substructure assumptions.
+The SIR admits several refinements \cite{bib:beyond-Kalman}, each targeting a specific issue. We first present the generic particle filter, which reduces the SIR's computational cost by only resampling when necessary. We then introduce the regularised and auxiliary particle filters to restore particle diversity and improve on the prior proposal. Finally, we derive the equations of the Rao-Blackwellised particle filter, which reduces the dimension of the explored space under linear-Gaussian substructure assumptions.
 
 \subsection{Generic Particle Filter}
 

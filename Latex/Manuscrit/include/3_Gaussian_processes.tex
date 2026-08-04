@@ -225,7 +225,7 @@ Throughout the rest of this document, we assume that the covariance kernel $k$ i
 
 Assume in this section that $\mathcal{U}$ is a finite-dimensional normed vector space, \textit{i.e.} $\mathcal{U}=\mathbb{R}^{d_x}$ up to isomorphism. A natural way to build kernels on $\mathcal{U}$ is to let the correlation between the field values at two points $x,x'$ depend only on the distance $\|x-x'\|$ between them. Kernels of this form are called radial kernels \cite{bib:Stein-kriging}, and are formally defined by \Cref{th:radial_kernel}.
 
-Since $f$ typically represents a physical field, observations tend to become less correlated as the distance between them increases. \Cref{th:Matérn} derives a common family of radial kernels, called the Matérn kernels \cite{bib:Matérn}, which model this behaviour.
+Since $f$ typically represents a physical field, observations tend to become less correlated as the distance between them increases. \Cref{th:Matérn} introduces a common family of radial kernels modelling this behaviour, called the Matérn kernels \cite{bib:Matérn}. \Cref{th:Matérn_properties} then establishes their continuity and SPDness.
 
 \begin{definition}[Radial kernel]\label{th:radial_kernel}
 	A kernel $k:\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is radial if there exists a function $f:\mathbb{R}_+\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ and a norm $\|\cdot\|$ on $\mathbb{R}^{d_x}$ such that:
@@ -240,17 +240,62 @@ Since $f$ typically represents a physical field, observations tend to become les
 \end{definition}
 
 \begin{definition}[Matérn kernel]\label{th:Matérn}
-	Assume that $d_z=1$, and let $\nu,l,\sigma_f^2\in\mathbb{R}_+^*$. The Matérn kernel of smoothness $\nu$, correlation length $l$ and variance $\sigma_f^2$ is the radial kernel defined as:
+	Assume that $d_z=1$, and let $\nu,l,\sigma_f^2\in\mathbb{R}_+^*$. The Matérn kernel of smoothness $\nu$, correlation length $l$ and characteristic variance $\sigma_f^2$ is the radial kernel defined as:
 	\begin{equation}
 		k_\nu:\left\{\begin{aligned}
 		\mathbb{R}_+&\to\mathbb{R}_+\\
 		r&\mapsto\sigma_f^2\:\frac{2^{1-\nu}}{\Gamma(\nu)}\left(\frac{\sqrt{2\nu}\:r}{l}\right)^\nu K_\nu\left(\frac{\sqrt{2\nu}\:r}{l}\right)
 		\end{aligned}\right.
 	\end{equation}
-	where $\Gamma$ is the Gamma function, and $K_\nu$ is the modified Bessel function of the second kind.
+	where $\Gamma$ is the Gamma function, and $K_\nu$ is the modified Bessel function of the second kind \cite{bib:Abramowitz}.
 \end{definition}
 
-The parameter $\nu$ controls the regularity. For $p\in\mathbb{N}$, it can be shown that a GP equipped with $k_\nu$ is $p$ times mean-square differentiable if and only if $\nu>p$ \textbf{TODO: à démontrer ?}. For half-integer $\nu=p+\tfrac{1}{2}$, Matérn kernels can be written as the product of an exponential and a polynomial function of degree $p$:
+\begin{proposition}[Properties of Matérn kernels]\label{th:Matérn_properties}
+	Let $\nu,l,\sigma_f^2\in\mathbb{R}_+^*$. The Matérn kernel associated with $\nu$, $l$ and $\sigma_f^2$ is a continuous SPD radial kernel.
+\end{proposition}
+
+\begin{proof}
+	Let $k_\nu$ denote such a function. We also let:
+	\begin{equation}
+		f:\left\{\begin{aligned}
+		\mathbb{R}_+&\to\mathbb{R}_+\\
+		r&\mapsto\sigma_f^2\:\frac{2^{1-\nu}}{\Gamma(\nu)}r^\nu K_\nu(r)
+		\end{aligned}\right.
+		\quad\text{ and }\quad
+		\tilde{r}:\left\{\begin{aligned}
+		\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}&\to\mathbb{R}_+\\
+		x,x'&\mapsto\frac{\sqrt{2\nu}}{l}\|x-x'\|
+		\end{aligned}\right.
+	\end{equation}
+
+	$\tilde{r}$ and $K_\nu$ are continuous on $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}$ and $\mathbb{R}_+^*$ respectively, and the latter admits the following asymptotic expansion as $r\to0^+$:
+	\begin{equation}
+		K_\nu(r)=2^{\nu-1}\Gamma(\nu)\:r^{-\nu}+o\left(r^{-\nu}\right)
+	\end{equation}
+
+	Therefore, $f$ can be continuously extended to $0$ by setting $f(0)=\sigma_f^2$, and $k_\nu$ is thus continuous on the entirety of $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}$.
+
+	Let $x,x'\in\mathbb{R}^{d_x}$. By symmetry of the norm, $\tilde{r}(x,x')=\tilde{r}(x',x)$, and thus:
+	\begin{equation}
+		k_\nu=f\circ\tilde{r}
+	\end{equation}
+	is symmetric, with $\circ$ being the composition operator.
+
+	Furthermore, Bochner's theorem \cite{bib:Akhiezer} states that a continuous integrable function with a strictly positive Fourier transform is SPD. It can be shown \cite{bib:Matérn-correlation} that the Fourier transform of $k_\nu$ on $\mathbb{R}^{d_x}$ is:
+	\begin{equation}
+		S:\left\{\begin{aligned}
+		\mathbb{R}^{d_x}&\to\mathbb{R}\\
+		\omega&\mapsto C\:\left(\frac{2\nu}{l^2}+\|\omega\|^2\right)^{-(\nu+d_x/2)}
+		\end{aligned}\right.
+	\end{equation}
+	where $C>0$ is a normalising constant which only depends on $d_x$ and the parameters of $k_\nu$. Since $\nu>0$, $l>0$, it comes that:
+	\begin{equation}
+		\forall\omega\in\mathbb{R}^{d_x},\:S(\omega)>0
+	\end{equation}
+	and thus $k_\nu$ is a SPD kernel. By definition, it is also a radial kernel.
+\end{proof}
+
+The parameter $\nu$ controls the regularity. Indeed, for $p\in\mathbb{N}$, it can be shown \cite{bib:Rasmussen-covariance} that a GP equipped with $k_\nu$ is $p$ times mean-square differentiable if and only if $\nu>p$. For half-integer $\nu=p+\tfrac{1}{2}$, Matérn kernels can be written as the product of an exponential and a polynomial function of degree $p$:
 \begin{equation}
 	k_{p+1/2}(r)=\sigma_f^2\:\exp\left(-\frac{\sqrt{2\nu}r}{l}\right)\frac{\Gamma(p+1)}{\Gamma(2p+1)}\:\sum_{i=0}^p\frac{(p+i)!}{i!(p-i)!}\left(\frac{2\sqrt{2\nu}r}{l}\right)^{p-i}
 \end{equation}
@@ -276,13 +321,12 @@ As $\nu\to+\infty$, the Matérn kernel converges to the infinitely differentiabl
 	k_{SE}(r)\triangleq k_{\infty}(r)=\sigma_f^2\:\exp\left(-\frac{r^2}{2l^2}\right)\label{eq:SE_kernel}
 \end{equation}
 
+\Cref{fig:Matérn} illustrates the radial decay of Matérn covariance kernels for different smoothness parameters $\nu\in\left\{\frac{1}{2},\frac{3}{2},\frac{5}{2}\right\}$, and their limit as $\nu\to+\infty$. The kernels are evaluated with unit variance $\sigma_f^2=1$ and correlation length $l=1$ to facilitate comparison.
+
 \begin{figure}[!htb]
 	\centering\includegraphics[width=0.8\textwidth]{../../Images/Noyaux de Matérn.png}
-	\caption{Normalised Matérn kernels ($\sigma_f^2=1,\:l=1$) with smoothness
-	$\nu\in\{1/2,3/2,5/2\}$ and their limit as $\nu\to+\infty$.}\label{fig:Matérn}
+	\caption{Radial profile of Matérn kernels with increasing smoothness, together with their squared exponential limit. Larger values of $\nu$ produce smoother kernels, with flatter behaviours near the origin and lighter tails.}\label{fig:Matérn}
 \end{figure}
-
-\textbf{TODO: introduire l'image !!! + Matérn vérifie SPD et continuité}
 
 \begin{remark}[Anisotropic kernels]
 	The norm used in \Cref{th:radial_kernel} does not necessarily need to be the canonical norm of $\mathbb{R}^{d_x}$. In particular, for $M\succ0$, the Mahalanobis norm:
@@ -297,14 +341,14 @@ As $\nu\to+\infty$, the Matérn kernel converges to the infinitely differentiabl
 	\begin{equation}
 		k_{MS}(r)\triangleq\sum_{i=1}^n\sigma_i^2\:k^{(i)}(r)
 	\end{equation}
-	is a valid SPD kernel. When the correlation lengths have different orders of magnitude, such kernels can be used to capture local fluctuations and global trends simultaneously \cite{bib:Rasmussen-covariance}.
+	is a valid SPD kernel. When the correlation lengths have different orders of magnitude, such kernels can be used to capture local fluctuations and global trends simultaneously.
 \end{remark}
 
 \subsection{Hyperparameter Estimation}
 
 \textbf{TODO: à reprendre}
 
-The kernel depends on hyperparameters $\theta$ --- for instance $\sigma_f^2$ and $l$ for the SE kernel --- that must be inferred from the data. Given training inputs $X$ and the corresponding observations $Z$, the standard approach maximises the marginal likelihood of the observations, a procedure known as evidence maximisation \cite{bib:Rasmussen-hyperparameters}. Writing $K_\theta\triangleq k_\theta(X,X)$ for the kernel matrix and assuming, in the absence of prior information, a zero mean function, the observations are jointly Gaussian:
+The kernel depends on hyperparameters $\theta$, such as $\sigma_f^2$ and $l$ for the SE kernel, that must be inferred from the data. Given training inputs $X$ and the corresponding observations $Z$, the standard approach maximises the marginal likelihood of the observations, a procedure known as evidence maximisation \cite{bib:Rasmussen-hyperparameters}. Writing $K_\theta\triangleq k_\theta(X,X)$ for the kernel matrix and assuming, in the absence of prior information, a zero mean function, the observations are jointly Gaussian:
 \begin{equation}
 	p(Z|X,\theta)=\frac{\displaystyle\exp\left(-\frac{1}{2}Z^\top K_\theta^{-1}Z\right)}{\sqrt{(2\pi)^n\:\det(K_\theta)}}\label{eq:marginal_likelihood}
 \end{equation}
