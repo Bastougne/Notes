@@ -56,7 +56,7 @@ Since each resampling step still collapses diversity, the PF only mitigates impo
 	p(x_k|\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{(i)}\:\delta_{x_k^{(i)}}\label{eq:RPF_dirac}
 \end{equation}
 
-Since this measure is singular, resampling from it can only reproduce the existing particles. The regularised particle filter (RPF) \cite{bib:RPF} addresses this issue through kernel density estimation \cite{bib:Rosenblatt,bib:Parzen,bib:Silverman}, by replacing each Dirac with a smooth kernel to obtain the absolutely continuous measure:
+Since this measure is singular, resampling from it can only reproduce the existing particles. The regularised particle filter (RPF) \cite{bib:RPF} addresses this issue through kernel density estimation \cite{bib:Rosenblatt,bib:Parzen,bib:KDE-multivariate}, by replacing each Dirac with a smooth kernel to obtain the absolutely continuous measure:
 \begin{equation}
 	p(x_k|\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{(i)}\:K_h\left(x_k-x_k^{(i)}\right)dx_k\label{eq:RPF_kernel}
 \end{equation}
@@ -132,7 +132,7 @@ It must be noted that the assumptions for the Epanechnikov, and consequently the
 
 However, the two conditions do not play the same role. The Gaussian hypothesis is only used to compute the optimal bandwidth, whose expression would otherwise depend on an unknown PDF. It is thus a calibration convention rather than a modelling assumption. In particular, it tends to overestimate $h$ when the PDF is multimodal.
 
-On the other hand, the unit covariance is a scaling requirement, and can be enforced exactly by a whitening step before the regularisation. This amounts to replacing every particle by $A_k^{-1}\:x_k^{(i)}$, where $A_k$ is the Cholesky factor \cite{bib:matrix-computations} of $\hat{P}_k$:
+On the other hand, the unit covariance is a scaling requirement, and can be enforced exactly by a whitening step before the regularisation. This amounts to replacing every particle by $A_k^{-1}\:x_k^{(i)}$, where $A_k$ is a Cholesky factor of $\hat{P}_k$:
 \begin{equation}
 	\hat{P}_k=A_k\:A_k^\top
 \end{equation}
@@ -175,7 +175,7 @@ Each term of this decomposition can be simplified as follows:
 	\begin{equation}
 		p(z_k|x_k,i,\mathbf{z}_{1:k-1})=p(z_k|x_k)
 	\end{equation}
-	\item Since the parent index uniquely determines the ancestor trajectory, conditioning on $i$ is equivalent to conditioning on $x_{0:k-1}^{(i)}$. Moreover, \Cref{th:Markov} establishes that $(x_k)_{k\geq0}$ is a Markov chain, and thus:
+	\item Since the parent index uniquely determines the ancestor trajectory, conditioning on $i$ is equivalent to conditioning on $\mathbf{x}_{0:k-1}^{(i)}$. Moreover, \Cref{th:Markov} establishes that $(x_k)_{k\geq0}$ is a Markov chain, and thus:
 	\begin{equation}
 		p(x_k|i,\mathbf{z}_{1:k-1})=p\left(x_k|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k-1}\right)=p\left(x_k|x_{k-1}^{(i)}\right)
 	\end{equation}
@@ -264,7 +264,7 @@ with:
 	w_k=\begin{bmatrix}w_k^n\\w_k^l\end{bmatrix}
 	\sim\mathcal{N}\left(0,\begin{bmatrix}
 	Q_k^n&(Q_k^{nl})^\top\\Q_k^{nl}&Q_k^l
-	\end{bmatrix}\right),\quad n_k\sim\mathcal{N}(0,R_k)
+	\end{bmatrix}\right),\qquad n_k\sim\mathcal{N}(0,R_k)
 \end{equation}
 $x_0^n$ of known distribution, and $x_0^l$ Gaussian.
 

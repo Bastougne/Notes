@@ -25,7 +25,7 @@
 \usepackage[style=numeric,sorting=none,maxnames=10]{biblatex} % bibliographie
 \addbibresource{include/biblio.bib}
 
-\usepackage{amsmath,amsthm,amsfonts,amssymb,bbm} % packages de maths
+\usepackage{amsmath,amsthm,amsfonts,amssymb,bbm,thmtools} % packages de maths
 \usepackage{algorithm,algpseudocode} % packages d'info
 
 \makeatletter
@@ -42,7 +42,8 @@
 	cleveref, % références avec noms automatiques
 	graphicx, % pour ajouter des images
 	indentfirst, % indenter les premiers paragraphes
-	setspace % double/single spacing
+	setspace, % double/single spacing
+	comment
 }
 
 \numberwithin{figure}{chapter}
@@ -53,6 +54,14 @@
 \newtheorem{assumption}{Assumption}[chapter]
 \newtheorem{proposition}{Proposition}[chapter]
 \newtheorem{remark}{Remark}[chapter]
+
+\makeatletter
+\renewcommand\ll@definition{\protect\numberline{\thedefinition}\thmt@shortoptarg} % numéro et titre d'un énoncé dans la liste des énoncés, sans sa nature
+\renewcommand\ll@proposition{\protect\numberline{\theproposition}\thmt@shortoptarg}
+\makeatother
+
+\def\theHdefinition{\thedefinition} % ancres hyperref uniques pour les énoncés
+\def\theHproposition{\theproposition}
 
 \crefname{assumption}{assumption}{assumptions}
 
@@ -70,10 +79,12 @@
 
 \input{include/3_Gaussian_processes.tex}
 \input{include/3_kriging.tex}
+\input{include/3_reduced_rank.tex}
 \input{include/3_mean_estimation.tex}
 
 \part{Navigating on Gaussian Processes}
 
+\input{include/4_subsampling.tex}
 \input{include/4_adaptive_kriging.tex}
 
 \part{Appendix}

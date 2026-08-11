@@ -74,7 +74,7 @@ where almost surely equal random variables are identified.
 
 Let:
 \begin{equation}
-	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)\:|\:\mathbb{E}\left[\|\psi(Z)\|^2\right]<\infty\right\}
+	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)\:\middle|\:\mathbb{E}\left[\|\psi(Z)\|^2\right]<\infty\right\}
 \end{equation}
 To simplify notations, we identify each estimator $\psi\in\mathcal{F}$ with the random variable $\psi(Z)$ it produces. Under this identification, $\mathcal{F}$ is a closed subspace of $\mathcal{L}^2\left(\mathbb{R}^{d_{\varphi}}\right)$, and can be equipped with the inner product:
 \begin{equation}
@@ -143,7 +143,7 @@ An estimator solving \eqref{eq:MMSE_problem} is called a minimum mean squared er
 
 Because the MMSE estimator minimises a quadratic loss, it is highly sensitive to extreme values and may perform poorly for heavy-tailed distributions. To mitigate this sensitivity to outliers, one can use an absolute loss instead. In dimension $d_{\varphi}=1$, let:
 \begin{equation}
-	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}\right)\:|\:\mathbb{E}[|\psi(Z)|]<\infty\right\}
+	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}\right)\:\middle|\:\mathbb{E}[|\psi(Z)|]<\infty\right\}
 \end{equation}
 
 As previously, $\mathcal{F}$ is identified as a subspace of $\mathcal{L}^1(\mathbb{R})$, and is equipped with the following non-Euclidean distance:
@@ -192,7 +192,7 @@ While the terminology is less standard than MMSE, an estimator solving \eqref{eq
 \begin{remark}[Median assumptions]
 	The absolute continuity and positivity assumptions are only required for the clean statement above, not for the existence of a solution. Since the inner integral is convex, continuous and coercive in $u$, a minimum always exists for any integrable conditional distribution. In full generality, the set of solutions is the closed interval of medians:
 	\begin{equation}
-		\left\{u\in\mathbb{R}\:|\:\mathbb{P}(\varphi(X)\leq u|Z=z)\geq\frac{1}{2}\text{ and }\mathbb{P}(\varphi(X)\geq u|Z=z)\geq\frac{1}{2}\right\}
+		\left\{u\in\mathbb{R}\:\middle|\:\mathbb{P}(\varphi(X)\leq u|Z=z)\geq\frac{1}{2}\text{ and }\mathbb{P}(\varphi(X)\geq u|Z=z)\geq\frac{1}{2}\right\}
 	\end{equation}
 	The absence of atoms then guarantees that this interval is characterised by the equality \eqref{eq:median_estimator}, while the strict positivity of the density ensures that it reduces to a single point.
 \end{remark}
@@ -314,12 +314,12 @@ While the optimal estimation algorithm cannot be used in the form given by \Cref
 	x_0&\sim\mathcal{N}(\overline{x}_0,P_0)\\
 	f_k&:x_{k-1}\mapsto F_k\:x_{k-1}+b_k^{(e)}\\
 	w_k&\sim\mathcal{N}(0,Q_k)\text{, independent of }x_0\\
-	z_k&\text{ is known}\\
+	z_k&\text{is known}\\
 	h_k&:x_k\mapsto H_k\:x_k+b_k^{(o)}\\
 	n_k&\sim\mathcal{N}(0,R_k)\text{, independent of }x_0\text{ and }w_k
 	\end{array}\right.\label{eq:Kalman_assumptions}
 \end{equation}
-where $F_k\in\mathcal{M}_{d_x,d_x}(\mathbb{R})$ and $H_k\in\mathcal{M}_{d_z,d_x}(\mathbb{R})$ are known matrices, and $b_k^{(e)}\in\mathbb{R}^{d_x}$ and $b_k^{(o)}\in\mathbb{R}^{d_z}$ are known bias vectors. $P_0\succ0$ is the initial state covariance, and $Q_k\succ0$ and $R_k\succ0$ are the evolution and observation noise covariance matrices. Here, $\succ0$ denotes the symmetric positive definiteness (SPD) of a matrix \cite{bib:matrix-analysis}, as introduced by \Cref{th:matrix_SPSD}.
+where $F_k\in\mathcal{M}_{d_x,d_x}(\mathbb{R})$ and $H_k\in\mathcal{M}_{d_z,d_x}(\mathbb{R})$ are known matrices, and $b_k^{(e)}\in\mathbb{R}^{d_x}$ and $b_k^{(o)}\in\mathbb{R}^{d_z}$ are known bias vectors. $P_0\in\mathcal{S}_{d_x}^{++}(\mathbb{R})$ is the initial state covariance, and $Q_k\in\mathcal{S}_{d_x}^{++}(\mathbb{R})$ and $R_k\in\mathcal{S}_{d_z}^{++}(\mathbb{R})$ are the evolution and observation noise covariance matrices. Here, $\mathcal{S}^{++}$ denotes the set of symmetric positive definite (SPD) matrices \cite{bib:matrix-analysis}, as introduced by \Cref{th:matrix_SPSD}.
 
 \begin{definition}[Matrix symmetric positive definiteness]\label{th:matrix_SPSD}
 	Let $n\in\mathbb{N}^*$ and $M\in\mathcal{M}_{n,n}(\mathbb{R})$. $M$ is symmetric positive semi-definite (SPSD), denoted $M\succeq0$, if it is:
@@ -330,7 +330,7 @@ where $F_k\in\mathcal{M}_{d_x,d_x}(\mathbb{R})$ and $H_k\in\mathcal{M}_{d_z,d_x}
 		\end{array}\right.
 	\end{equation}
 
-	If the inequality is strict for every non-zero vector, then $M$ is SPD.
+	If the inequality is strict for every non-zero vector, then $M$ is SPD. We write $\mathcal{S}_n^+(\mathbb{R})$ and $\mathcal{S}_n^{++}(\mathbb{R})$ respectively for the sets of SPSD and SPD matrices of size $n$.
 \end{definition}
 
 In particular, the state-space model \eqref{eq:navigation_problem} becomes:
@@ -522,7 +522,7 @@ While less restrictive than the standard Kalman filter, the EKF is suboptimal fo
 
 \subsection{Other Suboptimal Kalman Filters}
 
-\subsubsection{Iterative EKF}
+\subsubsection{Iterative and Higher-Order EKF}
 
 The iterative EKF (IEKF) \cite{bib:IEKF} improves upon the EKF correction step by iteratively re-linearising $h_k$ around successive state estimates within the same measurement update, while keeping the prediction step unchanged. Starting from the initialisation $\hat{x}_{k|k}^{(0)}=\hat{x}_{k|k-1}$, each iteration produces a new $\hat{x}_{k|k}^{(i)}$ by repeating the correction step from the predicted state, with the Jacobian evaluated at the latest estimate. This is done until:
 \begin{equation}
@@ -532,6 +532,35 @@ for some $\varepsilon>0$, or a maximum number of iterations is reached. The corr
 
 This procedure is equivalent to performing a Gauss-Newton descent \cite{bib:IEKF-Gauss-Newton} on the posterior density maximisation problem, and converges to the MAP estimator under Gaussian assumptions. It reduces the linearisation error of the correction step when $h_k$ is strongly non-linear, at the cost of several Jacobian evaluations per time step.
 
+The second-order EKF (SO-EKF) \cite{bib:SO-EKF} can also be used to extend the linearisation \eqref{eq:first_order_expansion} to second-order terms via the Hessians of $f_k$ and $h_k$, reducing the approximation error for highly nonlinear models. However, it requires computing and storing the Hessian matrices of $f_k$ and $h_k$ at each time step, making it computationally prohibitive in high dimensions.
+
 \subsubsection{Unscented Kalman Filter}
 
-\textbf{TODO+teaser le kernel Kalman filter} \cite{bib:UKF,bib:SRUKF}
+Rather than linearising the model, the unscented Kalman filter (UKF) \cite{bib:UKF} propagates a small deterministic set of points through the non-linear functions themselves. Let $d\in\mathbb{N}^*$, and let $X$ be a random vector of $\mathbb{R}^d$ with mean $\mu$ and covariance $P\succ0$. The $2d+1$ sigma points associated with $X$, and their weights, are:
+\begin{equation}
+	\left\{\begin{aligned}
+	\mathcal{X}^{(0)}&\triangleq\mu,&\quad W^{(0)}&\triangleq\frac{\lambda}{d+\lambda}\\
+	\mathcal{X}^{(\pm i)}&\triangleq\mu\pm\sqrt{d+\lambda}\:(A)_i,&\quad W^{(\pm i)}&\triangleq\frac{1}{2(d+\lambda)},\:i\in[\![1,d]\!]
+	\end{aligned}\right.
+\end{equation}
+where $A$ is a Cholesky factor \cite{bib:matrix-computations} of $P$, $(A)_i$ is its $i$-th column, and $\lambda>-d$ is a scaling parameter. In particular, the weights are independent of $X$ and add up to $1$.
+
+For a function $\varphi$, the first and second moments of $\varphi(X)$ can then be approximated by the weighted moments of the images of the sigma points:
+\begin{equation}
+	\left\{\begin{aligned}
+	\hat{\varphi}&\triangleq\sum_{i=-d}^{d}W^{(i)}\:\varphi\left(\mathcal{X}^{(i)}\right)\\
+	\hat{P}&\triangleq\sum_{i=-d}^{d}W^{(i)}\left(\varphi\left(\mathcal{X}^{(i)}\right)-\hat{\varphi}\right)\left(\varphi\left(\mathcal{X}^{(i)}\right)-\hat{\varphi}\right)^\top
+	\end{aligned}\right.
+\end{equation}
+
+This procedure is known as the unscented transform \cite{bib:unscented}, and is applied twice per time step by the UKF. It is first used with $\mu=\hat{x}_{k-1|k-1}$, $P=P_{k-1|k-1}$ and $\varphi=f_k$ to compute the predicted state, then with $\mu=\hat{x}_{k|k-1}$, $P=P_{k|k-1}$ and $\varphi=h_k$ to obtain the predicted observation and thus the innovation. In both cases, $Q_k$ and $R_k$ are added to the transformed covariance $\hat{P}$, as in \Cref{alg:EKF}, to account for evolution and observation uncertainty.
+
+This removes the linearisation shortcomings of the EKF, at the cost of $2d_x+1$ evaluations of $f_k$ and $h_k$ per time step. A square-root formulation \cite{bib:SRUKF} propagates a factor of the covariance rather than the covariance itself, which preserves its symmetry and positive definiteness throughout the recursion. However, the UKF still relies on the Gaussian assumption, the posterior remaining summarised by a mean and a covariance matrix.
+
+\subsubsection{Ensemble Kalman Filter}
+
+\textbf{TODO: à relire} The ensemble Kalman filter (EnKF) \cite{bib:EnKF} also propagates points through the true dynamics, but draws them at random instead of placing them deterministically, and uses far more of them. The covariance is never propagated analytically. It is estimated from the empirical spread of the ensemble at each step, and the Kalman correction is then applied to every member, against observations perturbed by simulated noise so that the corrected ensemble carries the intended covariance.
+
+Its cost grows with the size of the ensemble rather than with the square of the state dimension, which makes it a reference method for very high-dimensional problems such as geophysical data assimilation. A finite ensemble only yields a noisy covariance estimate however, and the correction step remains linear and Gaussian.
+
+The EnKF nonetheless marks a change of representation. The distribution is no longer carried by a mean and a covariance, but by a set of samples from which those moments are merely read off. Only the correction still treats that set as Gaussian.

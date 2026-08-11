@@ -128,7 +128,7 @@ Pairing this measure with a test function $\varphi$ yields the weighted MC estim
 	This is direct using the results of \Cref{th:MC_estimator}.
 \end{proof}
 
-For $\varphi\equiv1$, the total weight:
+For $\varphi\equiv1$, the total mass:
 \begin{equation}
 	\left\langle S^N(\mu,\nu),1\right\rangle=\frac{1}{N}\sum_{i=1}^N\frac{p\left(X^{(i)}\right)}{q\left(X^{(i)}\right)}
 \end{equation}
@@ -231,7 +231,7 @@ with the further simplification under the hypothesis of \eqref{eq:simplification
 While the current formulation allows us to approximate the density of the full trajectory $p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$ through the self-normalised measure of \Cref{th:self_normalised_measure}, we often only want to estimate the current state $x_k$. This can be done naturally by letting $\pi_k$ denote the projection of a $(k+1)$-tuple onto its last element:
 \begin{equation}
 	\pi_k:\left\{\begin{aligned}
-	\left(\mathbb{R}^{d_x}\right)^{k+1}&\rightarrow\mathbb{R}^{d_x}\\
+	\left(\mathbb{R}^{d_x}\right)^{k+1}&\to\mathbb{R}^{d_x}\\
 	(x_0,\dots,x_k)&\mapsto x_k
 	\end{aligned}\right.
 \end{equation}
@@ -241,7 +241,7 @@ and computing the self-normalised estimator for $\varphi=\pi_k$, which approxima
 \end{equation}
 where $\mu_k(dx)\triangleq\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$ and $\nu_k(dx)\triangleq\tilde{q}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$. The corresponding empirical covariance matrix is:
 \begin{equation}
-	\hat{P}_k=\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top
+	\hat{P}_k\triangleq\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top
 \end{equation}
 
 The other estimators of \cref{sec:state_estimation} remain accessible, though they are not as immediate:
@@ -309,64 +309,56 @@ For small enough values of $\varepsilon$, $M_+^*$ is the desired matrix.
 
 \subsection{Weight Degeneracy}
 
-A fundamental limitation of SIS is that the variance of the importance weights increases monotonically over time \cite{bib:sequential-imputations} as shown by \Cref{th:variance_weights}.
+A fundamental limitation of SIS is that the variance of the importance weights accumulates along the trajectory \cite{bib:sequential-imputations} as shown by \Cref{th:variance_weights}.
 
 \begin{proposition}[Weight degeneracy]\label{th:variance_weights}
-	Let $\tilde{w}_{0:k}$ denote the non-normalised weight associated with the entire trajectory:
+	Let $\mathbf{x}_{0:k}\sim\nu_k$, and let $\tilde{w}_k$ denote the non-normalised weight associated with the entire trajectory:
 	\begin{equation}
-		\tilde{w}_{0:k}\propto\frac{\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}{\tilde{q}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})},\qquad\mathbf{x}_{0:k}\sim q(\cdot|\mathbf{z}_{1:k})
+		\tilde{w}_k\triangleq\frac{\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}{\tilde{q}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}
 	\end{equation}
 
-	The variance:
+	Its variance decomposes as:
 	\begin{equation}
-		\mathbb{V}_{q(\cdot|\mathbf{z}_{1:k})}[\tilde{w}_{0:k}]
+		\mathbb{V}_{\nu_k}\left[\tilde{w}_k\right]=\mathbb{E}_{\nu_k}\left[\mathbb{V}_{\nu_k}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]\right]+\mathbb{V}_{\nu_k}\left[\mathbb{E}_{\nu_k}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]\right]\label{eq:weight_variance}
 	\end{equation}
-	is non-decreasing in $k$, and equals zero if and only if $q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})=p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$.
+	where the first term is non-negative, and vanishes if and only if $\tilde{w}_k$ is a.s. determined by $\mathbf{x}_{0:k-1}$.
 \end{proposition}
 
 \begin{proof}
-	\textbf{TODO}
+	\eqref{eq:weight_variance} is the law of total variance. Being the expectation of a non-negative quantity, its first term vanishes if and only if $\mathbb{V}_{\nu_k}[\tilde{w}_k|\mathbf{x}_{0:k-1}]$ is a.s. zero, that is if and only if $\tilde{w}_k$ is a.s. determined by $\mathbf{x}_{0:k-1}$.
 \end{proof}
 
-As $k$ increases, the weight distribution typically becomes increasingly concentrated on a small number of particles, eventually leading to severe weight degeneracy. This implies that \eqref{eq:self_normalised_estimator} is a poor approximation of the true PDF. While this is true in most cases, \Cref{th:optimal_proposal} exhibits a proposal density for which the degeneracy problem is reduced.
+Given $\mathbf{x}_{0:k-1}$, the only randomness remaining in \eqref{eq:weight_variance} is the draw of $x_k$. The inner variance measures its effect, while the inner expectation integrates it out and leaves a function of $\mathbf{x}_{0:k-1}$. The first term therefore corresponds to the variance injected by $x_k$ and the second is the variance inherited from the past.
+
+As each step adds to the previous ones, the weight distribution typically concentrates on a small number of particles, and so \eqref{eq:self_normalised_estimator} becomes a poor approximation of the PDF. While this is true in most cases, \Cref{th:optimal_proposal} exhibits a proposal density that cancels the injected term.
 
 \begin{proposition}[Optimal proposal density]\label{th:optimal_proposal}
 	When the proposal density is the posterior transition:
 	\begin{equation}
 		q(x_k|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})=p(x_k|x_{k-1},z_k)\label{eq:optimal_proposal}
 	\end{equation}
-	the incremental weight variance:
+	the trajectory weight is determined by $\mathbf{x}_{0:k-1}$, so that the variance injected at step $k$ vanishes:
 	\begin{equation}
-		\mathbb{V}_{q\left(\cdot|x_{k-1}^{(i)},z_k\right)}\left[\tilde{w}_k^{(i)}\right]
+		\mathbb{V}_{\nu_k}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]=0
 	\end{equation}
-	is minimised, and the weight degeneracy is therefore delayed. However, it does not remove it in general.
 \end{proposition}
 
 \begin{proof}
 	Plugging \eqref{eq:optimal_proposal} into \eqref{eq:weight_update} yields:
 	\begin{equation}
 		\begin{aligned}
-		w_k^{(i)}&\propto w_{k-1}^{(i)}\:\frac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}\\
-		&\propto w_{k-1}^{(i)}\:\frac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)},z_k\right)}\\
-		&\propto w_{k-1}^{(i)}\:\frac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\dfrac{\tilde{p}\left(z_k|x_k^{(i)},x_{k-1}^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{p}\left(z_k|x_{k-1}^{(i)}\right)}}\\
-		&\propto w_{k-1}^{(i)}\:\tilde{p}\left(z_k|x_{k-1}^{(i)}\right)\:\frac{\tilde{p}\left(z_k|x_k^{(i)}\right)}{\tilde{p}\left(z_k|x_k^{(i)},x_{k-1}^{(i)}\right)}\\
-		&\propto w_{k-1}^{(i)}\:\tilde{p}\left(z_k|x_{k-1}^{(i)}\right)
+		\tilde{w}_k&\propto\tilde{w}_{k-1}\:\frac{\tilde{p}(z_k|x_k)\:\tilde{p}(x_k|x_{k-1})}{\tilde{q}(x_k|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})}\\
+		&\propto\tilde{w}_{k-1}\:\frac{\tilde{p}(z_k|x_k)\:\tilde{p}(x_k|x_{k-1})}{\tilde{p}(x_k|x_{k-1},z_k)}\\
+		&\propto\tilde{w}_{k-1}\:\frac{\tilde{p}(z_k|x_k)\:\tilde{p}(x_k|x_{k-1})}{\dfrac{\tilde{p}(z_k|x_k,x_{k-1})\:\tilde{p}(x_k|x_{k-1})}{\tilde{p}(z_k|x_{k-1})}}\\
+		&\propto\tilde{w}_{k-1}\:\tilde{p}(z_k|x_{k-1})\:\frac{\tilde{p}(z_k|x_k)}{\tilde{p}(z_k|x_k,x_{k-1})}\\
+		&\propto\tilde{w}_{k-1}\:\tilde{p}(z_k|x_{k-1})
 		\end{aligned}
 	\end{equation}
 
-	By induction, it comes that $w_k^{(i)}$ does not depend on $x_k^{(i)}$. Thus:
-	\begin{equation}
-		\begin{aligned}
-		\mathbb{V}_{q\left(\cdot|x_{k-1}^{(i)},z_k\right)}\left[\tilde{w}_k^{(i)}\right]\hspace{-5mm}&\hspace{5mm}=\mathbb{E}_{q\left(\cdot|x_{k-1}^{(i)},z_k\right)}\left[{w_k^{(i)}}^2\right]-\mathbb{E}_{q\left(\cdot|x_{k-1}^{(i)},z_k\right)}\left[w_k^{(i)}\right]^2\\
-		&\propto\int{{w_k^{(i)}}^2q\left(x_k^{(i)}|x_{k-1}^{(i)},z_k\right)\:dx_k^{(i)}}-\left(\int{w_k^{(i)}q\left(x_k^{(i)}|x_{k-1}^{(i)},z_k\right)\:dx_k^{(i)}}\right)^2\\
-		&\propto{w_k^{(i)}}^2\int{q\left(x_k^{(i)}|x_{k-1}^{(i)},z_k\right)\:dx_k^{(i)}}-{w_k^{(i)}}^2\left(\int{q\left(x_k^{(i)}|x_{k-1}^{(i)},z_k\right)\:dx_k^{(i)}}\right)^2\\
-		&\propto{w_k^{(i)}}^2-{w_k^{(i)}}^2\\
-		&=0
-		\end{aligned}
-	\end{equation}
+	Both factors being functions of $\mathbf{x}_{0:k-1}$ alone, $\tilde{w}_k$ is determined by the conditioning, and its conditional variance is therefore zero.
 \end{proof}
 
-While it reduces weight degeneracy, sampling from the posterior requires computing the marginal likelihood:
+Using \Cref{th:optimal_proposal}, the draw of $x_k$ thus leaves $\tilde{w}_k$ untouched, but reaches $\tilde{w}_{k+1}$ through $\tilde{p}(z_{k+1}|x_k)$. Its contribution is deferred by one step rather than suppressed, and so this density delays the degeneracy rather than completely removing it. Furthermore, sampling from the posterior transition requires computing the marginal likelihood:
 \begin{equation}
 	p\left(z_k|x_{k-1}^{(i)}\right)=\int{p\left(z_k|x_k^{(i)}\right)p\left(x_k^{(i)}|x_{k-1}^{(i)}\right)\:dx_k^{(i)}}
 \end{equation}

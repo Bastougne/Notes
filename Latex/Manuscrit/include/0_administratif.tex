@@ -116,9 +116,26 @@
 \listofalgorithms
 \addcontentsline{toc}{chapter}{\listalgorithmname}
 
-% Abbreviations
+% Énoncés
 
-\begin{section_titre}{Abbreviations}
+\begin{section_titre}{Statements}
+	\begingroup
+	\let\chapter\section % rétrograde les en-têtes de \listoftheorems en sections
+
+	\renewcommand{\listtheoremname}{Definitions}
+	\listoftheorems[ignoreall,show={definition}]
+
+	\renewcommand{\listtheoremname}{Propositions}
+	\listoftheorems[ignoreall,show={proposition}]
+
+	\endgroup
+\end{section_titre}
+
+% Notations
+
+\begin{section_titre}{Nomenclature}
+	\section*{Abbreviations}
+
 	\lignetoc{APF}{Auxiliary Particle Filter}
 	\lignetoc{a.s.}{almost surely}
 	\lignetoc{BLUE}{Best Linear Unbiased Estimator}
@@ -142,11 +159,9 @@
 	\lignetoc{SPD}{Symmetric Positive Definite}
 	\lignetoc{SPSD}{Symmetric/Self-adjoint Positive Semi-Definite}
 	\textbf{TODO: finir la liste avec le chapitre 3}
-\end{section_titre}
 
-% Symboles
+	\section*{Symbols}
 
-\begin{section_titre}{Symbols}
 	\lignetoc{$\triangleq$}{Equality by definition}
 	\lignetoc{$\propto$}{Proportionality}
 	\lignetoc{$\sim$}{"is distributed according to"}
@@ -184,8 +199,8 @@
 	\lignetoc{$d_w,d_n$}{Dimensions of the evolution and observation noises}
 	\lignetoc{$\mathbb{E}[\cdot]$, $\mathbb{E}_p[\cdot]$}{Expectation, subscript: under the law $p$}
 	\lignetoc{$\exp$}{Exponential function}
-	\lignetoc{$f_k,f_k^l,f_k^n,\overline{f}_k^n$}{Evolution functions}
-	\lignetoc{$F_k,F_k^l,F_k^n,\overline{F}_k^n$}{Evolution matrices}
+	\lignetoc{$f_k,f_k^l,f_k^n,\overline{f}_k^l$}{Evolution functions}
+	\lignetoc{$F_k,F_k^l,F_k^n,\overline{F}_k^l$}{Evolution matrices}
 	\lignetoc{$\mathcal{F}$}{Space of admissible estimators}
 	\lignetoc{$\mathcal{GP}(m,k)$}{Gaussian process}
 	\lignetoc{$h,h_{\mathrm{Epa}},h_{\mathrm{Gauss}}$}{Kernel bandwidths}
@@ -224,7 +239,7 @@
 	\lignetoc{$\operatorname{tr}$}{Trace of a matrix}
 	\lignetoc{$\mathcal{U}$}{Input set of a stochastic process}
 	\lignetoc{$\mathcal{U}([a,b])$}{Uniform distribution}
-	\lignetoc{$\mathbb{V}[\cdot]$, $\mathbb{V}_\mu(\cdot)$}{Variance, subscript: under the measure $\mu$}
+	\lignetoc{$\mathbb{V}[\cdot]$, $\mathbb{V}_\mu[\cdot]$}{Variance, subscript: under the measure $\mu$}
 	\lignetoc{$w_k,w_k^l,w_k^n,\overline{w}_k^l$}{Evolution noises}
 	\lignetoc{$w_k^{(i)},\tilde{w}_k^{(i)}$}{Normalised and unnormalised particle weights}
 	\lignetoc{$x_k,x_k^n,x_k^l,\mathbf{x}_{0:k}$}{System states and trajectory}
