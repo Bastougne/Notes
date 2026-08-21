@@ -8,14 +8,14 @@
 \section{Gaussian Conditioning Formula}
 
 \begin{proposition}[Gaussian conditioning \cite{bib:multivariate-normal}]\label{th:Gaussian_conditioning}
-	\textbf{TODO: retirer les références dans les titres} For $n,p\in\mathbb{N}$, let $U\in\mathbb{R}^n$ and $V\in\mathbb{R}^p$ be jointly Gaussian random variables, of respective means $\mu_U,\mu_V$ and covariance matrices $A\succ0$ and $D\succ0$. There exists $B\in\mathcal{M}_{n,p}(\mathbb{R})$ such that:
+	For $n,p\in\mathbb{N}$, let $U\in\mathbb{R}^n$ and $V\in\mathbb{R}^p$ be jointly Gaussian random variables, of respective means $\mu_U,\mu_V$ and covariance matrices $A\succ0$ and $D\succ0$. There exists $B\in\mathcal{M}_{n,p}(\mathbb{R})$ such that:
 	\begin{equation}
 		\begin{bmatrix}U\\V\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}\mu_U\\\mu_V\end{bmatrix},\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}\right)
 	\end{equation}
 
 	We assume $B$ to be such that this joint covariance is SPD in the sense of \Cref{th:matrix_SPSD}. The conditional distribution of $U$ given $V=v$ is then:
 	\begin{equation}
-		U|V=v\sim\mathcal{N}\left(\mu_U+BD^{-1}(v-\mu_V),P_{U|V}\right)\label{eq:Gaussian_conditioning}
+		U|V=v\sim\mathcal{N}\left(\mu_U+BD^{-1}(v-\mu_V),P_{U|V}\right)
 	\end{equation}
 	with:
 	\begin{equation}

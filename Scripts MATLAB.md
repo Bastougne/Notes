@@ -1,0 +1,4 @@
+- [[noyaux_Matern.m]]
+- [[krigeage_3D.m]]
+- [[krigeage_2D.m]]
+- [[figures_chapitre_2.m]]

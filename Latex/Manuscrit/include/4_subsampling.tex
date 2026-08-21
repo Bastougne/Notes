@@ -1,13 +1,6 @@
-\chapter{Kriging-Based Navigation}\label{sec:adaptive_kriging}
+\section{Ancienne intro}
 
-\vfill
-\localtableofcontents
-\vfill
-\newpage
-
-\section{Introduction}\label{sec:CAK_intro}
-
-\begin{comment}
+\textbf{TODO: à incorporer aux bons endroits}
 
 \Cref{sec:Gaussian_processes} established kriging as a surrogate observation model, able to return both a prediction of the field and the uncertainty attached to it. That construction, however, assumes that the whole training set is available to every regression and that a single kernel describes the field over the entire domain. Neither assumption survives a navigation scenario.
 
@@ -20,29 +13,27 @@ Three obstacles arise when the kriged model is placed inside the recursion of a 
 
 The last point turns the first two into an opportunity. If only a neighbourhood of the particle cloud is ever queried, then only the training data lying in that neighbourhood need to be used, and the hyperparameters need only describe the field locally. The particle cloud, which the filter already maintains, thus provides a natural criterion to select both.
 
-
-\textbf{TODO: bonne phrase mais à mettre ici} As mentionned in \cref{sec:CAK_intro}, a simple interpolation of $h$ through $\tilde{\mathbf{x}}$ and $\tilde{\mathbf{z}}$ would only return a single value per queried state, whereas the Bayesian correction step needs the entire likelihood density $p(z_k|x_k)$.
-
+{bonne phrase mais à mettre ici} As mentionned in \cref{sec:CAK_PF}, a simple interpolation of $h$ through $\tilde{\mathbf{x}}$ and $\tilde{\mathbf{z}}$ would only return a single value per queried state, whereas the Bayesian correction step needs the entire likelihood density $p(z_k|x_k)$.
 
 The rest of this chapter is organised as follows:
 \begin{itemize}
 	\item\Cref{sec:subsampling_error} quantifies the error committed when a kriging estimator is built on a subset of its training data, independently of any navigation scenario.
-	\item\Cref{sec:CAK} then builds the proposed filter \cite{bib:AK-PF,bib:AK-PF-clustered} one component at a time, and measures each of them as it is introduced.
+	\item\Cref{sec:CAK_PF} then builds the proposed filter \cite{bib:AK-PF,bib:AK-PF-clustered} one component at a time, and measures each of them as it is introduced.
 \end{itemize}
 
 \section{Kriging Subsampling Error}\label{sec:subsampling_error}
 
 Discarding training points lowers the cost of the regression and loses accuracy, and the heuristics used to choose which points to keep usually leave that loss unquantified. This section makes it explicit \cite{bib:kriging-subsampling}, by rewriting the discrepancy between the full and the subsampled estimators as a function of the information carried by the discarded data alone.
 
-\textbf{TODO: décision préalable de publication. Le préprint \cite{bib:kriging-subsampling} n'est pas encore accepté, mais la section est écrite ici comme si elle tenait -- elle est autonome et ne dépend d'aucun résultat de navigation. Si l'article n'aboutit pas, la structure reste valable et seules les bornes de la \cref{sec:error_relation} sont à raccourcir.}
+{décision préalable de publication. Le préprint \cite{bib:kriging-subsampling} n'est pas encore accepté, mais la section est écrite ici comme si elle tenait -- elle est autonome et ne dépend d'aucun résultat de navigation. Si l'article n'aboutit pas, la structure reste valable et seules les bornes de la \cref{sec:error_relation} sont à raccourcir.}
 
-\textbf{TODO: harmonisation de notations avec le \cref{sec:kriging}, à faire avant d'écrire les preuves.}
+{harmonisation de notations avec le \cref{sec:kriging}, à faire avant d'écrire les preuves.}
 \begin{itemize}
-	\item le préprint est écrit à sortie scalaire, moyenne nulle et bruit $\tilde{r}$ scalaire, alors que le manuscrit travaille à valeurs dans $\mathbb{R}^{d_z}$ avec $I_{\tilde{n}}\otimes\tilde{R}$. Soit on généralise les bornes (les bornes entrées par entrée de la \cref{sec:error_relation} supposent $\tilde{r}$ scalaire), soit on annonce explicitement que la section se place dans le cas scalaire centré. \textbf{Ma recommandation est la seconde}, avec une remarque en fin de section -- la généralisation vectorielle n'apporte rien à l'argument et alourdirait toutes les preuves ;
+	\item le préprint est écrit à sortie scalaire, moyenne nulle et bruit $\tilde{r}$ scalaire, alors que le manuscrit travaille à valeurs dans $\mathbb{R}^{d_z}$ avec $I_{\tilde{n}}\otimes\tilde{R}$. Soit on généralise les bornes (les bornes entrées par entrée de la \cref{sec:error_relation} supposent $\tilde{r}$ scalaire), soit on annonce explicitement que la section se place dans le cas scalaire centré. {Ma recommandation est la seconde}, avec une remarque en fin de section -- la généralisation vectorielle n'apporte rien à l'argument et alourdirait toutes les preuves ;
 	\item le préprint note $\varphi$ et $\psi$ les deux quantités résiduelles, mais $\varphi$ désigne déjà l'application de l'état dans le manuscrit et $\psi$ les estimateurs du \cref{sec:state_estimation}. La proposition retenue ci-dessous est $k_{f|c}$ et $\tilde{\mathbf{z}}_{f|c}$, qui se lisent « écarté sachant retenu » et se raccordent à la convention $\cdot_{m|n}$ de la liste des symboles.
 \end{itemize}
 
-\subsection{Subsampling Metrics}\label{sec:subsampling_metrics}
+\subsection{Subsampling Metrics}
 
 Subsampling splits the training set into the points that are kept, usually close to the query location, and those that are discarded:
 \begin{equation}
@@ -50,23 +41,23 @@ Subsampling splits the training set into the points that are kept, usually close
 \end{equation}
 of respective sizes $\tilde{n}_c$ and $\tilde{n}_f$. This decomposition isolates the predictive contribution of the discarded points from that of the retained ones, and every quantity below is built on it.
 
-\textbf{TODO: définir les deux métriques, chacune capturant un aspect distinct de l'approximation.}
+définir les deux métriques, chacune capturant un aspect distinct de\\l'approximation.
 \begin{itemize}
-	\item l'\textbf{erreur de variance} $e_r$, dans $\mathcal{L}^2$, qui mesure l'écart quadratique moyen entre les deux estimateurs et ne dépend donc pas des observations ;
-	\item l'\textbf{erreur d'interpolation} $e_f$, dans $\mathcal{L}^1$ -- conditionnellement à $\tilde{\mathbf{z}}$, l'estimateur krigé est une fonction déterministe, et l'écart absolu entre les deux valeurs prédites est alors la mesure naturelle.
+	\item l'{erreur de variance} $e_r$, dans $\mathcal{L}^2$, qui mesure l'écart quadratique moyen entre les deux estimateurs et ne dépend donc pas des observations ;
+	\item l'{erreur d'interpolation} $e_f$, dans $\mathcal{L}^1$ -- conditionnellement à $\tilde{\mathbf{z}}$, l'estimateur krigé est une fonction déterministe, et l'écart absolu entre les deux valeurs prédites est alors la mesure naturelle.
 \end{itemize}
 
-\textbf{TODO: expliquer pourquoi les deux sont nécessaires plutôt que de n'en garder qu'une -- $e_r$ borne la dégradation de la covariance transmise au filtre, $e_f$ borne le déplacement du pic de vraisemblance. Les deux effets sont ceux qui font diverger un filtre particulaire, et ils ne se déduisent pas l'un de l'autre, ce que la \cref{sec:error_relation} précisera.}
+{expliquer pourquoi les deux sont nécessaires plutôt que de n'en garder qu'une -- $e_r$ borne la dégradation de la covariance transmise au filtre, $e_f$ borne le déplacement du pic de vraisemblance. Les deux effets sont ceux qui font diverger un filtre particulaire, et ils ne se déduisent pas l'un de l'autre, ce que la \cref{sec:error_relation} précisera.}
 
-\subsection{Residual Process}\label{sec:residual_process}
+\subsection{Residual Process}
 
-\textbf{TODO: c'est la partie technique de la section. Enchaînement du préprint, à reprendre tel quel.}
+{c'est la partie technique de la section. Enchaînement du préprint, à reprendre tel quel.}
 
-\textbf{TODO: partitionnement par blocs de la matrice de Gram et matrice de Gram évidée $G_h(\tilde{\mathbf{x}}_c)$, obtenue en ne gardant que le bloc des données retenues et en annulant le reste. Proposition -- l'estimateur sous-échantillonné s'écrit avec le pseudo-inverse de Moore-Penrose de $G_h(\tilde{\mathbf{x}}_c)$ à la place de $G(\tilde{\mathbf{x}})^{-1}$, ce qui met les deux estimateurs sous une forme commune et rend leur différence lisible.}
+{partitionnement par blocs de la matrice de Gram et matrice de Gram évidée $G_h(\tilde{\mathbf{x}}_c)$, obtenue en ne gardant que le bloc des données retenues et en annulant le reste. Proposition -- l'estimateur sous-échantillonné s'écrit avec le pseudo-inverse de Moore-Penrose de $G_h(\tilde{\mathbf{x}}_c)$ à la place de $G(\tilde{\mathbf{x}})^{-1}$, ce qui met les deux estimateurs sous une forme commune et rend leur différence lisible.}
 
-\textbf{TODO: définir la différence d'inverses de Gram $D_G\triangleq G(\tilde{\mathbf{x}})^{-1}-G_h(\tilde{\mathbf{x}}_c)^\dagger$, puis la proposition qui exprime les deux métriques à travers elle. La preuve repose sur un argument de projection orthogonale -- l'estimateur krigé étant l'espérance a posteriori, il est la projection de $f(x)$ sur l'espace engendré par les observations bruitées, l'erreur du krigeage complet est orthogonale à cet espace, et il vient que $e_r^2$ est exactement la différence des deux variances de krigeage. C'est le point le plus élégant du préprint, à ne pas expédier.}
+{définir la différence d'inverses de Gram $D_G\triangleq G(\tilde{\mathbf{x}})^{-1}-G_h(\tilde{\mathbf{x}}_c)^\dagger$, puis la proposition qui exprime les deux métriques à travers elle. La preuve repose sur un argument de projection orthogonale -- l'estimateur krigé étant l'espérance a posteriori, il est la projection de $f(x)$ sur l'espace engendré par les observations bruitées, l'erreur du krigeage complet est orthogonale à cet espace, et il vient que $e_r^2$ est exactement la différence des deux variances de krigeage. C'est le point le plus élégant du préprint, à ne pas expédier.}
 
-\textbf{TODO: décomposition de $D_G$ par la formule d'inversion par blocs de Woodbury (\cref{th:Woodbury} de l'annexe), faisant apparaître le complément de Schur $S$ de $G(\tilde{\mathbf{x}})$ par rapport à $G(\tilde{\mathbf{x}}_c)$.}
+{décomposition de $D_G$ par la formule d'inversion par blocs de Woodbury (\cref{th:Woodbury} de l'annexe), faisant apparaître le complément de Schur $S$ de $G(\tilde{\mathbf{x}})$ par rapport à $G(\tilde{\mathbf{x}}_c)$.}
 
 Two residual quantities emerge from this decomposition, both measuring what the retained set fails to explain about the discarded one:
 \begin{equation}
@@ -78,24 +69,22 @@ Two residual quantities emerge from this decomposition, both measuring what the 
 
 The residual covariance function $k_{f|c}$ is the part of the covariance between the query point and the discarded set that the retained set does not already account for, while the residual observation vector $\tilde{\mathbf{z}}_{f|c}$ is the information carried by the discarded observations and not predictable from the retained ones.
 
-\textbf{TODO: lemme des identités résiduelles, puis proposition donnant la forme résiduelle des deux erreurs -- elles ne dépendent plus que de \eqref{eq:residual_quantities} et de $S$. Insister sur la lecture : si les données écartées sont bien prédites par celles qu'on garde, les deux résidus s'annulent et l'erreur avec eux, ce qui est exactement le critère qu'une heuristique de sélection devrait viser.}
+{lemme des identités résiduelles, puis proposition donnant la forme résiduelle des deux erreurs -- elles ne dépendent plus que de \eqref{eq:residual_quantities} et de $S$. Insister sur la lecture : si les données écartées sont bien prédites par celles qu'on garde, les deux résidus s'annulent et l'erreur avec eux, ce qui est exactement le critère qu'une heuristique de sélection devrait viser.}
 
 \subsection{Relation Between the Errors}\label{sec:error_relation}
 
-\textbf{TODO: corollaire central -- munir $\mathbb{R}^{\tilde{n}_f}$ du produit scalaire de Mahalanobis associé à $S^{-1}$ ramène les deux métriques à des quantités géométriques dans un même espace euclidien, $e_r$ étant la norme du résidu de covariance et $e_f$ son produit scalaire avec le résidu d'observation. Les deux erreurs cessent alors d'être deux calculs séparés.}
+{corollaire central -- munir $\mathbb{R}^{\tilde{n}_f}$ du produit scalaire de Mahalanobis associé à $S^{-1}$ ramène les deux métriques à des quantités géométriques dans un même espace euclidien, $e_r$ étant la norme du résidu de covariance et $e_f$ son produit scalaire avec le résidu d'observation. Les deux erreurs cessent alors d'être deux calculs séparés.}
 
-\textbf{TODO: c'est de ce corollaire que sort la relation entre les deux erreurs, par Cauchy-Schwarz -- l'erreur d'interpolation est majorée par le produit de l'erreur de variance et de la norme du résidu d'observation. Autrement dit, $e_r$ contrôle $e_f$ à un facteur près qui ne dépend que des observations écartées et pas du point de requête. Le dire explicitement, c'est la réponse à la question « faut-il borner les deux ? ».}
+{c'est de ce corollaire que sort la relation entre les deux erreurs, par Cauchy-Schwarz -- l'erreur d'interpolation est majorée par le produit de l'erreur de variance et de la norme du résidu d'observation. Autrement dit, $e_r$ contrôle $e_f$ à un facteur près qui ne dépend que des observations écartées et pas du point de requête. Le dire explicitement, c'est la réponse à la question « faut-il borner les deux ? ».}
 
-\textbf{TODO: bornes proprement dites, à partir d'hypothèses entrée par entrée sur le noyau -- $\kappa$ pour la covariance intra-ensemble, $\alpha$ pour la covariance croisée entre données retenues et écartées, $\varepsilon$ pour la covariance entre le point de requête et les données écartées, dans le régime visé $0<\varepsilon,\alpha\ll\kappa\leq k_{\max}$ qui traduit exactement la stratégie de sélection par proximité. Deux familles :}
+{bornes proprement dites, à partir d'hypothèses entrée par entrée sur le noyau -- $\kappa$ pour la covariance intra-ensemble, $\alpha$ pour la covariance croisée entre données retenues et écartées, $\varepsilon$ pour la covariance entre le point de requête et les données écartées, dans le régime visé $0<\varepsilon,\alpha\ll\kappa\leq k_{\max}$ qui traduit exactement la stratégie de sélection par proximité. Deux familles :}
 \begin{itemize}
 	\item bornes entrée par entrée, via un lemme sur les normes des deux résidus et sur la norme d'opérateur de $S^{-1}$, puis Cauchy-Schwarz ;
 	\item bornes au pire cas, obtenues en supposant les majorations atteintes, plus fines que les précédentes puisqu'elles évitent l'inégalité triangulaire et font intervenir les plus grandes valeurs propres des matrices de Gram au lieu des plus petites.
 \end{itemize}
 
-\textbf{TODO: équivalents asymptotiques selon le régime spectral, avec le cas dégénéré à bruit dominant (les deux estimateurs sont également mauvais, les erreurs tendent vers $0$ -- test de cohérence des bornes) et le cas général. Conclusion à retenir : c'est $\alpha$ qui commande, et $\tilde{\mathbf{x}}_f$ ne peut être écarté sans dommage que si sa covariance croisée avec $\tilde{\mathbf{x}}_c$ reste faible.}
+{équivalents asymptotiques selon le régime spectral, avec le cas dégénéré à bruit dominant (les deux estimateurs sont également mauvais, les erreurs tendent vers $0$ -- test de cohérence des bornes) et le cas général. Conclusion à retenir : c'est $\alpha$ qui commande, et $\tilde{\mathbf{x}}_f$ ne peut être écarté sans dommage que si sa covariance croisée avec $\tilde{\mathbf{x}}_c$ reste faible.}
 
-\textbf{TODO: choix de découpage à trancher -- les bornes entrée par entrée, les bornes au pire cas et les équivalents asymptotiques font trois blocs de résultats dans une seule sous-section, ce qui est lourd. Soit on ouvre une quatrième sous-section « Error Bounds », soit on découpe en \texttt{subsubsection}. \textbf{Je recommande la quatrième sous-section}, en gardant ici la seule relation entre $e_r$ et $e_f$, qui est ce que le titre annonce.}
+{choix de découpage à trancher -- les bornes entrée par entrée, les bornes au pire cas et les équivalents asymptotiques font trois blocs de résultats dans une seule sous-section, ce qui est lourd. Soit on ouvre une quatrième sous-section « Error Bounds », soit on découpe en \texttt{subsubsection}. {Je recommande la quatrième sous-section}, en gardant ici la seule relation entre $e_r$ et $e_f$, qui est ce que le titre annonce.}
 
-\textbf{TODO: fermer la section sur ce que les bornes apportent en pratique -- elles relient l'erreur tolérée au nombre de points qu'on peut écarter, dans les deux sens (un niveau d'erreur donne un taux de sous-échantillonnage admissible, une stratégie de sélection donne une erreur chiffrée). Validation numérique sur du krigeage seul, sans filtre, avec \texttt{Exemple de carte krigée.png} et \texttt{Exemple de krigeage 2D.png} en illustrations candidates.}
-
-\end{comment}
+{fermer la section sur ce que les bornes apportent en pratique -- elles relient l'erreur tolérée au nombre de points qu'on peut écarter, dans les deux sens (un niveau d'erreur donne un taux de sous-échantillonnage admissible, une stratégie de sélection donne une erreur chiffrée). Validation numérique sur du krigeage seul, sans filtre, avec \texttt{Exemple de carte krigée.png} et \texttt{Exemple de krigeage 2D.png} en illustrations candidates.}

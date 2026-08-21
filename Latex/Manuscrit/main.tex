@@ -15,6 +15,7 @@
 
 \raggedbottom % pas d'étirement vertical pour remplir les pages
 \setlength{\emergencystretch}{1em} % meilleure justification du texte
+\renewcommand{\arraystretch}{1.3} % tableaux plus aérés
 
 \makeatletter
 \let\ps@plain\ps@headings % headers de pages de chapitres comme pour les pages usuelles
@@ -42,8 +43,7 @@
 	cleveref, % références avec noms automatiques
 	graphicx, % pour ajouter des images
 	indentfirst, % indenter les premiers paragraphes
-	setspace, % double/single spacing
-	comment
+	setspace % double/single spacing
 }
 
 \numberwithin{figure}{chapter}
@@ -84,8 +84,8 @@
 
 \part{Navigating on Gaussian Processes}
 
-\input{include/4_subsampling.tex}
 \input{include/4_adaptive_kriging.tex}
+\input{include/4_subsampling.tex}
 
 \part{Appendix}
 

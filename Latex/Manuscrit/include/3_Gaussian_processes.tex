@@ -11,9 +11,9 @@ The analytical and Monte Carlo methods of \cref{sec:Bayesian_estimation} all ass
 
 A first way to fill this gap is to reconstruct the field directly from the measurements: \textbf{TODO: j'avais oublié, mais à reprendre}
 \begin{itemize}
-	\item deterministic interpolation, through nearest-neighbour selection, multilinear interpolation over a regular grid, or spline fitting;
-	\item linear regression on a fixed basis, such as polynomials or sinusoids;
-	\item more expressive models, such as neural networks.
+	\item Deterministic interpolation, through nearest-neighbour selection, multilinear interpolation over a regular grid, or spline fitting;
+	\item Linear regression on a fixed basis, such as polynomials or sinusoids;
+	\item More expressive models, such as neural networks.
 \end{itemize}
 All of them return a single value at the queried location, without quantifying how much it can be trusted. Their use in the filters of \cref{sec:Bayesian_estimation}, however, requires the observation likelihood $p(z_k|x_k)$, a full distribution rather than a point prediction. The reconstruction error must then be absorbed into the observation noise, usually as a covariance held constant over the whole domain, although this error is almost zero next to a measurement and grows in sparsely sampled regions.
 
@@ -121,7 +121,7 @@ A GP is thus a consistent generalisation of the multivariate Gaussian distributi
 
 In order for the GP to be non-degenerate, every matrix $k(\mathbf{x},\mathbf{x})$ at distinct points must be SPD in the sense of \Cref{th:matrix_SPSD}. \Cref{th:kernel_SPSD} recasts this as a condition on $k$ alone \cite{bib:Schoenberg}, and \Cref{th:kernel_gram_equivalence} proves the equivalence between the two.
 
-\begin{definition}[Kernel symmetric positive definiteness]\label{th:kernel_SPSD}
+\begin{definition}[Symmetric positive definite kernel]\label{th:kernel_SPSD}
 	A kernel $k:\mathcal{U}\times\mathcal{U}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is symmetric positive semi-definite (SPSD) if it is:
 	\begin{itemize}
 		\item\textbf{Symmetric:}
@@ -140,7 +140,7 @@ In order for the GP to be non-degenerate, every matrix $k(\mathbf{x},\mathbf{x})
 	If the inequality is strict for every choice of pairwise distinct points $x_1,\dots,x_n$ and coefficients $a_1,\dots,a_n$ not all zero, then $k$ is symmetric positive definite (SPD).
 \end{definition}
 
-\begin{proposition}[Kernel/matrix definiteness equivalence]\label{th:kernel_gram_equivalence}
+\begin{proposition}[Definite kernel/matrix equivalence]\label{th:kernel_gram_equivalence}
 	The following equivalences hold:
 	\begin{itemize}
 		\item $k:\mathcal{U}\times\mathcal{U}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is a SPSD kernel if and only if, for every $n\in\mathbb{N}^*$ and every $\mathbf{x}\in\mathcal{U}^n$, $k(\mathbf{x},\mathbf{x})\in\mathcal{M}_{nd_z,nd_z}(\mathbb{R})$ is a SPSD matrix.
@@ -243,12 +243,12 @@ Since $f$ typically represents a physical field, observations tend to become les
 	\end{equation}
 	where $\Gamma$ is the Gamma function, and $K_\nu$ is the modified Bessel function of the second kind \cite{bib:Abramowitz}.
 
-	This family extends to $\nu=+\infty$ by taking the pointwise limit, yielding the squared exponential kernel:
+	This family extends to $\nu=+\infty$ by taking the pointwise limit, yielding the squared exponential (SE) kernel:
 	\begin{equation}
-		k_{\mathrm{SE}}\triangleq k_\infty:\left\{\begin{aligned}
+		k_{\mathrm{SE}}\triangleq k_{+\infty}:\left\{\begin{aligned}
 		\mathbb{R}_+&\to\mathbb{R}_+\\
 		r&\mapsto\sigma_f^2\:\exp\left(-\frac{r^2}{2\:l^2}\right)
-		\end{aligned}\right.\label{eq:SE_kernel}
+		\end{aligned}\right.
 	\end{equation}
 \end{definition}
 
@@ -311,7 +311,7 @@ The parameter $\nu$ controls the regularity. Indeed, for $p\in\mathbb{N}$, it ca
 	k_{p+1/2}(r)=\sigma_f^2\:\exp\left(-\frac{\sqrt{2p+1}r}{l}\right)\frac{\Gamma(p+1)}{\Gamma(2p+1)}\:\sum_{i=0}^p\frac{(p+i)!}{i!(p-i)!}\left(\frac{2\sqrt{2p+1}r}{l}\right)^{p-i}
 \end{equation}
 
-In particular, for $p\in[\![0,2]\!]$, we have:
+In particular, the following kernels correspond to usual choices of $\nu$, the SE kernel being recalled here for comparison:
 \begin{itemize}
 	\item\textbf{Exponential kernel.}
 	\begin{equation}
@@ -325,13 +325,17 @@ In particular, for $p\in[\![0,2]\!]$, we have:
 	\begin{equation}
 		k_{5/2}(r)=\sigma_f^2\left(1+\frac{\sqrt{5}\:r}{l}+\frac{5\:r^2}{3\:l^2}\right)\exp\left(-\frac{\sqrt{5}\:r}{l}\right)
 	\end{equation}
+	\item\textbf{Squared exponential kernel.}
+	\begin{equation}
+		k_{+\infty}(r)=\sigma_f^2\:\exp\left(-\frac{r^2}{2\:l^2}\right)
+	\end{equation}
 \end{itemize}
 
-\Cref{fig:Matérn} illustrates the radial decay of Matérn covariance kernels for different smoothness parameters $\nu\in\left\{\frac{1}{2},\frac{3}{2},\frac{5}{2}\right\}$, and their limit as $\nu\to+\infty$. The kernels are evaluated with unit variance $\sigma_f^2=1$ and correlation length $l=1$ to facilitate comparison.
+\Cref{fig:Matérn} illustrates the radial decay of these kernels, evaluated with unit variance $\sigma_f^2=1$ and correlation length $l=1$ to facilitate comparison.
 
 \begin{figure}[!htb]
-	\centering\includegraphics[width=0.8\textwidth]{../../Images/Noyaux de Matérn.png}
-	\caption{Radial profile of Matérn kernels with increasing smoothness, together with their squared exponential limit. Larger values of $\nu$ produce smoother kernels, with flatter behaviours near the origin and lighter tails.}\label{fig:Matérn}
+	\centering\includegraphics[width=0.7\textwidth]{../../Images/Noyaux de Matérn.pdf}
+	\caption{Radial profile of Matérn kernels with increasing smoothness, together with their squared exponential limit. Larger values of $\nu$ produce smoother kernels, with flatter behaviours near the origin and faster-decaying tails.}\label{fig:Matérn}
 \end{figure}
 
 \begin{remark}[Anisotropic kernel]
@@ -342,9 +346,7 @@ In particular, for $p\in[\![0,2]\!]$, we have:
 	may produce anisotropic radial kernels in situations where $M$ is not proportional to the identity matrix.
 \end{remark}
 
-The main limitation of Matérn kernels is that they require the underlying GP to be scalar, while our observation model takes values in $\mathbb{R}^{d_z}$. To alleviate this issue, \Cref{th:separable_kernel,th:operator_kernel} present two methods to create a vector-valued kernel from a scalar one.
-
-\textbf{TODO: à continuer}
+The main limitation of Matérn kernels is that they are scalar, while our observation model takes values in $\mathbb{R}^{d_z}$. To alleviate this issue, \Cref{th:separable_kernel} presents a method to create a vector-valued kernel from a scalar one.
 
 \begin{proposition}[Separable kernel]\label{th:separable_kernel}
 	Let $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}$ be a scalar SPD kernel, and let $\Sigma\in\mathcal{S}_{d_z}^{++}(\mathbb{R})$. Then:
@@ -354,34 +356,37 @@ The main limitation of Matérn kernels is that they require the underlying GP to
 		x,x'&\mapsto\Sigma\:k(x,x')
 		\end{aligned}\right.
 	\end{equation}
+	is a valid SPD kernel for an $\mathbb{R}^{d_z}$-valued GP.
+
+	Furthermore, when $k$ is continuous, $k_{\mathrm{sep}}$ is also continuous.
 \end{proposition}
 
-\begin{proposition}[Operator-induced kernel]\label{th:operator_kernel}
-	
-\end{proposition}
-
-\begin{remark}[Multi-scale kernels]\label{th:multi_scale_kernels}
-	A linear combination of SPD kernels with positive weights is itself a SPD kernel. In particular, for $n\in\mathbb{N}^*$, $\sigma_1^2,\dots,\sigma_n^2\in\mathbb{R}_+^*$ and $k^{(1)},\dots,k^{(n)}$ Matérn kernels of correlation lengths $l_1<\cdots<l_n\in\mathbb{R}_+^*$, the multi-scale kernel:
+\begin{proof}
+	The symmetry and potential continuity of $k_{\mathrm{sep}}$ are direct from that of $k$ and $\Sigma$. The positive definiteness can be established by letting $A$ be a Cholesky factor of the SPD matrix $\Sigma$, and considering, for every $n\in\mathbb{N}^*$ and every not all zero coefficients $a_1,\dots,a_n\in\mathbb{R}^{d_z}$:
 	\begin{equation}
-		k_{\mathrm{MS}}(r)\triangleq\sum_{i=1}^n\sigma_i^2\:k^{(i)}(r)
+		\forall i\in[\![1,n]\!],\:b_i\triangleq A^\top a_i
 	\end{equation}
-	is a valid SPD kernel. When the correlation lengths have different orders of magnitude, such kernels can be used to capture local fluctuations and global trends simultaneously.
-\end{remark}
 
-\begin{remark}[Vector-valued kernels]\label{th:vector_valued_kernels}
-	The fields of interest take values in $\mathbb{R}^{d_z}$, whereas the Matérn family is scalar. Two constructions turn a scalar kernel $\kappa$ into a matrix-valued one without leaving that family.
-
-	The first weights $\kappa$ by a matrix $B\in\mathcal{S}_{d_z}^{++}(\mathbb{R})$:
+	Since $A$ is invertible, these coefficients are not all zero, and thus:
 	\begin{equation}
-		k(x,x')\triangleq B\:\kappa(x,x')\label{eq:separable_kernel}
+		\begin{aligned}
+		\sum_{i=1}^n\sum_{j=1}^na_i^\top k_{\mathrm{sep}}(x_i,x_j)\:a_j&=\sum_{i=1}^n\sum_{j=1}^na_i^\top A\:A^\top a_j\:k(x_i,x_j)\\
+		&=\sum_{i=1}^n\sum_{j=1}^nb_i^\top b_j\:k(x_i,x_j)\\
+		&=\sum_{l=1}^{d_z}\sum_{i=1}^n\sum_{j=1}^nb_i^{(l)}\:b_j^{(l)}\:k(x_i,x_j)
+		\end{aligned}
 	\end{equation}
-	Writing $B=\sum_m\beta_m\:b_m\:b_m^\top$ turns any quadratic form of $k$ into a positive combination of quadratic forms of $\kappa$, so $k$ is SPD. Such a kernel shares a single correlation structure across the $d_z$ components, which $B$ can only rescale and mix.
+	where $b_i^{(l)}$ denotes the $l$-th component of $b_i$. Each inner double sum is a quadratic form of $k$, hence non-negative, and at least one of them is strictly positive since at least one of the vectors $\left(b_1^{(l)},\dots,b_n^{(l)}\right)$ is non-zero.
+\end{proof}
 
-	The second transports a scalar GP through a linear operator. If $g\sim\mathcal{GP}(0,\kappa)$ and $L$ is linear, then $L\:g$ is a GP of kernel:
+\begin{remark}[Multi-scale kernels]
+	For $n\in\mathbb{N}^*$, $\Sigma_1,\dots,\Sigma_n\in\mathcal{S}_{d_z}^{++}(\mathbb{R})$ and $k^{(1)},\dots,k^{(n)}$ Matérn kernels of correlation lengths $l_1<\cdots<l_n\in\mathbb{R}_+^*$, the multi-scale kernel is:
 	\begin{equation}
-		k(x,x')\triangleq L_x\:L_{x'}^\top\kappa(x,x')\label{eq:operator_kernel}
+		k_{\mathrm{MS}}:\left\{\begin{aligned}
+		\mathbb{R}_+&\to\mathcal{M}_{d_z,d_z}(\mathbb{R})\\
+		r&\mapsto\sum_{i=1}^n\Sigma_i\:k^{(i)}(r)
+		\end{aligned}\right.
 	\end{equation}
-	which is a covariance by construction, hence SPSD. Unlike \eqref{eq:separable_kernel}, it correlates the components differently at every pair of points, and can therefore encode a physical constraint. A magnetic anomaly field derives from a scalar potential, so $L=-\nabla$ yields a kernel enforcing $\nabla\times f=0$ at every point rather than learning it from the data \cite{bib:magnetic-GP}. The construction differentiates $\kappa$ once in each argument, and thus requires $\nu>1$, which rules out the exponential kernel.
+	Each of its terms is separable in the sense of \Cref{th:separable_kernel}, hence SPD, and a sum of SPD kernels is itself SPD. When the correlation lengths have different orders of magnitude, such kernels can be used to capture local fluctuations and global trends simultaneously.
 \end{remark}
 
 \subsection{Hyperparameter Estimation}
@@ -393,7 +398,7 @@ The kernel depends on hyperparameters $\theta$, such as $\sigma_f^2$ and $l$ for
 	p(Z|X,\theta)=\frac{\displaystyle\exp\left(-\frac{1}{2}Z^\top K_\theta^{-1}Z\right)}{\sqrt{(2\pi)^n\:\det(K_\theta)}}\label{eq:marginal_likelihood}
 \end{equation}
 
-\begin{proposition}[Maximum likelihood hyperparameters]\label{th:GP_MLE}
+\begin{proposition}[Maximum likelihood hyperparameters]
 	A hyperparameter vector $\theta$ maximising \eqref{eq:marginal_likelihood} satisfies, for each component $\theta_i$:
 	\begin{equation}
 		\operatorname{tr}\left[\left((K_\theta^{-1}Z)\:(K_\theta^{-1}Z)^\top-K_\theta^{-1}\right)\:\frac{\partial K_\theta}{\partial\theta_i}\right]=0\label{eq:GP_MLE}

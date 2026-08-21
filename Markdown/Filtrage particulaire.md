@@ -33,7 +33,7 @@
 - [[Choix de la fonction d'importance du SIS]]
 - on a résolu le problème de dégénérescence particulaires
 - mais les nouvelles particules sont crées à l'endroit des anciennes particules de poids fort
-- donc perte de diversité particulaires (appauvrissement) : ![[Appauvrissement particulaire.png]]
+- donc perte de diversité particulaires (appauvrissement) : ![[Appauvrissement particulaire.pdf]]
 - pistes d'améliorations :
 	- [[Regularised Particle Filter]]
 	- [[Auxiliary Particle Filter]]

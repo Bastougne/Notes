@@ -8,7 +8,7 @@ Mercer's theorem \cite{bib:Mercer}, presented in \Cref{th:Mercer}, establishes t
 
 We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\mathcal{L}^2(\mathcal{U})$.
 
-\begin{definition}[Operator self-adjoint positive semi-definiteness]
+\begin{definition}[Self-adjoint positive semi-definite operator]
 	A functional operator $T$ on $\mathcal{L}^2(\mathcal{U})$ is self-adjoint positive semi-definite (SPSD) if:
 	\begin{equation}
 		\left\{\begin{array}{ll}
@@ -204,16 +204,16 @@ and then:
 	G(\tilde{\mathbf{x}})\approx\Psi(\tilde{\mathbf{x}})\:\Lambda\:\Psi(\tilde{\mathbf{x}})^\top+I_{\tilde{n}}\otimes\tilde{R},\qquad\Psi(\tilde{\mathbf{x}})=\begin{bmatrix}\Psi(\tilde{x}_1)\\\vdots\\\Psi(\tilde{x}_{\tilde{n}})\end{bmatrix}\label{eq:reduced_rank_Gram}
 \end{equation}
 
-\begin{proposition}[Reduced-rank simple kriging]\label{th:reduced_rank_kriging}
+\begin{proposition}[Reduced-rank simple kriging]
 	Let:
 	\begin{equation}
 		\tilde{G}(\tilde{\mathbf{x}})\triangleq\Lambda^{-1}+\Psi(\tilde{\mathbf{x}})^\top\left(I_{\tilde{n}}\otimes\tilde{R}\right)^{-1}\Psi(\tilde{\mathbf{x}})\in\mathcal{M}_{r_{\mathrm{KL}},r_{\mathrm{KL}}}(\mathbb{R})
 	\end{equation}
-	be the reduced-rank Gram matrix. Under the reduced-rank approximation of \eqref{eq:reduced_rank_Gram}, the centred simple kriging estimator of \Cref{th:simple_kriging} and its error covariance matrix reduce to:
+	be the reduced-rank Gram matrix. Under the reduced-rank approximation of \eqref{eq:reduced_rank_Gram}, the centred SK estimator of \Cref{th:simple_kriging} and its error covariance matrix reduce to:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top\left(I_{\tilde{n}}\otimes\tilde{R}\right)^{-1}\tilde{\mathbf{z}}\\
-		\hat{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&\approx R+\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(x)^\top
+		R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&\approx R+\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(x)^\top
 		\end{aligned}\right.\label{eq:reduced_rank_kriging}
 	\end{equation}
 	which require only the inversion of $\tilde{G}(\tilde{\mathbf{x}})$.
@@ -222,7 +222,7 @@ and then:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\approx\Psi(x)\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}\Psi(\tilde{\mathbf{x}})^\top\tilde{\mathbf{z}}\\
-		\hat{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&\approx R+\sigma^2\Psi(x)\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}\Psi(x)^\top
+		R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&\approx R+\sigma^2\Psi(x)\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}\Psi(x)^\top
 		\end{aligned}\right.
 	\end{equation}
 
@@ -235,7 +235,7 @@ and then:
 		G(\tilde{\mathbf{x}})^{-1}\approx A^{-1}-A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}
 	\end{equation}
 
-	Computing the centred simple kriging estimator from \Cref{th:simple_kriging} using this approximation and the push-through identity (see \Cref{th:push_through}) yields:
+	Computing the centred SK estimator from \Cref{th:simple_kriging} using this approximation and the push-through identity (see \Cref{th:push_through}) yields:
 	\begin{equation}
 		\begin{aligned}
 		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
@@ -262,14 +262,14 @@ and then:
 		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}\tilde{\mathbf{z}}
 	\end{equation}
 
-	For $\hat{R}_{\mathrm{SK}}$, reusing:
+	For $R_{\mathrm{SK}}$, reusing:
 	\begin{equation}
 		k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}
 	\end{equation}
 	together with \eqref{eq:reduced_rank_lemma} yields:
 	\begin{equation}
 		\begin{aligned}
-		\hat{R}_{\mathrm{SK}}&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
+		R_{\mathrm{SK}}&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
 		&\approx\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}\times\Psi(\tilde{\mathbf{x}})\:\Lambda\:\Psi(x)^\top\\
 		&=\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\left(\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}\right)\Lambda\:\Psi(x)^\top\\
 		&=\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\left(\Lambda-\tilde{G}(\tilde{\mathbf{x}})^{-1}\right)\Psi(x)^\top\\
@@ -285,7 +285,7 @@ and then:
 	\begin{equation}
 		\sigma\in\mathbb{R}_+^*\mapsto\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}
 	\end{equation}
-	is thus well-defined and continuous, and extends to $\sigma=0$ when $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})\succ0$, \textit{i.e.} when $\Psi(\tilde{\mathbf{x}})$ has full column rank. As $\hat{z}_{\mathrm{SK}}$ and $\hat{R}_{\mathrm{SK}}$ depend on $\sigma$ only through this inverse and an explicit factor $\sigma^2$, both expressions remain valid at $\sigma=0$ under this condition.
+	is thus well-defined and continuous, and extends to $\sigma=0$ when $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})\succ0$, \textit{i.e.} when $\Psi(\tilde{\mathbf{x}})$ has full column rank. As $\hat{z}_{\mathrm{SK}}$ and $R_{\mathrm{SK}}$ depend on $\sigma$ only through this inverse and an explicit factor $\sigma^2$, both expressions remain valid at $\sigma=0$ under this condition.
 \end{proof}
 
 \begin{remark}[Construction of the eigenfunctions]

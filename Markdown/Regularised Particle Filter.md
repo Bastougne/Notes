@@ -18,7 +18,7 @@ $$
 - l'approximation aura un support de mesure non-nulle et sera donc plus fidèle à la vraie densité
 
 ![[Étapes du RPF.png]]
-![[Régularisation par noyau.png]]
+![[Régularisation par noyau.pdf]]
 
 ## Noyau de régularisation :
 

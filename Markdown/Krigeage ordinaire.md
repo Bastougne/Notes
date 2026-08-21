@@ -111,10 +111,17 @@ $$
 
 ## Résultats :
 
-- Krigeage 2D : ![[Exemple de krigeage 2D.png]]
-- Krigeage 3D : ![[Exemple de krigeage 3D.png]]
+- Krigeage 3D : ![[Exemple de krigeage 3D.pdf]]
 - Krigeage sur carte : ![[Exemple de carte krigée.png]]
 - RPF avec krigeage (construction de carte par données bruitées sans correction en cours de mission) : ![[Exemple RPF avec krigeage.png]]
+
+## Comparaison avec le krigeage simple et universel :
+
+- même champ $f(x)=x\sin(x)+10$, mêmes échantillons et mêmes axes dans les cinq figures, générées par `krigeage_simple_ordinaire.m` — seul l'estimateur change, donc tout écart visible est imputable à lui
+- la moyenne constante est estimée à partir des données, ce qui coûte le terme $R^*_{m_o}$ ci-dessus et élargit la bande là où les données ne la contraignent plus, c'est-à-dire en extrapolation : ![[Exemple de krigeage ordinaire 2D.pdf]]
+- le [[Krigeage simple]] à moyenne juste sert de référence, et le même à moyenne fausse montre que sa bande **ne bouge pas** alors que sa courbe se décale, puisque $R^*_s$ ne dépend pas de $m$ — c'est l'argument qui justifie d'estimer la moyenne plutôt que de la supposer connue
+- krigeage universel sur une base affine $g=[1,x]$, soit deux coefficients estimés au lieu d'un : le prix payé sur la bande est plus élevé que celui du krigeage ordinaire, pour un champ que la tendance affine ne capture guère : ![[Exemple de krigeage universel 2D.pdf]]
+- krigeage universel sur une base polynomiale de degré 5, soit six coefficients pour dix échantillons : la tendance absorbe une structure que le processus gaussien aurait dû porter, et extrapole selon sa propre logique dès que les données s'arrêtent — c'est l'objection faite aux modèles à base globale lisse, harmoniques sphériques comprises, dont l'information utile est justement l'anomalie locale : ![[Exemple de krigeage universel à mauvaise base 2D.pdf]]
 
 ## Remarques :
 

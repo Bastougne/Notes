@@ -104,6 +104,16 @@ $$ et leur matrice de covariance sont égales (et égales au complément de Schu
 - le vecteur des poids $\Lambda$ devient alors une matrice, et l'estimateur du krigeage devient un vecteur colonne correspondant à la concaténation des estimateurs individuels en chaque points
 - la matrice de covariance associée est telle que ses éléments diagonaux sont exactement les covariances obtenues pour chaque estimation ponctuelle
 
+## Résultats :
+
+- champ $f(x)=x\sin(x)+10$ échantillonné sur $[0{,}5\,;9{,}5]$ et estimé sur $[-2\,;12]$, généré par `krigeage_simple_ordinaire.m`
+- avec la vraie moyenne $m=10$ : ![[Exemple de krigeage simple 2D.pdf]]
+- avec une moyenne fausse $m=0$, sur les **mêmes** échantillons et les mêmes axes : ![[Exemple de krigeage simple à mauvaise moyenne 2D.pdf]]
+- les deux bandes sont **identiques**, puisque $R^*_s(x,\tilde{X})$ ne dépend pas de $m$ : la courbe se décale sans que l'incertitude annoncée n'en tienne compte
+- l'estimateur n'est donc pas seulement inexact, il est trop confiant — ce qui est bien plus dangereux en filtrage, où la vraisemblance devient étroite autour d'une valeur fausse
+- l'écart se voit surtout en extrapolation, où l'estimateur retombe sur la moyenne annoncée faute de données pour le corriger
+- c'est l'argument qui motive le [[Krigeage ordinaire]], dont la comparaison complète figure dans cette note
+
 ## Estimation de $\mathbb{R}^d\rightarrow\mathbb{R}^{d'}$ :
 
 - les entrées du processus Gaussien peuvent être de dimension finie quelconque $d$, mais ses sorties sont scalaires

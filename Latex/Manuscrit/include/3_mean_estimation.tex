@@ -4,15 +4,11 @@
 
 Beyond regression, the covariance kernel induces functional representations exploited later in this thesis. \Cref{sec:reduced_rank} replaces the GP by a finite-dimensional projection to alleviate the cubic cost of kriging, and \cref{sec:RKHS} interprets kriging as minimum-norm interpolation in a reproducing kernel Hilbert space.
 
-\subsection{Universal Kriging Mean}
-
-\textbf{TODO + kriging update formulas}
-
 \subsection{Reproducing Kernel Hilbert Space Formulation}\label{sec:RKHS}
 
 The covariance kernel also induces a deterministic, function-analytic counterpart to GP regression. Let $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}$ be a scalar SPSD kernel on an arbitrary index set $\mathcal{U}$ \cite{bib:Aronszajn,bib:RKHS-twelve-pages}.
 
-\begin{definition}[Reproducing kernel Hilbert space]\label{th:RKHS}
+\begin{definition}[Reproducing kernel Hilbert space]
 	The reproducing kernel Hilbert space (RKHS) $\mathcal{H}_k$ associated with $k$ is the completion of the span of $\{k(\cdot,x)\:|\:x\in\mathcal{U}\}$ for the inner product defined on the generators by:
 	\begin{equation}
 		\langle k(\cdot,x)\:|\:k(\cdot,x')\rangle_{\mathcal{H}_k}\triangleq k(x,x')
@@ -25,8 +21,8 @@ The covariance kernel also induces a deterministic, function-analytic counterpar
 
 The reproducing property \eqref{eq:reproducing_property} states that point evaluation is a continuous linear functional on $\mathcal{H}_k$, which endows the space with a regularity entirely dictated by $k$. This space provides a variational reading of kriging \cite{bib:GP-kernel-methods}.
 
-\begin{proposition}[Kriging as minimum-norm interpolation]\label{th:RKHS_kriging}
-	In the centred case, the simple kriging estimator \eqref{eq:simple_kriging_equations} is the solution of the penalised least-squares problem in $\mathcal{H}_k$:
+\begin{proposition}[Kriging as minimum-norm interpolation]
+	In the centred case, the SK estimator \eqref{eq:simple_kriging_equations} is the solution of the regularised least-squares problem in $\mathcal{H}_k$:
 	\begin{equation}
 		z_s^*=\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}\left(\frac{1}{\tilde{R}}\sum_{i=1}^{\tilde{n}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\|\psi\|_{\mathcal{H}_k}^2\right)\label{eq:RKHS_regularisation}
 	\end{equation}

@@ -6,7 +6,13 @@
 - [[2_particle_filtering.tex]]
 - [[3_Gaussian_processes.tex]]
 - [[3_kriging.tex]]
+- [[3_reduced_rank.tex]]
 - [[3_mean_estimation.tex]]
+- [[4_subsampling.tex]]
 - [[4_adaptive_kriging.tex]]
 - [[9_appendix.tex]]
 - [[Latex/Manuscrit/include/biblio.bib|Biblio]]
+
+- [[Scripts MATLAB]]
+- [[kriging_rmse.tex]]
+- [[kriging_covariance.tex]]

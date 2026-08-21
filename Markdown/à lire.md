@@ -37,3 +37,6 @@
 
 
 [[Kernel Particle Filter for Visual Tracking.pdf]]
+
+
+[[Corrected Kriging Update Formulae for Batch-Sequential Data Assimilation.pdf]]

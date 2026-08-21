@@ -173,7 +173,7 @@ While the terminology is less standard than MMSE, an estimator solving \eqref{eq
 
 	Since the outer expectation is over non-negative quantities, this is minimised by minimising the inner integral pointwise for each $z$, \textit{i.e.} by solving:
 	\begin{equation}
-		\underset{u\in\mathbb{R}}{\operatorname{argmin}}\int{|\varphi(x)-u|\:p(dx|Z=z)}\label{eq:median_pointwise}
+		\underset{u\in\mathbb{R}}{\operatorname{argmin}}\int{|\varphi(x)-u|\:p(dx|Z=z)}
 	\end{equation}
 
 	As $u\mapsto|\varphi(x)-u|$ is convex, so is the integral, hence any stationary point is a global minimum. Since the conditional law is absolutely continuous, the integral is differentiable in $u$. By differentiating this expression with respect to $u\in\mathbb{R}$, it follows that:
@@ -321,7 +321,7 @@ While the optimal estimation algorithm cannot be used in the form given by \Cref
 \end{equation}
 where $F_k\in\mathcal{M}_{d_x,d_x}(\mathbb{R})$ and $H_k\in\mathcal{M}_{d_z,d_x}(\mathbb{R})$ are known matrices, and $b_k^{(e)}\in\mathbb{R}^{d_x}$ and $b_k^{(o)}\in\mathbb{R}^{d_z}$ are known bias vectors. $P_0\in\mathcal{S}_{d_x}^{++}(\mathbb{R})$ is the initial state covariance, and $Q_k\in\mathcal{S}_{d_x}^{++}(\mathbb{R})$ and $R_k\in\mathcal{S}_{d_z}^{++}(\mathbb{R})$ are the evolution and observation noise covariance matrices. Here, $\mathcal{S}^{++}$ denotes the set of symmetric positive definite (SPD) matrices \cite{bib:matrix-analysis}, as introduced by \Cref{th:matrix_SPSD}.
 
-\begin{definition}[Matrix symmetric positive definiteness]\label{th:matrix_SPSD}
+\begin{definition}[ymmetric positive definite matrix]\label{th:matrix_SPSD}
 	Let $n\in\mathbb{N}^*$ and $M\in\mathcal{M}_{n,n}(\mathbb{R})$. $M$ is symmetric positive semi-definite (SPSD), denoted $M\succeq0$, if it is:
 	\begin{equation}
 		\left\{\begin{array}{ll}
@@ -430,7 +430,7 @@ Finally, $x_0$, $(w_k)_{k\geq0}$ and $(n_k)_{k\geq0}$ are assumed to be mutually
 The resulting algorithm, known as the Kalman filter \cite{bib:discrete-Kalman}, is depicted by \Cref{fig:Kalman_filter} and presented in \Cref{alg:Kalman_filter}.
 
 \begin{figure}[!htb]
-	\centering\includegraphics[width=\textwidth]{../../Images/Étapes du filtre de Kalman avec équations.png}
+	\centering\includegraphics[width=0.9\textwidth]{../../Images/Étapes du filtre de Kalman avec équations.pdf}
 	\caption{Schematic representation of the Kalman filter prediction/correction cycle. Each ellipsoid represents a confidence region associated with its corresponding Gaussian density.}\label{fig:Kalman_filter}
 \end{figure}
 
@@ -532,7 +532,7 @@ for some $\varepsilon>0$, or a maximum number of iterations is reached. The corr
 
 This procedure is equivalent to performing a Gauss-Newton descent \cite{bib:IEKF-Gauss-Newton} on the posterior density maximisation problem, and converges to the MAP estimator under Gaussian assumptions. It reduces the linearisation error of the correction step when $h_k$ is strongly non-linear, at the cost of several Jacobian evaluations per time step.
 
-The second-order EKF (SO-EKF) \cite{bib:SO-EKF} can also be used to extend the linearisation \eqref{eq:first_order_expansion} to second-order terms via the Hessians of $f_k$ and $h_k$, reducing the approximation error for highly nonlinear models. However, it requires computing and storing the Hessian matrices of $f_k$ and $h_k$ at each time step, making it computationally prohibitive in high dimensions.
+The second-order EKF (SO-EKF) \cite{bib:SO-EKF} can also be used to extend the linearisation \eqref{eq:first_order_expansion} to second-order terms via the Hessians of $f_k$ and $h_k$, which reduces the approximation error for highly nonlinear models. However, it requires computing and storing the Hessian matrices of $f_k$ and $h_k$ at each time step, making it computationally prohibitive in high dimensions.
 
 \subsubsection{Unscented Kalman Filter}
 

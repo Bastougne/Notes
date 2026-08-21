@@ -13,7 +13,7 @@ The SIR resamples at every time step, which eliminates weight degeneracy but com
 \end{itemize}
 
 \begin{figure}[!htb]
-	\centering\includegraphics[width=0.6\textwidth]{../../Images/Appauvrissement particulaire.png}
+	\centering\includegraphics[width=0.9\textwidth]{../../Images/Appauvrissement particulaire.pdf}
 	\caption{Particle impoverishment after resampling. Discarding non-resampled particles progressively shrinks the support of the particle approximation, degrading the filter's ability to explore the state-space.}\label{fig:impoverishment}
 \end{figure}
 
@@ -64,11 +64,11 @@ Since this measure is singular, resampling from it can only reproduce the existi
 New particles are then drawn from this continuous density rather than from the discrete set, which restores diversity, as illustrated by \Cref{fig:regularisation} and formalised by \Cref{th:regularisation_kernel,th:KDE}. Being absolutely continuous, this approximation also supplies the density that \eqref{eq:RPF_dirac} lacks, and thus makes the MAP estimator of \cref{sec:state_estimation} well-defined at the cost of a numerical maximisation.
 
 \begin{figure}[!htb]
-	\centering\includegraphics[width=0.8\textwidth]{../../Images/Régularisation par noyau.png}
+	\centering\includegraphics[width=0.8\textwidth]{../../Images/Régularisation par noyau.pdf}
 	\caption{An example Monte Carlo approximation of the PDF \eqref{eq:RPF_dirac} on the left and its kernel regularisation \eqref{eq:RPF_kernel} on the right, for a given particle set. The latter approximation bridges the gaps between particles and spans a larger region of the state space.}\label{fig:regularisation}
 \end{figure}
 
-\begin{definition}[Regularisation kernels]\label{th:regularisation_kernel}
+\begin{definition}[Regularisation kernel]\label{th:regularisation_kernel}
 	Let $K:\mathbb{R}^{d_x}\to\mathbb{R}$. $K$ is a regularisation kernel if:
 	\begin{equation}
 		\left\{\begin{array}{ll}
@@ -383,7 +383,7 @@ In full generality, a standard RBPF is computed in five steps:
 
 In the RBPF, only the non-linear state is sampled, while the conditional distribution of the linear substate is propagated analytically. The particle approximation is thus the mixture \cite{bib:mixture-Kalman}:
 \begin{equation}
-	p(x_k|\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{n(i)}\:\delta_{x_k^{n(i)}}\left(dx_k^n\right)\:\mathcal{N}\left(\hat{x}_{k|k}^{l(i)},P_{k|k}^{l(i)}\right)\left(dx_k^l\right)\label{eq:RBPF_mixture}
+	p(x_k|\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{n(i)}\:\delta_{x_k^{n(i)}}\left(dx_k^n\right)\:\mathcal{N}\left(\hat{x}_{k|k}^{l(i)},P_{k|k}^{l(i)}\right)\left(dx_k^l\right)
 \end{equation}
 
 The MMSE estimator of \cref{sec:state_estimation} can then be approximated by:

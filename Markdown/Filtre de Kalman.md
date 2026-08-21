@@ -22,7 +22,7 @@
 ## Algorithme :
 
 - notation : $m|n$ signifie "l'état à l'instant $m$ sachant les observations aux instants $1$ à $n$"
-![[Étapes du filtre de Kalman avec équations.png]]
+![[Étapes du filtre de Kalman avec équations.pdf]]
 
 **TODO : à démontrer**
 - prédiction de l'état après déplacement par odométrie :
