@@ -343,7 +343,7 @@ In particular, the state-space model \eqref{eq:navigation_problem} becomes:
 
 Finally, $x_0$, $(w_k)_{k\geq0}$ and $(n_k)_{k\geq0}$ are assumed to be mutually independent. Under these assumptions, the true state $x_k$ follows a Gaussian distribution at each time step as an affine transformation of Gaussian random variables.
 
-\begin{proposition}[Gaussian closure under affine assumptions]
+\begin{proposition}[Gaussian closure under affine assumptions]\label{th:Kalman}
 	For $m,n\in\mathbb{N}$, let the index $m|n$ denote "at time $m$ conditioned on the observations from $1$ to $n$". Under the hypotheses of \eqref{eq:Kalman_assumptions}, if $p(x_{k-1}|\mathbf{z}_{1:k-1})=\mathcal{N}\left(\hat{x}_{k-1|k-1},P_{k-1|k-1}\right)$, then:
 	\begin{equation}
 		\left\{\begin{aligned}
@@ -355,76 +355,7 @@ Finally, $x_0$, $(w_k)_{k\geq0}$ and $(n_k)_{k\geq0}$ are assumed to be mutually
 \end{proposition}
 
 \begin{proof}
-	\textbf{Prediction.} Let $\mathbb{V}[X]$ denote the variance of the random variable $X$:
-	\begin{equation}
-		\mathbb{V}[X]\triangleq\mathbb{E}\left[(X-\mathbb{E}[X])(X-\mathbb{E}[X])^\top\right]
-	\end{equation}
-
-	Since $x_k=F_k\:x_{k-1}+b_k^{(e)}+w_k$ is an affine transformation of two independent Gaussian random variables $x_{k-1}|\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k-1|k-1},P_{k-1|k-1}\right)$ and $w_k\sim\mathcal{N}(0,Q_k)$, the predicted state $x_k|\mathbf{z}_{1:k-1}$ is also Gaussian, with:
-	\begin{equation}
-		\begin{aligned}
-		\hat{x}_{k|k-1}&\triangleq\mathbb{E}[x_k|\mathbf{z}_{1:k-1}]\\
-		&=F_k\:\mathbb{E}[x_{k-1}|\mathbf{z}_{1:k-1}]+b_k^{(e)}+\mathbb{E}[w_k|\mathbf{z}_{1:k-1}]\\
-		&=F_k\:\hat{x}_{k-1|k-1}+b_k^{(e)}
-		\end{aligned}
-	\end{equation}
-	and:
-	\begin{equation}
-		\begin{aligned}
-		P_{k|k-1}&\triangleq\mathbb{V}[x_k|\mathbf{z}_{1:k-1}]\\
-		&=F_k\:\mathbb{V}[x_{k-1}|\mathbf{z}_{1:k-1}]\:F_k^\top+\mathbb{V}[w_k|\mathbf{z}_{1:k-1}]\\
-		&=F_k\:P_{k-1|k-1}\:F_k^\top+Q_k
-		\end{aligned}
-	\end{equation}
-
-	The predicted covariance is thus SPD as the sum of an SPSD matrix and the SPD matrix $Q_k$.
-
-	\textbf{Correction.} The joint distribution of $(x_k,z_k)$ given $\mathbf{z}_{1:k-1}$ is also Gaussian, since $z_k=H_k\:x_k+b_k^{(o)}+n_k$ is an affine transformation of the independent Gaussian variables $x_k|\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k|k-1},P_{k|k-1}\right)$ and $n_k\sim\mathcal{N}(0,R_k)$. It comes that:
-	\begin{equation}
-		\left.\begin{bmatrix}
-		x_k\\z_k
-		\end{bmatrix}\right|
-		\mathbf{z}_{1:k-1}\sim\mathcal{N}
-		\left(\begin{bmatrix}
-		\hat{x}_{k|k-1}\\H_k\hat{x}_{k|k-1}+b_k^{(o)}
-		\end{bmatrix},
-		\begin{bmatrix}
-		P_{k|k-1}&P_{k|k-1}H_k^\top\\
-		H_k P_{k|k-1}&S_k
-		\end{bmatrix}\right)
-	\end{equation}
-	where:
-	\begin{equation}
-		S_k\triangleq H_k\:P_{k|k-1}\:H_k^\top+R_k
-	\end{equation}
-	is called the innovation covariance, and is the covariance associated with the innovation vector:
-	\begin{equation}
-		y_k\triangleq z_k-\left(H_k\:\hat{x}_{k|k-1}+b_k^{(o)}\right)
-	\end{equation}
-
-	Since $R_k\succ0$, the independent pair $(x_k,n_k)$ has the covariance:
-	\begin{equation}
-		\begin{bmatrix}
-		P_{k|k-1}&0\\0&R_k
-		\end{bmatrix}\succ0
-	\end{equation}
-
-	Its image under the invertible linear map $(x,n)\mapsto(x,H_k\:x+n)$ therefore has an SPD covariance as well. The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) can thus be applied to give the posterior distribution $x_k|\mathbf{z}_{1:k}$ is Gaussian, with:
-	\begin{align}
-		\hat{x}_{k|k}&=\hat{x}_{k|k-1}+K_k\:y_k\\
-		P_{k|k}&=(I-K_k\:H_k)\:P_{k|k-1}
-	\end{align}
-	where:
-	\begin{equation}
-		K_k\triangleq P_{k|k-1}\:H_k^\top\:S_k^{-1}
-	\end{equation}
-	is the Kalman gain.
-
-	Finally, \Cref{th:Gaussian_conditioning} proves that the Schur complement of the SPD joint covariance:
-	\begin{equation}
-		P_{k|k-1}-\left(P_{k|k-1}\:H_k^\top\right)S_k^{-1}\left(H_k\:P_{k|k-1}\right)=P_{k|k-1}-K_k\:H_k\:P_{k|k-1}=P_{k|k}
-	\end{equation}
-	is itself SPD, so $P_{k|k}\succ0$.
+	See \cref{sec:proof_Kalman}.
 \end{proof}
 
 The resulting algorithm, known as the Kalman filter \cite{bib:discrete-Kalman}, is depicted by \Cref{fig:Kalman_filter} and presented in \Cref{alg:Kalman_filter}.

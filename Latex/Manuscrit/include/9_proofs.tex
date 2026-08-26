@@ -1,0 +1,509 @@
+\chapter{Deferred Proofs}
+
+\vfill
+\localtableofcontents
+\vfill
+\newpage
+
+\section[Proof of Proposition 2.3]{Proof of \Cref{th:Kalman}}\label{sec:proof_Kalman}
+
+\textbf{Prediction.} Let $\mathbb{V}[X]$ denote the variance of the random variable $X$:
+\begin{equation}
+	\mathbb{V}[X]\triangleq\mathbb{E}\left[(X-\mathbb{E}[X])(X-\mathbb{E}[X])^\top\right]
+\end{equation}
+
+Since $x_k=F_k\:x_{k-1}+b_k^{(e)}+w_k$ is an affine transformation of two independent Gaussian random variables $x_{k-1}|\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k-1|k-1},P_{k-1|k-1}\right)$ and $w_k\sim\mathcal{N}(0,Q_k)$, the predicted state $x_k|\mathbf{z}_{1:k-1}$ is also Gaussian, with:
+\begin{equation}
+	\begin{aligned}
+	\hat{x}_{k|k-1}&\triangleq\mathbb{E}[x_k|\mathbf{z}_{1:k-1}]\\
+	&=F_k\:\mathbb{E}[x_{k-1}|\mathbf{z}_{1:k-1}]+b_k^{(e)}+\mathbb{E}[w_k|\mathbf{z}_{1:k-1}]\\
+	&=F_k\:\hat{x}_{k-1|k-1}+b_k^{(e)}
+	\end{aligned}
+\end{equation}
+and:
+\begin{equation}
+	\begin{aligned}
+	P_{k|k-1}&\triangleq\mathbb{V}[x_k|\mathbf{z}_{1:k-1}]\\
+	&=F_k\:\mathbb{V}[x_{k-1}|\mathbf{z}_{1:k-1}]\:F_k^\top+\mathbb{V}[w_k|\mathbf{z}_{1:k-1}]\\
+	&=F_k\:P_{k-1|k-1}\:F_k^\top+Q_k
+	\end{aligned}
+\end{equation}
+
+The predicted covariance is thus SPD as the sum of an SPSD matrix and the SPD matrix $Q_k$.
+
+\textbf{Correction.} The joint distribution of $(x_k,z_k)$ given $\mathbf{z}_{1:k-1}$ is also Gaussian, since $z_k=H_k\:x_k+b_k^{(o)}+n_k$ is an affine transformation of the independent Gaussian variables $x_k|\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k|k-1},P_{k|k-1}\right)$ and $n_k\sim\mathcal{N}(0,R_k)$. It comes that:
+\begin{equation}
+	\left.\begin{bmatrix}
+	x_k\\z_k
+	\end{bmatrix}\right|
+	\mathbf{z}_{1:k-1}\sim\mathcal{N}
+	\left(\begin{bmatrix}
+	\hat{x}_{k|k-1}\\H_k\hat{x}_{k|k-1}+b_k^{(o)}
+	\end{bmatrix},
+	\begin{bmatrix}
+	P_{k|k-1}&P_{k|k-1}H_k^\top\\
+	H_k P_{k|k-1}&S_k
+	\end{bmatrix}\right)
+\end{equation}
+where:
+\begin{equation}
+	S_k\triangleq H_k\:P_{k|k-1}\:H_k^\top+R_k
+\end{equation}
+is called the innovation covariance, and is the covariance associated with the innovation vector:
+\begin{equation}
+	y_k\triangleq z_k-\left(H_k\:\hat{x}_{k|k-1}+b_k^{(o)}\right)
+\end{equation}
+
+Since $R_k\succ0$, the independent pair $(x_k,n_k)$ has the covariance:
+\begin{equation}
+	\begin{bmatrix}
+	P_{k|k-1}&0\\0&R_k
+	\end{bmatrix}\succ0
+\end{equation}
+
+Its image under the invertible linear map $(x,n)\mapsto(x,H_k\:x+n)$ therefore has an SPD covariance as well. The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) can thus be applied to give the posterior distribution $x_k|\mathbf{z}_{1:k}$ is Gaussian, with:
+\begin{align}
+	\hat{x}_{k|k}&=\hat{x}_{k|k-1}+K_k\:y_k\\
+	P_{k|k}&=(I-K_k\:H_k)\:P_{k|k-1}
+\end{align}
+where:
+\begin{equation}
+	K_k\triangleq P_{k|k-1}\:H_k^\top\:S_k^{-1}
+\end{equation}
+is the Kalman gain.
+
+Finally, \Cref{th:Gaussian_conditioning} proves that the Schur complement of the SPD joint covariance:
+\begin{equation}
+	P_{k|k-1}-\left(P_{k|k-1}\:H_k^\top\right)S_k^{-1}\left(H_k\:P_{k|k-1}\right)=P_{k|k-1}-K_k\:H_k\:P_{k|k-1}=P_{k|k}
+\end{equation}
+is itself SPD, so $P_{k|k}\succ0$.
+
+\section[Proof of Proposition 2.9]{Proof of \Cref{th:RBPF_decorrelation}}\label{sec:proof_RBPF}
+
+As a linear combination of the centred noises $w_k^l$ and $w_k^n$, $\overline{w}_k^l$ is centred. Its covariance develops as:
+\begin{equation}
+	\begin{aligned}
+	\overline{Q}_k^l&=\mathbb{E}\left[\overline{w}_k^l\:{\overline{w}_k^l}^\top\right]\\
+	&=\mathbb{E}\left[(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]\\
+	&=\mathbb{E}\left[w_k^l\:(w_k^l)^\top\right]-\mathbb{E}\left[w_k^l\:(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]-\mathbb{E}\left[(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^l)^\top\right]\\
+	&\qquad+\mathbb{E}\left[(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]\\
+	&=\mathbb{E}\left[w_k^l\:(w_k^l)^\top\right]-\mathbb{E}\left[w_k^l\:(w_k^n)^\top\right](Q_k^n)^{-\top}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^l)^\top\right]\\
+	&\qquad+Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^n)^\top\right]\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
+	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
+	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top\\
+	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top
+	\end{aligned}
+\end{equation}
+
+Finally, computing:
+\begin{equation}
+	\begin{aligned}
+	\mathbb{E}\left[\overline{w}_k^l\:(w_k^n)^\top\right]&=\mathbb{E}\left[(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^n)^\top\right]\\
+	&=\mathbb{E}\left[w_k^l\:(w_k^n)^\top\right]-Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^n)^\top\right]\\
+	&=Q_k^{nl}-Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\\
+	&=0
+	\end{aligned}
+\end{equation}
+shows that $\overline{w}_k^l$ and $w_k^n$ are uncorrelated.
+
+\section[Proof of Proposition 3.2]{Proof of \Cref{th:kernel_gram_equivalence}}\label{sec:proof_definite_kernels}
+
+\textbf{Forward implication.} Let $n\in\mathbb{N}^*$ and $\mathbf{x}\in\mathcal{U}^n$. It comes from the symmetry of $k$ that:
+\begin{equation}
+	\begin{aligned}
+	k(\mathbf{x},\mathbf{x})&=\begin{bmatrix}
+	k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)
+	\end{bmatrix}\\
+	&=\begin{bmatrix}
+	k(x_1,x_1)^\top&\cdots&k(x_n,x_1)^\top\\\vdots&\ddots&\vdots\\k(x_1,x_n)^\top&\cdots&k(x_n,x_n)^\top
+	\end{bmatrix}\\
+	&=\begin{bmatrix}
+	k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)
+	\end{bmatrix}^\top\\
+	&=k(\mathbf{x},\mathbf{x})^\top
+	\end{aligned}
+\end{equation}
+
+Let $a\in\mathbb{R}^{nd_z}$. We decompose $a=[a_1^\top,\dots,a_n^\top]^\top$ with $a_i\in\mathbb{R}^{d_z},\:i\in[\![1,n]\!]$ to obtain:
+\begin{equation}
+	\begin{aligned}
+	a^\top k(\mathbf{x},\mathbf{x})\:a&=\begin{bmatrix}a_1^\top&\cdots&a_n^\top\end{bmatrix}\begin{bmatrix}k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)\end{bmatrix}\begin{bmatrix}a_1\\\vdots\\a_n\end{bmatrix}\\
+	&=\sum_{i=1}^n\sum_{j=1}^na_i^\top k(x_i,x_j)\:a_j\\
+	&\geq0
+	\end{aligned}
+\end{equation}
+
+\textbf{Reverse implication.} Let $x,x'\in\mathcal{U}$. By symmetry of $k((x,x'),(x,x'))$, it comes that:
+\begin{equation}
+	\begin{aligned}
+	\begin{bmatrix}
+	k(x,x)&k(x,x')\\k(x',x)&k(x',x')
+	\end{bmatrix}&=\begin{bmatrix}
+	k(x,x)&k(x,x')\\k(x',x)&k(x',x')
+	\end{bmatrix}^\top\\
+	&=\begin{bmatrix}
+	k(x,x)^\top&k(x',x)^\top\\k(x,x')^\top&k(x',x')^\top
+	\end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+In particular, the upper-right block gives:
+\begin{equation}
+	k(x,x')=k(x',x)^\top
+\end{equation}
+
+Let $n\in\mathbb{N}^*$, $\mathbf{x}\in\mathcal{U}^n$, and $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, and set $a\triangleq[a_1^\top,\dots,a_n^\top]^\top\in\mathbb{R}^{nd_z}$. Then:
+\begin{equation}
+	\begin{aligned}
+	\sum_{i=1}^n\sum_{j=1}^na_i^\top k(x_i,x_j)\:a_j&=\begin{bmatrix}a_1^\top&\cdots&a_n^\top\end{bmatrix}\begin{bmatrix}k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)\end{bmatrix}\begin{bmatrix}a_1\\\vdots\\a_n\end{bmatrix}\\
+	&=a^\top k(\mathbf{x},\mathbf{x})\:a\\
+	&\geq0
+	\end{aligned}
+\end{equation}
+
+\textbf{Strict version.} The same computations hold with strict inequalities, provided the inputs are pairwise distinct and the coefficients not all zero.
+
+\section[Proof of Proposition 3.3]{Proof of \Cref{th:Matérn_properties}}\label{sec:proof_Matérn}
+
+Assume that $\nu\in\mathbb{R}_+^*$ and let $k_\nu$ denote such a function. We also let:
+\begin{equation}
+	g:\left\{\begin{aligned}
+	\mathbb{R}_+&\to\mathbb{R}_+\\
+	r&\mapsto\sigma_f^2\:\frac{2^{1-\nu}}{\Gamma(\nu)}r^\nu K_\nu(r)
+	\end{aligned}\right.
+	\quad\text{and}\quad
+	\tilde{r}:\left\{\begin{aligned}
+	\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}&\to\mathbb{R}_+\\
+	x,x'&\mapsto\frac{\sqrt{2\nu}}{l}\|x-x'\|
+	\end{aligned}\right.
+\end{equation}
+
+$\tilde{r}$ and $K_\nu$ are continuous on $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}$ and $\mathbb{R}_+^*$ respectively, and the latter admits the following asymptotic expansion as $r\to0^+$:
+\begin{equation}
+	K_\nu(r)=2^{\nu-1}\Gamma(\nu)\:r^{-\nu}+o\left(r^{-\nu}\right)
+\end{equation}
+
+Therefore, $f$ can be continuously extended to $0$ by setting $f(0)=\sigma_f^2$, and $k_\nu$ is thus continuous on the entirety of $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}$.
+
+Let $x,x'\in\mathbb{R}^{d_x}$. By symmetry of the norm, $\tilde{r}(x,x')=\tilde{r}(x',x)$, and thus:
+\begin{equation}
+	k_\nu=g\circ\tilde{r}
+\end{equation}
+is symmetric, with $\circ$ being the composition operator.
+
+Furthermore, Bochner's theorem \cite{bib:Akhiezer} states that a continuous integrable function with a strictly positive Fourier transform is SPD. It can be shown \cite{bib:Matérn-correlation} that the Fourier transform of $k_\nu$ on $\mathbb{R}^{d_x}$ is:
+\begin{equation}
+	S_\nu:\left\{\begin{aligned}
+	\mathbb{R}^{d_x}&\to\mathbb{R}\\
+	\omega&\mapsto C\:\left(\frac{2\nu}{l^2}+\|\omega\|^2\right)^{-(\nu+d_x/2)}
+	\end{aligned}\right.
+\end{equation}
+where $C>0$ is a normalising constant which only depends on $d_x$ and the parameters of $k_\nu$. Since $\nu>0$, $l>0$, it comes that:
+\begin{equation}
+	\forall\omega\in\mathbb{R}^{d_x},\:S_\nu(\omega)>0
+\end{equation}
+and thus $k_\nu$ is a SPD kernel. By definition, it is also a radial kernel.
+
+The case $\nu=+\infty$ is more direct. The squared exponential kernel is continuous on the whole of $\mathbb{R}_+$ without any extension, and symmetric by the same composition argument. Its Fourier transform on $\mathbb{R}^{d_x}$ is:
+\begin{equation}
+	S_\nu:\left\{\begin{aligned}
+	\mathbb{R}^{d_x}&\to\mathbb{R}\\
+	\omega&\mapsto C\:\exp\left(-\frac{l^2\|\omega\|^2}{2}\right)
+	\end{aligned}\right.
+\end{equation}
+which is again strictly positive, so Bochner's theorem applies as above.
+
+\section[Proof of Proposition 3.9]{Proof of \Cref{th:ordinary_kriging}}\label{sec:proof_OK}
+
+Let:
+\begin{equation}
+	\mathcal{L}(W,\xi)\triangleq\operatorname{tr}\left(\mathbb{V}\left[W^\top\tilde{\mathbf{z}}-z\right]\right)+2\:\operatorname{tr}\left(\xi^\top\left(C^\top W-I_{d_z}\right)\right)
+\end{equation}
+be the Lagrangian associated with the optimisation problem \eqref{eq:error_covariance} under the constraint \eqref{eq:ordinary_kriging_constraint}, and $\xi\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$ the corresponding Lagrange multiplier.
+
+This problem is solved by finding the minimum of $\mathcal{L}$, \textit{i.e.} finding a zero of its derivative. Writing $G$ for $G(\tilde{\mathbf{x}})$, the same properties used in the proof of \Cref{th:simple_kriging} give:
+\begin{equation}
+	\begin{aligned}
+	&\frac{\partial\mathcal{L}}{\partial W}(W,\xi)=0\\
+	\iff\quad&2G\:W-2k(\tilde{\mathbf{x}},x)+2\frac{\partial}{\partial W}\left(\operatorname{tr}\left(\xi^\top\left(C^\top W-I_{d_z}\right)\right)\right)=0\\
+	\iff\quad&2G\:W-2k(\tilde{\mathbf{x}},x)+2C\xi=0\\
+	\iff\quad&G\:W+C\xi=k(\tilde{\mathbf{x}},x)
+	\end{aligned}\label{eq:Lagrangian_minimum}
+\end{equation}
+
+Together with the constraint $C^\top W=I_{d_z}$, this yields the block system:
+\begin{equation}
+	\begin{bmatrix}
+	G&C\\C^\top&0
+	\end{bmatrix}\begin{bmatrix}
+	W\\\xi
+	\end{bmatrix}=\begin{bmatrix}
+	k(\tilde{\mathbf{x}},x)\\I_{d_z}
+	\end{bmatrix}
+\end{equation}
+
+The left matrix block can be inverted using the upper left Schur inversion formula from \Cref{th:Schur}. Its Schur complement,
+\begin{equation}
+	S\triangleq0-C^\top G^{-1}C=-C^\top G^{-1}C,
+\end{equation}
+is invertible since $G\succ0$ and $C$ has full column rank. The convention of \Cref{th:Schur} gives the four blocks of the inverse:
+\begin{equation}
+	\left\{\begin{aligned}
+	\bar{A}&=G^{-1}+G^{-1}C\:S^{-1}C^\top G^{-1}\\
+	\bar{B}&=-G^{-1}C\:S^{-1}\\
+	\bar{C}&=-S^{-1}C^\top G^{-1}\\
+	\bar{D}&=S^{-1}
+	\end{aligned}\right.
+\end{equation}
+
+Let $M\triangleq-S^{-1}=\left(C^\top G^{-1}C\right)^{-1}$. The weight matrix can be derived from the upper blocks of the inverse:
+\begin{equation}
+	\begin{aligned}
+	W&=\bar{A}\:k(\tilde{\mathbf{x}},x)+\bar{B}\:I_{d_z}\\
+	&=\left(G^{-1}+G^{-1}C\:S^{-1}C^\top G^{-1}\right)k(\tilde{\mathbf{x}},x)-G^{-1}C\:S^{-1}\\
+	&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:S^{-1}\left(C^\top G^{-1}k(\tilde{\mathbf{x}},x)-I_{d_z}\right)\\
+	&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:M\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)
+	\end{aligned}
+\end{equation}
+and $\xi$ from the lower blocks:
+\begin{equation}
+	\begin{aligned}
+	\xi&=\bar{C}\:k(\tilde{\mathbf{x}},x)+\bar{D}\:I_{d_z}\\
+	&=-S^{-1}C^\top G^{-1}k(\tilde{\mathbf{x}},x)+S^{-1}\\
+	&=S^{-1}\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\\
+	&=-M\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)
+	\end{aligned}
+\end{equation}
+
+Since $M$ is symmetric, the OK estimator is:
+\begin{equation}
+	\begin{aligned}
+	\hat{z}_{\mathrm{OK}}&=W^\top\tilde{\mathbf{z}}\\
+	&=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G^{-1}C\right)M\:C^\top G^{-1}\tilde{\mathbf{z}}\\
+	&=M\:C^\top G^{-1}\tilde{\mathbf{z}}+k(x,\tilde{\mathbf{x}})\:G^{-1}\left(\tilde{\mathbf{z}}-C\:M\:C^\top G^{-1}\tilde{\mathbf{z}}\right)
+	\end{aligned}
+\end{equation}
+which is exactly \eqref{eq:ordinary_kriging_equations}, the estimated mean being $m_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})=M\:C^\top G^{-1}\tilde{\mathbf{z}}$.
+
+Since $R_{\mathrm{OK}}$ is a centred moment of the estimation error, it is insensitive to the unknown mean and \eqref{eq:generic_kriging_variance} can be applied. Using \eqref{eq:Lagrangian_minimum} by $W^\top$ and the constraint $W^\top C=I_{d_z}$ gives the identity:
+\begin{equation}
+	\begin{aligned}
+	W^\top G\:W&=W^\top\left(k(\tilde{\mathbf{x}},x)-C\:\xi\right)\\
+	&=W^\top k(\tilde{\mathbf{x}},x)-W^\top C\:\xi\\
+	&=W^\top k(\tilde{\mathbf{x}},x)-\xi
+	\end{aligned}\label{eq:OK_identity}
+\end{equation}
+
+Let $U\triangleq I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)$ so that the expressions of $W$ and $\xi$ are simplified to:
+\begin{equation}
+	W=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:M\:U\quad\text{and}\quad\xi=-M\:U
+\end{equation}
+
+Combining these results yields:
+\begin{equation}
+	\begin{aligned}
+	R_{\mathrm{OK}}&=W^\top G\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
+	&=W^\top k(\tilde{\mathbf{x}},x)-\xi-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
+	&=-\xi-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
+	&=M\:U-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:G^{-1}C\:M\:U+k(x,x)+R\\
+	&=\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G^{-1}C\right)M\:U+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)\\
+	&=U^\top M\:U+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)
+	\end{aligned}
+\end{equation}
+
+Finally, recognising $R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})=U^\top M\:U\succeq0$, since $M\succ0$, gives the desired expression.
+
+\section[Proof of Proposition 3.10]{Proof of \Cref{th:universal_kriging}}\label{sec:proof_UK}
+
+The unbiased assumption now reads:
+\begin{equation}
+	g(\tilde{\mathbf{x}})^\top W-g(x)^\top=0
+\end{equation}
+and the Lagrange multiplier method of \Cref{th:ordinary_kriging} can be transposed to universal kriging under the substitutions:
+\begin{equation}
+	\left\{\begin{aligned}
+	C&\longrightarrow g(\tilde{\mathbf{x}})\\
+	I_{d_z}&\longrightarrow g(x)^\top\\
+	\xi&\in\mathcal{M}_{r_{\mathrm{UK}}d_z,d_z}(\mathbb{R})
+	\end{aligned}\right.
+\end{equation}
+
+The full column rank of $g(\tilde{\mathbf{x}})$ ensures that $S$ invertible, and that $M$ is SPD. Writing $G$ for $G(\tilde{\mathbf{x}})$, the shorthands of that proof thus become:
+\begin{equation}
+	\left\{\begin{aligned}
+	M&\triangleq-S^{-1}=\left(g(\tilde{\mathbf{x}})^\top G^{-1}g(\tilde{\mathbf{x}})\right)^{-1}\\
+	U&\triangleq g(x)^\top-g(\tilde{\mathbf{x}})^\top G^{-1}k(\tilde{\mathbf{x}},x)
+	\end{aligned}\right.
+\end{equation}
+so that the weight matrix and Lagrange multiplier are:
+\begin{equation}
+	\left\{\begin{aligned}
+	W&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}g(\tilde{\mathbf{x}})\:M\:U\\
+	\xi&=-M\:U
+	\end{aligned}\right.
+\end{equation}
+
+Finally, the bilinear identity \eqref{eq:OK_identity} becomes:
+\begin{equation}
+	W^\top G\:W=W^\top k(\tilde{\mathbf{x}},x)-g(x)\:\xi
+\end{equation}
+
+The UK estimator and covariance matrices are derived exactly like for \Cref{th:ordinary_kriging}, using the corrected results.
+
+\section[Proof of Proposition 3.12]{Proof of \Cref{th:covariance_operator}}\label{sec:proof_Mercer_operator}
+
+As $\mathcal{U}$ is compact and $k$ continuous, $k$ is bounded on $\mathcal{U}\times\mathcal{U}$, and $\mathcal{K}$ is compact.
+
+Let $\phi,\phi'\in\mathcal{L}^2(\mathcal{U})$. Cauchy-Schwarz inequality ensures that there exists a constant $c\in\mathbb{R}_+$ such that:
+\begin{equation}
+	\iint_{\mathcal{U}\times\mathcal{U}}{\left|\phi(y)^\top k(x,y)^\top\phi'(x)\right|\:dx\:dy}\leq c\:\sqrt{\langle\phi|\phi\rangle}\:\sqrt{\langle\phi'|\phi'\rangle}<+\infty
+\end{equation}
+
+Fubini's integration theorem can thus be used to give:
+\begin{equation}
+	\begin{aligned}
+	\langle\mathcal{K}\phi|\phi'\rangle&=\int_{\mathcal{U}}{(\mathcal{K}\phi)(x)^\top\phi'(x)\:dx}\\
+	&=\int_{\mathcal{U}}{\left(\int_{\mathcal{U}}{k(x,y)\:\phi(y)\:dy}\right)^\top\phi'(x)\:dx}\\
+	&=\int_{\mathcal{U}}{\int_{\mathcal{U}}{\phi(y)^\top k(x,y)^\top\phi'(x)\:dy}\:dx}\\
+	&=\int_{\mathcal{U}}{\int_{\mathcal{U}}{\phi(y)^\top k(y,x)\:\phi'(x)\:dx}\:dy}\\
+	&=\int_{\mathcal{U}}{\phi(y)^\top\left(\int_{\mathcal{U}}{k(y,x)\:\phi'(x)\:dx}\right)dy}\\
+	&=\int_{\mathcal{U}}{\phi(y)^\top(\mathcal{K}\phi')(y)\:dy}\\
+	&=\langle\phi|\mathcal{K}\phi'\rangle
+	\end{aligned}
+\end{equation}
+
+Let $\phi:\mathcal{U}\to\mathbb{R}^{d_z}$ be a continuous function, and let $n\in\mathbb{N}^*$. We define $\left(\mathcal{U}_i^{(n)}\right)_{i\in[\![1,n]\!]}$ a partition of $\mathcal{U}$ such that the diameter of each $\mathcal{U}_i^{(n)},\:i\in[\![1,n]\!]$ tends to $0$ when $n\to+\infty$. Here, the diameter of a subset of the Euclidean space $\mathbb{R}^{d_x}$ is defined as the maximum distance between two points of this subset. For $i\in[\![1,n]\!]$, we define $x_i^{(n)}\in\mathcal{U}_i^{(n)}$, and we let:
+\begin{equation}
+	a_i^{(n)}\triangleq\left(\int_{\mathcal{U}_i^{(n)}}{dx}\right)\phi\!\left(x_i^{(n)}\right)
+\end{equation}
+
+By continuity of $\phi$, the function:
+\begin{equation}
+	(x,y)\mapsto \phi(x)^\top k(x,y)\:\phi(y)
+\end{equation}
+is continuous on the compact $\mathcal{U}\times\mathcal{U}$, so its Riemann sums converge:
+\begin{equation}
+	\sum_{i=1}^n\sum_{j=1}^n\left(a_i^{(n)}\right)^\top k\left(x_i^{(n)},x_j^{(n)}\right)a_j^{(n)}\underset{n\to+\infty}{\longrightarrow}\iint_{\mathcal{U}\times\mathcal{U}}{\phi(x)^\top k(x,y)\:\phi(y)\:dx\:dy}=\langle\phi|\mathcal{K}\phi\rangle
+\end{equation}
+
+The SPSDness of $k$ ensures that each Riemann sum is non-negative. By passing to the limit, it follows that:
+\begin{equation}
+	\langle\phi|\mathcal{K}\phi\rangle\geq0\label{eq:fKf_geq0}
+\end{equation}
+for every continuous function $\phi$.
+
+Finally, recall that the set of continuous functions of $\mathcal{U}$ is dense in $\mathcal{L}^2(\mathcal{U})$. By continuity of:
+\begin{equation}
+	\phi\in\mathcal{L}^2(\mathcal{U})\mapsto\langle\phi|\mathcal{K}\phi\rangle
+\end{equation}
+the inequality \eqref{eq:fKf_geq0} extends to all $\phi\in\mathcal{L}^2(\mathcal{U})$.
+
+\section[Proof of Proposition 3.13]{Proof of \Cref{th:Mercer}}\label{sec:proof_Mercer}
+
+By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\mathcal{U})$. The spectral theorem \cite{bib:spectral-theorem} thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\mathcal{U})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing.
+
+Since $k$ is uniformly continuous on the compact $\mathcal{U}\times\mathcal{U}$, $\mathcal{K}\phi$ is continuous for every $\phi\in\mathcal{L}^2(\mathcal{U})$. In particular, for each $i\in\mathbb{N}^*$ such that $\lambda_i\neq0$, the eigenfunction:
+\begin{equation}
+	\psi_i=\lambda_i^{-1}\mathcal{K}\psi_i
+\end{equation}
+is continuous. Without loss of generality, it must be noted that the $\psi_i$ associated with a null eigenvalue do not contribute to \eqref{eq:Mercer} and may thus be dismissed.
+
+Since $(\psi_i)_{i\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{L}^2(\mathcal{U})$, the family $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$. Let $\langle\cdot|\cdot\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}$ denote:
+\begin{equation}
+	\forall\phi,\phi'\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})\mapsto\langle\phi|\phi'\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}\triangleq\iint_{\mathcal{U}\times\mathcal{U}}{\operatorname{tr}\left(\phi(x,y)^\top\phi'(x,y)\right)\:dx\:dy}
+\end{equation}
+
+Let $i,j\in\mathbb{N}^*$. We have:
+\begin{equation}
+	\begin{aligned}
+		\langle k|\psi_i\:\psi_j^\top\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}&=\iint_{\mathcal{U}\times\mathcal{U}}{\operatorname{tr}\left(k(x,y)^\top\psi_i(x)\:\psi_j(y)^\top\right)dx\:dy}\\
+		&=\iint_{\mathcal{U}\times\mathcal{U}}{\psi_j(y)^\top k(x,y)^\top\psi_i(x)\:dx\:dy}\\
+		&=\int_{\mathcal{U}}{\psi_j(y)^\top\left(\int_{\mathcal{U}}{k(y,x)\:\psi_i(x)\:dx}\right)dy}\\
+		&=\int_{\mathcal{U}}{\psi_j(y)^\top\mathcal{K}\psi_i(y)\:dy}\\
+		&=\lambda_i\int_{\mathcal{U}}{\psi_j(y)^\top\:\psi_i(y)\:dy}\\
+		&=\lambda_i\:\delta_{i,j}
+	\end{aligned}
+\end{equation}
+where:
+\begin{equation}
+	\delta_{i,j}\triangleq\left\{\begin{aligned}
+	1&\quad\text{if }i=j\\0&\quad\text{if }i\neq j
+	\end{aligned}\right.
+\end{equation}
+is the Kronecker symbol.
+
+Because $k\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$, it follows from the completeness of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ that:
+\begin{equation}
+	k_{r_{\mathrm{KL}}}(x,x')\triangleq\sum_{i=1}^{r_{\mathrm{KL}}}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top
+\end{equation}
+converges to $k$ in the $\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$ sense.
+
+It must be noted that $\mathcal{L}^2$ convergence only identifies $k$ up to a Lebesgue-null subset of $\mathcal{U}\times\mathcal{U}$, and gives no control at any specific point of the domain. In particular, it is not enough to justify substituting $k_{r_{\mathrm{KL}}}$ for $k$ in kriging scenarios. However, since $k$ is continuous on $\mathcal{U}\times\mathcal{U}$, the convergence can be extended to absolute and uniform convergence on the entire domain \cite{bib:Karhunen-Loeve}. The argument applies Dini's theorem \cite{bib:Dini} to the non-decreasing sequence $\left(x\mapsto\operatorname{tr}\:k_{r_{\mathrm{KL}}}(x,x)\right)_{r_{\mathrm{KL}}\in\mathbb{N}^*}$, whose limit is continuous on the compact $\mathcal{U}$, and extends the result off the diagonal through the Cauchy-Schwarz inequality.
+
+Since $\mathcal{K}$ is SPSD, every eigenvalue is non-negative. Assume that there exists a rank $r_0\in\mathbb{N}^*$ such that $\lambda_i=0$ as soon as $i>r_0$. Then the decomposition \eqref{eq:Mercer} would reduce to the finite sum:
+\begin{equation}
+	k=\sum_{i=1}^{r_0}\lambda_i\:\psi_i\:\psi_i^\top
+\end{equation}
+whose Gram matrices have rank at most $r_0$ and are thus singular at any $n$ distinct points with $nd_z>r_0$, contradicting the SPDness of $k$ by \Cref{th:kernel_gram_equivalence}. Consequently:
+\begin{equation}
+	\lambda_1\geq\lambda_2\geq\cdots>0
+\end{equation}
+
+\section[Proof of Proposition 3.15]{Proof of \Cref{th:reduced_rank_kriging}}\label{sec:proof_reduced_rank_kriging}
+
+As \eqref{eq:reduced_rank_Gram} is a rank $r_{\mathrm{KL}}$ perturbation of $A\triangleq I_{\tilde{n}}\otimes\tilde{R}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{n}d_z\times\tilde{n}d_z$ inversion of $G(\tilde{\mathbf{x}})$ to an $r\times r$ one:
+\begin{equation}
+	G(\tilde{\mathbf{x}})^{-1}\approx A^{-1}-A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}
+\end{equation}
+
+Computing the centred SK estimator from \Cref{th:simple_kriging} using this approximation and the push-through identity (see \Cref{th:push_through}) yields:
+\begin{equation}
+	\begin{aligned}
+	\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
+	&\approx\Psi(x)\:\Lambda\:\Psi(\tilde{\mathbf{x}})^\top\left(I-A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top\right)A^{-1}\tilde{\mathbf{z}}\\
+	&=\Psi(x)\:\Lambda\left(I-\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\right)\Psi(\tilde{\mathbf{x}})^\top A^{-1}\tilde{\mathbf{z}}
+	\end{aligned}\label{eq:z_s_up_to_tilde_G}
+\end{equation}
+
+Recall that, by definition of $\tilde{G}(\tilde{\mathbf{x}})$:
+\begin{equation}
+	\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}=\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})
+\end{equation}
+which gives:
+\begin{equation}
+	\begin{aligned}
+	I-\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}&=I-\left(\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}\right)\tilde{G}(\tilde{\mathbf{x}})^{-1}\\
+	&=I-I+\Lambda^{-1}\tilde{G}(\tilde{\mathbf{x}})^{-1}\\
+	&=\Lambda^{-1}\tilde{G}(\tilde{\mathbf{x}})^{-1}
+	\end{aligned}\label{eq:reduced_rank_lemma}
+\end{equation}
+
+Plugging this result into \eqref{eq:z_s_up_to_tilde_G} and using $A^{-1}=I_{\tilde{n}}\otimes\tilde{R}^{-1}$ finally gives:
+\begin{equation}
+	\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}\tilde{\mathbf{z}}
+\end{equation}
+
+For $R_{\mathrm{SK}}$, reusing:
+\begin{equation}
+	k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}
+\end{equation}
+together with \eqref{eq:reduced_rank_lemma} yields:
+\begin{equation}
+	\begin{aligned}
+	R_{\mathrm{SK}}&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
+	&\approx\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}\times\Psi(\tilde{\mathbf{x}})\:\Lambda\:\Psi(x)^\top\\
+	&=\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\left(\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}\right)\Lambda\:\Psi(x)^\top\\
+	&=\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\left(\Lambda-\tilde{G}(\tilde{\mathbf{x}})^{-1}\right)\Psi(x)^\top\\
+	&=R+\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(x)^\top
+	\end{aligned}
+\end{equation}
+
+Finally, when $\tilde{R}=\sigma^2I_{d_z}$ with $\sigma>0$, substituting $A^{-1}=\sigma^{-2}I_{\tilde{n}d_z}$ yields the announced simplifications. For such $\sigma>0$, the matrix:
+\begin{equation}
+	\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\succ0
+\end{equation}
+is SPD, as the sum of the SPSD matrix $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})$ and the SPD matrix $\sigma^2\Lambda^{-1}$. The map:
+\begin{equation}
+	\sigma\in\mathbb{R}_+^*\mapsto\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}
+\end{equation}
+is thus well-defined and continuous, and extends to $\sigma=0$ when $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})\succ0$, \textit{i.e.} when $\Psi(\tilde{\mathbf{x}})$ has full column rank. As $\hat{z}_{\mathrm{SK}}$ and $R_{\mathrm{SK}}$ depend on $\sigma$ only through this inverse and an explicit factor $\sigma^2$, both expressions remain valid at $\sigma=0$ under this condition.

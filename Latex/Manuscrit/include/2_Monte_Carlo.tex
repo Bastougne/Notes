@@ -31,7 +31,7 @@ Since $\mu$ is a continuous measure, evaluating \eqref{eq:varphi_expectation_mu}
 \begin{proposition}[Monte Carlo estimator]\label{th:MC_estimator}
 	The MC estimator:
 	\begin{equation}
-		\left\langle S^N(\mu),\varphi\right\rangle=\frac{1}N\sum_{i=1}^N\varphi\left(X^{(i)}\right)
+		\left\langle S^N(\mu),\varphi\right\rangle=\frac{1}{N}\sum_{i=1}^N\langle\delta_{X^{(i)}},\varphi\rangle=\frac{1}{N}\sum_{i=1}^N\varphi\left(X^{(i)}\right)
 	\end{equation}
 	is unbiased and consistent:
 	\begin{align}
@@ -53,15 +53,15 @@ Since $\mu$ is a continuous measure, evaluating \eqref{eq:varphi_expectation_mu}
 	By linearity of the expectation and the transfer theorem, it comes that:
 	\begin{equation}
 		\begin{aligned}
-		\mathbb{E}_p\left[\left\langle S^N(\mu),\varphi\right\rangle\right]&=\frac{1}N\sum_{i=1}^N\mathbb{E}_p\left[\varphi\left(X^{(i)}\right)\right]\\
-		&=\frac{1}N\sum_{i=1}^N\langle\mu,\varphi\rangle\\
+		\mathbb{E}_p\left[\left\langle S^N(\mu),\varphi\right\rangle\right]&=\frac{1}{N}\sum_{i=1}^N\mathbb{E}_p\left[\varphi\left(X^{(i)}\right)\right]\\
+		&=\frac{1}{N}\sum_{i=1}^N\langle\mu,\varphi\rangle\\
 		&=\langle\mu,\varphi\rangle
 		\end{aligned}
 	\end{equation}
 	Furthermore, by independence of the $X^{(i)}$:
 	\begin{equation}
 		\begin{aligned}
-		\mathbb{E}_p\left[\left|\left\langle S^N(\mu)-\mu,\varphi\right\rangle\right|^2\right]&=\mathbb{E}_p\left[\left|\frac{1}N\sum_{i=1}^N\left(\varphi\left(X^{(i)}\right)-\langle\mu,\varphi\rangle\right)\right|^2\right]\\
+		\mathbb{E}_p\left[\left|\left\langle S^N(\mu)-\mu,\varphi\right\rangle\right|^2\right]&=\mathbb{E}_p\left[\left|\frac{1}{N}\sum_{i=1}^N\left(\varphi\left(X^{(i)}\right)-\langle\mu,\varphi\rangle\right)\right|^2\right]\\
 		&=\frac{1}{N^2}\sum_{i=1}^N\mathbb{E}_p\left[\left|\varphi\left(X^{(i)}\right)-\langle\mu,\varphi\rangle\right|^2\right]\\
 		&=\frac{1}{N^2}\sum_{i=1}^N\mathbb{E}\left[|\varphi(X)-\langle\mu,\varphi\rangle|^2\right]\\
 		&=\frac{1}{N}\operatorname{tr}\mathbb{V}_\mu[\varphi]
@@ -329,14 +329,14 @@ A fundamental limitation of SIS is that the variance of the importance weights a
 
 Given $\mathbf{x}_{0:k-1}$, the only randomness remaining in \eqref{eq:weight_variance} is the draw of $x_k$. The inner variance measures its effect, while the inner expectation integrates it out and leaves a function of $\mathbf{x}_{0:k-1}$. The first term therefore corresponds to the variance injected by $x_k$ and the second is the variance inherited from the past.
 
-As each step adds to the previous ones, the weight distribution typically concentrates on a small number of particles, and so \eqref{eq:self_normalised_estimator} becomes a poor approximation of the PDF. While this is true in most cases, \Cref{th:optimal_proposal} exhibits a proposal density that cancels the injected term.
+As each step adds to the previous ones, the weight distribution typically concentrates on a small number of particles, and so \eqref{eq:self_normalised_estimator} becomes a poor approximation of the PDF. While degeneracy occurs in most cases, \Cref{th:optimal_proposal} exhibits a proposal density that eliminates the additional variance introduced at the current step.
 
 \begin{proposition}[Optimal proposal density]\label{th:optimal_proposal}
 	When the proposal density is the posterior transition:
 	\begin{equation}
 		q(x_k|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})=p(x_k|x_{k-1},z_k)\label{eq:optimal_proposal}
 	\end{equation}
-	the trajectory weight is determined by $\mathbf{x}_{0:k-1}$, so that the variance injected at step $k$ vanishes:
+	the trajectory weight is determined by $\mathbf{x}_{0:k-1}$, so that the variance introduced at step $k$ vanishes:
 	\begin{equation}
 		\mathbb{V}_{\nu_k}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]=0
 	\end{equation}

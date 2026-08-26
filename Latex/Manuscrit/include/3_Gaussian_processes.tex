@@ -9,7 +9,7 @@
 
 The analytical and Monte Carlo methods of \cref{sec:Bayesian_estimation} all assume the observation function $h_k$ to be fully known. However, many navigation scenarios depend on a physical field that is either unavailable or known only through scarce and noisy measurements.
 
-A first way to fill this gap is to reconstruct the field directly from the measurements: \textbf{TODO: j'avais oublié, mais à reprendre}
+A first way to fill this gap is to reconstruct the field directly from the measurements: \textbf{TODO: j'avais oublié, mais à reprendre + présenter des cas d'application au krigeage}
 \begin{itemize}
 	\item Deterministic interpolation, through nearest-neighbour selection, multilinear interpolation over a regular grid, or spline fitting;
 	\item Linear regression on a fixed basis, such as polynomials or sinusoids;
@@ -32,12 +32,12 @@ The rest of this chapter is organised as follows:
 Formally, a stochastic process generalises the notion of random variable to a random function, \textit{i.e.} a family $(f(x))_{x\in\mathcal{U}}$ of random variables indexed by a set $\mathcal{U}$, which may represent time $\mathbb{R}_+$, physical space $\mathbb{R}^2$ or $\mathbb{R}^3$, or any other domain. As shown by \Cref{th:GP_definition}, a GP is a special case of stochastic process \cite{bib:random-fields}.
 
 \begin{definition}[Gaussian process]\label{th:GP_definition}
-	For $d_z\in\mathbb{N}^*$, a stochastic process $(f(x))_{x\in\mathcal{U}}$ taking values in $\mathbb{R}^{d_z}$ is a GP if every finite linear combination of its values follows a Gaussian distribution. Formally, for all $n\in\mathbb{N}^*$, all $x_1,\dots,x_n\in\mathcal{U}$ and all $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, there exist $m\in\mathbb{R}^{d_z}$ and $P\in\mathcal{S}_{d_z}^+(\mathbb{R})$ such that:
+	For $d_z\in\mathbb{N}^*$, a stochastic process $(f(x))_{x\in\mathcal{U}}$ taking values in $\mathbb{R}^{d_z}$ is a GP if every finite linear combination of its values follows a Gaussian distribution. Formally, for all $n\in\mathbb{N}^*$, all $x_1,\dots,x_n\in\mathcal{U}$ and all $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, there exist $\mu\in\mathbb{R}^{d_z}$ and $\Sigma\in\mathcal{S}_{d_z}^+(\mathbb{R})$ such that:
 	\begin{equation}
-		\sum_{i=1}^na_i^\top f(x_i)\sim\mathcal{N}(m,P)
+		\sum_{i=1}^na_i^\top f(x_i)\sim\mathcal{N}(\mu,\Sigma)
 	\end{equation}
 
-	The GP is said to be non-degenerate if $P\succ0$ whenever the points $x_1,\dots,x_n$ are pairwise distinct and the coefficients $a_1,\dots,a_n$ are not all zero.
+	The GP is said to be non-degenerate if $\Sigma\succ0$ whenever the $x_1,\dots,x_n$ are pairwise distinct and the coefficients $a_1,\dots,a_n$ are not all zero.
 \end{definition}
 
 A GP is associated with a mean function:
@@ -60,7 +60,7 @@ and a covariance kernel:
 As shown by \Cref{th:GP_marginals}, $m$ and $k$ entirely characterise every finite-dimensional marginal of $f$. By Kolmogorov's extension theorem, they also uniquely determine the law of $f$. We thus write $f\sim\mathcal{GP}(m,k)$ for a GP with mean function $m$ and covariance kernel $k$.
 
 \begin{proposition}[Finite-dimensional marginals]\label{th:GP_marginals}
-	For $n\in\mathbb{N}^*$, let $x_1,\dots,x_n$ be pairwise distinct points of $\mathcal{U}$. The joint distribution of $F\triangleq\left[f(x_1)^\top,\dots,f(x_n)^\top\right]^\top$ is the multivariate Gaussian:
+	For $n\in\mathbb{N}^*$, let $x_1,\dots,x_n$ be pairwise distinct elements of $\mathcal{U}$. The joint distribution of $F\triangleq\left[f(x_1)^\top,\dots,f(x_n)^\top\right]^\top$ is the multivariate Gaussian distribution:
 	\begin{equation}
 		\begin{bmatrix}
 		f(x_1)\\\vdots\\f(x_n)
@@ -80,7 +80,7 @@ As shown by \Cref{th:GP_marginals}, $m$ and $k$ entirely characterise every fini
 	\end{equation}
 	is Gaussian. By the Cramér-Wold theorem \cite{bib:Cramér-Wold} $F$ is thus also a Gaussian vector of $\mathbb{R}^{nd_z}$.
 
-	Such a vector is entirely determined by its mean and covariance, which we compute. By linearity of the expectation, we have:
+	Such a vector is entirely determined by its mean and covariance, which we compute. In particular, we have:
 	\begin{equation}
 		\mathbb{E}[F]=\begin{bmatrix}\mathbb{E}[f(x_1)]\\\vdots\\\mathbb{E}[f(x_n)]\end{bmatrix}=\begin{bmatrix}m(x_1)\\\vdots\\m(x_n)\end{bmatrix}
 	\end{equation}
@@ -89,17 +89,17 @@ As shown by \Cref{th:GP_marginals}, $m$ and $k$ entirely characterise every fini
 	\begin{equation}
 		\begin{aligned}
 		\mathbb{V}[F]&=\begin{bmatrix}
-		&&\\&\mathbb{E}\left[(f(x_i)-m(x_i))(f(x_j)-m(x_j))^\top\right]&\\&&
-		\end{bmatrix}\\
+		\mathbb{E}\left[(f(x_i)-m(x_i))(f(x_j)-m(x_j))^\top\right]
+		\end{bmatrix}_{i,j=1}^n\\
 		&=\begin{bmatrix}
-		&&\\&k(x_i,x_j)&\\&&
-		\end{bmatrix}
+		k(x_i,x_j)
+		\end{bmatrix}_{i,j=1}^n
 		\end{aligned}
 	\end{equation}
 	which is exactly \eqref{eq:GP_marginals}.
 \end{proof}
 
-For two tuples of inputs $\mathbf{x}\triangleq(x_1,\dots,x_n)\in\mathcal{U}^n$ and $\mathbf{x}'\triangleq(x'_1,\dots,x'_p)\in\mathcal{U}^p$ of sizes $n,p\in\mathbb{N}^*$, we use a vectorised notation to write:
+For two tuples of inputs $\mathbf{x}\triangleq(x_1,\dots,x_n)\in\mathcal{U}^n$ and $\mathbf{x}'\triangleq(x'_1,\dots,x'_p)\in\mathcal{U}^p$ of sizes $n,p\in\mathbb{N}^*$, we introduce the following vectorised notation:
 \begin{align}
 	f(\mathbf{x})&\triangleq\begin{bmatrix}
 	f(x_1)\\\vdots\\f(x_n)
@@ -117,7 +117,7 @@ Using these notations, \Cref{th:GP_marginals} reads compactly:
 	\forall n\in\mathbb{N}^*,\:\forall\mathbf{x}\in\mathcal{U}^n\text{ pairwise distinct},\:f(\mathbf{x})\sim\mathcal{N}\left(m(\mathbf{x}),k(\mathbf{x},\mathbf{x})\right)
 \end{equation}
 
-A GP is thus a consistent generalisation of the multivariate Gaussian distribution to an infinite index set. Both of its parameters admit a direct interpretation. The mean function $m$ encodes prior knowledge about the average behaviour of $f$, while the kernel $k$ encodes the correlation structure. The diagonal blocks $k(x,x)$ measure the variance of $f$ at $x$, and the off-diagonal blocks $k(x,x')$ for $x\neq x'$ capture how the values at $x$ and $x'$ co-vary.
+A GP is thus a consistent generalisation of the multivariate Gaussian distribution to an infinite and potentially continuous index set. Both of its parameters admit a direct interpretation. The mean function $m$ encodes prior knowledge about the average behaviour of $f$, while the kernel $k$ captures the correlation structure. The diagonal blocks $k(x,x)$ measure the variance of $f$ at $x$, and the off-diagonal blocks $k(x,x')$ for $x\neq x'$ capture how the values at $x$ and $x'$ co-vary.
 
 In order for the GP to be non-degenerate, every matrix $k(\mathbf{x},\mathbf{x})$ at distinct points must be SPD in the sense of \Cref{th:matrix_SPSD}. \Cref{th:kernel_SPSD} recasts this as a condition on $k$ alone \cite{bib:Schoenberg}, and \Cref{th:kernel_gram_equivalence} proves the equivalence between the two.
 
@@ -149,60 +149,7 @@ In order for the GP to be non-degenerate, every matrix $k(\mathbf{x},\mathbf{x})
 \end{proposition}
 
 \begin{proof}
-	\textbf{Forward implication.} Let $n\in\mathbb{N}^*$ and $\mathbf{x}\in\mathcal{U}^n$. It comes from the symmetry of $k$ that:
-	\begin{equation}
-		\begin{aligned}
-		k(\mathbf{x},\mathbf{x})&=\begin{bmatrix}
-		k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)
-		\end{bmatrix}\\
-		&=\begin{bmatrix}
-		k(x_1,x_1)^\top&\cdots&k(x_n,x_1)^\top\\\vdots&\ddots&\vdots\\k(x_1,x_n)^\top&\cdots&k(x_n,x_n)^\top
-		\end{bmatrix}\\
-		&=\begin{bmatrix}
-		k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)
-		\end{bmatrix}^\top\\
-		&=k(\mathbf{x},\mathbf{x})^\top
-		\end{aligned}
-	\end{equation}
-
-	Let $a\in\mathbb{R}^{nd_z}$. We decompose $a=[a_1^\top,\dots,a_n^\top]^\top$ with $a_i\in\mathbb{R}^{d_z},\:i\in[\![1,n]\!]$ to obtain:
-	\begin{equation}
-		\begin{aligned}
-		a^\top k(\mathbf{x},\mathbf{x})\:a&=\begin{bmatrix}a_1^\top&\cdots&a_n^\top\end{bmatrix}\begin{bmatrix}k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)\end{bmatrix}\begin{bmatrix}a_1\\\vdots\\a_n\end{bmatrix}\\
-		&=\sum_{i=1}^n\sum_{j=1}^na_i^\top k(x_i,x_j)\:a_j\\
-		&\geq0
-		\end{aligned}
-	\end{equation}
-
-	\textbf{Reverse implication.} Let $x,x'\in\mathcal{U}$. By symmetry of $k((x,x'),(x,x'))$, it comes that:
-	\begin{equation}
-		\begin{aligned}
-		\begin{bmatrix}
-		k(x,x)&k(x,x')\\k(x',x)&k(x',x')
-		\end{bmatrix}&=\begin{bmatrix}
-		k(x,x)&k(x,x')\\k(x',x)&k(x',x')
-		\end{bmatrix}^\top\\
-		&=\begin{bmatrix}
-		k(x,x)^\top&k(x',x)^\top\\k(x,x')^\top&k(x',x')^\top
-		\end{bmatrix}
-		\end{aligned}
-	\end{equation}
-
-	In particular, the upper-right block gives:
-	\begin{equation}
-		k(x,x')=k(x',x)^\top
-	\end{equation}
-
-	Let $n\in\mathbb{N}^*$, $\mathbf{x}\in\mathcal{U}^n$, and $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, and set $a\triangleq[a_1^\top,\dots,a_n^\top]^\top\in\mathbb{R}^{nd_z}$. Then:
-	\begin{equation}
-		\begin{aligned}
-		\sum_{i=1}^n\sum_{j=1}^na_i^\top k(x_i,x_j)\:a_j&=\begin{bmatrix}a_1^\top&\cdots&a_n^\top\end{bmatrix}\begin{bmatrix}k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)\end{bmatrix}\begin{bmatrix}a_1\\\vdots\\a_n\end{bmatrix}\\
-		&=a^\top k(\mathbf{x},\mathbf{x})\:a\\
-		&\geq0
-		\end{aligned}
-	\end{equation}
-
-	\textbf{Strict version.} The same computations hold with strict inequalities, provided the inputs are pairwise distinct and the coefficients not all zero.
+	See \cref{sec:proof_definite_kernels}.
 \end{proof}
 
 \begin{remark}[Necessity of distinct points]
@@ -217,17 +164,17 @@ Throughout the rest of this document, we assume that the covariance kernel $k$ i
 
 \subsection{Common Kernels}
 
-Assume in this section that $\mathcal{U}$ is a finite-dimensional normed vector space, \textit{i.e.} $\mathcal{U}=\mathbb{R}^{d_x}$ up to isomorphism. A natural way to build kernels on $\mathcal{U}$ is to let the correlation between the field values at two points $x,x'$ depend only on the distance $\|x-x'\|$ between them. Kernels of this form are called radial kernels \cite{bib:Stein-kriging}, and are formally defined by \Cref{th:radial_kernel}.
+Assume in this section that $\mathcal{U}$ is a finite-dimensional normed vector space, \textit{i.e.} $\mathcal{U}=\mathbb{R}^{d_x}$ for some $d_x\in\mathbb{N}^*$, up to isomorphism. A natural way to build kernels on $\mathcal{U}$ is to let the correlation between the field values at two points $x,x'$ depend only on the distance $\|x-x'\|$ between them. Kernels of this form are called radial kernels \cite{bib:Stein-kriging}, and are formally defined by \Cref{th:radial_kernel}.
 
 Since $f$ typically represents a physical field, observations tend to become less correlated as the distance between them increases. \Cref{th:Matérn} introduces a common family of radial kernels modelling this behaviour, called the Matérn kernels \cite{bib:Matérn}. \Cref{th:Matérn_properties} then establishes their continuity and SPDness.
 
 \begin{definition}[Radial kernel]\label{th:radial_kernel}
 	A kernel $k:\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is radial if there exists a function $f:\mathbb{R}_+\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ and a norm $\|\cdot\|$ on $\mathbb{R}^{d_x}$ such that:
 	\begin{equation}
-		\forall x,x'\in\mathbb{R}^{d_x},\:k(x,x')=f(\|x-x'\|)
+		\forall x,x'\in\mathbb{R}^{d_x},\:k(x,x')=g(\|x-x'\|)
 	\end{equation}
 
-	To simplify notations, we identify $f$ with $k$ in the remainder of this document, such that we write:
+	To simplify notations, we identify $g$ with $k$ in the remainder of this document, such that we write:
 	\begin{equation}
 		\forall x,x'\in\mathbb{R}^{d_x},\:k(x,x')=k(\|x-x'\|)
 	\end{equation}
@@ -257,53 +204,7 @@ Since $f$ typically represents a physical field, observations tend to become les
 \end{proposition}
 
 \begin{proof}
-	Assume that $\nu\in\mathbb{R}_+^*$ and let $k_\nu$ denote such a function. We also let:
-	\begin{equation}
-		f:\left\{\begin{aligned}
-		\mathbb{R}_+&\to\mathbb{R}_+\\
-		r&\mapsto\sigma_f^2\:\frac{2^{1-\nu}}{\Gamma(\nu)}r^\nu K_\nu(r)
-		\end{aligned}\right.
-		\quad\text{and}\quad
-		\tilde{r}:\left\{\begin{aligned}
-		\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}&\to\mathbb{R}_+\\
-		x,x'&\mapsto\frac{\sqrt{2\nu}}{l}\|x-x'\|
-		\end{aligned}\right.
-	\end{equation}
-
-	$\tilde{r}$ and $K_\nu$ are continuous on $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}$ and $\mathbb{R}_+^*$ respectively, and the latter admits the following asymptotic expansion as $r\to0^+$:
-	\begin{equation}
-		K_\nu(r)=2^{\nu-1}\Gamma(\nu)\:r^{-\nu}+o\left(r^{-\nu}\right)
-	\end{equation}
-
-	Therefore, $f$ can be continuously extended to $0$ by setting $f(0)=\sigma_f^2$, and $k_\nu$ is thus continuous on the entirety of $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}$.
-
-	Let $x,x'\in\mathbb{R}^{d_x}$. By symmetry of the norm, $\tilde{r}(x,x')=\tilde{r}(x',x)$, and thus:
-	\begin{equation}
-		k_\nu=f\circ\tilde{r}
-	\end{equation}
-	is symmetric, with $\circ$ being the composition operator.
-
-	Furthermore, Bochner's theorem \cite{bib:Akhiezer} states that a continuous integrable function with a strictly positive Fourier transform is SPD. It can be shown \cite{bib:Matérn-correlation} that the Fourier transform of $k_\nu$ on $\mathbb{R}^{d_x}$ is:
-	\begin{equation}
-		S_\nu:\left\{\begin{aligned}
-		\mathbb{R}^{d_x}&\to\mathbb{R}\\
-		\omega&\mapsto C\:\left(\frac{2\nu}{l^2}+\|\omega\|^2\right)^{-(\nu+d_x/2)}
-		\end{aligned}\right.
-	\end{equation}
-	where $C>0$ is a normalising constant which only depends on $d_x$ and the parameters of $k_\nu$. Since $\nu>0$, $l>0$, it comes that:
-	\begin{equation}
-		\forall\omega\in\mathbb{R}^{d_x},\:S_\nu(\omega)>0
-	\end{equation}
-	and thus $k_\nu$ is a SPD kernel. By definition, it is also a radial kernel.
-
-	The case $\nu=+\infty$ is more direct. The squared exponential kernel is continuous on the whole of $\mathbb{R}_+$ without any extension, and symmetric by the same composition argument. Its Fourier transform on $\mathbb{R}^{d_x}$ is:
-	\begin{equation}
-		S_\nu:\left\{\begin{aligned}
-		\mathbb{R}^{d_x}&\to\mathbb{R}\\
-		\omega&\mapsto C\:\exp\left(-\frac{l^2\|\omega\|^2}{2}\right)
-		\end{aligned}\right.
-	\end{equation}
-	which is again strictly positive, so Bochner's theorem applies as above.
+	See \cref{sec:proof_Matérn}.
 \end{proof}
 
 The parameter $\nu$ controls the regularity. Indeed, for $p\in\mathbb{N}$, it can be shown \cite{bib:Rasmussen-covariance} that a GP equipped with $k_\nu$ is $p$ times mean-square differentiable if and only if $\nu>p$. For half-integer $\nu=p+\tfrac{1}{2}$, Matérn kernels can be written as the product of an exponential and a polynomial function of degree $p$:
@@ -333,7 +234,7 @@ In particular, the following kernels correspond to usual choices of $\nu$, the S
 
 \Cref{fig:Matérn} illustrates the radial decay of these kernels, evaluated with unit variance $\sigma_f^2=1$ and correlation length $l=1$ to facilitate comparison.
 
-\begin{figure}[!htb]
+\begin{figure}[H]
 	\centering\includegraphics[width=0.7\textwidth]{../../Images/Noyaux de Matérn.pdf}
 	\caption{Radial profile of Matérn kernels with increasing smoothness, together with their squared exponential limit. Larger values of $\nu$ produce smoother kernels, with flatter behaviours near the origin and faster-decaying tails.}\label{fig:Matérn}
 \end{figure}
@@ -386,7 +287,7 @@ The main limitation of Matérn kernels is that they are scalar, while our observ
 		r&\mapsto\sum_{i=1}^n\Sigma_i\:k^{(i)}(r)
 		\end{aligned}\right.
 	\end{equation}
-	Each of its terms is separable in the sense of \Cref{th:separable_kernel}, hence SPD, and a sum of SPD kernels is itself SPD. When the correlation lengths have different orders of magnitude, such kernels can be used to capture local fluctuations and global trends simultaneously.
+	Each of its terms is separable in the sense of \Cref{th:separable_kernel}, hence SPD, and a sum of SPD kernels with positive coefficients is itself SPD. When the correlation lengths have different orders of magnitude, such kernels can be used to capture local fluctuations and global trends simultaneously.
 \end{remark}
 
 \subsection{Hyperparameter Estimation}
@@ -395,7 +296,7 @@ The main limitation of Matérn kernels is that they are scalar, while our observ
 
 The kernel depends on hyperparameters $\theta$, such as $\sigma_f^2$ and $l$ for the SE kernel, that must be inferred from the data. Given training inputs $X$ and the corresponding observations $Z$, the standard approach maximises the marginal likelihood of the observations, a procedure known as evidence maximisation \cite{bib:Rasmussen-hyperparameters}. Writing $K_\theta\triangleq k_\theta(X,X)$ for the kernel matrix and assuming, in the absence of prior information, a zero mean function, the observations are jointly Gaussian:
 \begin{equation}
-	p(Z|X,\theta)=\frac{\displaystyle\exp\left(-\frac{1}{2}Z^\top K_\theta^{-1}Z\right)}{\sqrt{(2\pi)^n\:\det(K_\theta)}}\label{eq:marginal_likelihood}
+	p(Z|X,\theta)=\frac{1}{\sqrt{(2\pi)^n\:\det(K_\theta)}}\:\exp\left(-\frac{1}{2}Z^\top K_\theta^{-1}Z\right)\label{eq:marginal_likelihood}
 \end{equation}
 
 \begin{proposition}[Maximum likelihood hyperparameters]

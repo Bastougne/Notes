@@ -12,13 +12,13 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 	A functional operator $T$ on $\mathcal{L}^2(\mathcal{U})$ is self-adjoint positive semi-definite (SPSD) if:
 	\begin{equation}
 		\left\{\begin{array}{ll}
-		\forall f,g\in\mathcal{L}^2(\mathcal{U}),\:\langle Tf|g\rangle=\langle f|Tg\rangle&\text{self-adjoint}\\
-		\forall f\in\mathcal{L}^2(\mathcal{U}),\:\langle f|Tf\rangle\geq0&\text{positive semi-definite}
+		\forall\phi,\phi'\in\mathcal{L}^2(\mathcal{U}),\:\langle T\phi|\phi'\rangle=\langle\phi|T\phi'\rangle&\text{self-adjoint}\\
+		\forall\phi\in\mathcal{L}^2(\mathcal{U}),\:\langle\phi|T\phi\rangle\geq0&\text{positive semi-definite}
 		\end{array}\right.
 	\end{equation}
 	where $\langle\cdot|\cdot\rangle$ is the following scalar product:
 	\begin{equation}
-		\forall f,g\in\mathcal{L}^2(\mathcal{U})\mapsto\langle f|g\rangle\triangleq\int_{\mathcal{U}}{f(x)^\top g(x)\:dx}
+		\forall\phi,\phi'\in\mathcal{L}^2(\mathcal{U})\mapsto\langle\phi|\phi'\rangle\triangleq\int_{\mathcal{U}}{\phi(x)^\top\phi'(x)\:dx}
 	\end{equation}
 \end{definition}
 
@@ -27,62 +27,18 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 	\begin{equation}
 		\mathcal{K}:\left\{\begin{aligned}
 		\mathcal{L}^2(\mathcal{U})&\to\mathcal{L}^2(\mathcal{U})\\
-		f&\mapsto\left(x\mapsto\int_{\mathcal{U}}{k(x,y)\:f(y)\:dy}\right)
+		\phi&\mapsto\left(x\mapsto\int_{\mathcal{U}}{k(x,y)\:\phi(y)\:dy}\right)
 		\end{aligned}\right.
 	\end{equation}
 	is a compact SPSD functional operator.
 \end{proposition}
 
 \begin{proof}
-	As $\mathcal{U}$ is compact and $k$ continuous, $k$ is bounded on $\mathcal{U}\times\mathcal{U}$, and $\mathcal{K}$ is compact.
-
-	Let $f,g\in\mathcal{L}^2(\mathcal{U})$. Cauchy-Schwarz inequality ensures that there exists a constant $c\in\mathbb{R}_+$ such that:
-	\begin{equation}
-		\iint_{\mathcal{U}\times\mathcal{U}}{\left|f(y)^\top k(x,y)^\top g(x)\right|\:dx\:dy}\leq c\:\sqrt{\langle f|f\rangle}\:\sqrt{\langle g|g\rangle}<+\infty
-	\end{equation}
-
-	Fubini's integration theorem can thus be used to give:
-	\begin{equation}
-		\begin{aligned}
-		\langle\mathcal{K}f|g\rangle&=\int_{\mathcal{U}}{(\mathcal{K}f)(x)^\top g(x)\:dx}\\
-		&=\int_{\mathcal{U}}{\left(\int_{\mathcal{U}}{k(x,y)\:f(y)\:dy}\right)^\top g(x)\:dx}\\
-		&=\int_{\mathcal{U}}{\int_{\mathcal{U}}{f(y)^\top k(x,y)^\top g(x)\:dy}\:dx}\\
-		&=\int_{\mathcal{U}}{\int_{\mathcal{U}}{f(y)^\top k(y,x)\:g(x)\:dx}\:dy}\\
-		&=\int_{\mathcal{U}}{f(y)^\top\left(\int_{\mathcal{U}}{k(y,x)\:g(x)\:dx}\right)dy}\\
-		&=\int_{\mathcal{U}}{f(y)^\top(\mathcal{K}g)(y)\:dy}\\
-		&=\langle f|\mathcal{K}g\rangle
-		\end{aligned}
-	\end{equation}
-
-	Let $f:\mathcal{U}\to\mathbb{R}^{d_z}$ be a continuous function, and let $n\in\mathbb{N}^*$. We define $\left(\mathcal{U}_i^{(n)}\right)_{i\in[\![1,n]\!]}$ a partition of $\mathcal{U}$ such that the diameter of each $\mathcal{U}_i^{(n)},\:i\in[\![1,n]\!]$ tends to $0$ when $n\to+\infty$. For $i\in[\![1,n]\!]$, we define $x_i^{(n)}\in\mathcal{U}_i^{(n)}$, and we let:
-	\begin{equation}
-		a_i^{(n)}\triangleq\left(\int_{\mathcal{U}_i^{(n)}}{dx}\right)f\left(x_i^{(n)}\right)
-	\end{equation}
-
-	By continuity of $f$, the function:
-	\begin{equation}
-		(x,y)\mapsto f(x)^\top k(x,y)\:f(y)
-	\end{equation}
-	is continuous on the compact $\mathcal{U}\times\mathcal{U}$, so its Riemann sums converge:
-	\begin{equation}
-		\sum_{i=1}^n\sum_{j=1}^n\left(a_i^{(n)}\right)^\top k\left(x_i^{(n)},x_j^{(n)}\right)a_j^{(n)}\underset{n\to+\infty}{\longrightarrow}\iint_{\mathcal{U}\times\mathcal{U}}{f(x)^\top k(x,y)\:f(y)\:dx\:dy}=\langle f|\mathcal{K}f\rangle
-	\end{equation}
-
-	The SPSDness of $k$ ensures that each Riemann sum is non-negative. By passing to the limit, it follows that:
-	\begin{equation}
-		\langle f|\mathcal{K}f\rangle\geq0\label{eq:fKf_geq0}
-	\end{equation}
-	for every continuous function $f$.
-
-	Finally, recall that the set of continuous functions of $\mathcal{U}$ is dense in $\mathcal{L}^2(\mathcal{U})$. By continuity of:
-	\begin{equation}
-		f\in\mathcal{L}^2(\mathcal{U})\mapsto\langle f|\mathcal{K}f\rangle
-	\end{equation}
-	the inequality \eqref{eq:fKf_geq0} extends to all $f\in\mathcal{L}^2(\mathcal{U})$.
+	See \cref{sec:proof_Mercer_operator}.
 \end{proof}
 
 \begin{proposition}[Mercer's theorem]\label{th:Mercer}
-	Under the assumptions of \Cref{th:covariance_operator}, there exist a non-increasing sequence $(\lambda_i)_{i\in\mathbb{N}^*}$ of strictly positive eigenvalues of $\mathcal{K}$ converging to $0$, and an associated orthonormal family $(\psi_i)_{i\in\mathbb{N}^*}$ of continuous $\mathbb{R}^{d_z}$-valued eigenfunctions, such that:
+	Under the assumptions of \Cref{th:covariance_operator}, there exists a non-increasing sequence $(\lambda_i)_{i\in\mathbb{N}^*}$ of strictly positive eigenvalues of $\mathcal{K}$ converging to $0$, and an associated orthonormal family $(\psi_i)_{i\in\mathbb{N}^*}$ of continuous $\mathbb{R}^{d_z}$-valued eigenfunctions, such that:
 	\begin{equation}
 		\forall x,x'\in\mathcal{U},\:k(x,x')=\sum_{i=1}^{+\infty}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top\label{eq:Mercer}
 	\end{equation}
@@ -91,62 +47,15 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 \end{proposition}
 
 \begin{proof}
-	By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\mathcal{U})$. The spectral theorem \cite{bib:spectral-theorem} thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\mathcal{U})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing.
-
-	Since $k$ is uniformly continuous on the compact $\mathcal{U}\times\mathcal{U}$, $\mathcal{K}f$ is continuous for every $f\in\mathcal{L}^2(\mathcal{U})$. In particular, for each $i\in\mathbb{N}^*$ such that $\lambda_i\neq0$, the eigenfunction:
-	\begin{equation}
-		\psi_i=\lambda_i^{-1}\mathcal{K}\psi_i
-	\end{equation}
-	is continuous. Those associated with a null eigenvalue do not contribute to \eqref{eq:Mercer} and may be disregarded.
-
-	Since $(\psi_i)_{i\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{L}^2(\mathcal{U})$, the family $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$. Let $\langle\cdot|\cdot\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}$ denote:
-	\begin{equation}
-		\forall f,g\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})\mapsto\langle f|g\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}\triangleq\iint_{\mathcal{U}\times\mathcal{U}}{\operatorname{tr}\left(f(x,y)^\top g(x,y)\right)\:dx\:dy}
-	\end{equation}
-
-	Let $i,j\in\mathbb{N}^*$. We have:
-	\begin{equation}
-		\begin{aligned}
-			\langle k|\psi_i\:\psi_j^\top\rangle_{\mathcal{L}^2(\mathcal{U}\times\mathcal{U})}&=\iint_{\mathcal{U}\times\mathcal{U}}{\operatorname{tr}\left(k(x,y)^\top\psi_i(x)\:\psi_j(y)^\top\right)dx\:dy}\\
-			&=\iint_{\mathcal{U}\times\mathcal{U}}{\psi_j(y)^\top k(x,y)^\top\psi_i(x)\:dx\:dy}\\
-			&=\int_{\mathcal{U}}{\psi_j(y)^\top\left(\int_{\mathcal{U}}{k(y,x)\:\psi_i(x)\:dx}\right)dy}\\
-			&=\int_{\mathcal{U}}{\psi_j(y)^\top\mathcal{K}\psi_i(y)\:dy}\\
-			&=\lambda_i\int_{\mathcal{U}}{\psi_j(y)^\top\:\psi_i(y)\:dy}\\
-			&=\lambda_i\:\delta_{i,j}
-		\end{aligned}
-	\end{equation}
-	where:
-	\begin{equation}
-		\delta_{i,j}\triangleq\left\{\begin{aligned}
-		1&\quad\text{if }i=j\\0&\quad\text{if }i\neq j
-		\end{aligned}\right.
-	\end{equation}
-	is the Kronecker symbol.
-
-	Since $k\in\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$, it follows from the completeness of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ that:
-	\begin{equation}
-		k_{r_{\mathrm{KL}}}(x,x')\triangleq\sum_{i=1}^{r_{\mathrm{KL}}}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top
-	\end{equation}
-	converges to $k$ in the $\mathcal{L}^2(\mathcal{U}\times\mathcal{U})$ sense.
-
-	It must be noted that $\mathcal{L}^2$ convergence only identifies $k$ up to a Lebesgue-null subset of $\mathcal{U}\times\mathcal{U}$, and gives no control at any specific point of the domain. In particular, it is not enough to justify substituting $k_{r_{\mathrm{KL}}}$ for $k$ in kriging scenarios. However, since $k$ is continuous on $\mathcal{U}\times\mathcal{U}$, the convergence can be extended to absolute and uniform convergence on the entire domain \cite{bib:Karhunen-Loeve}. The argument applies Dini's theorem \cite{bib:Dini} to the non-decreasing sequence $\left(x\mapsto\operatorname{tr}\:k_{r_{\mathrm{KL}}}(x,x)\right)_{r_{\mathrm{KL}}\in\mathbb{N}^*}$, whose limit is continuous on the compact $\mathcal{U}$, and extends the result off the diagonal through the Cauchy-Schwarz inequality.
-
-	Since $\mathcal{K}$ is SPSD, every eigenvalue is non-negative. Assume that there exists a rank $r_0\in\mathbb{N}^*$ such that $\lambda_i=0$ as soon as $i>r_0$. Then the decomposition \eqref{eq:Mercer} would reduce to the finite sum:
-	\begin{equation}
-		k=\sum_{i=1}^{r_0}\lambda_i\:\psi_i\:\psi_i^\top
-	\end{equation}
-	whose Gram matrices have rank at most $r_0$ and are thus singular at any $n$ distinct points with $nd_z>r_0$, contradicting the SPDness of $k$ by \Cref{th:kernel_gram_equivalence}. Consequently:
-	\begin{equation}
-		\lambda_1\geq\lambda_2\geq\cdots>0
-	\end{equation}
+	See \cref{sec:proof_Mercer}.
 \end{proof}
 
 \begin{remark}[Definiteness without invertibility]
 	Since all the eigenvalues $\lambda_i$ are strictly positive, the quadratic form:
 	\begin{equation}
-		f\in\mathcal{L}^2(\mathcal{U})\mapsto\langle f|\mathcal{K}f\rangle=\sum_{i=1}^{+\infty}\lambda_i\:\langle f|\psi_i\rangle^2
+		\phi\in\mathcal{L}^2(\mathcal{U})\mapsto\langle\phi|\mathcal{K}\phi\rangle=\sum_{i=1}^{+\infty}\lambda_i\:\langle\phi|\psi_i\rangle^2
 	\end{equation}
-	is strictly positive for every $f\neq0$, hence positive definite. For a symmetric matrix, definiteness amounts to invertibility, but this equivalence fails in infinite dimension. In particular, since $\mathcal{K}$ is compact with $\lambda_i\to0$, it admits no positive lower bound on the unit sphere, so $0$ belongs to its spectrum. $\mathcal{K}^{-1}$ is thus unbounded, and so the Mercer operator is positive definite yet not invertible.
+	is strictly positive for every $\phi\neq0$, hence positive definite. For a symmetric matrix, definiteness amounts to invertibility, but this equivalence fails in infinite dimension. In particular, since $\mathcal{K}$ is compact with $\lambda_i\to0$, it admits no positive lower bound on the unit sphere, so $0$ belongs to its spectrum. $\mathcal{K}^{-1}$ is thus unbounded, and so the Mercer operator is positive definite yet not invertible.
 
 	In finite dimension, strict positivity and invertibility coincide and jointly characterise SPD matrices, whereas this is not the case in infinite dimension. This is not restrictive, however, as only the finite Gram matrices induced by $k$ are inverted throughout this document.
 \end{remark}
@@ -170,11 +79,11 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 \end{proposition}
 
 \begin{proof}
-	Let $r_{\mathrm{KL}}\in\mathbb{N}^*$ and $f\in\mathcal{L}^2(\mathcal{U})$. We have:
+	Let $r_{\mathrm{KL}}\in\mathbb{N}^*$ and $\phi\in\mathcal{L}^2(\mathcal{U})$. We have:
 	\begin{equation}
-		\mathcal{K}_{r_{\mathrm{KL}}}f=\sum_{i=1}^{r_{\mathrm{KL}}}\lambda_i\langle f|\psi_i\rangle\:\psi_i
+		\mathcal{K}_{r_{\mathrm{KL}}}\phi=\sum_{i=1}^{r_{\mathrm{KL}}}\lambda_i\langle\phi|\psi_i\rangle\:\psi_i
 	\end{equation}
-	where $\mathcal{K}_{r_{\mathrm{KL}}}$ is the Mercer operator associated with $k_{r_{\mathrm{KL}}}$. Every $\mathcal{K}_{r_{\mathrm{KL}}}f$ thus belongs to the subspace of continuous functions spanned by $\psi_1,\dots,\psi_{r_{\mathrm{KL}}}$. The orthonormality of the basis ensures that this subspace is of dimension $r_{\mathrm{KL}}$, and thus the rank of $k_{r_{\mathrm{KL}}}$ is at most $r_{\mathrm{KL}}$. The uniform convergence of $(k_{r_{\mathrm{KL}}})_{r_{\mathrm{KL}}\in\mathbb{N}^*}$ has already been proven by \Cref{th:Mercer}.
+	where $\mathcal{K}_{r_{\mathrm{KL}}}$ is the Mercer operator associated with $k_{r_{\mathrm{KL}}}$. Every $\mathcal{K}_{r_{\mathrm{KL}}}\phi$ thus belongs to the subspace of continuous functions spanned by $\psi_1,\dots,\psi_{r_{\mathrm{KL}}}$. The orthonormality of the basis ensures that this subspace is of dimension $r_{\mathrm{KL}}$, and thus the rank of $k_{r_{\mathrm{KL}}}$ is at most $r_{\mathrm{KL}}$. The uniform convergence of $(k_{r_{\mathrm{KL}}})_{r_{\mathrm{KL}}\in\mathbb{N}^*}$ has already been proven by \Cref{th:Mercer}.
 
 	Finally, applying the Eckart-Young-Mirsky theorem \cite{bib:Eckart-Young,bib:Mirsky} to $\mathcal{K}$ and using the orthonormality of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ yields:
 	\begin{equation}
@@ -204,7 +113,7 @@ and then:
 	G(\tilde{\mathbf{x}})\approx\Psi(\tilde{\mathbf{x}})\:\Lambda\:\Psi(\tilde{\mathbf{x}})^\top+I_{\tilde{n}}\otimes\tilde{R},\qquad\Psi(\tilde{\mathbf{x}})=\begin{bmatrix}\Psi(\tilde{x}_1)\\\vdots\\\Psi(\tilde{x}_{\tilde{n}})\end{bmatrix}\label{eq:reduced_rank_Gram}
 \end{equation}
 
-\begin{proposition}[Reduced-rank simple kriging]
+\begin{proposition}[Reduced-rank simple kriging]\label{th:reduced_rank_kriging}
 	Let:
 	\begin{equation}
 		\tilde{G}(\tilde{\mathbf{x}})\triangleq\Lambda^{-1}+\Psi(\tilde{\mathbf{x}})^\top\left(I_{\tilde{n}}\otimes\tilde{R}\right)^{-1}\Psi(\tilde{\mathbf{x}})\in\mathcal{M}_{r_{\mathrm{KL}},r_{\mathrm{KL}}}(\mathbb{R})
@@ -230,62 +139,7 @@ and then:
 \end{proposition}
 
 \begin{proof}
-	As \eqref{eq:reduced_rank_Gram} is a rank $r_{\mathrm{KL}}$ perturbation of $A\triangleq I_{\tilde{n}}\otimes\tilde{R}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{n}d_z\times\tilde{n}d_z$ inversion of $G(\tilde{\mathbf{x}})$ to an $r\times r$ one:
-	\begin{equation}
-		G(\tilde{\mathbf{x}})^{-1}\approx A^{-1}-A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}
-	\end{equation}
-
-	Computing the centred SK estimator from \Cref{th:simple_kriging} using this approximation and the push-through identity (see \Cref{th:push_through}) yields:
-	\begin{equation}
-		\begin{aligned}
-		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
-		&\approx\Psi(x)\:\Lambda\:\Psi(\tilde{\mathbf{x}})^\top\left(I-A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top\right)A^{-1}\tilde{\mathbf{z}}\\
-		&=\Psi(x)\:\Lambda\left(I-\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\right)\Psi(\tilde{\mathbf{x}})^\top A^{-1}\tilde{\mathbf{z}}
-		\end{aligned}\label{eq:z_s_up_to_tilde_G}
-	\end{equation}
-
-	Recall that, by definition of $\tilde{G}(\tilde{\mathbf{x}})$:
-	\begin{equation}
-		\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}=\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})
-	\end{equation}
-	which gives:
-	\begin{equation}
-		\begin{aligned}
-		I-\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}&=I-\left(\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}\right)\tilde{G}(\tilde{\mathbf{x}})^{-1}\\
-		&=I-I+\Lambda^{-1}\tilde{G}(\tilde{\mathbf{x}})^{-1}\\
-		&=\Lambda^{-1}\tilde{G}(\tilde{\mathbf{x}})^{-1}
-		\end{aligned}\label{eq:reduced_rank_lemma}
-	\end{equation}
-
-	Plugging this result into \eqref{eq:z_s_up_to_tilde_G} and using $A^{-1}=I_{\tilde{n}}\otimes\tilde{R}^{-1}$ finally gives:
-	\begin{equation}
-		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}\tilde{\mathbf{z}}
-	\end{equation}
-
-	For $R_{\mathrm{SK}}$, reusing:
-	\begin{equation}
-		k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}
-	\end{equation}
-	together with \eqref{eq:reduced_rank_lemma} yields:
-	\begin{equation}
-		\begin{aligned}
-		R_{\mathrm{SK}}&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
-		&\approx\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}\times\Psi(\tilde{\mathbf{x}})\:\Lambda\:\Psi(x)^\top\\
-		&=\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\left(\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}\right)\Lambda\:\Psi(x)^\top\\
-		&=\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\left(\Lambda-\tilde{G}(\tilde{\mathbf{x}})^{-1}\right)\Psi(x)^\top\\
-		&=R+\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(x)^\top
-		\end{aligned}
-	\end{equation}
-
-	Finally, when $\tilde{R}=\sigma^2I_{d_z}$ with $\sigma>0$, substituting $A^{-1}=\sigma^{-2}I_{\tilde{n}d_z}$ yields the announced simplifications. For such $\sigma>0$, the matrix:
-	\begin{equation}
-		\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\succ0
-	\end{equation}
-	is SPD, as the sum of the SPSD matrix $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})$ and the SPD matrix $\sigma^2\Lambda^{-1}$. The map:
-	\begin{equation}
-		\sigma\in\mathbb{R}_+^*\mapsto\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}
-	\end{equation}
-	is thus well-defined and continuous, and extends to $\sigma=0$ when $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})\succ0$, \textit{i.e.} when $\Psi(\tilde{\mathbf{x}})$ has full column rank. As $\hat{z}_{\mathrm{SK}}$ and $R_{\mathrm{SK}}$ depend on $\sigma$ only through this inverse and an explicit factor $\sigma^2$, both expressions remain valid at $\sigma=0$ under this condition.
+	See \cref{sec:proof_reduced_rank_kriging}.
 \end{proof}
 
 \begin{remark}[Construction of the eigenfunctions]

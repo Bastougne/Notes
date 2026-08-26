@@ -23,16 +23,16 @@ In our scenarios, the observation function describes the measurement of a physic
 	\begin{equation}
 		z_k=h(x_k)+n_k,\qquad n_k\sim\mathcal{N}(0,R_k)
 	\end{equation}
-	where $m:\mathbb{R}^{d_x}\to\mathbb{R}^{d_z}$ is the potentially unknown mean of the GP, and $k:\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}\to\mathbb{R}^{d_z}$ is its chosen covariance kernel.
+	where $m:\mathbb{R}^{d_x}\to\mathbb{R}^{d_z}$ is the potentially unknown mean of the GP, and $k:\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}\to\mathbb{R}^{d_z}$ is its chosen covariance kernel. Here, $n_k$ plays the role of the query noise $\varepsilon$ of \cref{sec:kriging}, and $R_k$ is its associated covariance $R$.
 
 	We also have access to $\tilde{n}\in\mathbb{N}^*$ distinct training inputs $\tilde{\mathbf{x}}$ and their noisy observations $\tilde{\mathbf{z}}$, degraded by a noise of covariance $\tilde{R}\succeq0$, in the sense of \cref{sec:kriging}.
 \end{assumption}
 
-Using \cref{th:kriging_navigation_assumptions} and the kriging theory presented in \cref{sec:kriging}, the likelihood follows:
+Using \cref{th:kriging_navigation_assumptions}, the likelihood follows:
 \begin{equation}
-	z_k|x_k\sim\mathcal{N}\left(\hat{z}_{\mathrm{K}}(x_k,\tilde{\mathbf{x}},\tilde{\mathbf{z}};m,g),R_{\mathrm{K}}(x_k,\tilde{\mathbf{x}};g)\right)\label{eq:kriged_likelihood}
+	z_k|x_k,\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{K}}(x_k,\tilde{\mathbf{x}},\tilde{\mathbf{z}};m,g),R_{\mathrm{K}}(x_k,\tilde{\mathbf{x}};g)\right)\label{eq:kriged_likelihood}
 \end{equation}
-where $\hat{z}_{\mathrm{K}}$ denotes any of the three kriging estimators of \cref{sec:kriging}, $R_{\mathrm{K}}$ is the corresponding covariance matrix, and $m$ and $g$ are optional arguments depending on the chosen kriging method. In particular, $R_{\mathrm{K}}$ already carries the observation noise $R_k$, so it must not be added a second time.
+where $\hat{z}_{\mathrm{K}}$ denotes any of the three kriging estimators, $R_{\mathrm{K}}$ is the corresponding covariance matrix, and $m$ and $g$ are optional arguments depending on the chosen kriging method. In particular, $R_{\mathrm{K}}$ already carries the query noise $R_k$, so it must not be added a second time.
 
 \begin{remark}[Time-varying observation function]
 	In full generality, the observed physical field could vary over time, and so the underlying GP would need to include a temporal input. While the kriging theory perfectly works with this additional parameter, it would require the training data to be sampled over time as well as space.

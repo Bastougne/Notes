@@ -61,7 +61,9 @@
 \makeatother
 
 \def\theHdefinition{\thedefinition} % ancres hyperref uniques pour les énoncés
+\def\theHassumption{\theassumption}
 \def\theHproposition{\theproposition}
+\def\theHremark{\theremark}
 
 \crefname{assumption}{assumption}{assumptions}
 
@@ -87,11 +89,12 @@
 \input{include/4_adaptive_kriging.tex}
 \input{include/4_subsampling.tex}
 
-\part{Appendix}
+\part{Appendices}
 
 \appendix
 
 \input{include/9_appendix.tex}
+\input{include/9_proofs.tex}
 
 \printbibliography
 \addcontentsline{toc}{chapter}{\bibname}

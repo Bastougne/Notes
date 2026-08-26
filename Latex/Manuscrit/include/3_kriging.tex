@@ -4,6 +4,9 @@ Gaussian process regression, also known as kriging \cite{bib:Matheron,bib:Rasmus
 \begin{equation}
 	z\triangleq f(x)+\varepsilon\in\mathbb{R}^{d_z},\qquad\varepsilon\sim\mathcal{N}(0,R),\qquad R\in\mathcal{S}_{d_z}^+(\mathbb{R})
 \end{equation}
+where $\varepsilon$ is independent of $f$.
+
+While kriging usually aims to reconstruct $f(x)$ itself, the query noise $\varepsilon$ models the observation uncertainty, so that kriging estimates the noisy observation from \eqref{eq:navigation_problem}. The standard formulation can nonetheless be recovered by taking $R=0$.
 
 Without further information regarding $f$, we would only be able to state that $z$ follows a Gaussian distribution of expectation $m(x)$ and covariance $k(x,x)+R$. However, we are given $\tilde{n}\in\mathbb{N}^*$ distinct training points $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{n}})\in\mathcal{U}^{\tilde{n}}$ and their corresponding noisy observations:
 \begin{equation}
@@ -68,8 +71,6 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 		R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k\left(\tilde{\mathbf{x}},x\right)
 		\end{aligned}\right.\label{eq:simple_kriging_equations}
 	\end{equation}
-
-	Here, the term $R$ appears because the quantity being predicted is the noisy query $z=f(x)+\varepsilon$ rather than the latent field value $f(x)$.
 \end{proposition}
 
 \begin{proof}
@@ -104,6 +105,10 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 
 	The general case is obtained by adding $m$ back into $f$.
 \end{proof}
+
+\begin{remark}[Additive query noise]
+	In \Cref{th:simple_kriging}, the term $R$ appears because the noisy query $z$ is predicted rather than the field value $f(x)$. The two share the same estimator, and differ in covariance only by an additive $R$ term. Kriging the field can thus be done by subtracting $R$, or equivalently by taking $R=0$ as mentioned in the introduction to kriging.
+\end{remark}
 
 \begin{remark}[Error covariance minimisation]
 	While the SK weight matrix $W=G^{-1}k(\tilde{\mathbf{x}},x)$ was obtained by minimising the trace of $\mathbb{V}[\hat{z}-z]$, it minimises the whole covariance in the SPSD sense. Indeed:
@@ -193,7 +198,7 @@ This result is a special case of the more general result established in \Cref{th
 
 \subsection{Ordinary Kriging}
 
-Assuming the mean function to be known is a very strong assumption, that is often not verified in real case scenarios. While an approximated model could be used instead of the real $m$, this would cause the kriging estimator to be over-confident in its estimation. Ordinary kriging (OK) extends its simple counterpart by assuming that $m$ is an unknown constant $m\in\mathbb{R}^{d_z}$, and learning $m$ alongside the weights.
+Assuming the mean function to be known is a strong assumption, and can be unrealistic in practical scenarios. While an approximated model could be used instead of the true $m$, this would cause the kriging estimator to be overly confident in its estimation. Ordinary kriging (OK) extends its simple counterpart by assuming that the mean is an unknown constant $m\in\mathbb{R}^{d_z}$, and estimating it alongside the weights.
 
 The unbiased assumption of the OK estimator yields:
 \begin{equation}
@@ -231,103 +236,7 @@ The OK weights thus minimise \eqref{eq:error_covariance} under the constraint \e
 \end{proposition}
 
 \begin{proof}
-	Let:
-	\begin{equation}
-		\mathcal{L}(W,\xi)\triangleq\operatorname{tr}\left(\mathbb{V}\left[W^\top\tilde{\mathbf{z}}-z\right]\right)+2\:\operatorname{tr}\left(\xi^\top\left(C^\top W-I_{d_z}\right)\right)
-	\end{equation}
-	be the Lagrangian associated with the optimisation problem \eqref{eq:error_covariance} under the constraint \eqref{eq:ordinary_kriging_constraint}, and $\xi\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$ the corresponding Lagrange multiplier.
-
-	This problem is solved by finding the minimum of $\mathcal{L}$, \textit{i.e.} finding a zero of its derivative. Writing $G$ for $G(\tilde{\mathbf{x}})$, the same properties used in the proof of \Cref{th:simple_kriging} give:
-	\begin{equation}
-		\begin{aligned}
-		&\frac{\partial\mathcal{L}}{\partial W}(W,\xi)=0\\
-		\iff\quad&2G\:W-2k(\tilde{\mathbf{x}},x)+2\frac{\partial}{\partial W}\left(\operatorname{tr}\left(\xi^\top\left(C^\top W-I_{d_z}\right)\right)\right)=0\\
-		\iff\quad&2G\:W-2k(\tilde{\mathbf{x}},x)+2C\xi=0\\
-		\iff\quad&G\:W+C\xi=k(\tilde{\mathbf{x}},x)
-		\end{aligned}\label{eq:Lagrangian_minimum}
-	\end{equation}
-
-	Together with the constraint $C^\top W=I_{d_z}$, this yields the block system:
-	\begin{equation}
-		\begin{bmatrix}
-		G&C\\C^\top&0
-		\end{bmatrix}\begin{bmatrix}
-		W\\\xi
-		\end{bmatrix}=\begin{bmatrix}
-		k(\tilde{\mathbf{x}},x)\\I_{d_z}
-		\end{bmatrix}
-	\end{equation}
-
-	The left matrix block can be inverted using the upper left Schur inversion formula from \Cref{th:Schur}. Its Schur complement,
-	\begin{equation}
-		S\triangleq0-C^\top G^{-1}C=-C^\top G^{-1}C,
-	\end{equation}
-	is invertible since $G\succ0$ and $C$ has full column rank. The convention of \Cref{th:Schur} gives the four blocks of the inverse:
-	\begin{equation}
-		\left\{\begin{aligned}
-		\bar{A}&=G^{-1}+G^{-1}C\:S^{-1}C^\top G^{-1}\\
-		\bar{B}&=-G^{-1}C\:S^{-1}\\
-		\bar{C}&=-S^{-1}C^\top G^{-1}\\
-		\bar{D}&=S^{-1}
-		\end{aligned}\right.
-	\end{equation}
-
-	Let $M\triangleq-S^{-1}=\left(C^\top G^{-1}C\right)^{-1}$. The weight matrix can be derived from the upper blocks of the inverse:
-	\begin{equation}
-		\begin{aligned}
-		W&=\bar{A}\:k(\tilde{\mathbf{x}},x)+\bar{B}\:I_{d_z}\\
-		&=\left(G^{-1}+G^{-1}C\:S^{-1}C^\top G^{-1}\right)k(\tilde{\mathbf{x}},x)-G^{-1}C\:S^{-1}\\
-		&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:S^{-1}\left(C^\top G^{-1}k(\tilde{\mathbf{x}},x)-I_{d_z}\right)\\
-		&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:M\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)
-		\end{aligned}
-	\end{equation}
-	and $\xi$ from the lower blocks:
-	\begin{equation}
-		\begin{aligned}
-		\xi&=\bar{C}\:k(\tilde{\mathbf{x}},x)+\bar{D}\:I_{d_z}\\
-		&=-S^{-1}C^\top G^{-1}k(\tilde{\mathbf{x}},x)+S^{-1}\\
-		&=S^{-1}\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\\
-		&=-M\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)
-		\end{aligned}
-	\end{equation}
-
-	Since $M$ is symmetric, the OK estimator is:
-	\begin{equation}
-		\begin{aligned}
-		\hat{z}_{\mathrm{OK}}&=W^\top\tilde{\mathbf{z}}\\
-		&=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G^{-1}C\right)M\:C^\top G^{-1}\tilde{\mathbf{z}}\\
-		&=M\:C^\top G^{-1}\tilde{\mathbf{z}}+k(x,\tilde{\mathbf{x}})\:G^{-1}\left(\tilde{\mathbf{z}}-C\:M\:C^\top G^{-1}\tilde{\mathbf{z}}\right)
-		\end{aligned}
-	\end{equation}
-	which is exactly \eqref{eq:ordinary_kriging_equations}, the estimated mean being $m_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})=M\:C^\top G^{-1}\tilde{\mathbf{z}}$.
-
-	Since $R_{\mathrm{OK}}$ is a centred moment of the estimation error, it is insensitive to the unknown mean and \eqref{eq:generic_kriging_variance} can be applied. Using \eqref{eq:Lagrangian_minimum} by $W^\top$ and the constraint $W^\top C=I_{d_z}$ gives the identity:
-	\begin{equation}
-		\begin{aligned}
-		W^\top G\:W&=W^\top\left(k(\tilde{\mathbf{x}},x)-C\:\xi\right)\\
-		&=W^\top k(\tilde{\mathbf{x}},x)-W^\top C\:\xi\\
-		&=W^\top k(\tilde{\mathbf{x}},x)-\xi
-		\end{aligned}\label{eq:OK_identity}
-	\end{equation}
-
-	Let $U\triangleq I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)$ so that the expressions of $W$ and $\xi$ are simplified to:
-	\begin{equation}
-		W=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:M\:U\quad\text{and}\quad\xi=-M\:U
-	\end{equation}
-
-	Combining these results yields:
-	\begin{equation}
-		\begin{aligned}
-		R_{\mathrm{OK}}&=W^\top G\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
-		&=W^\top k(\tilde{\mathbf{x}},x)-\xi-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
-		&=-\xi-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
-		&=M\:U-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:G^{-1}C\:M\:U+k(x,x)+R\\
-		&=\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G^{-1}C\right)M\:U+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)\\
-		&=U^\top M\:U+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)
-		\end{aligned}
-	\end{equation}
-
-	Finally, recognising $R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})=U^\top M\:U\succeq0$, since $M\succ0$, gives the desired expression.
+	See \cref{sec:proof_OK}.
 \end{proof}
 
 \begin{remark}[Comparison between simple and ordinary kriging]\label{th:ordinary_simple_kriging_link}
@@ -395,44 +304,11 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 \end{proposition}
 
 \begin{proof}
-	The unbiased assumption now reads:
-	\begin{equation}
-		g(\tilde{\mathbf{x}})^\top W-g(x)^\top=0
-	\end{equation}
-	and the Lagrange multiplier method of \Cref{th:ordinary_kriging} can be transposed to universal kriging under the substitutions:
-	\begin{equation}
-		\left\{\begin{aligned}
-		C&\longrightarrow g(\tilde{\mathbf{x}})\\
-		I_{d_z}&\longrightarrow g(x)^\top\\
-		\xi&\in\mathcal{M}_{r_{\mathrm{UK}}d_z,d_z}(\mathbb{R})
-		\end{aligned}\right.
-	\end{equation}
-
-	The full column rank of $g(\tilde{\mathbf{x}})$ ensures that $S$ invertible, and that $M$ is SPD. Writing $G$ for $G(\tilde{\mathbf{x}})$, the shorthands of that proof thus become:
-	\begin{equation}
-		\left\{\begin{aligned}
-		M&\triangleq-S^{-1}=\left(g(\tilde{\mathbf{x}})^\top G^{-1}g(\tilde{\mathbf{x}})\right)^{-1}\\
-		U&\triangleq g(x)^\top-g(\tilde{\mathbf{x}})^\top G^{-1}k(\tilde{\mathbf{x}},x)
-		\end{aligned}\right.
-	\end{equation}
-	so that the weight matrix and Lagrange multiplier are:
-	\begin{equation}
-		\left\{\begin{aligned}
-		W&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}g(\tilde{\mathbf{x}})\:M\:U\\
-		\xi&=-M\:U
-		\end{aligned}\right.
-	\end{equation}
-
-	Finally, the bilinear identity \eqref{eq:OK_identity} becomes:
-	\begin{equation}
-		W^\top G\:W=W^\top k(\tilde{\mathbf{x}},x)-g(x)\:\xi
-	\end{equation}
-
-	The UK estimator and covariance matrices are derived exactly like for \Cref{th:ordinary_kriging}, using the corrected results.
+	See \cref{sec:proof_UK}.
 \end{proof}
 
 \begin{remark}[Link with ordinary and simple kriging]
-	As mentionned in the beginning of this section, ordinary kriging is a special case of universal kriging, which arises when $r_{\mathrm{UK}}=1$ and $g_1\equiv1$. In this scenario, the trend matrices reduce to $g(x)=I_{d_z}$ and $g(\tilde{\mathbf{x}})=C$. This, in turn, yields:
+	As mentioned in the beginning of this section, ordinary kriging is a special case of universal kriging, which arises when $r_{\mathrm{UK}}=1$ and $g_1\equiv1$. In this scenario, the trend matrices reduce to $g(x)=I_{d_z}$ and $g(\tilde{\mathbf{x}})=C$. This, in turn, yields:
 	\begin{equation}
 		\left\{\begin{aligned}
 		m_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},1)&=m_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\\
@@ -456,6 +332,16 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	\end{equation}
 
 	\Cref{th:ordinary_simple_kriging_link} is the special case $r_{\mathrm{UK}}=1$, $g_1\equiv1$ of this reading, where the estimated mean function is constant.
+\end{remark}
+
+\begin{remark}[Conditioning under a vague trend prior]\label{th:kriging_vague_prior}
+	\Cref{th:simple_kriging_conditional} interprets simple kriging as the Gaussian conditioning of $z$ knowing $\tilde{\mathbf{z}}$. While this interpretation cannot be directly extended to the OK and UK estimators, it can be recovered \textbf{TODO: à reprendre voire à mettre en proposition}
+
+	\Cref{th:simple_kriging_conditional} reads simple kriging as a Gaussian conditioning, which ordinary and universal kriging do not admit as such, their estimators being BLUEs of an unknown mean rather than posterior expectations. That reading is recovered under a Gaussian prior $\mathcal{N}(0,B)$ on the trend coefficients, which makes the trend part of the process and amounts to simple kriging under the augmented kernel:
+	\begin{equation}
+		k_B(x,x')\triangleq k(x,x')+g(x)\:B\:g(x')^\top
+	\end{equation}
+	Letting $B^{-1}\to0$ leaves that prior flat and returns \eqref{eq:universal_kriging_equations} \cite{bib:Rasmussen-regression}. In this limit, $\mathcal{N}\left(\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)\right)$ is the conditional law of $z$ knowing $\tilde{\mathbf{z}}$, and \eqref{eq:ordinary_kriging_equations} follows as the case $r_{\mathrm{UK}}=1$, $g_1\equiv1$.
 \end{remark}
 
 \subsection{Sequential Kriging Estimation}
@@ -484,7 +370,7 @@ Kriging so far assumes the training set to be given once and for all. When obser
 \end{remark}
 
 \begin{remark}[One update for the three estimators]\label{th:universal_kriging_update}
-	\Cref{eq:kriging_update} involves the current estimator and its error covariance, never the Gram matrix. It therefore applies unchanged to ordinary and universal kriging, which are simple kriging under the augmented kernel $k(x,x')+g(x)\:B\:g(x')^\top$ in the limit of a vague prior $B^{-1}\to0$ on the trend coefficients \cite{bib:Rasmussen-regression}. Only the covariance fed to the update changes, from $R_{\mathrm{SK}}$ to $R_{\mathrm{OK}}$ or $R_{\mathrm{UK}}$.
+	\Cref{eq:kriging_update} involves the current estimator and its error covariance, never the Gram matrix. It therefore applies unchanged to ordinary and universal kriging, which \Cref{th:kriging_vague_prior} reads as simple kriging under an augmented kernel. Only the covariance fed to the update changes, from $R_{\mathrm{SK}}$ to $R_{\mathrm{OK}}$ or $R_{\mathrm{UK}}$.
 
 	Two differences survive this unification. The UK estimator is undefined until $g(\tilde{\mathbf{x}})$ has full column rank, so the recursion needs a first batch of at least $r_{\mathrm{UK}}$ points, where simple kriging accepts any number. And the vague limit is not to be implemented by substituting the augmented kernel, so that the trend coefficients are carried explicitly rather than dissolved into $R_{\mathrm{UK}}$.
 \end{remark}

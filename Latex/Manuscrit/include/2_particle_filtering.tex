@@ -61,7 +61,7 @@ Since this measure is singular, resampling from it can only reproduce the existi
 	p(x_k|\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{(i)}\:K_h\left(x_k-x_k^{(i)}\right)dx_k\label{eq:RPF_kernel}
 \end{equation}
 
-New particles are then drawn from this continuous density rather than from the discrete set, which restores diversity, as illustrated by \Cref{fig:regularisation} and formalised by \Cref{th:regularisation_kernel,th:KDE}. Being absolutely continuous, this approximation also supplies the density that \eqref{eq:RPF_dirac} lacks, and thus makes the MAP estimator of \cref{sec:state_estimation} well-defined at the cost of a numerical maximisation.
+New particles are then drawn from this continuous density rather than from the discrete set, which restores diversity. This is illustrated by \Cref{fig:regularisation} and formalised by \Cref{th:regularisation_kernel,th:KDE}. Being absolutely continuous, this approximation also supplies the density that \eqref{eq:RPF_dirac} lacks, and thus makes the MAP estimator of \cref{sec:state_estimation} well-defined at the cost of a numerical maximisation.
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=0.8\textwidth]{../../Images/Régularisation par noyau.pdf}
@@ -88,26 +88,69 @@ New particles are then drawn from this continuous density rather than from the d
 	\end{equation}
 \end{definition}
 
-\begin{definition}[Regularised estimator]\label{th:KDE}
+\begin{definition}[Regularised measure]
 	Let $*$ denote the convolution operator. The regularised measure $S_{K_h}^N$ of some empirical measure $S^N$ with respect to a regularisation kernel $K_h$ is:
 	\begin{equation}
 		S_{K_h}^N(\mu)\triangleq K_h*S^N(\mu)
 	\end{equation}
 
-	In particular, the regularised self-normalised estimator verifies:
+	In particular, the regularised self-normalised measure verifies:
 	\begin{equation}
 		\tilde{S}_{K_h}^N(\mu,\nu)=\sum_{i=1}^Nw^{(i)}\:\left(K_h*\delta_{X^{(i)}}\right)
 	\end{equation}
-	and the corresponding estimator is:
-	\begin{equation}
-		\left\langle\tilde{S}_{K_h}^N(\mu,\nu),\varphi\right\rangle=\sum_{i=1}^Nw^{(i)}\:\left(K_h*\varphi\right)\left(X^{(i)}\right)
-	\end{equation}
-	by symmetry of $K_h$.
 \end{definition}
+
+\begin{proposition}[Regularised estimator]\label{th:KDE}
+	The regularised self-normalised estimator is:
+	\begin{equation}
+		\left\langle\tilde{S}_{K_h}^N(\mu,\nu),\varphi\right\rangle=\sum_{i=1}^Nw^{(i)}\:\left(K_h*\varphi\right)\left(X^{(i)}\right)=\left\langle\tilde{S}^N(\mu,\nu),K_h*\varphi\right\rangle
+	\end{equation}
+
+	It is a biased and inconsistent estimator in general:
+	\begin{equation}
+		\left\langle\tilde{S}_{K_h}^N(\mu,\nu),\varphi\right\rangle\overset{a.s.}{\longrightarrow}\langle\mu,K_h*\varphi\rangle
+	\end{equation}
+
+	However, it becomes consistent when $\varphi$ is linear. In particular:
+	\begin{equation}
+		\left\langle\tilde{S}_{K_h}^N(\mu_k,\nu_k),\pi_k\right\rangle\overset{a.s.}{\longrightarrow}\langle\mu_k,\pi_k\rangle=\mathbb{E}_{p(\cdot|\mathbf{z}_{1:k})}[x_k]
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	Let $i\in[\![1,N]\!]$. By definition of $*$, we have:
+	\begin{equation}
+		(K_h*\delta_{X^{(i)}})(dx)=K_h(x-X^{(i)})\:dx
+	\end{equation}
+	and thus, by symmetry of $K_h$:
+	\begin{equation}
+		\begin{aligned}
+		\langle K_h*\delta_{X^{(i)}},\varphi\rangle&=\int{\varphi(x)K_h(x-X^{(i)})\:dx}\\
+		&=\int{\varphi(x)K_h(X^{(i)}-x)\:dx}\\
+		&=(K_h*\varphi)(X^{(i)})
+		\end{aligned}
+	\end{equation}
+
+	In turn, this result gives:
+	\begin{equation}
+		\left\langle\tilde{S}_{K_h}^N(\mu,\nu),\varphi\right\rangle=\sum_{i=1}^Nw^{(i)}\:(K_h*\varphi)\left(X^{(i)}\right)=\left\langle\tilde{S}^N(\mu,\nu),K_h*\varphi\right\rangle
+	\end{equation}
+	and \Cref{th:self_normalised_estimator}, applied to $K_h*\varphi$, yields the a.s. limit $\langle\mu,K_h*\varphi\rangle$.
+
+	Assume that $\varphi$ is linear, that is $\varphi:x\mapsto A\:x$ for some $A\in\mathcal{M}_{d_{\varphi},d_x}(\mathbb{R})$. Then, by normalisation and symmetry of $K_h$, for all $x\in\mathbb{R}^{d_x}$:
+	\begin{equation}
+		\begin{aligned}
+		(K_h*\varphi)(x)&=\int{K_h(y)\varphi(x-y)\:dy}\\
+		&=\varphi(x)\int{K_h(y)\:dy}-A\int{yK_h(y)\:dy}\\
+		&=\varphi(x)
+		\end{aligned}
+	\end{equation}
+	Hence $K_h*\varphi=\varphi$, and the limit reduces to $\langle\mu,\varphi\rangle$. In particular, for the linear projection $\pi_k$, it becomes $\langle\mu_k,\pi_k\rangle=\mathbb{E}_{p(\cdot|\mathbf{z}_{1:k})}[x_k]$.
+\end{proof}
 
 The choice of bandwidth $h$ is critical to the performance of the RPF. If $h$ is too small, $K_h$ concentrates around the Dirac measure, and the regularisation has no practical effect on particle diversity. Conversely, the kernel density estimate over-smooths the posterior when $h$ is too large, artificially spreading particles across regions of low probability, and degrading filter accuracy. In this section, we present two classical choices for $K_h$:
 \begin{itemize}
-	\item\textbf{Epanechnikov kernel \cite{bib:Epanechnikov}.} This kernel minimises the mean integrated squared error (MISE) among all regularisation kernels, and the associated bandwidth is optimal when the density is Gaussian with identity covariance. It is defined by:
+	\item\textbf{Epanechnikov kernel.} This kernel minimises the mean integrated squared error (MISE) among all regularisation kernels \cite{bib:Epanechnikov}, and the associated bandwidth is optimal when the density is Gaussian with identity covariance. It is defined by:
 	\begin{equation}
 		\left\{\begin{aligned}
 		K_{\mathrm{Epa}}&:x\mapsto\frac{d_x+2}{2c_{d_x}}\left(1-\|x\|^2\right)\mathbbm{1}_{\|x\|\leq1}(x)\\
@@ -288,31 +331,7 @@ When $Q_k^{nl}\neq 0$, the noises $w_k^l$ and $w_k^n$ are correlated, and the Ka
 \end{proposition}
 
 \begin{proof}
-	As a linear combination of the centred noises $w_k^l$ and $w_k^n$, $\overline{w}_k^l$ is centred. Its covariance develops as:
-	\begin{equation}
-		\begin{aligned}
-		\overline{Q}_k^l&=\mathbb{E}\left[\overline{w}_k^l\:{\overline{w}_k^l}^\top\right]\\
-		&=\mathbb{E}\left[(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]\\
-		&=\mathbb{E}\left[w_k^l\:(w_k^l)^\top\right]-\mathbb{E}\left[w_k^l\:(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]-\mathbb{E}\left[(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^l)^\top\right]\\
-		&\qquad+\mathbb{E}\left[(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]\\
-		&=\mathbb{E}\left[w_k^l\:(w_k^l)^\top\right]-\mathbb{E}\left[w_k^l\:(w_k^n)^\top\right](Q_k^n)^{-\top}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^l)^\top\right]\\
-		&\qquad+Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^n)^\top\right]\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
-		&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
-		&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top\\
-		&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top
-		\end{aligned}
-	\end{equation}
-
-	Finally, computing:
-	\begin{equation}
-		\begin{aligned}
-		\mathbb{E}\left[\overline{w}_k^l\:(w_k^n)^\top\right]&=\mathbb{E}\left[(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^n)^\top\right]\\
-		&=\mathbb{E}\left[w_k^l\:(w_k^n)^\top\right]-Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^n)^\top\right]\\
-		&=Q_k^{nl}-Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\\
-		&=0
-		\end{aligned}
-	\end{equation}
-	shows that $\overline{w}_k^l$ and $w_k^n$ are uncorrelated.
+	See \cref{sec:proof_RBPF}.
 \end{proof}
 
 Let:\begin{align}
