@@ -283,7 +283,7 @@ Since $M$ is symmetric, the OK estimator is:
 	&=M\:C^\top G^{-1}\tilde{\mathbf{z}}+k(x,\tilde{\mathbf{x}})\:G^{-1}\left(\tilde{\mathbf{z}}-C\:M\:C^\top G^{-1}\tilde{\mathbf{z}}\right)
 	\end{aligned}
 \end{equation}
-which is exactly \eqref{eq:ordinary_kriging_equations}, the estimated mean being $m_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})=M\:C^\top G^{-1}\tilde{\mathbf{z}}$.
+which is exactly \eqref{eq:ordinary_kriging_equations}, the estimated mean being $\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})=M\:C^\top G^{-1}\tilde{\mathbf{z}}$.
 
 Since $R_{\mathrm{OK}}$ is a centred moment of the estimation error, it is insensitive to the unknown mean and \eqref{eq:generic_kriging_variance} can be applied. Using \eqref{eq:Lagrangian_minimum} by $W^\top$ and the constraint $W^\top C=I_{d_z}$ gives the identity:
 \begin{equation}
@@ -349,6 +349,57 @@ Finally, the bilinear identity \eqref{eq:OK_identity} becomes:
 \end{equation}
 
 The UK estimator and covariance matrices are derived exactly like for \Cref{th:ordinary_kriging}, using the corrected results.
+
+\section[Proof of Remark 3.11]{Proof of \Cref{th:kriging_vague_prior}}\label{sec:proof_vague_prior}
+
+\textbf{TODO: à relire}
+Let $B\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})$, and give the unknown coefficients the prior $\beta\sim\mathcal{N}(0,B)$, independent of the centred process $f\sim\mathcal{GP}(0,k)$. Randomising the trend this way makes the field $f_B\triangleq f+g\:\beta$ a centred GP of kernel $k_B$ by \Cref{th:GP_marginals}, so that kriging $f_B$ is \Cref{th:simple_kriging} read with $k_B$ in place of $k$. We write $\hat{z}_B$ and $R_B$ for the estimator and covariance it returns, $G$ for $G(\tilde{\mathbf{x}})$ and $g$ for $g(\tilde{\mathbf{x}})$, and reuse the shorthands $M$ and $U$ of \cref{sec:proof_UK}. The Gram matrix of $f_B$ is:
+\begin{equation}
+	G_B\triangleq k_B(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{n}}\otimes\tilde{R}=G+g\:B\:g^\top
+\end{equation}
+
+By \Cref{th:Woodbury} and $g^\top G^{-1}g=M^{-1}$, it comes that:
+\begin{equation}
+	G_B^{-1}=G^{-1}-G^{-1}g\:M_B\:g^\top G^{-1},\qquad M_B\triangleq\left(B^{-1}+M^{-1}\right)^{-1}
+\end{equation}
+
+Since $M_B\left(B^{-1}+M^{-1}\right)=I$, we have $M^{-1}M_B=I-B^{-1}M_B$, and thus the two identities:
+\begin{equation}
+	B-B\:M^{-1}M_B=M_B,\qquad M_B\:M^{-1}B=B-M_B\label{eq:vague_prior_identity}
+\end{equation}
+
+Let $A\triangleq k_B(x,\tilde{\mathbf{x}})=k(x,\tilde{\mathbf{x}})+g(x)\:B\:g^\top$. Developing $A\:G_B^{-1}$ and collecting its terms in $B$ through the first identity of \eqref{eq:vague_prior_identity} yields:
+\begin{equation}
+	A\:G_B^{-1}=k(x,\tilde{\mathbf{x}})\:G^{-1}+U^\top M_B\:g^\top G^{-1}\label{eq:vague_prior_weights}
+\end{equation}
+whence the estimator:
+\begin{equation}
+	\hat{z}_B=A\:G_B^{-1}\tilde{\mathbf{z}}=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+U^\top M_B\:g^\top G^{-1}\tilde{\mathbf{z}}
+\end{equation}
+
+For the covariance, \eqref{eq:vague_prior_weights} and the second identity of \eqref{eq:vague_prior_identity} give:
+\begin{equation}
+	\begin{aligned}
+	A\:G_B^{-1}A^\top&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)\\
+	&\qquad+k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top+U^\top\left(B-M_B\right)g(x)^\top
+	\end{aligned}
+\end{equation}
+and $R_B=k_B(x,x)+R-A\:G_B^{-1}A^\top$ with $k_B(x,x)=k(x,x)+g(x)\:B\:g(x)^\top$. The terms in $B$ cancel, since:
+\begin{equation}
+	g(x)\:B\:g(x)^\top-k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top-U^\top B\:g(x)^\top=U^\top B\:g(x)^\top-U^\top B\:g(x)^\top=0
+\end{equation}
+while the two terms in $M_B$ assemble into the sandwich of \eqref{eq:kriged_universal_mean}:
+\begin{equation}
+	U^\top M_B\:g(x)^\top-U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)=U^\top M_B\:U
+\end{equation}
+so that:
+\begin{equation}
+	R_B=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:U
+\end{equation}
+
+Both expressions are those of \Cref{th:universal_kriging} with $M_B$ substituted for $M$, which proves the stronger statement that kriging under $k_B$ is universal kriging regularised by the prior. Since $M_B\to M$ as $B^{-1}\to0$, the limit returns \eqref{eq:universal_kriging_equations} and \eqref{eq:kriged_universal_mean}.
+
+The coefficients follow the same course. The Gaussian linear model gives $\beta$ the posterior $\mathcal{N}\left(M_B\:g^\top G^{-1}\tilde{\mathbf{z}},M_B\right)$, whose limit is $\mathcal{N}\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),M\right)$. The estimator of \eqref{eq:kriged_universal_mean} is therefore the posterior mean of the trend, and $M$ its posterior covariance.
 
 \section[Proof of Proposition 3.12]{Proof of \Cref{th:covariance_operator}}\label{sec:proof_Mercer_operator}
 

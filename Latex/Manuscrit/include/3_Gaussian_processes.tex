@@ -117,9 +117,9 @@ Using these notations, \Cref{th:GP_marginals} reads compactly:
 	\forall n\in\mathbb{N}^*,\:\forall\mathbf{x}\in\mathcal{U}^n\text{ pairwise distinct},\:f(\mathbf{x})\sim\mathcal{N}\left(m(\mathbf{x}),k(\mathbf{x},\mathbf{x})\right)
 \end{equation}
 
-A GP is thus a consistent generalisation of the multivariate Gaussian distribution to an infinite and potentially continuous index set. Both of its parameters admit a direct interpretation. The mean function $m$ encodes prior knowledge about the average behaviour of $f$, while the kernel $k$ captures the correlation structure. The diagonal blocks $k(x,x)$ measure the variance of $f$ at $x$, and the off-diagonal blocks $k(x,x')$ for $x\neq x'$ capture how the values at $x$ and $x'$ co-vary.
+A GP is thus a consistent generalisation of the multivariate Gaussian distribution to an infinite and potentially continuous index set. Both of its parameters admit a direct interpretation. The mean function $m$ encodes prior knowledge about the average behaviour of $f$, while the kernel $k$ captures the correlation structure. The diagonal blocks $k(x,x)$ represent the covariance of $f(x)$, while the off-diagonal blocks $k(x,x')$, for $x\neq x'$, describe the cross-covariance between $f(x)$ and $f(x')$.
 
-In order for the GP to be non-degenerate, every matrix $k(\mathbf{x},\mathbf{x})$ at distinct points must be SPD in the sense of \Cref{th:matrix_SPSD}. \Cref{th:kernel_SPSD} recasts this as a condition on $k$ alone \cite{bib:Schoenberg}, and \Cref{th:kernel_gram_equivalence} proves the equivalence between the two.
+In order for the GP to be non-degenerate, the matrix $k(\mathbf{x},\mathbf{x})$ must be SPD in the sense of \Cref{th:matrix_SPSD} for every finite tuple $\mathbf{x}$ of pairwise distinct inputs. \Cref{th:kernel_SPSD} recasts this as a condition on $k$ alone \cite{bib:Schoenberg}, and \Cref{th:kernel_gram_equivalence} proves the equivalence between the two.
 
 \begin{definition}[Symmetric positive definite kernel]\label{th:kernel_SPSD}
 	A kernel $k:\mathcal{U}\times\mathcal{U}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is symmetric positive semi-definite (SPSD) if it is:

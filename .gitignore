@@ -7,3 +7,5 @@ Latex/*/main.pdf
 Latex/*/main.synctex.gz
 Latex/*/build/
 !LateX/Manuscrit/main.pdf
+
+MATLAB/*/

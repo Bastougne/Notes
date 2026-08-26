@@ -243,15 +243,15 @@ The OK weights thus minimise \eqref{eq:error_covariance} under the constraint \e
 	The formulas obtained in \eqref{eq:ordinary_kriging_equations} closely resemble those of simple kriging. In fact, they can be rewritten as follows:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{OK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}}))\\
+		\hat{z}_{\mathrm{OK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}}))\\
 		R_{\mathrm{OK}}(x,\tilde{\mathbf{x}})&=R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})+R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})
 		\end{aligned}\right.
 	\end{equation}
-	where, by abuse of notation, $m_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$ denotes either the estimated mean vector or its replication for each the training point $\tilde{\mathbf{x}}$, namely:
+	where, by abuse of notation, $\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$ denotes either the estimated mean vector or its replication for each the training point $\tilde{\mathbf{x}}$, namely:
 	\begin{equation}
 		\underbrace{\begin{bmatrix}
-		m_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\\\vdots\\m_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
-		\end{bmatrix}}_{\tilde{n}\text{ times}}=C\:m_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
+		\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\\\vdots\\\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
+		\end{bmatrix}}_{\tilde{n}\text{ times}}=C\:\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
 	\end{equation}
 
 	Ordinary kriging can therefore be interpreted as simple kriging in which the mean $m$ is concurrently estimated from the observations. The uncertainty associated with this second estimation is captured by the covariance term $R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})\succeq0$, and is added to the SK covariance.
@@ -261,16 +261,16 @@ The OK weights thus minimise \eqref{eq:error_covariance} under the constraint \e
 
 Universal kriging (UK) \cite{bib:universal-kriging} generalises the constant mean of ordinary kriging to a linear combination of $r_{\mathrm{UK}}\in\mathbb{N}^*$ known trend functions $g_1,\dots,g_{r_{\mathrm{UK}}}:\mathcal{U}\to\mathbb{R}$:
 \begin{equation}
-	m(x)=g(x)\:m_{\mathrm{UK}}=\sum_{i=1}^{r_{\mathrm{UK}}}g_i(x)\:m_{\mathrm{UK},i}
+	m(x)=g(x)\:\beta=\sum_{i=1}^{r_{\mathrm{UK}}}g_i(x)\:\beta_i
 \end{equation}
 where $g(x)$ is the trend matrix:
 \begin{equation}
 	g(x)\triangleq\begin{bmatrix}g_1(x)&\cdots&g_{r_{\mathrm{UK}}}(x)\end{bmatrix}\otimes I_{d_z}\in\mathcal{M}_{d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
 \end{equation}
-and $m_{\mathrm{UK}}$ gathers the unknown coefficients $m_{\mathrm{UK},i}\in\mathbb{R}^{d_z}$:
+and $\beta$ gathers the unknown coefficients $\beta_i\in\mathbb{R}^{d_z}$:
 \begin{equation}
-	m_{\mathrm{UK}}\triangleq\begin{bmatrix}
-	m_{\mathrm{UK},1}\\\vdots\\m_{\mathrm{UK},r_{\mathrm{UK}}}
+	\beta\triangleq\begin{bmatrix}
+	\beta_1\\\vdots\\\beta_{r_{\mathrm{UK}}}
 	\end{bmatrix}\in\mathbb{R}^{r_{\mathrm{UK}}d_z}
 \end{equation}
 
@@ -280,7 +280,7 @@ The trend matrix at the training points stacks these evaluations:
 	g(\tilde{x}_1)\\\vdots\\g(\tilde{x}_{\tilde{n}})
 	\end{bmatrix}\in\mathcal{M}_{\tilde{n}d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
 \end{equation}
-so that $m(\tilde{\mathbf{x}})=g(\tilde{\mathbf{x}})\:m_{\mathrm{UK}}$ lies in $\mathbb{R}^{\tilde{n}d_z}$, as does $\tilde{\mathbf{z}}$.
+so that $m(\tilde{\mathbf{x}})=g(\tilde{\mathbf{x}})\:\beta$ lies in $\mathbb{R}^{\tilde{n}d_z}$, as does $\tilde{\mathbf{z}}$.
 
 This matrix is assumed to have full column rank, which requires at least $\tilde{n}\geq r_{\mathrm{UK}}$ training points, and the trend functions to be linearly independent once restricted to the training points. \Cref{th:universal_kriging} generalises \Cref{th:ordinary_kriging} accordingly.
 
@@ -288,14 +288,14 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	Assume that $g(\tilde{\mathbf{x}})$ has full column rank. The UK estimator of $z$ given $\tilde{\mathbf{z}}$ and its error covariance are:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=g(x)\:m_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\:m_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right)\\
+		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=g(x)\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right)\\
 		R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k\left(\tilde{\mathbf{x}},x\right)
 		\end{aligned}\right.\label{eq:universal_kriging_equations}
 	\end{equation}
 	with:
 	\begin{equation}
 		\left\{\begin{aligned}
-		m_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\left(g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^{-1}g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
+		\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\left(g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^{-1}g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
 		R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)&=\left(g(x)-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)\left(g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^{-1}\\
 		&\qquad\left(g(x)-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^\top
 		\end{aligned}\right.\label{eq:kriged_universal_mean}
@@ -311,7 +311,7 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	As mentioned in the beginning of this section, ordinary kriging is a special case of universal kriging, which arises when $r_{\mathrm{UK}}=1$ and $g_1\equiv1$. In this scenario, the trend matrices reduce to $g(x)=I_{d_z}$ and $g(\tilde{\mathbf{x}})=C$. This, in turn, yields:
 	\begin{equation}
 		\left\{\begin{aligned}
-		m_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},1)&=m_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\\
+		\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},1)&=\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\\
 		R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},1)&=R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})
 		\end{aligned}\right.
 	\end{equation}
@@ -326,7 +326,7 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	Similarly to \Cref{th:ordinary_simple_kriging_link}, universal kriging can be seen as the simultaneous simple kriging from the training points and mean estimation from the trend functions. Indeed, comparing \eqref{eq:universal_kriging_equations} with \Cref{th:simple_kriging} shows that the following relation:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\hat{z}_{\mathrm{SK}}\left(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g\:m_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right)\\
+		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\hat{z}_{\mathrm{SK}}\left(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right)\\
 		R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)+R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})
 		\end{aligned}\right.
 	\end{equation}
@@ -343,6 +343,10 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	\end{equation}
 	Letting $B^{-1}\to0$ leaves that prior flat and returns \eqref{eq:universal_kriging_equations} \cite{bib:Rasmussen-regression}. In this limit, $\mathcal{N}\left(\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)\right)$ is the conditional law of $z$ knowing $\tilde{\mathbf{z}}$, and \eqref{eq:ordinary_kriging_equations} follows as the case $r_{\mathrm{UK}}=1$, $g_1\equiv1$.
 \end{remark}
+
+\begin{proof}
+	See \cref{sec:proof_vague_prior}.
+\end{proof}
 
 \subsection{Sequential Kriging Estimation}
 
@@ -375,14 +379,14 @@ Kriging so far assumes the training set to be given once and for all. When obser
 	Two differences survive this unification. The UK estimator is undefined until $g(\tilde{\mathbf{x}})$ has full column rank, so the recursion needs a first batch of at least $r_{\mathrm{UK}}$ points, where simple kriging accepts any number. And the vague limit is not to be implemented by substituting the augmented kernel, so that the trend coefficients are carried explicitly rather than dissolved into $R_{\mathrm{UK}}$.
 \end{remark}
 
-What such a recursion carries is the pair $\left(m_{\mathrm{UK}},M\right)$, where $M$ is the matrix inverted in \eqref{eq:kriged_universal_mean}. That matrix is the error covariance of the coefficients themselves, $R_{\hat{m}_{\mathrm{UK}}}$ being only its image at a query point. Writing $U_{\mathrm{new}}$ for the factor of \eqref{eq:kriged_universal_mean} evaluated at the new points:
+What such a recursion carries is the pair $\left(\hat{m}_{\mathrm{UK}},M\right)$, where $M$ is the matrix inverted in \eqref{eq:kriged_universal_mean}. That matrix is the error covariance of the coefficients themselves, $R_{\hat{m}_{\mathrm{UK}}}$ being only its image at a query point. Writing $U_{\mathrm{new}}$ for the factor of \eqref{eq:kriged_universal_mean} evaluated at the new points:
 \begin{equation}
 	U_{\mathrm{new}}\triangleq g(\tilde{\mathbf{x}}_{\mathrm{new}})-k(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\in\mathcal{M}_{\tilde{n}_{\mathrm{new}}d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
 \end{equation}
 the batch updates them as:
 \begin{equation}
 	\left\{\begin{aligned}
-	m_{\mathrm{UK}}^{\mathrm{new}}&=m_{\mathrm{UK}}+M\:U_{\mathrm{new}}^\top\:R_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
+	\hat{m}_{\mathrm{UK}}^{\mathrm{new}}&=\hat{m}_{\mathrm{UK}}+M\:U_{\mathrm{new}}^\top\:R_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
 	M_{\mathrm{new}}&=M-M\:U_{\mathrm{new}}^\top\:R_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}U_{\mathrm{new}}\:M
 	\end{aligned}\right.\label{eq:universal_kriging_update}
 \end{equation}
@@ -393,7 +397,7 @@ This is again a Kalman correction, this time on the coefficients rather than on 
 \end{equation}
 The two terms separate what the new batch teaches about the field from what it teaches about the trend, and the second is exactly the uncertainty the update consumes. In information form, $M_{\mathrm{new}}^{-1}=M^{-1}+U_{\mathrm{new}}^\top R_{\mathrm{SK}}(\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}U_{\mathrm{new}}$, so each batch adds to the information on the trend and never removes any.
 
-\Cref{eq:universal_kriging_update} has a reading of its own. The trend coefficients are learnt as the mission proceeds, rather than fitted once on a prior survey, and the pair $\left(m_{\mathrm{UK}},M\right)$ is then a map being built while the vehicle moves, which is the promise of simultaneous localisation and mapping.
+\Cref{eq:universal_kriging_update} has a reading of its own. The trend coefficients are learnt as the mission proceeds, rather than fitted once on a prior survey, and the pair $\left(\hat{m}_{\mathrm{UK}},M\right)$ is then a map being built while the vehicle moves, which is the promise of simultaneous localisation and mapping.
 
 \begin{remark}[Why this is not yet SLAM]
 	The recursion above assumes the training inputs to be known, as every kriging estimator of this section does. A navigating vehicle does not know them. It would feed the update the pair $\left(\hat{x}_k,z_k\right)$, its current state estimate and its current observation, which breaks the assumption twice over.
