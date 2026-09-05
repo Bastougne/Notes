@@ -1,0 +1,102 @@
+\section{Reproducing Kernel Hilbert Spaces}\label{sec:RKHS}
+
+Beyond regression, the covariance kernel also induces a functional Hilbert space, known as reproducing kernel Hilbert space (RKHS) \cite{bib:Aronszajn,bib:RKHS-Dumbgen}. The RKHS representation is complementary to the probabilistic viewpoint described throughout this chapter. Indeed, while the GP describes a probabilistic distribution over functions, the RKHS associated with its covariance kernel provides a deterministic functional space in which such functions can be represented, manipulated, or approximated. For the sake of simplicity, we assume that $d_z=1$, so that the reproducing property can be written in its most natural form.
+
+\subsection{Reproducing Property and Definition}
+
+Let $\mathcal{U}$ be an arbitrary set, and let $(\mathcal{H},\langle\cdot|\cdot\rangle_{\mathcal{H}})$ denote a Hilbert space of functions from $\mathcal{U}$ to $\mathbb{R}$. \Cref{th:RKHS,th:reproducing_kernel} describe the conditions for this space to be an RKHS.
+
+\begin{definition}[Reproducing kernel Hilbert space]\label{th:RKHS}
+	A Hilbert space $(\mathcal{H},\langle\cdot|\cdot\rangle_{\mathcal{H}})$ of functions from $\mathcal{U}$ to $\mathbb{R}$ is an RKHS if there exists a function $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}$ such that:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\forall x\in\mathcal{U},&\:k(x,\cdot)\in\mathcal{H}\\
+		\forall x\in\mathcal{U},&\:\forall f\in\mathcal{H},\:\langle f|k(x,\cdot)\rangle_{\mathcal{H}}=f(x)
+		\end{aligned}\right.
+	\end{equation}
+
+	This second equation is the reproducing property of $\mathcal{H}$.
+\end{definition}
+
+\begin{proposition}[Reproducing kernel]\label{th:reproducing_kernel}
+	When such a $k$ exists, it is symmetric and unique. It is called the reproducing kernel of $\mathcal{H}$.
+\end{proposition}
+
+\begin{proof}
+	Let $k_1$ satisfy \Cref{th:RKHS}, and let $x,x'\in\mathcal{U}$. Then:
+	\begin{equation}
+		\begin{aligned}
+		k_1(x,x')&=(k_1(x,\cdot))(x')\\
+		&=\langle k_1(x,\cdot)|k_1(x',\cdot)\rangle_{\mathcal{H}}\\
+		&=\langle k_1(x',\cdot)|k_1(x,\cdot)\rangle_{\mathcal{H}}\\
+		&=k_1(x',x)
+		\end{aligned}
+	\end{equation}
+	so $k_1$ is symmetric.
+
+	Assume that there exists another function $k_2$ that verifies \Cref{th:RKHS}. It comes that:
+	\begin{equation}
+		\begin{aligned}
+		k_2(x,x')&=(k_2(x,\cdot))(x')\\
+		&=\langle k_2(x,\cdot)|k_1(x',\cdot)\rangle_{\mathcal{H}}\\
+		&=\langle k_1(x',\cdot)|k_2(x,\cdot)\rangle_{\mathcal{H}}\\
+		&=k_1(x',x)\\
+		&=k_1(x,x')
+		\end{aligned}
+	\end{equation}
+	and so $k_2=k_1$.
+\end{proof}
+
+It can be shown \cite{bib:RKHS-twelve-pages} that $\mathcal{H}$ is an RKHS if, and only if, the evaluation functional at every point of the domain:
+\begin{equation}
+	e_x:f\in\mathcal{H}\mapsto f(x)
+\end{equation}
+is continuous on $\mathcal{H}$ for every $x\in\mathcal{U}$. Its reproducing kernel is necessarily SPSD. Conversely, every SPSD kernel $k$ admits a unique RKHS $\mathcal{H}_k$ for which $k$ is the reproducing kernel. Such an RKHS admits an explicit construction, as detailed in \Cref{th:native_RKHS}.
+
+\begin{proposition}[Native RKHS]\label{th:native_RKHS}
+	Let $k$ be an SPSD kernel, let $\mathcal{H}_k$ be the completion of the set spanned by $\{k(x,\cdot),\:x\in\mathcal{U}\}$, and let $\langle\cdot|\cdot\rangle_{\mathcal{H}_k}$ be defined on the generators by:
+	\begin{equation}
+		\forall x,x'\in\mathcal{U},\:\langle k(x,\cdot)|k(x',\cdot)\rangle_{\mathcal{H}_k}\triangleq k(x,x')
+	\end{equation}
+
+	Then $(\mathcal{H}_k,\langle\cdot|\cdot\rangle_{\mathcal{H}_k})$ is a Hilbert space and an RKHS. Its reproducing kernel is $k$, and it is the only RKHS for which $k$ is the reproducing kernel. It is called the native RKHS of $k$.
+\end{proposition}
+
+\begin{proof}
+	See \cref{sec:proof_native_RKHS}.
+\end{proof}
+
+\textbf{TODO: reprendre ici}
+
+
+
+Let $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}$ be a scalar SPSD kernel on an arbitrary set $\mathcal{U}$. \Cref{th:RKHS} formally defines the RKHS induced by $k$.
+
+\begin{definition}[Reproducing kernel Hilbert space]\label{th:RKHS_native}
+	The reproducing kernel Hilbert space (RKHS) $\mathcal{H}_k$ associated with $k$ is the completion of the span of $\{k(\cdot,x)\:|\:x\in\mathcal{U}\}$ for the inner product defined on the generators by:
+
+	It is characterised by the reproducing property. For all $\psi\in\mathcal{H}_k$ and $x\in\mathcal{U}$,
+	\begin{equation}
+		\psi(x)=\langle\psi\:|\:k(\cdot,x)\rangle_{\mathcal{H}_k}\label{eq:reproducing_property}
+	\end{equation}
+\end{definition}
+
+The reproducing property \eqref{eq:reproducing_property} states that point evaluation amounts to applying a continuous linear functional on $\mathcal{H}_k$, which endows the space with a regularity entirely dictated by $k$. This space provides a variational reading of kriging \cite{bib:GP-kernel-methods}.
+
+\begin{proposition}[Kriging as minimum-norm interpolation]
+	In the centred case, the SK estimator \eqref{eq:simple_kriging_equations} is the solution of the regularised least-squares problem in $\mathcal{H}_k$:
+	\begin{equation}
+		z_s^*=\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}\left(\frac{1}{\tilde{R}}\sum_{i=1}^{\tilde{n}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\|\psi\|_{\mathcal{H}_k}^2\right)\label{eq:RKHS_regularisation}
+	\end{equation}
+	which, in the noise-free limit $\tilde{R}\to0$, reduces to the minimum-norm interpolant $\operatorname{argmin}\{\|\psi\|_{\mathcal{H}_k}\:|\:\psi(\tilde{x}_i)=\tilde{z}_i\}$.
+\end{proposition}
+
+\begin{proof}
+	By the representer theorem \cite{bib:representer,bib:representer-generalised}, a minimiser of \eqref{eq:RKHS_regularisation} lies in the finite-dimensional span of $\{k(\cdot,\tilde{x}_i)\}_{i=1}^{\tilde{n}}$, \textit{i.e.} $\psi=\sum_i\alpha_i\:k(\cdot,\tilde{x}_i)$. The reproducing property gives $\psi(\tilde{x}_j)=\sum_i\alpha_i\:k(\tilde{x}_j,\tilde{x}_i)$ and $\|\psi\|_{\mathcal{H}_k}^2=\alpha^\top k(\tilde{X},\tilde{X})\:\alpha$, so \eqref{eq:RKHS_regularisation} becomes the quadratic problem $\operatorname{argmin}_\alpha\:\tilde{R}^{-1}\|k(\tilde{X},\tilde{X})\alpha-\tilde{Z}\|^2+\alpha^\top k(\tilde{X},\tilde{X})\alpha$. Cancelling its gradient gives $\alpha=G^{-1}\tilde{Z}$, hence $\psi(x)=k(x,\tilde{X})\:G^{-1}\tilde{Z}$, which is \eqref{eq:simple_kriging_equations} for $m=0$.
+\end{proof}
+
+\begin{remark}[GP and RKHS correspondence]
+	The two viewpoints are complementary \cite{bib:Rasmussen-relationships}. The GP model gives a probabilistic reading of kriging (posterior mean and variance under a Gaussian prior), while the RKHS gives a deterministic one (minimum-norm interpolant in a function space). Writing the Mercer decomposition of the kernel over its eigenpairs $(\lambda_j,\phi_j)_{j\geq1}$ as $k(x,x')=\sum_{j\geq1}\lambda_j\:\phi_j(x)\:\phi_j(x')$, a function $\psi=\sum_{j\geq1}c_j\:\phi_j$ belongs to $\mathcal{H}_k$ with squared norm $\|\psi\|_{\mathcal{H}_k}^2=\sum_{j\geq1}c_j^2/\lambda_j$; the norm thus penalises most the components carried by low-eigenvalue, rapidly oscillating eigenfunctions, so the decay of the eigenvalues $\lambda_j$ sets the smoothness enforced by $k$. Choosing a kernel therefore amounts to choosing a regularity class for the unknown field. A smooth kernel such as the SE kernel yields infinitely differentiable interpolants, whereas a rougher Matérn kernel admits functions of limited smoothness.
+\end{remark}
+
+Espaces natifs : \cite{bib:Wendland} 

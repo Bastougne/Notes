@@ -57,8 +57,6 @@ We also assume that the query point $x$ differs from the training points $\tilde
 
 Moreover, $\mathbb{V}\left[\hat{z}-z\right]$ is a covariance matrix, and therefore SPSD whatever the weight matrix $W$. It is furthermore positive definite when $x$ is not one of the training points, since $\hat{z}-z$ is a non-degenerate linear combination of $z$ and $\tilde{\mathbf{z}}$.
 
-\textbf{TODO: il faut parler du sur-coût du krigeage ordinaire/universel (inversion supplémentaire), mais où ?}
-
 \subsection{Simple Kriging}
 
 Simple kriging (SK) is the simplest form of kriging, and assumes that the mean function $m$ is known. \Cref{th:simple_kriging} gives a closed-form expression of the SK estimator and its associated covariance matrix, while \Cref{th:simple_kriging_conditional} shows that it coincides with the conditional distribution of $z$ given $\tilde{\mathbf{z}}$.
@@ -334,19 +332,36 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	\Cref{th:ordinary_simple_kriging_link} is the special case $r_{\mathrm{UK}}=1$, $g_1\equiv1$ of this reading, where the estimated mean function is constant.
 \end{remark}
 
-\begin{remark}[Conditioning under a vague trend prior]\label{th:kriging_vague_prior}
-	\Cref{th:simple_kriging_conditional} interprets simple kriging as the Gaussian conditioning of $z$ knowing $\tilde{\mathbf{z}}$. While this interpretation cannot be directly extended to the OK and UK estimators, it can be recovered \textbf{TODO: à reprendre voire à mettre en proposition}
+\begin{remark}[Kriging with a coarse model]
+	Universal kriging is primarily relevant when a coarse model of the field is available, such as a polynomial trend \cite{bib:UK-surrogate} or a simplified reference model \cite{bib:KED-geomagnetic}. In the simplest case, setting $r_{\mathrm{UK}}=1$, and choosing $g_1$ as this model amounts to kriging the discrepancy. The GP the corrects the approximation rather than reconstructing the field from scratch.
+\end{remark}
 
-	\Cref{th:simple_kriging_conditional} reads simple kriging as a Gaussian conditioning, which ordinary and universal kriging do not admit as such, their estimators being BLUEs of an unknown mean rather than posterior expectations. That reading is recovered under a Gaussian prior $\mathcal{N}(0,B)$ on the trend coefficients, which makes the trend part of the process and amounts to simple kriging under the augmented kernel:
+\Cref{th:simple_kriging_conditional} reads simple kriging as a Gaussian conditioning, which ordinary and universal kriging do not admit as such, their estimators being BLUEs of an unknown mean rather than posterior expectations. This interpretation can nonetheless be recovered by using a Gaussian prior on the trend coefficients, as proven by \Cref{th:kriging_vague_prior}.
+
+\begin{proposition}[Conditioning under a vague trend prior]\label{th:kriging_vague_prior}
+	Consider the augmented kernel:
 	\begin{equation}
 		k_B(x,x')\triangleq k(x,x')+g(x)\:B\:g(x')^\top
 	\end{equation}
+
+	Universal kriging under $k$ is equivalent to simple kriging under $k_B$.
 	Letting $B^{-1}\to0$ leaves that prior flat and returns \eqref{eq:universal_kriging_equations} \cite{bib:Rasmussen-regression}. In this limit, $\mathcal{N}\left(\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)\right)$ is the conditional law of $z$ knowing $\tilde{\mathbf{z}}$, and \eqref{eq:ordinary_kriging_equations} follows as the case $r_{\mathrm{UK}}=1$, $g_1\equiv1$.
-\end{remark}
+\end{proposition}
 
 \begin{proof}
 	See \cref{sec:proof_vague_prior}.
 \end{proof}
+
+\textbf{TODO: à vérifier — trois modifications dans cette sous-section. La remarque de
+complexité ci-dessous est nouvelle. \Cref{th:kriging_vague_prior} est passée de remarque à
+proposition, et son premier paragraphe, qui doublonnait le second, a été supprimé — reste
+à décider si son corps doit être reformulé en énoncé.}
+
+\begin{remark}[Cost of estimating the mean]\label{th:kriging_mean_cost}
+	Ordinary and universal kriging both add the estimation of a mean to their simple counterpart, at a cost that \eqref{eq:universal_kriging_equations} makes explicit. Besides the $\mathcal{O}\left(\tilde{n}^3\right)$ factorisation of $G(\tilde{\mathbf{x}})$, they need $G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, which reuses that factorisation for $r_{\mathrm{UK}}$ additional right-hand sides and costs $\mathcal{O}\left(r_{\mathrm{UK}}\tilde{n}^2\right)$, then the assembly and the inversion of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, for $\mathcal{O}\left(r_{\mathrm{UK}}^2\tilde{n}+r_{\mathrm{UK}}^3\right)$. Like the factorisation itself, these are paid once and shared across query points, each of which then carries an extra $\mathcal{O}\left(r_{\mathrm{UK}}\tilde{n}\right)$.
+
+	Estimating the mean is therefore free at the dominant order as long as $r_{\mathrm{UK}}\ll\tilde{n}$, ordinary kriging being the extreme case $r_{\mathrm{UK}}=1$ of one additional right-hand side and a $d_z\times d_z$ inversion. The same ratio governs the conditioning of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, which degrades as $r_{\mathrm{UK}}$ approaches $\tilde{n}$, so the arithmetic cost and the numerical one are bounded together.
+\end{remark}
 
 \subsection{Sequential Kriging Estimation}
 

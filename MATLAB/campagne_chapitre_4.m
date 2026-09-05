@@ -25,22 +25,54 @@ clearvars -except over; close all; clc;   % `over` survit : voir surcharge() en 
 here = fileparts(mfilename('fullpath'));
 addpath(here);
 
+% Sur un processeur hybride — ici 2 cœurs performance et 8 cœurs efficience — MATLAB
+% n'ouvre par défaut que 2 threads de calcul et laisse les huit autres inutilisés. Les
+% forcer vaut 2,6x sur les produits et les factorisations, mesuré : 33,6 -> 87,3 Gflop/s
+% sur un produit 3000x3000. La tabulation du krigeage statique, qui domine le coût d'une
+% campagne, en profite directement.
+%
+% À fixer une fois pour toutes : changer le nombre de threads change l'ordre de sommation
+% du BLAS, donc les derniers bits, donc les trajectoires d'un filtre particulaire, qui est
+% chaotique. Deux campagnes à nombres de threads différents ne sont pas comparables essai
+% par essai — seulement en distribution.
+maxNumCompThreads(feature('numcores') + 2);
+
 %% Paramètres
 par.compare.filters = {'RPF'};
 par.compare.models  = {'carte', 'ok', 'ak', 'cak'};
 
 par.scenario   = 'reference';       % 'reference', 'acquisition', 'eusipco', '2A', 'balayage'
-par.campagne   = 'libre';           % 'A', 'B', 'C', 'D' ou 'libre' — voir le second switch
+par.campagne   = 'A';           % 'A', 'B', 'C', 'D' ou 'libre' — voir le second switch
 par.run.seed   = 123456789;
-par.mc.n_runs  = 10;
+par.mc.n_runs  = 100;
 
 % Ce qui ne dépend pas du scénario. Les cas ci-dessous redéfinissent ce qui leur est
 % propre, et la surcharge appliquée après eux a le dernier mot sur les deux.
 par.unit    = 'nT';
 par.filt.alpha_reg = 0.3;
+par.conv.seuil     = 3500;       % m, seuil d'erreur finale au-delà duquel la piste est perdue
+par.conv.confiance = 0.99;       % quantile du chi2 pour le critère de Mahalanobis
+par.conv.n_fin     = 10;         % pas sur lesquels les deux critères sont médianés
+par.conv.k_acq     = 30;         % pas où l'on lit la phase d'acquisition : dans 'reference' le
+                                 % nuage est multimodal jusque-là et unimodal ensuite, donc une
+                                 % médiane sur 150 pas noie la phase où les paramètres agissent
+par.krig.n_surveys = 1;          % tirages de relevé sur lesquels répartir les essais
+par.krig.jitter       = 0.30;        % le relevé n'est pas un réseau exact : chaque point
+                                     % est déplacé dans sa cellule de cette fraction de
+                                     % maille. Sans ça l'erreur d'interpolation est une
+                                     % fonction périodique de la position dans la cellule,
+                                     % donc un biais déterministe que deux branches de vol
+                                     % commensurables subissent à l'identique. Mettre 0
+                                     % pour retrouver le réseau exact, ce qui n'a d'usage
+                                     % que comme témoin.
+par.krig.phase_alea   = true;         % la grille coulisse d'un tirage à l'autre
 par.krig.n_side       = 80;          % relevé n_side x n_side, celui de 2A
 par.krig.ell_init     = 10e3;        % m, départ imposé à fitrgp, voir krigeage
 par.krig.n_ml         = 500;         % points de l'ajustement global
+par.krig.n_ml_win     = 250;         % idem sur une fenêtre. La campagne C le balaie de
+                                     % 250 à 6400 sans que rien bouge — 99 % de cohérence
+                                     % et 325 m de médiane finale partout — alors il vaut
+                                     % 250, ce qui retire 31 % du temps de l'AK.
 par.krig.n_chunk      = 2000;        % points krigés d'un coup
 par.krig.refit        = 'fenetre';   % 'fenetre' ou 'global', voir krigeage
 par.krig.window_factor = 2;          % alpha de l'article, coefficient de dilatation
@@ -71,14 +103,26 @@ switch par.scenario
         par.traj.n_branches = 3;
         par.traj.bank       = 45;        % deg, 1,41 g, d'où un rayon de 25,5 km
         par.traj.marge      = 35e3;      % m
-        par.sigma_0    = [12000, 12000, 2, 2];   % 2,9 sigma de marge au bord : au-delà, le
+        par.sigma_0    = [8000, 8000, 2, 2];   % 2,9 sigma de marge au bord : au-delà, le
                                                  % nuage initial déborde et lit une valeur
                                                  % ramenée au bord
         par.sigma_q    = [100, 100, 1, 1];
+        par.krig.pas       = 3500;       % m. C'est la MAILLE qui décrit un relevé, pas
+                                         % son nombre de points : elle se lit en kilomètres
+                                         % et se compare d'une carte à l'autre. 3,50 km est
+                                         % le point où le bilinéaire commence à lâcher — 96
+                                         % contre 99 % — alors que le krigeage tient encore.
+                                         % La campagne A la balaie, tout le reste s'y tient.
         par.krig.sigma_map = 10;         % nT
         par.krig.tab_pitch = 250;
         par.krig.n_max     = 2000;
         par.krig.bandwidth = 1000;       % m
+        par.krig.noyau     = 'matern32';
+        % Matérn 3/2 et non exponentielle quadratique : cette dernière est infiniment
+        % dérivable, donc incapable de porter la structure courte échelle d'un champ
+        % d'anomalie. Mesuré : 11 % d'erreur de reconstruction en moins à maille fine,
+        % avec un optimum vers nu = 3/2 (l'exponentiel, nu = 1/2, est déjà trop rugueux).
+        % Le noyau entre dans la clé du cache, donc les tabulations sont refaites.
 
     % Le tableau I de l'article. Trois écarts avec le code de 2A — relevé à 80 nT et non
     % 10, Q à 40 m et non 10, P_0 à 3 km et non 2 — qui vont tous dans le sens d'un nuage
@@ -168,7 +212,20 @@ switch par.campagne
         par.compare.models  = {'carte', 'bilineaire', 'ok'};
         par.compare.filters = {'PF', 'RPF', 'APF'};
         par.mc.n_runs       = 100;
-        par.balayage = struct('champ', 'krig.n_side', 'valeurs', [20 30 40 60 80]);
+        par.balayage = struct('champ', 'krig.pas', 'valeurs', ...
+                              [2500 3500 4500 5500 6500 7500]);
+                    % C'est la MAILLE qu'on balaie, et non le nombre de points. Elle est
+                    % l'abscisse de la figure, elle se lit en kilomètres, et c'est ce qu'une
+                    % campagne de relevé achète réellement — un nombre de points ne se
+                    % compare pas d'une carte à l'autre. Le nombre de points s'en déduit.
+                    %
+                    % Valeurs rondes, régulièrement espacées, et aucune commensurable avec
+                    % l'espacement des branches du vol : la plus proche, 6,50 km, est à
+                    % 0,159 d'un multiple entier quand les cas résonants mesurés étaient à
+                    % 0,004. Le secouage du relevé suffirait, mais deux protections valent
+                    % mieux qu'une.
+        par.krig.n_surveys  = 10;    % le pilote du passage à 1000 essais le porte à 100 :
+                                     % la variance entre relevés domine celle entre essais
 
     case 'B'    % les cinq modèles, à maille et filtre fixés. C'est LA comparaison.
         par.compare.models  = {'carte', 'bilineaire', 'ok', 'ak', 'cak'};
@@ -180,7 +237,7 @@ switch par.campagne
                 % la fenêtre ne dépasse jamais n_max, donc le plafond ne mord pas.
         par.compare.models  = {'ak', 'cak'};
         par.compare.filters = {'RPF'};
-        par.mc.n_runs       = 30;
+        par.mc.n_runs       = 100;
         par.balayage = struct('champ', 'krig.n_ml_win', 'valeurs', [250 500 1000 1500 6400]);
 
     case 'D'    % à coût égal : les particules balayées, pour comparer AK et CA-OK à
@@ -246,10 +303,18 @@ fprintf('   le modèle laisse %.0f m et %.2f m/s par pas, contre %.0f m et %.2f 
         traj.resid_pos, traj.resid_vit, par.sigma_q(1), par.sigma_q(3));
 
 %% Relevé, modèles et campagne, une passe par valeur balayée
+%
+% LES ESSAIS SONT RÉPARTIS SUR par.krig.n_surveys TIRAGES DE RELEVÉ. Avec un seul, les
+% cent essais partagent la même carte reconstruite : l'erreur de carte est un paramètre
+% fixé et non une variable moyennée, et comparer deux mailles revient à comparer deux
+% tirages autant que deux mailles. Le coût est asymétrique — l'AK et le CA-OK ne paient
+% rien, l'OK statique paie une tabulation par tirage, mise en cache avec sa graine.
 res = struct('name', {}, 'filter', {}, 'model', {}, 'balayage', {}, 'rmse', {}, ...
              'nees', {}, 'track', {}, 'n_used', {}, 'n_modes', {}, 'n_res', {}, ...
-             'wall', {}, 'err', {});
+             'wall', {}, 'err', {}, 'd2', {});
 valeurs = par.balayage.valeurs;
+nF = numel(par.compare.filters);
+nM = numel(par.compare.models);
 
 for b = 1:numel(valeurs)
 if ~isempty(par.balayage.champ)
@@ -257,66 +322,77 @@ if ~isempty(par.balayage.champ)
     fprintf('\n===== %s = %g =====\n', par.balayage.champ, valeurs(b));
 end
 
-survey  = krig.releve(map, par);
-models  = cellfun(@(k) krig.modele(k, map, survey, par), par.compare.models, ...
-                  'UniformOutput', false);
-fprintf('\n');
-
 % n_th est dérivé de n_part, que la campagne D balaie : il se recalcule ici.
 opt = struct('n_part', par.mc.n_part, 'n_th', 0.5 * par.mc.n_part, ...
              'alpha_reg', par.filt.alpha_reg);
 
-for f = 1:numel(par.compare.filters)
-    for m = 1:numel(models)
-        kind  = par.compare.filters{f};
-        model = models{m};
-        err   = zeros(n_iter, par.mc.n_runs);
-        d2    = zeros(n_iter, par.mc.n_runs);
-        nu    = zeros(n_iter, par.mc.n_runs);
-        nm    = zeros(n_iter, par.mc.n_runs);
-        co    = zeros(3, n_iter, par.mc.n_runs);
-        nres  = zeros(1, par.mc.n_runs);
-        track = zeros(2, n_iter, par.mc.n_runs);
-        t0    = tic;
+err   = zeros(n_iter, par.mc.n_runs, nF, nM);
+d2    = zeros(n_iter, par.mc.n_runs, nF, nM);
+nu    = zeros(n_iter, par.mc.n_runs, nF, nM);
+nm    = zeros(n_iter, par.mc.n_runs, nF, nM);
+co    = zeros(4, n_iter, par.mc.n_runs, nF, nM);
+nres  = zeros(par.mc.n_runs, nF, nM);
+track = zeros(2, n_iter, nF, nM);          % le premier essai, pour la figure
+wall  = zeros(nF, nM);
 
-        for r = 1:par.mc.n_runs
-            rng(par.run.seed + r);
-            z_obs = z_true + par.sigma_obs * randn(n_iter, 1);
-            out   = nav.run(kind, model, z_obs, scen, opt);
-            err(:, r)      = out.err;
-            d2(:, r)       = out.d2;
-            nu(:, r)       = out.n_used;
-            nm(:, r)       = out.n_modes;
-            co(:, :, r)    = out.cout;
-            nres(r)        = out.n_res;
-            track(:, :, r) = out.track;
+n_srv = par.krig.n_surveys(min(b, numel(par.krig.n_surveys)));   % un par valeur balayée
+lots  = round(linspace(0, par.mc.n_runs, n_srv + 1));
+for s = 1:n_srv
+    par.krig.survey_seed = par.run.seed + 1000 * s;
+    survey  = krig.releve(map, par);
+    models  = cellfun(@(k) krig.modele(k, map, survey, par), par.compare.models, ...
+                      'UniformOutput', false);
+
+    for f = 1:nF
+        for m = 1:nM
+            t0 = tic;
+            for r = lots(s) + 1 : lots(s + 1)
+                rng(par.run.seed + r);
+                z_obs = z_true + par.sigma_obs * randn(n_iter, 1);
+                out   = nav.run(par.compare.filters{f}, models{m}, z_obs, scen, opt);
+                err(:, r, f, m)   = out.err;
+                d2(:, r, f, m)    = out.d2;
+                nu(:, r, f, m)    = out.n_used;
+                nm(:, r, f, m)    = out.n_modes;
+                co(:, :, r, f, m) = out.cout;
+                nres(r, f, m)     = out.n_res;
+                if r == 1, track(:, :, f, m) = out.track; end
+            end
+            wall(f, m) = wall(f, m) + toc(t0);
         end
+    end
+end
+fprintf('\n');
 
+for f = 1:nF
+    for m = 1:nM
+        E = err(:, :, f, m);  D = d2(:, :, f, m);
         e = numel(res) + 1;
-        res(e).name   = sprintf('%s / %s', kind, model.name);
-        res(e).filter = kind;
-        res(e).model  = model.name;
+        res(e).name   = sprintf('%s / %s', par.compare.filters{f}, models{m}.name);
+        res(e).filter = par.compare.filters{f};
+        res(e).model  = models{m}.name;
         res(e).balayage = valeurs(b);      % la valeur qui a produit cette ligne
-        res(e).rmse   = sqrt(mean(err.^2, 2));
-        res(e).nees   = mean(d2, 2, 'omitnan') / d_x;
-        res(e).track  = track(:, :, 1);
-        res(e).n_used = nu;                % par pas et par essai, comme les modes : c'est la
-                                           % QUEUE de cette distribution que l'article oppose
-                                           % entre AK et CA-OK, et une moyenne l'efface
-        res(e).cout   = mean(co, 3);       % somme des fenêtres, somme de leurs cubes,
-                                           % nombre d'ajustements — moyennés sur les essais
-        res(e).n_modes = nm;               % par pas et par essai : c'est ce qui sépare
-                                           % le CA-OK de l'AK, et sa moyenne le cache
-        res(e).n_res  = mean(nres) / n_iter;
-        res(e).wall   = toc(t0);
-        res(e).err    = err;               % les erreurs brutes, pour les médianes et les
-                                           % taux de convergence qu'une RMSE ne donne pas
+        res(e).rmse   = sqrt(mean(E.^2, 2));
+        res(e).nees   = mean(D, 2, 'omitnan') / d_x;
+        res(e).track  = track(:, :, f, m);
+        res(e).n_used = nu(:, :, f, m);    % par pas et par essai : c'est la QUEUE de cette
+                                           % distribution qui sépare l'AK du CA-OK
+        res(e).n_modes = nm(:, :, f, m);
+        res(e).cout   = mean(co(:, :, :, f, m), 3);
+        res(e).n_res  = mean(nres(:, f, m)) / n_iter;
+        res(e).wall   = wall(f, m);
+        res(e).err    = E;                 % erreurs brutes, pour les médianes et les
+        res(e).d2     = D;                 % taux de convergence
 
-        fprintf(['%-26s ARMSE %6.0f m, méd. %5.0f m, finale %5.0f m, NEES %6.2f, ' ...
-                 'rééch. %3.0f %%, ñ %5.0f, modes %4.1f, %6.1f s\n'], ...
-                res(e).name, mean(res(e).rmse), median(err(:)), res(e).rmse(end), ...
-                mean(res(e).nees(end-9:end)), 100 * res(e).n_res, mean(nu(:)), ...
-                mean(nm(:)), res(e).wall);
+        [c_s, c_m] = converges(E, D, d_x, par);
+        fprintf(['%-24s ARMSE %6.0f | seuil %6.0f (%3.0f %%) | Mahal. %6.0f (%3.0f %%)' ...
+                 ' | méd. acq %5.0f, fin %5.0f, rééch %3.0f %%, ñ %5.0f, modes %4.1f, %5.0f s\n'], ...
+                res(e).name, mean(res(e).rmse), ...
+                mean(sqrt(mean(E(:, c_s).^2, 2))), 100 * mean(c_s), ...
+                mean(sqrt(mean(E(:, c_m).^2, 2))), 100 * mean(c_m), ...
+                median(E(min(par.conv.k_acq, end), :)), median(E(end, :)), ...
+                100 * res(e).n_res, mean(nu(:, :, f, m), 'all'), ...
+                mean(nm(:, :, f, m), 'all'), res(e).wall);
     end
 end
 end                                        % fin du balayage
@@ -360,14 +436,31 @@ colours = [0.20 0.30 0.65; 0.85 0.15 0.15; 0.10 0.65 0.25; 0.55 0.35 0.70
            0.90 0.55 0.10; 0.20 0.60 0.70];
 t       = (1:n_iter) * par.dt;
 
+% TROIS COURBES PAR ENTRÉE : tous les essais, ceux que le seuil retient, ceux que
+% Mahalanobis retient. La première est dominée par les essais perdus — un ou deux sur cent
+% suffisent à la multiplier par cinq — donc elle mesure la divergence et non la précision.
+% Les deux autres mesurent la précision, sous deux définitions du « perdu » qui ne
+% coïncident pas.
 figure('Color', 'w', 'Name', 'RMSE'); hold on;
+styles = {'-', '--', ':'};
+noms   = cell(1, 3 * numel(res));
 for i = 1:numel(res)
-    plot(t, res(i).rmse, 'Color', colours(mod(i-1, size(colours,1)) + 1, :), 'LineWidth', 1.2);
+    c = colours(mod(i-1, size(colours,1)) + 1, :);
+    [c_s, c_m] = converges(res(i).err, res(i).d2, d_x, par);
+    courbes = {res(i).rmse, ...
+               sqrt(mean(res(i).err(:, c_s).^2, 2)), ...
+               sqrt(mean(res(i).err(:, c_m).^2, 2))};
+    suffixe = {'', sprintf(' (seuil, %.0f %%)', 100*mean(c_s)), ...
+                   sprintf(' (Mahal., %.0f %%)', 100*mean(c_m))};
+    for j = 1:3
+        plot(t, courbes{j}, styles{j}, 'Color', c, 'LineWidth', 1.2);
+        noms{3*(i-1) + j} = [res(i).name suffixe{j}];
+    end
 end
 % Échelle linéaire : la log écrase le régime établi, qui est ce qu'on compare, pour
 % faire de la place au transitoire initial, qui ne dépend que de P0.
 hold off; grid on; box on;
-xlabel('t (s)'); ylabel('RMSE (m)'); legend(res.name, 'Location', 'northeast');
+xlabel('t (s)'); ylabel('RMSE (m)'); legend(noms, 'Location', 'northeast', 'FontSize', 7);
 title('Erreur de position selon la reconstruction de carte');
 
 figure('Color', 'w', 'Name', 'NEES'); hold on;
@@ -544,6 +637,15 @@ function P = polyligne_tondeuse(par, v)
     hi = L(2) - par.traj.marge - R;
     x1 = (L(1) - (par.traj.n_branches - 1) * 2 * R) / 2;
 
+    % Un décalage optionnel, pour rejouer le même vol ailleurs sur la carte : c'est la
+    % façon économique de savoir si un résultat est une propriété du champ ou de la seule
+    % zone survolée. La marge est vérifiée après décalage, pas avant.
+    if isfield(par.traj, 'decalage')
+        x1 = x1 + par.traj.decalage(1);
+        lo = lo + par.traj.decalage(2);
+        hi = hi + par.traj.decalage(2);
+    end
+
     if hi <= lo || x1 <= par.traj.marge
         error('trajectoire:tondeuse', ...
               ['%d branches à %.0f deg demandent %.0f km de large et %.0f km de haut, ' ...
@@ -584,4 +686,23 @@ function par = poser(par, chemin, valeur)
         otherwise
             error('campagne_chapitre_4:poser', 'Chemin non géré : %s.', chemin);
     end
+end
+
+function [c_seuil, c_mahal] = converges(err, d2, d_x, par)
+% DEUX CRITÈRES DE CONVERGENCE, qui ne mesurent pas la même chose.
+%
+%   seuil        l'erreur finale est sous par.conv.seuil. Dit si le filtre a raison. La
+%                distribution étant franchement bimodale — les essais convergents finissent
+%                à quelques centaines de mètres, les autres à des dizaines de kilomètres —
+%                le résultat est insensible au seuil de 1 à 10 km.
+%   Mahalanobis  la distance de Mahalanobis finale est sous le quantile du chi2 à d_x
+%                degrés de liberté. Dit si le filtre SAIT qu'il a raison, ce qui est moins
+%                arbitraire mais pas équivalent : un filtre perdu à covariance large le
+%                passe, un filtre juste mais sur-confiant y échoue.
+%
+% Les deux sont pris sur les derniers par.conv.n_fin pas plutôt que sur le seul dernier,
+% pour qu'un pas malheureux ne classe pas un essai.
+    k       = size(err, 1) - par.conv.n_fin + 1 : size(err, 1);
+    c_seuil = median(err(k, :), 1) <= par.conv.seuil;
+    c_mahal = median(d2(k, :),  1) <= chi2inv(par.conv.confiance, d_x);
 end

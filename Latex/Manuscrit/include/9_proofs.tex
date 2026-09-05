@@ -1,3 +1,8 @@
+\textbf{TODO: à vérifier — quatre titres courts corrigés, les numéros étant relus dans
+\texttt{build/main.aux}. Trois autres (3.12, 3.13, 3.15) redeviennent justes du seul fait
+de la promotion de \cref{th:kriging_vague_prior}, ce qui indique qu'elle était une
+proposition avant d'être rétrogradée.}
+
 \chapter{Deferred Proofs}
 
 \vfill
@@ -78,7 +83,7 @@ Finally, \Cref{th:Gaussian_conditioning} proves that the Schur complement of the
 \end{equation}
 is itself SPD, so $P_{k|k}\succ0$.
 
-\section[Proof of Proposition 2.9]{Proof of \Cref{th:RBPF_decorrelation}}\label{sec:proof_RBPF}
+\section[Proof of Proposition 2.10]{Proof of \Cref{th:RBPF_decorrelation}}\label{sec:proof_RBPF}
 
 As a linear combination of the centred noises $w_k^l$ and $w_k^n$, $\overline{w}_k^l$ is centred. Its covariance develops as:
 \begin{equation}
@@ -213,7 +218,7 @@ The case $\nu=+\infty$ is more direct. The squared exponential kernel is continu
 \end{equation}
 which is again strictly positive, so Bochner's theorem applies as above.
 
-\section[Proof of Proposition 3.9]{Proof of \Cref{th:ordinary_kriging}}\label{sec:proof_OK}
+\section[Proof of Proposition 3.8]{Proof of \Cref{th:ordinary_kriging}}\label{sec:proof_OK}
 
 Let:
 \begin{equation}
@@ -313,7 +318,7 @@ Combining these results yields:
 
 Finally, recognising $R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})=U^\top M\:U\succeq0$, since $M\succ0$, gives the desired expression.
 
-\section[Proof of Proposition 3.10]{Proof of \Cref{th:universal_kriging}}\label{sec:proof_UK}
+\section[Proof of Proposition 3.9]{Proof of \Cref{th:universal_kriging}}\label{sec:proof_UK}
 
 The unbiased assumption now reads:
 \begin{equation}
@@ -350,7 +355,7 @@ Finally, the bilinear identity \eqref{eq:OK_identity} becomes:
 
 The UK estimator and covariance matrices are derived exactly like for \Cref{th:ordinary_kriging}, using the corrected results.
 
-\section[Proof of Remark 3.11]{Proof of \Cref{th:kriging_vague_prior}}\label{sec:proof_vague_prior}
+\section[Proof of Proposition 3.10]{Proof of \Cref{th:kriging_vague_prior}}\label{sec:proof_vague_prior}
 
 \textbf{TODO: à relire}
 Let $B\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})$, and give the unknown coefficients the prior $\beta\sim\mathcal{N}(0,B)$, independent of the centred process $f\sim\mathcal{GP}(0,k)$. Randomising the trend this way makes the field $f_B\triangleq f+g\:\beta$ a centred GP of kernel $k_B$ by \Cref{th:GP_marginals}, so that kriging $f_B$ is \Cref{th:simple_kriging} read with $k_B$ in place of $k$. We write $\hat{z}_B$ and $R_B$ for the estimator and covariance it returns, $G$ for $G(\tilde{\mathbf{x}})$ and $g$ for $g(\tilde{\mathbf{x}})$, and reuse the shorthands $M$ and $U$ of \cref{sec:proof_UK}. The Gram matrix of $f_B$ is:
@@ -558,3 +563,30 @@ is SPD, as the sum of the SPSD matrix $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{
 	\sigma\in\mathbb{R}_+^*\mapsto\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}
 \end{equation}
 is thus well-defined and continuous, and extends to $\sigma=0$ when $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})\succ0$, \textit{i.e.} when $\Psi(\tilde{\mathbf{x}})$ has full column rank. As $\hat{z}_{\mathrm{SK}}$ and $R_{\mathrm{SK}}$ depend on $\sigma$ only through this inverse and an explicit factor $\sigma^2$, both expressions remain valid at $\sigma=0$ under this condition.
+
+\section[Proof of Proposition 3.17]{Proof of \Cref{th:native_RKHS}}\label{sec:proof_native_RKHS}
+
+\textbf{TODO: à relire}
+
+\textbf{The form is well defined.} Let $\mathcal{H}_0$ denote the span of $\{k(x,\cdot),\:x\in\mathcal{U}\}$, and extend $\langle\cdot|\cdot\rangle_{\mathcal{H}_k}$ to it by bilinearity. For $\psi=\sum_{i=1}^na_i\:k(x_i,\cdot)$ and $\varphi=\sum_{j=1}^pb_j\:k(x'_j,\cdot)$ in $\mathcal{H}_0$, it comes that:
+\begin{equation}
+	\langle\psi|\varphi\rangle_{\mathcal{H}_k}=\sum_{i=1}^n\sum_{j=1}^pa_i\:b_j\:k(x_i,x'_j)=\sum_{j=1}^pb_j\:\psi(x'_j)=\sum_{i=1}^na_i\:\varphi(x_i)\label{eq:RKHS_bilinear}
+\end{equation}
+The last two expressions involve one of the two functions through its values alone, so neither representation matters and the form is well defined. It is symmetric and bilinear by construction, and positive since $k$ is SPSD. Taking $\varphi=k(x,\cdot)$ gives the reproducing property on $\mathcal{H}_0$:
+\begin{equation}
+	\forall\psi\in\mathcal{H}_0,\:\forall x\in\mathcal{U},\:\langle\psi|k(x,\cdot)\rangle_{\mathcal{H}_k}=\psi(x)\label{eq:reproducing_generators}
+\end{equation}
+
+\textbf{It is definite.} The Cauchy-Schwarz inequality holds for any positive semi-definite bilinear form, so \eqref{eq:reproducing_generators} bounds every evaluation:
+\begin{equation}
+	\forall\psi\in\mathcal{H}_0,\:\forall x\in\mathcal{U},\:|\psi(x)|^2\leq\langle\psi|\psi\rangle_{\mathcal{H}_k}\:k(x,x)\label{eq:RKHS_evaluation_bound}
+\end{equation}
+A function of null norm thus vanishes everywhere, and $\langle\cdot|\cdot\rangle_{\mathcal{H}_k}$ is an inner product on $\mathcal{H}_0$.
+
+\textbf{The completion is a space of functions.} \Cref{eq:RKHS_evaluation_bound} makes every Cauchy sequence of $\mathcal{H}_0$ pointwise Cauchy, hence pointwise convergent, which sends each class of the abstract completion to a function on $\mathcal{U}$. That map is injective. Indeed, let $(\psi_n)_n$ be a Cauchy sequence converging pointwise to $0$, let $\varepsilon>0$, and let $N$ be such that $\|\psi_n-\psi_m\|_{\mathcal{H}_k}\leq\varepsilon$ for $n,m\geq N$. Fixing $n\geq N$ and writing $\psi_n=\sum_{i=1}^{n'}a_i\:k(x_i,\cdot)$, \eqref{eq:RKHS_bilinear} gives:
+\begin{equation}
+	\|\psi_n\|_{\mathcal{H}_k}^2=\langle\psi_n|\psi_n-\psi_m\rangle_{\mathcal{H}_k}+\sum_{i=1}^{n'}a_i\:\psi_m(x_i)
+\end{equation}
+whose first term is at most $\varepsilon\sup_n\|\psi_n\|_{\mathcal{H}_k}$, finite since a Cauchy sequence is bounded, and whose second is a finite sum tending to $0$ with $m$. Hence $\|\psi_n\|_{\mathcal{H}_k}\to0$, and only the zero class is sent to the zero function. Passing \eqref{eq:reproducing_generators} to the limit, $\mathcal{H}_k$ is an RKHS of reproducing kernel $k$.
+
+\textbf{Uniqueness.} Let $\mathcal{H}$ be an RKHS of reproducing kernel $k$. It contains every $k(x,\cdot)$, hence $\mathcal{H}_0$, and its inner product agrees with $\langle\cdot|\cdot\rangle_{\mathcal{H}_k}$ on the generators, hence on $\mathcal{H}_0$ by bilinearity. A function of $\mathcal{H}$ orthogonal to $\mathcal{H}_0$ verifies $\psi(x)=\langle\psi|k(x,\cdot)\rangle_{\mathcal{H}}=0$ for every $x\in\mathcal{U}$, so $\mathcal{H}_0$ is dense in $\mathcal{H}$, which is therefore its completion $\mathcal{H}_k$.

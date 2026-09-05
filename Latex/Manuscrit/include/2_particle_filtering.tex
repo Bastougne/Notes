@@ -278,7 +278,7 @@ The full APF algorithm is given in \cref{alg:APF}.
 	\end{algorithmic}\caption{Auxiliary Particle Filter}\label{alg:APF}
 \end{algorithm}
 
-\begin{remark}[Comparison between the RPF and the APF]
+\begin{remark}[Comparison between the RPF and the APF]\label{th:RPF_APF}
 	Both the RPF and the APF aim to alleviate the degeneracy and impoverishment problems of the standard PF, but they target different sources:
 	\begin{itemize}
 		\item The RPF restores diversity through kernel density estimation, addressing the severe impoverishment caused by near-deterministic dynamics. It is therefore suited to low evolution noise scenarios.

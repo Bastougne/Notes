@@ -38,19 +38,69 @@ end
 function survey = build_survey(map, par)
 % Le relevé : une grille régulière sur la carte, lue sur le champ vrai et dégradée par le
 % bruit de relevé, plus les hyperparamètres ajustés dessus.
-    n_s   = par.krig.n_side;
     lo    = map.step;                                   % un pas depuis le bord
     hi    = ([size(map.h, 2), size(map.h, 1)] - 2) .* map.step;
-    ax    = linspace(lo(1), hi(1), n_s)';
-    ay    = linspace(lo(2), hi(2), n_s)';
-    [SX, SY] = meshgrid(ax, ay);
 
-    rng(par.run.seed);
+    % Le relevé se décrit de deux façons. Par son nombre de points, comme les sauvegardes.
+    % Ou par sa MAILLE, et c'est la bonne pour la figure du chapitre : c'est la maille qui
+    % est en abscisse, la fixer à des valeurs rondes et régulièrement espacées se lit sans
+    % explication, et le nombre de points s'en déduit. La grille ne remplit alors plus
+    % exactement la carte ; le reliquat est laissé en marge, ce qui est sans conséquence
+    % puisque le corridor du vol est loin des bords.
+    if isfield(par.krig, 'pas') && ~isempty(par.krig.pas)
+        pas = [1, 1] * par.krig.pas;
+        n_s = min(floor((hi - lo) ./ pas));
+    else
+        n_s = par.krig.n_side;
+        pas = (hi - lo) ./ n_s;
+    end
+    reste = (hi - lo) - n_s * pas;
+
+    % La graine du relevé est distincte de celle des essais : c'est elle que le pilote
+    % fait varier pour que l'erreur de carte soit moyennée et non fixée.
+    rng(graine_releve(par));
+
+    % Échantillonnage au centre des cellules plutôt qu'aux bords : les n_s points laissent
+    % alors une cellule entière de jeu, dans laquelle la grille peut coulisser sans sortir
+    % de la carte. u est cette position, en fractions de maille.
+    %
+    % La tirer au sort décide de la PHASE du relevé par rapport au plan de vol, et c'est
+    % nécessaire : à phase fixe, une maille commensurable avec l'espacement des branches
+    % met les trois branches au même endroit de la cellule, le biais d'interpolation s'y
+    % répète au lieu de se moyenner, et le balayage de maille lit une résonance de géométrie
+    % là où il croit lire une finesse de relevé. La graine du relevé étant ce que le pilote
+    % fait varier, une phase par tirage suffit à moyenner l'effet.
+    if isfield(par.krig, 'phase_alea') && par.krig.phase_alea
+        u = rand(1, 2);
+    else
+        u = [0.5, 0.5];                                 % centré, donc reproductible
+    end
+    ax    = lo(1) + reste(1) / 2 + ((0:n_s-1)' + u(1)) * pas(1);
+    ay    = lo(2) + reste(2) / 2 + ((0:n_s-1)' + u(2)) * pas(2);
+    [SX, SY] = meshgrid(ax, ay);
     survey.X     = [SX(:), SY(:)]';                     % 2 x n, un échantillon par colonne
+
+    % Un relevé réel n'est pas un réseau exact : les lignes de vol qui l'ont produit ont
+    % leur propre erreur de navigation. Secouer chaque point d'une fraction de maille est
+    % donc le modèle honnête — et c'est surtout ce qui tue la résonance.
+    %
+    % Sur un réseau exact, l'erreur d'interpolation est une fonction PÉRIODIQUE de la
+    % position dans la cellule : un biais déterministe, que deux branches distantes d'un
+    % multiple entier de la maille subissent à l'identique. Aucune translation de la grille
+    % n'y change rien, puisqu'une translation conserve les phases relatives. Secoué, le
+    % champ d'erreur redevient aléatoire et se décorrèle en une maille : il se moyenne le
+    % long de chaque branche au lieu de se répéter d'une branche à l'autre.
+    if isfield(par.krig, 'jitter') && par.krig.jitter > 0
+        survey.X = survey.X + par.krig.jitter * pas(:) .* (2 * rand(2, n_s^2) - 1);
+        survey.X = min(max(survey.X, lo(:)), hi(:));    % le secouage ne sort pas de la carte
+    end
     survey.z     = grid_read(map.h, map.step, survey.X) ...
                  + par.krig.sigma_map * randn(n_s^2, 1);
-    survey.n     = n_s^2;
-    survey.pitch = [ax(2) - ax(1), ay(2) - ay(1)];
+    survey.n      = n_s^2;
+    survey.n_side = n_s;                                % déduit quand la maille est donnée
+    survey.pitch  = pas;
+    survey.phase  = u;
+    survey.jitter = secouage(par);
 
     % Sur un sous-échantillon, le bruit tenu à sa valeur déclarée plutôt qu'ajusté :
     % laissé libre, fitrgp explique toute la rugosité du champ comme du bruit et rend un
@@ -60,23 +110,53 @@ function survey = build_survey(map, par)
     i_ml = randperm(survey.n, min(par.krig.n_ml, survey.n));
     survey.hyp = fit_hyperparameters(survey.X(:, i_ml)', survey.z(i_ml), par);
 
-    fprintf('Relevé %d x %d = %d points, maille %.2f x %.2f km, bruit %.0f %s\n', ...
-            n_s, n_s, survey.n, survey.pitch / 1e3, par.krig.sigma_map, par.unit);
+    fprintf(['Relevé %d x %d = %d points, maille %.2f x %.2f km, phase %.2f/%.2f,' ...
+             ' secouage %.0f %%, bruit %.0f %s\n'], ...
+            n_s, n_s, survey.n, survey.pitch / 1e3, u, 100 * survey.jitter, ...
+            par.krig.sigma_map, par.unit);
     fprintf('   sigma_f = %.0f %s, ell = %.2f km\n', ...
             survey.hyp.sigma_f, par.unit, survey.hyp.ell / 1e3);
 end
 
+function n = noyau(par)
+% La famille de noyau, exponentielle quadratique par defaut. Les noms sont ceux de
+% fitrgp, pour que l'ajustement et la resolution parlent de la meme chose.
+    if isfield(par.krig, 'noyau')
+        n = par.krig.noyau;
+    else
+        n = 'squaredexponential';
+    end
+end
+
+function j = secouage(par)
+% L'amplitude du secouage du relevé, en fractions de maille. Nulle par défaut : le réseau
+% exact reste accessible, c'est le témoin qui fait apparaître la résonance.
+    if isfield(par.krig, 'jitter'), j = par.krig.jitter;
+    else, j = 0; end
+end
+
+function s = graine_releve(par)
+% La graine du relevé, celle des essais par défaut.
+    if isfield(par.krig, "survey_seed")
+        s = par.krig.survey_seed;
+    else
+        s = par.run.seed;
+    end
+end
+
 function hyp = fit_hyperparameters(X, z, par)
     if ~isempty(which('fitrgp'))
-        gp = fitrgp(X, z, 'KernelFunction', 'squaredexponential', ...
+        gp = fitrgp(X, z, 'KernelFunction', noyau(par), ...
                     'BasisFunction', 'constant', 'Sigma', par.krig.sigma_map, ...
                     'ConstantSigma', true, 'Standardize', false, ...
                     'KernelParameters', [par.krig.ell_init; std(z)]);
         hyp.ell     = gp.KernelInformation.KernelParameters(1);
         hyp.sigma_f = gp.KernelInformation.KernelParameters(2);
+        hyp.nom     = noyau(par);
     else
         hyp.ell     = par.krig.ell_init;      % pas de toolbox : la valeur initiale, et on le dit
         hyp.sigma_f = std(z);
+        hyp.nom     = noyau(par);
         warning('krigeage:fitrgp', 'Pas de fitrgp, les hyperparamètres restent la valeur initiale.');
     end
 end
@@ -102,15 +182,39 @@ function model = build_model(kind, map, survey, par)
             % La ligne de base sans krigeage. Elle déclare une seule variance, partout la
             % même, faute de savoir son erreur d'interpolation : celle-ci croît en
             % maille^2, donc le modèle devient sur-confiant quand la maille grossit.
-            n_s  = par.krig.n_side;
-            grille = struct('h', reshape(survey.z, n_s, n_s), ...
-                            'step', [survey.pitch; survey.X(:, 1)']);
+            %
+            % Deux lectures pour un même modèle. Sur un relevé au réseau exact, la lecture
+            % bilinéaire de la grille. Sur un relevé secoué, les échantillons ne sont plus
+            % sur le réseau nominal, et les y forcer ferait payer au bilinéaire une erreur
+            % que le krigeage ne paie pas, puisque lui connaît les vraies positions : la
+            % comparaison serait faussée en sa faveur. L'interpolation linéaire sur la
+            % triangulation des points est alors la ligne de base honnête — la même
+            % information, vue par un estimateur plus simple.
+            R_bil = R_obs + par.krig.sigma_map^2;
+            if isfield(survey, 'jitter') && survey.jitter > 0
+                F    = scatteredInterpolant(survey.X(1, :)', survey.X(2, :)', ...
+                                            survey.z, 'linear', 'nearest');
+                lire = @(P) F(P(1, :)', P(2, :)');
+            else
+                n_s    = survey.n_side;
+                grille = struct('h', reshape(survey.z, n_s, n_s), ...
+                                'step', [survey.pitch; survey.X(:, 1)']);
+                lire   = @(P) grid_read(grille.h, grille.step, P);
+            end
             model = struct('name', 'bilinéaire', 'kind', kind, 'n_train', survey.n, ...
-                           'query', @(X, ctx) query_bilineaire(grille, ...
-                                     R_obs + par.krig.sigma_map^2, X(1:2, :), survey.n));
+                           'query', @(X, ctx) query_bilineaire(lire, R_bil, ...
+                                     X(1:2, :), survey.n));
 
-        case 'ak'
-            model = struct('name', 'OK adaptatif', 'kind', kind, 'n_train', survey.n, ...
+        case "ok_exact"
+            % Le même estimateur que "ok", évalué exactement a chaque pas au lieu
+            % d'être tabulé. Sert a verifier que la tabulation est invisible ; hors de
+            % cette verification il est inutilisable, une résolution contre les n~ points
+            % du relevé par particule et par pas.
+            model = struct("name", "OK exact", "kind", kind, "n_train", survey.n, ...
+                           "query", @(X, ctx) query_ok_exact(survey, X(1:2, :), par));
+
+        case "ak"
+            model = struct("name", "OK adaptatif", 'kind', kind, 'n_train', survey.n, ...
                            'query', @(X, ctx) query_ak(survey, X(1:2, :), ctx, par));
 
         case 'cak'
@@ -126,7 +230,7 @@ function [z, R, n, n_modes, cout] = query_carte(map, R_obs, P)
 % Le champ vrai, variance du capteur seule. Un mode par construction.
     z = grid_read(map.h, map.step, P);
     R = R_obs * ones(size(P, 2), 1);
-    n = 0;  n_modes = 1;  cout = [0; 0; 0];
+    n = 0;  n_modes = 1;  cout = [0; 0; 0; 0];
 end
 
 function [z, R, n, n_modes, cout] = query_table(tab, P, n_train)
@@ -135,15 +239,21 @@ function [z, R, n, n_modes, cout] = query_table(tab, P, n_train)
 % divisée par une variance n'est pas l'endroit pour le découvrir.
     z = grid_read(tab.z, tab.step, P);
     R = max(grid_read(tab.R, tab.step, P), eps);
-    n = n_train;  n_modes = 1;  cout = [0; 0; 0];   % tout le coût est dans la tabulation
+    n = n_train;  n_modes = 1;  cout = [0; 0; 0; 0];   % tout le coût est dans la tabulation
 end
 
-function [z, R, n, n_modes, cout] = query_bilineaire(grille, R_fixe, P, n_train)
-% Le relevé bruité lu bilinéairement, variance constante. Aucun calcul par pas au-delà
-% de la lecture, et aucune information sur sa propre erreur.
-    z = grid_read(grille.h, grille.step, P);
+function [z, R, n, n_modes, cout] = query_bilineaire(lire, R_fixe, P, n_train)
+% Le relevé bruité lu par interpolation linéaire, variance constante. Aucun calcul par pas
+% au-delà de la lecture, et aucune information sur sa propre erreur.
+    z = lire(P);
     R = R_fixe * ones(size(P, 2), 1);
-    n = n_train;  n_modes = 1;  cout = [0; 0; 0];
+    n = n_train;  n_modes = 1;  cout = [0; 0; 0; 0];
+end
+
+function [z, R, n, n_modes, cout] = query_ok_exact(survey, P, par)
+% Tout le relevé, hyperparamètres globaux, aucune tabulation.
+    [z, R] = ok_solve(survey.X, survey.z, P, survey.hyp, par);
+    n = survey.n;  n_modes = 1;  cout = [n; n^3; 0; 0];
 end
 
 function [z, R, n, n_modes, cout] = query_ak(survey, P, ctx, par)
@@ -152,7 +262,7 @@ function [z, R, n, n_modes, cout] = query_ak(survey, P, ctx, par)
     idx = window_select(survey.X, ctx, par);
     hyp = window_hyperparameters(survey, idx, par);
     [z, R] = ok_solve(survey.X(:, idx), survey.z(idx), P, hyp, par);
-    n = numel(idx);  n_modes = 1;  cout = [n; n^3; 1];
+    n = numel(idx);  n_modes = 1;  cout = [n; n^3; 1; 0];
 end
 
 function [z, R, n, n_modes, cout] = query_cak(survey, P, ctx, par)
@@ -160,10 +270,13 @@ function [z, R, n, n_modes, cout] = query_cak(survey, P, ctx, par)
 % proche plutôt que d'hériter des étiquettes des particules : l'APF interroge des points
 % qui ne sont pas ceux dont le contexte est issu, et un centre est un lieu auquel les deux
 % ensembles peuvent être rattachés.
-    centres = mean_shift(ctx.X(1:2, :), ctx.w, par.krig.bandwidth);
+    [centres, n_dist] = mean_shift(ctx.X(1:2, :), ctx.w, par.krig.bandwidth);
     n_modes = size(centres, 2);
     if n_modes == 1
+        % Le mean-shift a tourne pour rien, et il faut quand meme le facturer : c'est le
+        % prix de la clusterisation dans la phase de poursuite, ou le nuage n'a qu'un mode.
         [z, R, n, ~, cout] = query_ak(survey, P, ctx, par);
+        cout(4) = n_dist;
         return
     end
 
@@ -172,7 +285,7 @@ function [z, R, n, n_modes, cout] = query_cak(survey, P, ctx, par)
     z = zeros(size(P, 2), 1);
     R = zeros(size(P, 2), 1);
     used = false(1, size(survey.X, 2));
-    cout = [0; 0; 0];
+    cout = [0; 0; 0; n_dist];
 
     for c = 1:size(centres, 2)
         rows = label_q == c;
@@ -182,7 +295,7 @@ function [z, R, n, n_modes, cout] = query_cak(survey, P, ctx, par)
         ctx_c = cluster_context(ctx, label_p == c, centres(:, c));
         idx   = window_select(survey.X, ctx_c, par);
         used(idx) = true;
-        cout  = cout + [numel(idx); numel(idx)^3; 1];
+        cout  = cout + [numel(idx); numel(idx)^3; 1; 0];
         [z(rows), R(rows)] = ok_solve(survey.X(:, idx), survey.z(idx), P(:, rows), ...
                                       window_hyperparameters(survey, idx, par), par);
     end
@@ -276,11 +389,34 @@ function [z_hat, R_hat] = ok_solve(X, z, P, hyp, par)
 end
 
 function K = se_kernel(A, B, hyp)
-% Exponentiel quadratique, un point par colonne. Le facteur deux de l'exposant est celui
-% de fitrgp ; 1A et 2A l'omettent tout en lisant ell dans fitrgp, donc le noyau avec
-% lequel ils krigent est plus étroit que celui qu'ils ont ajusté, d'un facteur sqrt(2).
-    D2 = sum(A.^2, 1)' - 2 * (A' * B) + sum(B.^2, 1);
-    K  = hyp.sigma_f^2 * exp(-max(D2, 0) / (2 * hyp.ell^2));
+% Le noyau, un point par colonne. hyp.nom choisit la famille, et les formes sont celles
+% de fitrgp — mêmes conventions de ell, donc un ell ajusté par fitrgp s'emploie ici tel
+% quel. 1A et 2A omettent le facteur deux de l'exponentielle quadratique tout en lisant
+% ell dans fitrgp : leur noyau est plus étroit que celui qu'ils ont ajusté, d'un sqrt(2).
+%
+% La régularité du noyau à l'origine décide de ce que la reconstruction peut représenter.
+% L'exponentielle quadratique est infiniment dérivable, donc incapable de porter la
+% structure courte échelle d'un champ d'anomalie, dont le spectre suit une loi de
+% puissance. Les Matérn de nu demi-entier sont dérivables nu - 1/2 fois seulement, et
+% l'exponentielle pas du tout.
+    D2 = max(sum(A.^2, 1)' - 2 * (A' * B) + sum(B.^2, 1), 0);
+    if isfield(hyp, 'nom'), nom = hyp.nom; else, nom = 'squaredexponential'; end
+
+    switch nom
+        case 'squaredexponential'
+            K = exp(-D2 / (2 * hyp.ell^2));
+        case 'exponential'                                    % Matérn nu = 1/2
+            K = exp(-sqrt(D2) / hyp.ell);
+        case 'matern32'
+            r = sqrt(3 * D2) / hyp.ell;
+            K = (1 + r) .* exp(-r);
+        case 'matern52'
+            r = sqrt(5 * D2) / hyp.ell;
+            K = (1 + r + r.^2 / 3) .* exp(-r);
+        otherwise
+            error('krigeage:noyau', 'Noyau inconnu : %s.', nom);
+    end
+    K = hyp.sigma_f^2 * K;
 end
 
 function ctx_c = cluster_context(ctx, members, centre)
@@ -301,7 +437,7 @@ function ctx_c = cluster_context(ctx, members, centre)
     ctx_c.P_pred = (Xc .* w) * Xc';
 end
 
-function centres = mean_shift(X, w, bandwidth)
+function [centres, n_dist] = mean_shift(X, w, bandwidth)
 % Mean shift à noyau plat sur le nuage pondéré : chaque germe marche vers le mode des
 % points dans sa bande, et deux modes distants de moins d'une demi-bande n en font qu'un.
 % Germes tirés d'un sous-échantillon : les modes de dix mille particules sont ceux de deux
@@ -313,6 +449,7 @@ function centres = mean_shift(X, w, bandwidth)
         keep = round(linspace(1, size(X, 2), 500));
         X = X(:, keep);  w = w(keep);
     end
+    n_dist = 0;                  % evaluations de distance, pour le compte de flops
     n_seed = min(size(X, 2), 60);
     seeds  = X(:, round(linspace(1, size(X, 2), n_seed)));
     modes  = zeros(size(seeds));
@@ -321,6 +458,7 @@ function centres = mean_shift(X, w, bandwidth)
         m = seeds(:, s);
         for it = 1:100
             in = sum((X - m).^2, 1) < bandwidth^2;
+            n_dist = n_dist + size(X, 2);
             if ~any(in)
                 break
             end
@@ -367,11 +505,21 @@ function tab = tabulate_ok(map, survey, par)
     [TX, TY] = meshgrid(ax, ay);
     Q    = [TX(:), TY(:)]';
 
-    key  = struct('map', par.map.name, 'n_side', par.krig.n_side, ...
+    key  = struct('map', par.map.name, 'n_side', survey.n_side, ...
                   'sigma_map', par.krig.sigma_map, 'sigma_obs', par.sigma_obs, ...
                   'ell_init', par.krig.ell_init, 'n_ml', par.krig.n_ml, ...
-                  'seed', par.run.seed, 'box', box, 'step', step);
-    file = fullfile(par.path.cache, sprintf('ok_%dpts_%dm.mat', survey.n, round(step)));
+                  "seed", graine_releve(par), "box", box, "step", step, ...
+                  "noyau", noyau(par), "phase", survey.phase, ...
+                  "jitter", survey.jitter, "pas", survey.pitch);
+    % La maille est dans la clé ET dans le nom : deux relevés de même nombre de points
+    % peuvent avoir des mailles différentes dès que le pas est le paramètre premier, et
+    % sans elle le second relit la tabulation du premier.
+    suff = "";
+    if ~strcmp(noyau(par), "squaredexponential"), suff = "_" + string(noyau(par)); end
+    if isfield(par.krig, 'phase_alea') && par.krig.phase_alea, suff = suff + "_ph"; end
+    if secouage(par) > 0, suff = suff + sprintf("_j%d", round(100 * secouage(par))); end
+    file = fullfile(par.path.cache, sprintf("ok_%dpts_%dm_p%d_g%d%s.mat", survey.n, ...
+                    round(step), round(survey.pitch(1)), graine_releve(par), suff));
 
     if exist(file, 'file')
         c = load(file);

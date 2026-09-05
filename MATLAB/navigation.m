@@ -29,7 +29,8 @@ function out = run_filter(kind, model, z_obs, scen, opt)
     out.d2      = zeros(n_iter, 1);
     out.n_used  = zeros(n_iter, 1);
     out.n_modes = zeros(n_iter, 1);
-    out.cout    = zeros(3, n_iter);   % somme des fenêtres, somme de leurs cubes, ajustements
+    out.cout    = zeros(4, n_iter);   % somme des fenêtres, somme de leurs cubes,
+                                      % ajustements, et evaluations de distance du mean-shift
     out.track   = zeros(2, n_iter);
     out.n_res   = 0;
 
