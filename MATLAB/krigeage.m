@@ -375,7 +375,12 @@ function [z_hat, R_hat] = ok_solve(X, z, P, hyp, par)
     N     = size(P, 2);
     z_hat = zeros(N, 1);
     R_hat = zeros(N, 1);
-    bloc  = max(1, floor(2e6 / max(n, 1)));
+    bloc  = max(1, floor(5e5 / max(n, 1)));   % 5e5 et non 2e6 depuis le 7 septembre : trois
+    % plantages de suite ont eu lieu dans se_kernel, faute de memoire, sur une machine ou
+    % VS Code tenait cinq gigaoctets sur seize. A 2e6 le noyau demandait un bloc contigu de
+    % 16 Mo et ses cinq copies 80 ; a 5e5 c'est 4 et 20. Le resultat est inchange — les
+    % lignes de K sont independantes — et la boucle tourne quatre fois plus, ce qui ne se
+    % voit pas : le cout est dans l'algebre, pas dans l'iteration.
     for i = 1:bloc:N
         j = min(i + bloc - 1, N);
         K = se_kernel(P(:, i:j), X, hyp);

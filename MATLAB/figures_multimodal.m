@@ -26,14 +26,19 @@ ell_bas = 4.5;                   % km, longueur de correlation ajustee, min sur 
 ell_haut = 5.7;                  % km, max
 
 %% Rassembler les lots complets du regime multimodal
-d = dir(fullfile(here, 'resultats', '2026090*_reference_libre_100runs.mat'));
-d = d([d.datenum] > datenum([2026 9 1 23 30 0]));
+% TOUT LOT MULTIMODAL, QUEL QUE SOIT LE NOMBRE D'ESSAIS. Le motif etait fige sur
+% '2026090*_reference_libre_100runs.mat' : le nombre d'essais ET la date etaient en dur,
+% donc le lot a 1000 essais ne serait jamais apparu et la figure serait restee muette
+% sans rien signaler. Ce qui identifie le regime multimodal est l'incertitude initiale
+% portee a 12 km, testee plus bas — ni la date, ni le nombre d'essais.
+d = dir(fullfile(here, 'resultats', '*_reference_libre_*runs.mat'));
+d = d([d.datenum] > datenum([2026 9 1 23 30 0]));   % avant, le releve n'etait pas secoue
 
 pas = []; frac = []; conv = []; fin = [];
 for f = 1:numel(d)
     S = load(fullfile(here, 'resultats', d(f).name));
     par = S.par; res = S.res;
-    if par.sigma_obs ~= 5 || par.dt ~= 5, continue, end
+    if par.sigma_obs ~= 5 || par.dt ~= 5 || par.sigma_0(1) < 10e3, continue, end
     noms = cellfun(@char, {res.model}, 'UniformOutput', false);
     io = trouve(noms, 'totale');  ia = trouve(noms, 'adaptatif');  ic = trouve(noms, 'CA-OK');
     if isempty(io) || isempty(ia) || isempty(ic), continue, end

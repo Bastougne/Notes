@@ -53,7 +53,7 @@ plot(k, mean(res(j).n_modes, 2), '-', 'LineWidth', linewidth);
 box on; grid on; hold on; marqueur(k_vir, fontsize); hold off;
 set(gca, 'YScale', 'log');
 xlabel('$k$', 'Interpreter', 'latex', 'FontSize', fontsize);
-ylabel('number of modes', 'Interpreter', 'latex', 'FontSize', fontsize);
+ylabel('Number of modes', 'Interpreter', 'latex', 'FontSize', fontsize);
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
 xlim([1 n_it]);
 exporter(fig, 'Modes au cours du vol', pdf_w, pdf_h, img_dir);
@@ -115,10 +115,10 @@ function c = etiquettes(noms)
 % ne rend ni les caracteres accentues ni le souligne nu.
 % La correspondance se fait sur un prefixe purement ASCII, les noms de modeles portant
 % des accents que l'on ne veut pas avoir a reecrire ici.
-    dico = { 'carte',    'true map'
-             'bilin',    'bilinear'
-             'OK carte', 'static OK'
-             'OK adapt', 'adaptive OK'
+    dico = { 'carte',    'True map'
+             'bilin',    'Bilinear'
+             'OK carte', 'Static OK'
+             'OK adapt', 'Adaptive OK'
              'CA-OK',    'CA-OK' };
     c = noms;
     for i = 1:numel(noms)
