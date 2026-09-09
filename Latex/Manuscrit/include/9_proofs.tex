@@ -1,8 +1,3 @@
-\textbf{TODO: à vérifier — quatre titres courts corrigés, les numéros étant relus dans
-\texttt{build/main.aux}. Trois autres (3.12, 3.13, 3.15) redeviennent justes du seul fait
-de la promotion de \cref{th:kriging_vague_prior}, ce qui indique qu'elle était une
-proposition avant d'être rétrogradée.}
-
 \chapter{Deferred Proofs}
 
 \vfill
@@ -360,7 +355,7 @@ The UK estimator and covariance matrices are derived exactly like for \Cref{th:o
 \textbf{TODO: à relire}
 Let $B\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})$, and give the unknown coefficients the prior $\beta\sim\mathcal{N}(0,B)$, independent of the centred process $f\sim\mathcal{GP}(0,k)$. Randomising the trend this way makes the field $f_B\triangleq f+g\:\beta$ a centred GP of kernel $k_B$ by \Cref{th:GP_marginals}, so that kriging $f_B$ is \Cref{th:simple_kriging} read with $k_B$ in place of $k$. We write $\hat{z}_B$ and $R_B$ for the estimator and covariance it returns, $G$ for $G(\tilde{\mathbf{x}})$ and $g$ for $g(\tilde{\mathbf{x}})$, and reuse the shorthands $M$ and $U$ of \cref{sec:proof_UK}. The Gram matrix of $f_B$ is:
 \begin{equation}
-	G_B\triangleq k_B(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{n}}\otimes\tilde{R}=G+g\:B\:g^\top
+	G_B\triangleq k_B(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}=G+g\:B\:g^\top
 \end{equation}
 
 By \Cref{th:Woodbury} and $g^\top G^{-1}g=M^{-1}$, it comes that:
@@ -507,7 +502,7 @@ whose Gram matrices have rank at most $r_0$ and are thus singular at any $n$ dis
 
 \section[Proof of Proposition 3.15]{Proof of \Cref{th:reduced_rank_kriging}}\label{sec:proof_reduced_rank_kriging}
 
-As \eqref{eq:reduced_rank_Gram} is a rank $r_{\mathrm{KL}}$ perturbation of $A\triangleq I_{\tilde{n}}\otimes\tilde{R}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{n}d_z\times\tilde{n}d_z$ inversion of $G(\tilde{\mathbf{x}})$ to an $r\times r$ one:
+As \eqref{eq:reduced_rank_Gram} is a rank $r_{\mathrm{KL}}$ perturbation of $A\triangleq I_{\tilde{N}}\otimes\tilde{R}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{N}d_z\times\tilde{N}d_z$ inversion of $G(\tilde{\mathbf{x}})$ to an $r\times r$ one:
 \begin{equation}
 	G(\tilde{\mathbf{x}})^{-1}\approx A^{-1}-A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}
 \end{equation}
@@ -534,7 +529,7 @@ which gives:
 	\end{aligned}\label{eq:reduced_rank_lemma}
 \end{equation}
 
-Plugging this result into \eqref{eq:z_s_up_to_tilde_G} and using $A^{-1}=I_{\tilde{n}}\otimes\tilde{R}^{-1}$ finally gives:
+Plugging this result into \eqref{eq:z_s_up_to_tilde_G} and using $A^{-1}=I_{\tilde{N}}\otimes\tilde{R}^{-1}$ finally gives:
 \begin{equation}
 	\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}\tilde{\mathbf{z}}
 \end{equation}
@@ -554,7 +549,7 @@ together with \eqref{eq:reduced_rank_lemma} yields:
 	\end{aligned}
 \end{equation}
 
-Finally, when $\tilde{R}=\sigma^2I_{d_z}$ with $\sigma>0$, substituting $A^{-1}=\sigma^{-2}I_{\tilde{n}d_z}$ yields the announced simplifications. For such $\sigma>0$, the matrix:
+Finally, when $\tilde{R}=\sigma^2I_{d_z}$ with $\sigma>0$, substituting $A^{-1}=\sigma^{-2}I_{\tilde{N}d_z}$ yields the announced simplifications. For such $\sigma>0$, the matrix:
 \begin{equation}
 	\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\succ0
 \end{equation}

@@ -236,7 +236,7 @@ While the current formulation allows us to approximate the density of the full t
 \end{equation}
 and computing the self-normalised estimator for $\varphi=\pi_k$, which approximates the MMSE estimator of \cref{sec:state_estimation}:
 \begin{equation}
-	\hat{x}_k\triangleq\left\langle\tilde{S}^N(\mu_k,\nu_k),\pi_k\right\rangle=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}\approx\mathbb{E}_{p(\cdot|\mathbf{z}_{1:k})}[x_k]
+	\hat{x}_k\triangleq\left\langle\tilde{S}^N(\mu_k,\nu_k),\pi_k\right\rangle=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}\approx\mathbb{E}_{p(\cdot|\mathbf{z}_{1:k})}[x_k]\label{eq:PF_MMSE}
 \end{equation}
 where $\mu_k(dx)\triangleq\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$ and $\nu_k(dx)\triangleq\tilde{q}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$. The corresponding empirical covariance matrix is:
 \begin{equation}

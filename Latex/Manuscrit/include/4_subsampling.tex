@@ -29,7 +29,7 @@ Discarding training points lowers the cost of the regression and loses accuracy,
 
 {harmonisation de notations avec le \cref{sec:kriging}, à faire avant d'écrire les preuves.}
 \begin{itemize}
-	\item le préprint est écrit à sortie scalaire, moyenne nulle et bruit $\tilde{r}$ scalaire, alors que le manuscrit travaille à valeurs dans $\mathbb{R}^{d_z}$ avec $I_{\tilde{n}}\otimes\tilde{R}$. Soit on généralise les bornes (les bornes entrées par entrée de la \cref{sec:error_relation} supposent $\tilde{r}$ scalaire), soit on annonce explicitement que la section se place dans le cas scalaire centré. {Ma recommandation est la seconde}, avec une remarque en fin de section -- la généralisation vectorielle n'apporte rien à l'argument et alourdirait toutes les preuves ;
+	\item le préprint est écrit à sortie scalaire, moyenne nulle et bruit $\tilde{r}$ scalaire, alors que le manuscrit travaille à valeurs dans $\mathbb{R}^{d_z}$ avec $I_{\tilde{N}}\otimes\tilde{R}$. Soit on généralise les bornes (les bornes entrées par entrée de la \cref{sec:error_relation} supposent $\tilde{r}$ scalaire), soit on annonce explicitement que la section se place dans le cas scalaire centré. {Ma recommandation est la seconde}, avec une remarque en fin de section -- la généralisation vectorielle n'apporte rien à l'argument et alourdirait toutes les preuves ;
 	\item le préprint note $\varphi$ et $\psi$ les deux quantités résiduelles, mais $\varphi$ désigne déjà l'application de l'état dans le manuscrit et $\psi$ les estimateurs du \cref{sec:state_estimation}. La proposition retenue ci-dessous est $k_{f|c}$ et $\tilde{\mathbf{z}}_{f|c}$, qui se lisent « écarté sachant retenu » et se raccordent à la convention $\cdot_{m|n}$ de la liste des symboles.
 \end{itemize}
 
@@ -39,7 +39,7 @@ Subsampling splits the training set into the points that are kept, usually close
 \begin{equation}
 	\tilde{\mathbf{x}}=\begin{bmatrix}\tilde{\mathbf{x}}_c&\tilde{\mathbf{x}}_f\end{bmatrix},\qquad\tilde{\mathbf{z}}=\begin{bmatrix}\tilde{\mathbf{z}}_c&\tilde{\mathbf{z}}_f\end{bmatrix}
 \end{equation}
-of respective sizes $\tilde{n}_c$ and $\tilde{n}_f$. This decomposition isolates the predictive contribution of the discarded points from that of the retained ones, and every quantity below is built on it.
+of respective sizes $\tilde{N}_c$ and $\tilde{N}_f$. This decomposition isolates the predictive contribution of the discarded points from that of the retained ones, and every quantity below is built on it.
 
 définir les deux métriques, chacune capturant un aspect distinct de\\l'approximation.
 \begin{itemize}
@@ -73,7 +73,7 @@ The residual covariance function $k_{f|c}$ is the part of the covariance between
 
 \subsection{Relation Between the Errors}\label{sec:error_relation}
 
-{corollaire central -- munir $\mathbb{R}^{\tilde{n}_f}$ du produit scalaire de Mahalanobis associé à $S^{-1}$ ramène les deux métriques à des quantités géométriques dans un même espace euclidien, $e_r$ étant la norme du résidu de covariance et $e_f$ son produit scalaire avec le résidu d'observation. Les deux erreurs cessent alors d'être deux calculs séparés.}
+{corollaire central -- munir $\mathbb{R}^{\tilde{N}_f}$ du produit scalaire de Mahalanobis associé à $S^{-1}$ ramène les deux métriques à des quantités géométriques dans un même espace euclidien, $e_r$ étant la norme du résidu de covariance et $e_f$ son produit scalaire avec le résidu d'observation. Les deux erreurs cessent alors d'être deux calculs séparés.}
 
 {c'est de ce corollaire que sort la relation entre les deux erreurs, par Cauchy-Schwarz -- l'erreur d'interpolation est majorée par le produit de l'erreur de variance et de la norme du résidu d'observation. Autrement dit, $e_r$ contrôle $e_f$ à un facteur près qui ne dépend que des observations écartées et pas du point de requête. Le dire explicitement, c'est la réponse à la question « faut-il borner les deux ? ».}
 

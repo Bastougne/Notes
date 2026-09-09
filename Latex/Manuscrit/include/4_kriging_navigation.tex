@@ -25,7 +25,7 @@ In our scenarios, the observation function describes the measurement of a physic
 	\end{equation}
 	where $m:\mathbb{R}^{d_x}\to\mathbb{R}^{d_z}$ is the potentially unknown mean of the GP, and $k:\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}\to\mathbb{R}^{d_z}$ is its chosen covariance kernel. Here, $n_k$ plays the role of the query noise $\varepsilon$ of \cref{sec:kriging}, and $R_k$ is its associated covariance $R$.
 
-	We also have access to $\tilde{n}\in\mathbb{N}^*$ distinct training inputs $\tilde{\mathbf{x}}$ and their noisy observations $\tilde{\mathbf{z}}$, degraded by a noise of covariance $\tilde{R}\succeq0$, in the sense of \cref{sec:kriging}.
+	We also have access to $\tilde{N}\in\mathbb{N}^*$ distinct training inputs $\tilde{\mathbf{x}}$ and their noisy observations $\tilde{\mathbf{z}}$, degraded by a noise of covariance $\tilde{R}\succeq0$, in the sense of \cref{sec:kriging}.
 \end{assumption}
 
 \begin{remark}[Time-varying observation function]
@@ -58,7 +58,7 @@ where $\hat{z}_{\mathrm{K}}$ denotes any of the three kriging estimators, $R_{\m
 		\end{aligned}
 	\end{equation}
 
-	The first factor is the one \eqref{eq:kriged_likelihood} uses as well. The second is not: $\mathbf{z}_{1:k-1}$ are noisy evaluations of $h$ at known inputs, of the same nature as $\tilde{\mathbf{z}}$, and they update its posterior. Integrating against that posterior is kriging over the augmented training set, in the sense of \cref{th:kriging_update}:
+	The first factor is the one \eqref{eq:kriged_likelihood} uses as well. The second is not: $\mathbf{z}_{1:k-1}$ are noisy evaluations of $h$ at known inputs, of the same nature as $\tilde{\mathbf{z}}$, and they update its posterior. Integrating against that posterior is kriging over the augmented training set, in the sense of {th:kriging\_update}:
 	\begin{equation}
 		z_k|\mathbf{x}_{0:k},\mathbf{z}_{1:k-1},\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{K}}\left(x_k,[\tilde{\mathbf{x}},\mathbf{x}_{0:k-1}],[\tilde{\mathbf{z}},\mathbf{z}_{1:k-1}];m,g\right),R_{\mathrm{K}}\left(x_k,[\tilde{\mathbf{x}},\mathbf{x}_{0:k-1}];g\right)\right)
 	\end{equation}
@@ -68,9 +68,7 @@ where $\hat{z}_{\mathrm{K}}$ denotes any of the three kriging estimators, $R_{\m
 	The filter then counts as independent evidence two observations that carry almost the same reconstruction error, so its covariance shrinks faster than it should and a reconstruction bias reinforces itself instead of averaging out. The severity of the approximation is measured by $\alpha_{\mathrm{corr}}$, the number of consecutive steps spent within one correlation length of that error, that is, the ratio of this length to the distance $v\:\Delta_t$ covered in one time step. It stays close to $1$ as long as a time step covers more than the spacing of the training data. None of the usual guards is applied here, neither inflating $R_k$, nor discarding observations at the rate at which the field decorrelates, nor modelling the error as a Gauss-Markov process along the trajectory and augmenting the state accordingly \cite{bib:correlated-map-error}.
 \end{remark}
 
-\textbf{TODO: courte intro comme d'hab}
-
-\subsection{Choosing the Kriging Method}
+\subsection{Choosing the Kriging Method}\label{sec:kriging_method}
 
 \Cref{sec:kriging} leaves the choice between the three kriging methods open. \Cref{tab:kriging_scenario} presents a $\mathbb{R}\to\mathbb{R}$ kriging scenario, from which every kriging estimator attempts to reconstruct the true function. A numerical comparison of the estimators is presented at the end of this section.
 
@@ -163,9 +161,9 @@ This table confirms the trend observed in the ARMSE results, as the average conf
 
 Furthermore, it must be noted that both SK confidence intervals are the same, showing that simple kriging is unable to account for an incorrectly specified prior mean. Both present a half-width of $9.05$ in the gap, well inside the sampled range, although their ARMSE differ by a factor of three. This issue is particularly relevant in autonomous navigation scenarios, as a poorly informed SK estimator will be overconfident, resulting in skewed likelihood peaks. This, in turn, may lead to relevant particles being discarded while incorrect ones are retained, and so simple kriging is set aside.
 
-Conversely, the degree $5$ UK estimator fails by trying to fit six trend coefficients to only seven training points. Outside the sampled range, the mean becomes highly uncertain, and accounts for an average of $94.5\%$ of the total covariance. Unlike simple kriging, the UK estimator propagates this uncertainty to its confidence interval, whose half-width reaches $320.03$. From a computational point of view, universal kriging requires $\tilde{n}\geq r_{\mathrm{UK}}$, and causes the matrix $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$ to become ill-conditioned when the training set is too small relative to the number of trend functions.
+Conversely, the degree $5$ UK estimator fails by trying to fit six trend coefficients to only seven training points. Outside the sampled range, the mean becomes highly uncertain, and accounts for an average of $94.5\%$ of the total covariance. Unlike simple kriging, the UK estimator propagates this uncertainty to its confidence interval, whose half-width reaches $320.03$. From a computational point of view, universal kriging requires $\tilde{N}\geq r_{\mathrm{UK}}$, and causes the matrix $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$ to become ill-conditioned when the training set is too small relative to the number of trend functions.
 
-Furthermore, every estimator requires the $\mathcal{O}(\tilde{n}^3)$ inversion of $G(\tilde{\mathbf{x}})$ once, after which, solving any related system costs $\mathcal{O}(\tilde{n}^2)$. Simple kriging thus requires an additional $\mathcal{O}(\tilde{n}^2)$ at each query point. Estimating the mean amounts to solving $r_{\mathrm{UK}}d_z$ equations, which costs $\mathcal{O}(r_{\mathrm{UK}}\:\tilde{n}^2)$ once and $\mathcal{O}(r_{\mathrm{UK}}\:\tilde{n})$ per query. The inversion of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})$ does not depend on $\tilde{n}$, and is negligible as soon as $r_{\mathrm{UK}}d_z\ll\tilde{n}$. \Cref{tab:kriging_cost} gives the empirical cost of each estimator in floating-point operations (flop), for $\tilde{n}\in\{7,100,1600\}$.
+Furthermore, every estimator requires the $\mathcal{O}(\tilde{N}^3)$ inversion of $G(\tilde{\mathbf{x}})$ once, after which, solving any related system costs $\mathcal{O}(\tilde{N}^2)$. Simple kriging thus requires an additional $\mathcal{O}(\tilde{N}^2)$ at each query point. Estimating the mean amounts to solving $r_{\mathrm{UK}}d_z$ equations, which costs $\mathcal{O}(r_{\mathrm{UK}}\:\tilde{N}^2)$ once and $\mathcal{O}(r_{\mathrm{UK}}\:\tilde{N})$ per query. The inversion of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})$ does not depend on $\tilde{N}$, and is negligible as soon as $r_{\mathrm{UK}}d_z\ll\tilde{N}$. \Cref{tab:kriging_cost} gives the empirical cost of each estimator in floating-point operations (flop), for $\tilde{N}\in\{7,100,1600\}$.
 
 \begin{table}[!htb]
 	\centering\input{include/kriging_cost.tex}
@@ -176,32 +174,19 @@ From $7$ to $1600$ training points, the setup cost of simple kriging rises from 
 
 Ordinary kriging is thus retained for the remainder of this chapter. Estimating a constant mean from the observations is robust to misinformation, its ARMSE staying within $10\%$ of a correctly informed simple kriging everywhere, when a wrong mean triples the error in the gap. It also reports that estimation, the term $R_{\hat{m}_{\mathrm{OK}}}$ of \cref{th:ordinary_simple_kriging_link} rising from $0.4\%$ of the covariance near the samples to $8.9\%$ in the gap, so its confidence interval widens exactly where its accuracy degrades. Finally, the additional $d_z\times d_z$ inversion it requires is the smallest trend a kriging estimator can carry, and remains affordable at both ends of \cref{tab:kriging_cost}.
 
-\subsection{Choosing the Kernel and its Hyperparameters}\label{sec:HP_estimation}
+\subsection{Hyperparameter Estimation}\label{sec:HP_estimation}
 
-\textbf{TODO: à vérifier — sous-section renommée et préambule rédigé par Claude. Le corps
-théorique qui suit est le tien, il n'a pas été touché.}
+Recall that \cref{sec:covariance_kernels} considered every kernel subsequently used for kriging to be fully known, with both their form and hyperparameters specified. This assumption is relaxed here by considering only the form to be known, while the hyperparameters $\theta$ must be estimated from the available data.
 
-\Cref{sec:Gaussian_processes} leaves the kernel entirely to the modeller, its parameters
-included, and that choice is made here. The Matérn family of \cref{th:Matérn} is retained, its
-smoothness parameter $\nu$ governing the regularity of the realisations, a GP equipped with
-$k_\nu$ being $p$ times mean-square differentiable if and only if $\nu>p$. Its limit
-$\nu=+\infty$, the squared exponential kernel, therefore asserts a field whose realisations are
-infinitely differentiable, an assumption no geophysical field supports. A finite $\nu$ is
-required, and $\nu=\tfrac{3}{2}$ is retained, since it is the smallest half-integer smoothness
-for which the field, and with it the kriging mean, remains differentiable. The closed form of
-\cref{fig:Matérn} then applies, the kernel reducing to the product of an exponential and an
-affine function of the distance.
+\textbf{TODO: à vérifier, sous-section rédigée par Claude}
 
-Two parameters remain, the characteristic variance $\sigma_f^2$ and the correlation length $l$.
-They are of a different nature from $\nu$, describing the particular field being surveyed rather
-than the class it is assumed to belong to, and they are therefore estimated from the survey
-itself rather than posited.
+\Cref{sec:Gaussian_processes} derives every result conditionally on the kernel, and \cref{sec:kriging_method} compares its estimators with that kernel held fixed. This assumption is discharged here. A kernel is specified by a vector of hyperparameters $\theta$ whose components are of two kinds. Some describe the class of fields the GP is assumed to belong to, such as a regularity or a set of active input directions, and are posited by the modeller alongside the kernel family itself. The others describe the particular field being surveyed, such as the amplitude of its variations or the distance over which they decorrelate, and are read from the training data of \cref{th:kriging_navigation_assumptions}. Only the latter are estimated below.
 
-\textbf{TODO: à reprendre}
+No closed form is available for them. The mean enters the kriging equations linearly, which is what lets \cref{th:ordinary_kriging} recover it by a generalised least squares regression, whereas $\theta$ acts through the kernel, hence through the inverse of a matrix it parameterises. Estimating it is therefore an optimisation problem, and the criterion retained is the likelihood the model assigns to the observations already collected, a procedure known as evidence maximisation \cite{bib:Rasmussen-hyperparameters}.
 
-The kernel depends on hyperparameters $\theta$, such as the characteristic variance $\sigma_f^2$ and the correlation length $l$ of \cref{th:Matérn}, that must be inferred from the data. Given $\tilde{n}$ training inputs $\tilde{\mathbf{x}}$ and their noisy observations $\tilde{\mathbf{z}}$, degraded by a noise of covariance $\tilde{R}$, the standard approach maximises the marginal likelihood of the observations, a procedure known as evidence maximisation \cite{bib:Rasmussen-hyperparameters}. Writing $G_\theta\triangleq k_\theta(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{n}}\otimes\tilde{R}$ for the noise-augmented Gram matrix and $\tilde{\mathbf{r}}\triangleq\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}})$ for the residual to the GP mean, the observations are jointly Gaussian:
+That likelihood is available in closed form. \Cref{th:GP_marginals} gives the joint law of any finite collection of field values, and the training observations are such a collection degraded by an independent Gaussian noise, so they are themselves jointly Gaussian. Writing $G_\theta\triangleq k_\theta(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}$ for the noise-augmented Gram matrix, whose argument is dropped to keep the hyperparameters visible, and $\tilde{\mathbf{r}}\triangleq\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}})$ for the residual to the GP mean, their density reads:
 \begin{equation}
-	p(\tilde{\mathbf{z}}|\tilde{\mathbf{x}},\theta)=\frac{1}{\sqrt{(2\pi)^{\tilde{n}d_z}\:\det(G_\theta)}}\:\exp\left(-\frac{1}{2}\tilde{\mathbf{r}}^\top G_\theta^{-1}\tilde{\mathbf{r}}\right)\label{eq:marginal_likelihood}
+	p(\tilde{\mathbf{z}}|\tilde{\mathbf{x}},\theta)=\frac{1}{\sqrt{(2\pi)^{\tilde{N}d_z}\:\det(G_\theta)}}\:\exp\left(-\frac{1}{2}\tilde{\mathbf{r}}^\top G_\theta^{-1}\tilde{\mathbf{r}}\right)\label{eq:marginal_likelihood}
 \end{equation}
 
 \begin{proposition}[Maximum likelihood hyperparameters]
@@ -214,7 +199,7 @@ The kernel depends on hyperparameters $\theta$, such as the characteristic varia
 \begin{proof}
 	Maximising \eqref{eq:marginal_likelihood} is equivalent to maximising its logarithm:
 	\begin{equation}
-		\ell(\theta)\triangleq\log p(\tilde{\mathbf{z}}|\tilde{\mathbf{x}},\theta)=-\frac{1}{2}\left(\tilde{\mathbf{r}}^\top G_\theta^{-1}\tilde{\mathbf{r}}+\log\det(G_\theta)\right)-\frac{\tilde{n}d_z}{2}\log(2\pi)
+		\ell(\theta)\triangleq\log p(\tilde{\mathbf{z}}|\tilde{\mathbf{x}},\theta)=-\frac{1}{2}\left(\tilde{\mathbf{r}}^\top G_\theta^{-1}\tilde{\mathbf{r}}+\log\det(G_\theta)\right)-\frac{\tilde{N}d_z}{2}\log(2\pi)
 	\end{equation}
 	A maximiser cancels every partial derivative. Using the differential of the matrix inverse, $\frac{\partial}{\partial\theta_i}G_\theta^{-1}=-G_\theta^{-1}\frac{\partial G_\theta}{\partial\theta_i}G_\theta^{-1}$, and Jacobi's formula, $\frac{\partial}{\partial\theta_i}\log\det(G_\theta)=\operatorname{tr}\left(G_\theta^{-1}\frac{\partial G_\theta}{\partial\theta_i}\right)$, it comes that:
 	\begin{equation}
@@ -227,15 +212,38 @@ The kernel depends on hyperparameters $\theta$, such as the characteristic varia
 	using the cyclic property of the trace to rewrite the scalar quadratic form\\$\tilde{\mathbf{r}}^\top G_\theta^{-1}\frac{\partial G_\theta}{\partial\theta_i}G_\theta^{-1}\tilde{\mathbf{r}}$ as $\operatorname{tr}\left((G_\theta^{-1}\tilde{\mathbf{r}})\:(G_\theta^{-1}\tilde{\mathbf{r}})^\top\frac{\partial G_\theta}{\partial\theta_i}\right)$, since $G_\theta^{-1}$ is symmetric.
 \end{proof}
 
+\begin{remark}[Profiled mean]
+	The density \eqref{eq:marginal_likelihood} is written for a known mean, whereas the estimator retained in \cref{sec:kriging_method} estimates it instead. Maximising $\ell$ over a constant mean at fixed $\theta$ cancels $C^\top G_\theta^{-1}\tilde{\mathbf{r}}$, and thus returns the very estimate $\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$ of \cref{th:ordinary_kriging}, evaluated under the current $\theta$. The two estimations nest rather than compete, the residual $\tilde{\mathbf{r}}$ being taken to a mean recomputed in closed form at every evaluation of \eqref{eq:marginal_likelihood}.
+\end{remark}
+
+The two terms of $\ell$ pull in opposite directions, which is what makes its maximum informative rather than degenerate. The quadratic form rewards a covariance ample enough to explain the observed residual, and keeps improving as the field is allowed to vary more freely, while the log-determinant penalises exactly that freedom, measuring the volume of observation space over which the model spreads its mass. Maximising their sum thus retains the least flexible field that remains consistent with the survey.
+
 \begin{remark}[Non-convexity]
 	The log-marginal-likelihood is generally non-convex in $\theta$, so \eqref{eq:GP_MLE} is solved numerically by gradient-based optimisation \cite{bib:evidence}, and may admit several local maxima corresponding to different interpretations of the data, \textit{e.g.} a low-noise rapidly-varying field versus a high-noise slowly-varying one.
 \end{remark}
+
+The hyperparameters are thus obtained by ascending $\ell$ numerically, one step of which is given by \Cref{alg:GP_MLE}. Two implementation choices are worth stating. First, $G_\theta$ is never inverted, its Cholesky factor $L$ such that $G_\theta=LL^\top$ yielding both the quadratic form and the log-determinant. This $\mathcal{O}(\tilde{N}^3)$ factorisation is the one \cref{tab:kriging_cost} already charges to the reconstruction of the field, except that the ascent pays it once per step instead of once per mission, after which each component of the gradient costs $\mathcal{O}(\tilde{N}^2)$. Second, the ascent is carried out on $\eta\triangleq\log\theta$ rather than on $\theta$ itself, which enforces the positivity of the hyperparameters and turns each step into a multiplicative update, matching the scale invariance of quantities carrying a physical unit. The chain rule then gives $\frac{\partial G_\theta}{\partial\eta_i}=\theta_i\:\frac{\partial G_\theta}{\partial\theta_i}$, so that the kernel family enters the ascent through the single quantity $\frac{\partial G_\theta}{\partial\theta_i}$, and nowhere else.
+
+\begin{algorithm}[!htb]
+	\begin{algorithmic}
+	\State{$G=k_{\exp\left(\eta^{(t-1)}\right)}(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}$}\Comment{Noise-augmented Gram matrix}
+	\State{$L\text{ s.t. }G=LL^\top$}\Comment{Cholesky factorisation}
+	\State{$\alpha=L^{-\top}\left(L^{-1}\tilde{\mathbf{r}}\right)$}\Comment{Two triangular solves}
+	\State{$\displaystyle\ell=-\frac{1}{2}\tilde{\mathbf{r}}^\top\alpha-\sum_{j=1}^{\tilde{N}d_z}\log L_{jj}-\frac{\tilde{N}d_z}{2}\log(2\pi)$}\Comment{Log-evidence}
+	\State{$W=\alpha\alpha^\top-L^{-\top}L^{-1}$}
+	\State{$\displaystyle\forall i,\:\nabla_i=\frac{1}{2}\operatorname{tr}\left(W\:\frac{\partial G}{\partial\eta_i}\right)$}\Comment{Gradient of $\ell$}
+	\State{$\Delta\eta=\operatorname{Direction}(\nabla)$}\Comment{Gradient, conjugate gradient or quasi-Newton}
+	\State{$\eta^{(t)}=\eta^{(t-1)}+\rho\:\Delta\eta$}\Comment{Line search on the step length $\rho$}
+	\end{algorithmic}\caption{Hyperparameter estimation by evidence maximisation}\label{alg:GP_MLE}
+\end{algorithm}
+
+The step is iterated from $\eta^{(0)}=\log\theta^{(0)}$ until the gradient falls below a chosen tolerance, the estimate being $\hat{\theta}=\exp\left(\eta^{(t)}\right)$ at the last iterate. Its starting point $\theta^{(0)}$ is a free input, and the non-convexity of $\ell$ makes it a meaningful one, since the ascent only reaches the maximum of the basin it is started in. It is therefore read from the survey rather than fixed arbitrarily, each hyperparameter being initialised by the empirical quantity it describes, an amplitude by the sample variance of $\tilde{\mathbf{z}}$ less the known noise variance, a correlation length by the mean distance between neighbouring training inputs, which is the shortest length the survey can resolve. Should several starting points be drawn around these values, the one reaching the highest $\ell$ is retained.
 
 \subsection{Simulation Scenario}\label{sec:scenario}
 
 Every navigation result of this chapter is produced by the same scenario, as described in this section. The observation field represented by $h$ is a magnetic anomaly map of a $200\text{km}\times200\text{km}$ region above Mexico, and extracted from \cite{bib:carte-magnetique}. The map is sampled on a regular grid of $201\times201$ points with a resolution of $1\text{km}\times1\text{km}$, and is read by a bilinear interpolation between the points.
 
-From this map are extracted $\tilde{n}$ training samples $(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$, where $\tilde{\mathbf{x}}$ is sampled from a regular grid, each node being independently jittered by up to $30\%$ of the grid resolution along both axes. The grid resolution is varied from $2.5$km to $7.5$km, with increments of $1$km. This corresponds to $\tilde{n}\in\{79^2,56^2,44^2,36^2,30^2,26^2\}$. The corresponding observations $\tilde{\mathbf{z}}$ are corrupted by a Gaussian white noise of variance $\tilde{R}=10^2\text{nT}^2$. The irregular grid models navigation errors during the prior survey mission, while the white noise represents the imperfect measurements of a real sensor.
+From this map are extracted $\tilde{N}$ training samples $(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$, where $\tilde{\mathbf{x}}$ is sampled from a regular grid, each node being independently jittered by up to $30\%$ of the grid resolution along both axes. The grid resolution is varied from $2.5$km to $7.5$km, with increments of $1$km. This corresponds to $\tilde{N}\in\{79^2,56^2,44^2,36^2,30^2,26^2\}$. The corresponding observations $\tilde{\mathbf{z}}$ are corrupted by a Gaussian white noise of variance $\tilde{R}=10^2\text{nT}^2$. The irregular grid models navigation errors during the prior survey mission, while the white noise represents the imperfect measurements of a real sensor.
 
 The vehicle flies over the map at a constant speed of $500$m/s along a mower pattern consisting of three parallel branches, each $80$km long, and connected by half-turns with a radius of $25.5$km. The trajectory is sampled every $\Delta_t=5$s, and lasts $n_\mathrm{steps}=150$ steps. A single time step thus covers $2.50$km.
 
@@ -256,7 +264,7 @@ and its propagation is degraded with a Gaussian white noise of covariance matrix
 \end{equation}
 whose position and velocity entries are respectively expressed in $\text{m}^2$ and $\text{m}^2\text{s}^{-2}$.
 
-The observation function is the scalar ($d_z=1$) OK estimation of the magnetic anomaly field, conditioned on the $\tilde{n}$ training points, and degraded by a Gaussian white noise of covariance $R_k=5^2\text{nT}^2$. The chosen kernel is a Matérn kernel with smoothness $\nu=3/2$, which corresponds to the smallest half-integer for which the field and the kriging mean are differentiable. A bilinear observation function on the same samples is also used as comparison.
+The observation function is the scalar ($d_z=1$) OK estimation of the magnetic anomaly field, conditioned on the $\tilde{N}$ training points, and degraded by a Gaussian white noise of covariance $R_k=5^2\text{nT}^2$. The chosen kernel is a Matérn kernel with smoothness $\nu=3/2$, which corresponds to the smallest half-integer for which the field and the kriging mean are differentiable, and its hyperparameters are estimated as described in \cref{sec:HP_estimation}. A bilinear observation function on the same samples is also used as comparison.
 
 The filter is an RPF, initialised on a cloud of $N=5000$ particles, drawn around a point itself drawn from $\mathcal{N}(x_0,P_0)$, with:
 \begin{equation}
@@ -282,7 +290,7 @@ in the same units, to prevent the particle cloud from being centred on the true 
 		\multirow{5}{*}{Kriging}&Samples&Jittered grid\\\cline{2-3}
 		&Jitter&$0.3\times$Resolution\\\cline{2-3}
 		&Resolution&$\in\{2.5,3.5,\dots,7.5\}$km\\\cline{2-3}
-		&$\tilde{n}$&$\in\{79^2,56^2,44^2,36^2,30^2,26^2\}$\\\cline{2-3}
+		&$\tilde{N}$&$\in\{79^2,56^2,44^2,36^2,30^2,26^2\}$\\\cline{2-3}
 		&$\tilde{R}$&$10^2\text{nT}^2$\\\hline
 		\multirow{6}{*}{Trajectory}&Form&$3$-branch mower\\\cline{2-3}
 		&Branch length&$80$km\\\cline{2-3}
@@ -306,20 +314,29 @@ in the same units, to prevent the particle cloud from being centred on the true 
 	\caption{Simulation parameters for the navigation scenario. For improved readability, covariance matrices are represented by their diagonal coefficients only.}\label{tab:scenario}
 \end{table}
 
-Each configuration is run over $n_\mathrm{MC}=1000$ Monte Carlo realisations, redrawing the initial state and white noises. The training data are also redrawn every $10$ runs so that the metrics are averaged over the reconstruction as well as the trajectory. The performance of each one is read through two quantities:
+Each configuration is run over $n_\mathrm{MC}=1000$ Monte Carlo realisations, redrawing the initial state and white noises. The training data are also redrawn every $10$ runs so that the metrics are averaged over the reconstruction as well as the trajectory. The chosen estimator is the MMSE estimator from \eqref{eq:PF_MMSE}. The performance of each one is read through two quantities:
 \begin{itemize}
 	\item The estimation RMSE, defined as:
 	\begin{equation}
-		\mathrm{RMSE}_{\hat{x}}:k\mapsto\sqrt{\frac{1}{n_\mathrm{MC}}\sum_{i=1}^{n_\mathrm{MC}}\left\|\hat{x}_k^{(i)}-x_k\right\|_2^2}
+		\mathrm{RMSE}_{\hat{x}}:k\mapsto\sqrt{\frac{1}{n_\mathrm{MC}}\sum_{i=1}^{n_\mathrm{MC}}\left\|\varphi_{\mathrm{pos}}\left(\hat{x}_k^{(i)}\right)-\varphi_{\mathrm{pos}}(x_k)\right\|_2^2}
 	\end{equation}
-	where $\hat{x}_k^{(i)}$ is the state estimated by the $i$-th filter at time $k$, and $x_k$ is the true state at time $k$. This metric gives an absolute value for the average error made by the filter
+	where $\hat{x}_k^{(i)}$ is the state estimated by the $i$-th filter at time $k$, $x_k$ is the corresponding true state, and $\varphi_{\mathrm{pos}}$ is the projection onto the positions:\textbf{TODO: définir une matrice à la place}
+	\begin{equation}
+		\varphi_{\mathrm{pos}}:\begin{bmatrix}
+		p^{(x)}&p^{(y)}&v^{(x)}&v^{(y)}
+		\end{bmatrix}^\top\mapsto\begin{bmatrix}
+		p^{(x)}&p^{(y)}
+		\end{bmatrix}^\top
+	\end{equation}
+
+	This metric gives an absolute value for the average error made by the filter.
 	\item The normalised estimation error squared (NEES):
 	\begin{equation}
-		\mathrm{NEES}_{\hat{x}}:k\mapsto\frac{1}{n_\mathrm{MC}\:d_x}\sum_{i=1}^{n_\mathrm{MC}}\left\|\hat{x}_k^{(i)}-x_k\right\|_{\hat{P}_k^{(i)}}
+		\mathrm{NEES}_{\hat{x}}:k\mapsto\frac{1}{n_\mathrm{MC}\:d_x}\sum_{i=1}^{n_\mathrm{MC}}\left\|\hat{x}_k^{(i)}-x_k\right\|_{\hat{P}_k^{(i)}}^2
 	\end{equation}
 	where $\|\cdot\|_{\hat{P}_k^{(i)}}$ is the Mahalanobis norm associated with the error covariance:
 	\begin{equation}
-		\left\|\hat{x}_k^{(i)}-x_k\right\|_{\hat{P}_k^{(i)}}\triangleq\left(\hat{x}_k^{(i)}-x_k\right)^\top\left(\hat{P}_k^{(i)}\right)^{-1}\left(\hat{x}_k^{(i)}-x_k\right)\label{eq:Mahalanobis_norm}
+		\left\|\hat{x}_k^{(i)}-x_k\right\|_{\hat{P}_k^{(i)}}^2\triangleq\left(\hat{x}_k^{(i)}-x_k\right)^\top\left(\hat{P}_k^{(i)}\right)^{-1}\left(\hat{x}_k^{(i)}-x_k\right)\label{eq:Mahalanobis_norm}
 	\end{equation}
 
 	This metric detects overconfident filters by using the Mahalanobis norm associated with the error covariance matrix rather than the standard Euclidean distance.
@@ -328,10 +345,10 @@ Each configuration is run over $n_\mathrm{MC}=1000$ Monte Carlo realisations, re
 Similarly, a run is declared convergent under two different criteria, as each describes a different behaviour:
 \begin{itemize}
 	\item A fixed threshold of $2000$m, under which the median over the last ten steps of a filter must be. This metric is simple to read and ensures that the estimation is relatively close to the true state. However, the threshold value is arbitrary.
-	\item A Mahalanobis criterion, where the median of \eqref{eq:Mahalanobis_norm} over the last ten steps must remain under the $\operatorname{erf}(3/\sqrt{2})\approx99.73\%$ quantile of a $\chi^2$ law with $d_x$ degrees of freedom. While this criterion follows the property of a Gaussian error, it primarily assesses the consistency between the estimation error and the uncertainty reported by the filter. Consequently, a filter with a large estimation error may still satisfy this criterion if it reports a sufficiently large uncertainty.
+	\item A Mahalanobis criterion, where the median of \eqref{eq:Mahalanobis_norm} over the last ten steps must remain under the $99\%$ quantile of a $\chi^2$ law with $d_x$ degrees of freedom, written $\chi_{d_x}^2(99\%)$. While this criterion follows the property of a Gaussian error, it primarily assesses the consistency between the estimation error and the uncertainty reported by the filter. Consequently, a filter with a large estimation error may still satisfy this criterion if it reports a sufficiently large uncertainty.
 \end{itemize}
 
-\subsection{Numerical Results}
+\subsection{Numerical Results}\label{sec:static_results}
 
 In this section, we compare the performance of the filter using $13$ different observation functions:
 \begin{itemize}
@@ -382,7 +399,7 @@ In terms of convergence rates, \Cref{fig:erreur_maille} starts by extracting the
 
 The first two figures show that the bilinear to kriging RMSE ratio ranges from $1.4$ to $1.9$, and increases to $9$ to $56$ for the NEES. Furthermore, while the RMSE ratio tends to decrease at lower grid resolutions, the NEES ratio follows the opposite trend. Bilinear interpolation thus completely fails to measure its accuracy at lower resolutions, while kriging degrades in step with its own accuracy.
 
-The convergence rates follow the same pattern. Under the threshold criterion, the rate for kriging decreases from $100\%$ to $60\%$ as the grid resolution decreases, while that of bilinear interpolation decreases from $99$ to $42\%$. The two thus remain comparable. Under the Mahalanobis criterion, however, kriging only falls to $81\%$ while bilinear interpolation collapses to $1\%$, having lost every run whose reported uncertainty is consistent with its error.
+The convergence rates follow the same pattern. Under the threshold criterion, the rate for kriging decreases from $100\%$ to $60\%$ as the grid resolution decreases, while that of bilinear interpolation decreases from $99$ to $42\%$. The two thus remain comparable. For the Mahalanobis criterion, however, kriging only falls to $81\%$ while bilinear interpolation collapses to $1\%$, having lost every run whose reported uncertainty is consistent with its error.
 
 However, the advantages of kriging come at an increased computational and memory costs, as described by \Cref{tab:cout_maille}.
 

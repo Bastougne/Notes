@@ -30,7 +30,7 @@ In our scenarios, the observation function describes the measurment of a physica
 	\end{equation}
 	where $m:\mathbb{R}^{d_x}\to\mathbb{R}^{d_z}$ is the potentially unknown mean of the GP, and $k:\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}\to\mathbb{R}^{d_z}$ is its chosen covariance kernel.
 
-	We also have access to $\tilde{n}\in\mathbb{N}^*$ distinct training inputs $\tilde{\mathbf{x}}$ and their noisy observations $\tilde{\mathbf{z}}$, degraded by a noise of covariance $\tilde{R}\succeq0$, in the sense of \cref{sec:kriging}.
+	We also have access to $\tilde{N}\in\mathbb{N}^*$ distinct training inputs $\tilde{\mathbf{x}}$ and their noisy observations $\tilde{\mathbf{z}}$, degraded by a noise of covariance $\tilde{R}\succeq0$, in the sense of \cref{sec:kriging}.
 \end{assumption}
 
 Using \cref{th:kriging_navigation_assumptions} and the kriging theory presented in \cref{sec:kriging}, the likelihood follows:
@@ -60,7 +60,7 @@ where $\hat{z}$ denotes either three kriging estimators of \cref{sec:kriging}, a
 	\item \textbf{$h$ perd son indice $k$} ici, alors que le \cref{sec:Bayesian_estimation} écrit $h_k$. La justification est donnée (le champ est statique), mais l'entrée « $h_k$ -- Observation function » de la liste des symboles est à passer en « $h,h_k$ » ;
 	\item \textbf{le champ est indexé par l'état entier}, vitesses comprises, alors qu'il n'en dépend pas physiquement. Rien n'est faux tant que le noyau reste aveugle aux composantes de vitesse, mais l'apprentissage des hyperparamètres peut y voir des longueurs de corrélation à estimer. À régler d'un mot au moment de décrire les scénarios, en restreignant $\mathcal{U}$ aux positions ;
 	\item \textbf{la \cref{th:altimetric_observation} est à replacer} une fois le scénario altimétrique décrit, si elle arrive trop tôt ici. Sa dernière phrase peut sauter, c'est le seul reste du cas affine général ;
-	\item \textbf{à ajouter à la liste des symboles} du \cref{sec:adaptive_kriging} -- $\tilde{n}_c$, $\tilde{n}_f$, $e_r$, $e_f$.
+	\item \textbf{à ajouter à la liste des symboles} du \cref{sec:adaptive_kriging} -- $\tilde{N}_c$, $\tilde{N}_f$, $e_r$, $e_f$.
 \end{itemize}
 
 {la remarque centrale du chapitre, à soigner -- une interpolation déterministe rend un point sans incertitude, ce qui rend le filtre trop confiant et le fait diverger sur une carte bruitée, alors que $\hat{R}_{\mathrm{OK}}$ élargit la vraisemblance là où la carte est mal connue. C'est l'argument qui justifie le processus gaussien plutôt que l'interpolation bilinéaire, et il vaut mieux que l'argument de précision.}
@@ -108,7 +108,7 @@ Two independent difficulties rule out using the whole training set at every step
 
 {développer les deux, dans cet ordre, en insistant sur leur indépendance -- même à coût nul, l'ajustement global resterait mauvais.}
 \begin{itemize}
-	\item \textbf{Coût.} Inversion en $\mathcal{O}(\tilde{n}^3)$ à chaque pas, plus $\mathcal{O}(\tilde{n}^2)$ par particule, à quoi s'ajoute la descente de gradient de l'apprentissage des hyperparamètres. Chiffrer sur la carte du scénario de la \cref{sec:kriging_PF} pour rendre l'ordre de grandeur concret ;
+	\item \textbf{Coût.} Inversion en $\mathcal{O}(\tilde{N}^3)$ à chaque pas, plus $\mathcal{O}(\tilde{N}^2)$ par particule, à quoi s'ajoute la descente de gradient de l'apprentissage des hyperparamètres. Chiffrer sur la carte du scénario de la \cref{sec:kriging_PF} pour rendre l'ordre de grandeur concret ;
 	\item \textbf{Non-stationnarité.} Un relief n'a pas la même longueur de corrélation partout. Estimer un unique $\theta$ par vraisemblance marginale sur l'ensemble de la carte produit un compromis qui ne décrit correctement aucune région, et le krigeage qui en découle est mal calibré -- trop lisse là où le champ varie vite, trop nerveux ailleurs. Rapprocher des noyaux non stationnaires \cite{bib:non-stationary-GP} et des approximations locales de GP \cite{bib:local-GP}, en précisant le choix fait ici, qui est de garder un noyau stationnaire et de le ré-ajuster localement plutôt que de complexifier le noyau.
 \end{itemize}
 
@@ -126,15 +126,15 @@ Two independent difficulties rule out using the whole training set at every step
 
 The retained training points are those lying in a ball centred on the predicted state, whose radius follows the predicted uncertainty:
 \begin{equation}
-	\mathcal{S}_k\triangleq\left\{i\in[\![1,\tilde{n}]\!]\:\middle|\:\tilde{x}_i\in\mathcal{B}\left(\hat{x}_{k|k-1},r_k\right)\right\}
+	\mathcal{S}_k\triangleq\left\{i\in[\![1,\tilde{N}]\!]\:\middle|\:\tilde{x}_i\in\mathcal{B}\left(\hat{x}_{k|k-1},r_k\right)\right\}
 \end{equation}
-with a radius proportional to the semi-major axis of the $3\sigma$-ellipsoid of $P_{k|k-1}$, enlarged so that most particles are interpolated rather than extrapolated, and dilated further if fewer than $\tilde{n}_{\min}$ points would be retained.
+with a radius proportional to the semi-major axis of the $3\sigma$-ellipsoid of $P_{k|k-1}$, enlarged so that most particles are interpolated rather than extrapolated, and dilated further if fewer than $\tilde{N}_{\min}$ points would be retained.
 
 \begin{itemize}
-	\item écrire $r_k$ et $\alpha_{\mathrm{sel}}$ proprement, et discuter le choix de $\tilde{n}_{\min}$ ;
+	\item écrire $r_k$ et $\alpha_{\mathrm{sel}}$ proprement, et discuter le choix de $\tilde{N}_{\min}$ ;
 	\item projeter sur les composantes de position, le rayon n'ayant de sens que sur $\mathcal{U}$ et pas sur les vitesses -- c'était $\pi_g$ dans FUSION 2024, à renommer ;
 	\item \cref{fig:kriging_window} pour le schéma de la fenêtre ;
-	\item apprentissage local des hyperparamètres -- appliquer \cref{th:GP_MLE} aux seules données retenues, avec initialisation à chaud par $\theta_{k-1}$. C'est le point où les deux difficultés ci-dessus se résolvent d'un même geste, et où le sur-ajustement sur une fenêtre presque vide motive $\tilde{n}_{\min}$ ;
+	\item apprentissage local des hyperparamètres -- appliquer \cref{th:GP_MLE} aux seules données retenues, avec initialisation à chaud par $\theta_{k-1}$. C'est le point où les deux difficultés ci-dessus se résolvent d'un même geste, et où le sur-ajustement sur une fenêtre presque vide motive $\tilde{N}_{\min}$ ;
 	\item complexité de l'ensemble, à comparer à celle du krigeage complet.
 \end{itemize}
 
@@ -148,7 +148,7 @@ with a radius proportional to the semi-major axis of the $3\sigma$-ellipsoid of 
 {sur le même scénario que la \cref{sec:kriging_PF}, de sorte que seules les briques ajoutées expliquent l'écart.}
 \begin{itemize}
 	\item comparaison des trois méthodes de sélection à l'intérieur du filtre, à budget de calcul égal, et pas seulement sur le krigeage seul ;
-	\item sensibilité à $\alpha_{\mathrm{sel}}$ et à $\tilde{n}_{\min}$, avec la dégradation attendue aux deux extrêmes -- fenêtre trop étroite qui extrapole, fenêtre trop large qui retombe sur le krigeage complet ;
+	\item sensibilité à $\alpha_{\mathrm{sel}}$ et à $\tilde{N}_{\min}$, avec la dégradation attendue aux deux extrêmes -- fenêtre trop étroite qui extrapole, fenêtre trop large qui retombe sur le krigeage complet ;
 	\item apport propre de l'apprentissage des hyperparamètres, en gelant $\theta$ à sa valeur initiale. C'est la seule expérience qui sépare l'effet « moins de données » de l'effet « bon noyau local » ;
 	\item temps de calcul par pas pour chaque réglage, en regard de la RMSE -- c'est l'argument principal du poster, la performance temps réel s'améliore sans perte de précision ni de taux de convergence.
 \end{itemize}
@@ -180,7 +180,7 @@ A single window is only economical while the particles stay together. Under a hi
 	\caption{Partition of a multimodal particle cloud by mean-shift, with the $1\sigma$-ellipsoid and the mode of each cluster}\label{fig:clustering}
 \end{figure}
 
-{fenêtrage multimodal -- transposer la \cref{sec:AK_PF} à chaque classe (poids renormalisés, moyenne et covariance prédites par classe, fenêtre et hyperparamètres propres), ce qui revient à un modèle stationnaire par morceaux. Insister sur le point d'EUSIPCO 2025 : les fenêtres sont indépendantes, chaque classe ignore les données sélectionnées par les autres, et les inversions sont de taille $\tilde{n}_{\mathcal{S}_k^{(l)}}$ et non de leur somme. Remarque sur la discontinuité du modèle aux frontières de classes, sans conséquence tant qu'aucune particule ne s'y trouve.}
+{fenêtrage multimodal -- transposer la \cref{sec:AK_PF} à chaque classe (poids renormalisés, moyenne et covariance prédites par classe, fenêtre et hyperparamètres propres), ce qui revient à un modèle stationnaire par morceaux. Insister sur le point d'EUSIPCO 2025 : les fenêtres sont indépendantes, chaque classe ignore les données sélectionnées par les autres, et les inversions sont de taille $\tilde{N}_{\mathcal{S}_k^{(l)}}$ et non de leur somme. Remarque sur la discontinuité du modèle aux frontières de classes, sans conséquence tant qu'aucune particule ne s'y trouve.}
 
 {algorithme CAK-PF -- pré-propagation, clusterisation, boucle sur les classes (sélection, hyperparamètres, krigeage, pré-correction), rééchantillonnage des indices parents, propagation, correction. Point à ne pas perdre : avec l'APF, les particules auxiliaires et les particules propagées partagent classes et hyperparamètres, ce qui évite de refaire la clusterisation et l'apprentissage entre les deux corrections. Le justifier par le fait que $\mu_k^{(i)}$ est construite pour représenter $x_k^{(i)}$.}
 

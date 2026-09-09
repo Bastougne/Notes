@@ -249,7 +249,7 @@ As established in \cref{sec:state_estimation}, all three estimators ultimately r
 
 The goal of the following section is thus to present algorithms that propagate the PDF itself at each discrete time step $k$ in order to solve the inference problem presented by \eqref{eq:navigation_problem}.
 
-\subsection{Optimal Bayesian Filtering Algorithm}
+\subsection{Optimal Bayesian Filter}
 
 In the Bayesian filtering framework, the PDF can be propagated recursively through two steps. However, each step relies on a specific conditional independence hypotheses as presented by \Cref{th:Markov,th:observation_independence}.
 
@@ -490,8 +490,25 @@ This removes the linearisation shortcomings of the EKF, at the cost of $2d_x+1$ 
 
 \subsubsection{Ensemble Kalman Filter}
 
-\textbf{TODO: à relire} The ensemble Kalman filter (EnKF) \cite{bib:EnKF} also propagates points through the true dynamics, but draws them at random instead of placing them deterministically, and uses far more of them. The covariance is never propagated analytically. It is estimated from the empirical spread of the ensemble at each step, and the Kalman correction is then applied to every member, against observations perturbed by simulated noise so that the corrected ensemble carries the intended covariance.
+The ensemble Kalman filter (EnKF) \cite{bib:EnKF} avoids both the local linearisation of the EKF and the deterministic sigma-point approximation of the UKF. Instead, the state distribution is represented by a set of $N\in\mathbb{N}^*$ samples $\left(x_{k|k}^{(1)},\dots,x_{k|k}^{(N)}\right)$, which are propagated through the true evolution and observation functions.
 
-Its cost grows with the size of the ensemble rather than with the square of the state dimension, which makes it a reference method for very high-dimensional problems such as geophysical data assimilation. A finite ensemble only yields a noisy covariance estimate however, and the correction step remains linear and Gaussian.
+For two sets $\mathbf{X}\triangleq(X^{(1)},\dots,X^{(N)})$ and $\mathbf{Z}\triangleq(Z^{(1)},\dots,Z^{(N)})$, we let:
+\begin{equation}
+	\left\{\begin{aligned}
+	\hat{X}&\triangleq\frac{1}{N}\sum_{i=1}^NX^{(i)},\qquad
+	\hat{Z}\triangleq\frac{1}{N}\sum_{i=1}^NZ^{(i)}\\
+	\hat{P}_{\mathbf{XZ}}&\triangleq\frac{1}{N-1}\sum_{i=1}^N\left(X^{(i)}-\hat{X}\right)\left(Z^{(i)}-\hat{Z}\right)^\top
+	\end{aligned}\right.
+\end{equation}
 
-The EnKF nonetheless marks a change of representation. The distribution is no longer carried by a mean and a covariance, but by a set of samples from which those moments are merely read off. Only the correction still treats that set as Gaussian.
+Each predicted sample $x_{k|k-1}^{(i)}$ is obtained by propagating the corresponding sample $x_{k-1|k-1}^{(i)}$ through $f_k$. The predicted observation $z_k^{(i)}$ is then computed using $h_k$.
+
+The approximate Kalman gain is defined as:
+\begin{equation}
+	\hat{K}_k\triangleq\hat{P}_{\mathbf{X}_{k|k-1}\mathbf{Z}_k}\:\left(\hat{P}_{\mathbf{Z}_k\mathbf{Z}_k}+R_k\right)^{-1}
+\end{equation}
+where $\mathbf{X}_{k|k-1}$ is the predicted sample set, and $\mathbf{Z}_k$ is the predicted observation set. Finally, each corrected sample $x_{k|k}^{(i)}$ is computed from its associated predicted sample through a standard Kalman update, using $\hat{K}_k$ in place of the exact gain.
+
+The computational cost of the EnKF is primarily determined by the value of $N$ instead of the dimensions $d_x$ and $d_z$. It is therefore particularly attractive for high-dimensional systems, such as those encountered in meteorological and oceanographic data assimilation \cite{bib:EnKF-atmosphere}.
+
+It should be noted that, while the EnKf is more flexible than its counterparts, the correction step remains a Kalman update based on the empirical mean and covariance matrix of the sample set. As a result, it may provide a poor approximation when the PDF is strongly non-Gaussian.

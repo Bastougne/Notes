@@ -217,6 +217,96 @@ function model = build_model(kind, map, survey, par)
             model = struct("name", "OK adaptatif", 'kind', kind, 'n_train', survey.n, ...
                            'query', @(X, ctx) query_ak(survey, X(1:2, :), ctx, par));
 
+        case 'ak_alea'
+            % Contrôle négatif de la SÉLECTION : le relevé éclairci au hasard, figé pour
+            % la mission. Il sépare ce que l'adaptativité doit au nombre de points de ce
+            % qu'elle doit à leur place, et il montre qu'un sous-échantillonnage ne résout
+            % que le coût du krigeage statique.
+            %
+            % ÉCLAIRCISSEMENT DE BERNOULLI, et non un effectif fixe. À probabilité p sur
+            % une maille m, la densité moyenne devient celle d'une maille m/sqrt(p) : c'est
+            % une ÉQUIVALENCE DE DENSITÉ avec un relevé plus grossier que la campagne A a
+            % déjà mesuré, et donc une comparaison. Un effectif fixe n'a pas d'équivalent
+            % de ce genre et ne compare rien d'une maille à l'autre.
+            %
+            % À densité moyenne égale, le réseau garantit une distance maximale de
+            % m/sqrt(2) au plus proche échantillon. L'éclairci, lui, laisse des trous : un
+            % bloc 3x3 vide arrive avec probabilité p^9, soit une douzaine de fois sur
+            % 6241 points à p = 1/2, et son rayon atteint alors la longueur de corrélation.
+            % C'est là que l'éclairci perd, et c'est ce qui sépare « moins de points » de
+            % « les points au bon endroit ».
+            %
+            % TABULÉ comme le statique, et pour la même raison : le jeu d'entraînement est
+            % fixe, donc l'estimateur est un couple fixe de fonctions de la position. Sans
+            % tabulation, l'éclairci d'une maille fine demande 9000 Gflop par essai et le
+            % lot ne tient plus en heures. Les deux côtés de chaque paire sont ainsi
+            % traités de la même façon, ce que la comparaison exige.
+            % LES HYPERPARAMÈTRES VIENNENT DU RELEVÉ COMPLET. C'est ce qui fait de ce
+            % modèle un raccourci de coût pour le krigeage statique, et non un relevé plus
+            % maigre : on possède tout, on ne peut pas se permettre de kriger dessus. Les
+            % ajuster sur l'éclairci mélangerait deux effets — de moins bons
+            % hyperparamètres, et une moins bonne prédiction — alors que l'argument ne
+            % porte que sur le second.
+            %
+            % DEUX MODES, selon que le sous-ensemble est figé ou retiré à chaque pas.
+            %
+            %   figé      l'erreur de carte est une fonction fixe de la position, donc
+            %             corrélée le long de la trajectoire : l'avion retrouve le même
+            %             trou à chaque passage et le filtre converge vers la position que
+            %             ce champ d'erreur lui dicte. Tabulable, donc gratuit par pas.
+            %   par pas   l'erreur change d'un pas à l'autre et se moyenne sur la mission.
+            %             Il ne reste que le rétrécissement vers la moyenne dans les trous,
+            %             bien plus petit. Le retirage DÉCORRÈLE, il ne débiaise pas — la
+            %             nuance compte, l'espérance sur les tirages restant rétrécie.
+            %             Interdit la tabulation, donc N n^2 par pas.
+            %
+            % Comparer les deux attribue le dégât : si le retiré converge et le figé non, à
+            % même p, le coupable est la corrélation et non la rareté des points.
+            if isfield(par.krig, 'alea_par_pas') && par.krig.alea_par_pas
+                fprintf('Sous-échantillonnage retiré à chaque pas, p = %.2f\n', par.krig.p_alea);
+                model = struct('name', 'OK éclairci par pas', 'kind', kind, ...
+                               'n_train', survey.n, ...
+                               'query', @(X, ctx) query_alea_pas(survey, X(1:2, :), ctx, par));
+            else
+                rs        = RandStream('threefry', 'Seed', par.krig.survey_seed + 7);
+                idx_a     = find(rand(rs, 1, survey.n) < par.krig.p_alea);
+                srv_a     = survey;
+                srv_a.X   = survey.X(:, idx_a);
+                srv_a.z   = survey.z(idx_a);
+                srv_a.n   = numel(idx_a);
+                srv_a.p_alea = par.krig.p_alea;   % distingue sa tabulation de celle du plein
+                fprintf(['Relevé éclairci à p = %.2f : %d points sur %d, densité équivalente ' ...
+                         'à une maille de %.2f km\n'], par.krig.p_alea, srv_a.n, survey.n, ...
+                        survey.pitch(1) / sqrt(par.krig.p_alea) / 1e3);
+                tab_a = tabulate_ok(map, srv_a, par);
+                model = struct('name', 'OK éclairci', 'kind', kind, 'n_train', srv_a.n, ...
+                               'query', @(X, ctx) query_table(tab_a, X(1:2, :), srv_a.n));
+            end
+
+        case 'ak_boules'
+            % Contrôle négatif du FENÊTRAGE ET DE LA CLUSTERISATION : la réunion des
+            % sélections faites autour de chaque particule, sans plancher et sans
+            % partition. C'est la sélection « évidente », celle qu'un lecteur proposerait,
+            % et elle échoue par les deux bouts.
+            %
+            % L'échec qui porte l'argument est le premier : un SEUL ajustement
+            % d'hyperparamètres et une SEULE moyenne estimés sur une réunion qui enjambe
+            % les modes. Le krigeage ordinaire estime une moyenne ; si la réunion couvre
+            % deux modes distants de dizaines de kilomètres, cette moyenne unique est
+            % fausse pour les deux. C'est exactement l'incohérence que le CA-OK supprime en
+            % ajustant par mode, et elle ne se voit qu'en régime multimodal.
+            %
+            % Le second échec motive n_min : quand le nuage se resserre sous une maille,
+            % toutes les particules partagent les mêmes voisins et la réunion tombe à un ou
+            % deux points.
+            %
+            % L'arbre est construit une fois ; la recherche de voisinage reste un coût par
+            % pas que l'AK ne paie pas, et elle est comptée.
+            arbre = KDTreeSearcher(survey.X');
+            model = struct('name', 'OK par réunion', 'kind', kind, 'n_train', survey.n, ...
+                           'query', @(X, ctx) query_boules(survey, arbre, X(1:2, :), ...
+                                     ctx, par));
+
         case 'cak'
             model = struct('name', 'CA-OK', 'kind', kind, 'n_train', survey.n, ...
                            'query', @(X, ctx) query_cak(survey, X(1:2, :), ctx, par));
@@ -263,6 +353,71 @@ function [z, R, n, n_modes, cout] = query_ak(survey, P, ctx, par)
     hyp = window_hyperparameters(survey, idx, par);
     [z, R] = ok_solve(survey.X(:, idx), survey.z(idx), P, hyp, par);
     n = numel(idx);  n_modes = 1;  cout = [n; n^3; 1; 0];
+end
+function [z, R, n, n_modes, cout] = query_alea_pas(survey, P, ctx, par)
+% Un sous-ensemble de Bernoulli retiré à chaque pas, krigé avec les hyperparamètres du
+% relevé complet.
+%
+% LE FLUX DÉPEND DU PAS ET DU TIRAGE DE RELEVÉ, pas de l'essai : les sous-ensembles sont
+% une propriété de l'algorithme et non du hasard de la mission, et les cent tirages de
+% relevé donnent déjà cent séquences différentes. Reproductible, et indépendant des flux
+% du filtre.
+    rs  = RandStream('threefry', 'Seed', par.krig.survey_seed + 7 + ctx.k);
+    idx = find(rand(rs, 1, survey.n) < par.krig.p_alea);
+    n   = numel(idx);
+    n_modes = 1;
+    if n < 2
+        z    = mean(survey.z) * ones(size(P, 2), 1);
+        R    = (survey.hyp.sigma_f^2 + par.krig.sigma_map^2 + par.sigma_obs^2) ...
+               * ones(size(P, 2), 1);
+        cout = [n; 0; 0; 0];
+        return
+    end
+    [z, R] = ok_solve(survey.X(:, idx), survey.z(idx), P, survey.hyp, par);
+    cout   = [n; n^3; 0; 0];      % zéro ajustement : les hyperparamètres sont ceux du plein
+end
+
+function [z, R, n, n_modes, cout] = query_boules(survey, arbre, P, ctx, par)
+% La réunion des sélections faites autour de chaque particule, sans plancher ni partition.
+% Le cas dégénéré — moins de deux points retenus — rend la loi a priori du relevé plutôt
+% que de lever : l'échec doit être mesurable, pas fatal, sans quoi la campagne s'arrête au
+% lieu de documenter l'effondrement.
+    % DEUX SÉLECTIONS SOUS UN SEUL PARAMÈTRE. Un rayon positif donne la réunion des
+    % boules ; un rayon nul donne les k_voisins plus proches échantillons de chaque
+    % particule. Le second est préféré : un rayon fixe attrape trois points par particule
+    % sur une maille de 3,5 km et moins d'un sur une maille de 7,5, si bien que
+    % l'effondrement mesuré serait celui du rayon et non celui de la méthode.
+    %
+    % QUATRE VOISINS, ET NON UN. Sur un réseau, les quatre plus proches échantillons d'un
+    % point sont les coins de sa cellule : c'est exactement le pochoir du bilinéaire, donc
+    % la sélection qu'un lecteur proposerait, généralisée au krigeage. À un seul voisin la
+    % méthode devient caricaturale — la réunion tombe à un ou deux points dès que le nuage
+    % se resserre — et on lui ferait un procès trop facile.
+    %
+    % Elle reste néanmoins maigre en poursuite, toutes les particules tenant alors dans
+    % quelques cellules : c'est l'effondrement que n_min corrige, et il reste mesurable
+    % sans être fabriqué.
+    if par.krig.rayon_boule > 0
+        voisins = rangesearch(arbre, ctx.X(1:2, :)', par.krig.rayon_boule);
+        idx     = unique([voisins{:}]);
+    else
+        idx     = unique(knnsearch(arbre, ctx.X(1:2, :)', 'K', par.krig.k_voisins))';
+    end
+    n       = numel(idx);
+    n_modes = 1;
+    n_dist  = size(ctx.X, 2) * log2(max(survey.n, 2));   % la recherche, en distances
+
+    if n < 2
+        z    = mean(survey.z) * ones(size(P, 2), 1);
+        R    = (survey.hyp.sigma_f^2 + par.krig.sigma_map^2 + par.sigma_obs^2) ...
+               * ones(size(P, 2), 1);
+        cout = [n; 0; 0; n_dist];
+        return
+    end
+
+    hyp    = window_hyperparameters(survey, idx, par);
+    [z, R] = ok_solve(survey.X(:, idx), survey.z(idx), P, hyp, par);
+    cout   = [n; n^3; 1; n_dist];
 end
 
 function [z, R, n, n_modes, cout] = query_cak(survey, P, ctx, par)
@@ -525,6 +680,16 @@ function tab = tabulate_ok(map, survey, par)
     if secouage(par) > 0, suff = suff + sprintf("_j%d", round(100 * secouage(par))); end
     file = fullfile(par.path.cache, sprintf("ok_%dpts_%dm_p%d_g%d%s.mat", survey.n, ...
                     round(step), round(survey.pitch(1)), graine_releve(par), suff));
+
+    % UN RELEVÉ ÉCLAIRCI NE PARTAGE PAS LA TABULATION DU PLEIN. Le champ n'existe que
+    % dans ce cas, donc les six cents tabulations déjà en cache gardent leur clé et
+    % restent valides — ajouter un champ inconditionnellement les aurait toutes invalidées.
+    if isfield(survey, 'p_alea')
+        key.p_alea = survey.p_alea;
+        suff = suff + sprintf("_b%d", round(100 * survey.p_alea));
+        file = fullfile(par.path.cache, sprintf("ok_%dpts_%dm_p%d_g%d%s.mat", survey.n, ...
+                        round(step), round(survey.pitch(1)), graine_releve(par), suff));
+    end
 
     if exist(file, 'file')
         c = load(file);

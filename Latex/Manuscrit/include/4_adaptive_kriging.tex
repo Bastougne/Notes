@@ -1,66 +1,114 @@
 \section{Adaptive Kriging}\label{sec:AK_PF}
 
-\textbf{TODO: adopter cette structure}
-\begin{enumerate}
-	\item subsampling car non-stationnaire + la fenêtre
-	\item le recalcul des HP + l'algo
-	\item résultats numériques avec taille de la fenêtre variable
-	\item clustering car on s'esst rendu compte que le AK a une fenêtre trop rigide et pas assez locale + les types de clustering
-	\item l'algo
-	\item les résultats avec bandwidth variable + taille de maille
-\end{enumerate}
+In this section, we propose to use training data subsampling, \textit{i.e.} selecting a subset $\tilde{\mathbf{x}}^r$ of size $\tilde{N}^r$ of the training points and only using them to perform the regression, as a way to solve the computational issues raised above. Since the computational cost of kriging scales cubically with the number of training points, quadratically for memory, discarding half the data reduces the computational load by a factor of $8$ and requires $4$ times less storage.
 
-\subsection{Non-Stationary Observation Field}
+However, this method comes at a cost. In the following, we describe two subsampling strategies, each requiring to perform a subsampling step at each time step. This means that no precomputation can be done before the mission, and in particular that inverting $G(\tilde{\mathbf{x}}^r)\in\mathcal{S}_{\tilde{N}^r\:d_z}^{++}(\mathbb{R})$ and $C^\top G(\tilde{\mathbf{x}}^r)^{-1}C\in\mathcal{S}_{d_z}^{++}(\mathbb{R})$ must be done in real time.
 
-\textbf{TODO: à vérifier — section entièrement rédigée par Claude.}
+\subsection{Random Subsampling}
 
-The estimators of \cref{sec:kriging} assume a single kernel over the whole index set, and
-\cref{th:kriging_navigation_assumptions} inherits that assumption. A physical field rarely
-honours it. A magnetic anomaly map is rough where the basement is shallow and smooth where a
-sedimentary cover buries it, so a correlation length fitted over the whole map is an average
-that describes no part of it, too long where the field varies quickly and too short where it
-does not. The estimator then either smooths away structure it could have recovered, or credits
-noise with a structure it does not have, and in both cases the covariance it reports is wrong
-in the direction that matters, since a filter reads that covariance as its likelihood width.
+The simplest idea to reduce the number of training points is to let $p\in[0,1]$, and draw $s^{(i)}$ from a Bernoulli distribution of success probability $p$. Any training sample $\tilde{x}_i$ for which the corresponding $s^{(i)}$ is a success is retained to form $\tilde{\mathbf{x}}^r$, while the others are discarded.
 
-A second observation makes this tractable rather than merely regrettable. The filter never
-queries the whole map. At any step the particles occupy a region whose extent is set by the
-covariance the filter itself carries, a few kilometres once the track is acquired, and the
-estimator is asked for values inside that region alone. The stationarity assumption therefore
-only needs to hold locally, over a neighbourhood the filter delimits at no cost, since it
-computes the corresponding covariance anyway.
+By linearity of the expectation, the number of retained data is, on average:
+\begin{equation}
+	\tilde{N}^r=p\times\tilde{N}
+\end{equation}
 
-\textbf{TODO: nouvelle métrique} The third is the number of survey samples read per query, written $\tilde{n}_\mathrm{w}$,
+\textbf{TODO: numerical results here}
+
+\subsection{Adaptive Subsampling Window}
+
+The above results show that the computational limits described in \cref{sec:static_results} are not the only reasons to forgo using static kriging-based navigation algorithms. Indeed, the estimators introduced in \cref{sec:kriging} assume the use of a single kernel over the entire domain, and \cref{th:kriging_navigation_assumptions} inherits that hypothesis. In \cref{sec:HP_estimation}, we estimated the hyperparameters of the kernel once before the mission, meaning that they are assumed to be independent of the inputs:
+\begin{equation}
+	k_{3/2}:x,x'\mapsto\sigma_f^2\left(1+\frac{\sqrt{3}\:\|x-x'\|_2}{l}\right)\exp\left(-\frac{\sqrt{3}\:\|x-x'\|_2}{l}\right)
+\end{equation}
+
+The considered kernel is thus radial, and the resulting GP is therefore stationary. This is unrealistic for a physical field, especially at large spatial scales. However, stationarity cannot be simply dropped, as the hyperparameters $\theta\triangleq(\sigma_f,l)$ of such a kernel would have to be fitted at every point of the domain, where a single sample is available. We therefore assume the field to be non-stationary, but its hyperparameters to vary over a scale $L_\theta$ much larger than the correlation length itself. Under this hypothesis, a neighbourhood of radius $r_\mathrm{w}$ such that:
+\begin{equation}
+	l\ll r_\mathrm{w}\ll L_\theta
+\end{equation}
+is large enough to enable the accurate estimation of $\sigma_f$ and $l$, while small enough to avoid averaging those values over distances on which they change.
+
+In this section, we propose an adaptive subsampling strategy to optimise the kriging performance of the filter according to three criteria:
+\begin{itemize}
+	\item They must cover a region whose characteristic size is of the order of $r_\mathrm{w}$, so that the local hyperparameters can be accurately estimated without averaging them over a region where they vary significantly.
+	\item The retained training points must cover an area large enough to avoid extrapolation at the particle locations, which degrades the reconstruction of the observation function, as quantified in \cref{sec:kriging_method}.
+	\item Finally, the number of retained training points must remain small enough to ensure that the filter can be computed within real-time constraints.
+\end{itemize}
+
+The first constraint naturally gives the shape of retained subset. Let $\hat{x}_{k|k-1}$ be the predicted estimation of the filter at time $k$:
+\begin{equation}
+	\hat{x}_{k|k-1}\triangleq\sum_{i=1}^Nw_{k-1}^{(i)}\:x_k^{(i)}\approx\mathbb{E}_{p(\cdot|\mathbf{z}_{1:k-1})}[x_k]
+\end{equation}
+and $\hat{P}_{k|k-1}$ denote the corresponding covariance matrix:
+\begin{equation}
+	\hat{P}_{k|k-1}\triangleq\sum_{i=1}^Nw_{k-1}^{(i)}\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)^\top
+\end{equation}
+
+\textbf{TODO: à relire}
+These two quantities can be computed after the prediction step at time $k$, but before the following weight update. In particular, they represent the state of the particle set at time $k$ before kriging the environment.
+
+The window itself is a region of the domain the map is defined on, and not of the state space: $\hat{P}_{k|k-1}$ mixes positions and velocities, so its eigenvalues carry no single unit and a radius drawn from them would be meaningless. The relevant quantity is the position block of the predicted covariance:
+\begin{equation}
+	\hat{P}^{\mathrm{pos}}_{k|k-1}\triangleq\varphi_{\mathrm{pos}}\:\hat{P}_{k|k-1}\:\varphi_{\mathrm{pos}}^\top
+\end{equation}
+
+Indeed, if the particles follow a Gaussian distribution of mean $\hat{x}_{k|k-1}$ and covariance matrix $\hat{P}_{k|k-1}$, then each particle $x_k^{(i)}$ has a $q$ chance that:
+\begin{equation}
+	\left\|\varphi_{\mathrm{pos}}\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)\right\|_{\hat{P}^{\mathrm{pos}}_{k|k-1}}^2\leq\chi_2^2(q)
+\end{equation}
+where $\chi_d^2(q)$ is the $q$ quantile of a $\chi^2$ distribution with $d$ degrees of freedom, and $q\triangleq99\%$ is the confidence level already used by the convergence criterion of the previous section.
+
+That region is an ellipse, which is an inconvenient shape to select training data with. Bounding it by a disc costs a single spectral inequality: since $\left(\hat{P}^{\mathrm{pos}}_{k|k-1}\right)^{-1}\succeq\lambda_{\max}^{-1}\left(\hat{P}^{\mathrm{pos}}_{k|k-1}\right)\:I_2$, it comes that:
+\begin{equation}
+	\begin{aligned}
+	\left\|\varphi_{\mathrm{pos}}\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)\right\|_2&\leq\sqrt{\lambda_{\max}\left(\hat{P}^{\mathrm{pos}}_{k|k-1}\right)}\times\left\|\varphi_{\mathrm{pos}}\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)\right\|_{\hat{P}^{\mathrm{pos}}_{k|k-1}}\\
+	&\leq c(q)\:\sqrt{\lambda_{\max}\left(\hat{P}^{\mathrm{pos}}_{k|k-1}\right)}
+	\end{aligned}
+\end{equation}
+with a probability of at least $q$, the coefficient being available in closed form since a $\chi^2$ distribution with two degrees of freedom is an exponential one:
+\begin{equation}
+	c(q)\triangleq\sqrt{\chi_2^2(q)}=\sqrt{-2\ln(1-q)}\label{eq:window_coefficient}
+\end{equation}
+
+The probability is bounded from below rather than attained, the disc containing the ellipse it was built from, with equality only where $\hat{P}^{\mathrm{pos}}_{k|k-1}$ is isotropic. At the retained confidence level $c(99\%)=3.03$, and the value $c=3$ used in the remainder is the radius of the disc holding $98.9\%$ of the cloud.
+
+\textbf{TODO: il faut dire que "naïvement" on pourrait prendre la boule centrée sur l'état prédit et dont le rayon vient d'être calculé, mais il manque 3 choses:\\
+- on n'est qu'à 99\% de chance de tomber dedans et encore on pourrait être à la limite\\
+- on n'a pas de taille/de nombre de données minimale\\
+- si c'est immense, ce qui est possible, alors on a besoin de garder la fenêtre grande car il ne faut pas extrapoler en les particules, mais on peut quand-même n'estimer les HP que sur certaines données d'entrainement pour gagner du temps}
+
+\begin{algorithm}[!htb]
+	\begin{algorithmic}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim q\left(\cdot|x_{k-1}^{(i)},z_k\right)$}\Comment{Particle propagation}
+	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\dfrac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}$}\Comment{Weight update}
+	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
+	\State{$\displaystyle\hat{N}_{\mathrm{eff}}=\left.1\middle/\sum_{i=1}^N\left(w_k^{(i)}\right)^2\right.$}\Comment{Resampling criterion}
+	\If{$\hat{N}_{\mathrm{eff}}<N_{\mathrm{th}}$}
+	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}x_k^{(i)}$}\Comment{Whitening}
+	\State{$\displaystyle\hat{P}_k=\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top$}
+	\State{$A_k\text{ s.t. }\hat{P}_k=A_k\:A_k^\top$}
+	\State{$\left\{x_k^{(j)},w_k^{(j)},-\right\}_{j=1}^N\gets\operatorname{Resampling}\left(\left\{x_k^{(i)},w_k^{(i)}\right\}_{i=1}^N\right)$}\Comment{Resampling}
+	\State{$\forall j\in[\![1,N]\!],\:\varepsilon^{(j)}\sim K$}\Comment{Regularisation}
+	\State{$\forall j\in[\![1,N]\!],\:x_k^{(j)}\gets x_k^{(j)}+\alpha_{\mathrm{reg}}hA_k\:\varepsilon^{(j)}$}
+	\EndIf
+	\end{algorithmic}\caption{Adaptive Kriging Regularised Particle Filter}\label{alg:AK_RPF}
+\end{algorithm}
+
+\subsection{Numerical Results}
+
+As for static kriging, this section evaluates the performance of the AK-PF across the six grid resolutions. The static kriging RPF performance are also given as a reference. Along the RMSE, the NEES, an other metric is introduced to help explain the variations in computational and memory costs between each configuration. This metric is the number of retained training points, \textit{i.e.} the value of $\tilde{N}^r$, at each time step. Since the 
+
+\textbf{TODO: nouvelle métrique} The third is the number of survey samples read per query, written $\tilde{N}_\mathrm{w}$,
 together with the number of hyperparameter fits, both of which measure cost in a way that a wall
 clock cannot since they do not depend on the machine.
 
-\subsection{Kriging Subsampling}
+\subsection{Sensitivity to the Window Parameters}
 
-\textbf{TODO: à vérifier — section entièrement rédigée par Claude.}
+\section{Clustered Adaptive Kriging}\label{sec:CAK_PF}
 
-Adaptive kriging exploits that remark by fitting and solving on a window rather than on the
-whole survey. At each step the window is the disc centred on the predicted position whose
-radius is the semi-major axis of the ellipse at three standard deviations, scaled by a factor
-$\alpha_W$ left to the designer, and the samples it contains form the training set of an
-ordinary kriging whose hyperparameters are re-estimated on them.
+While it outperforms static kriging, the Ak-RPF window can still 
 
-Two bounds are imposed on the number of samples retained, and they guard against opposite
-failures. The floor $n_{\min}$ prevents a filter that has become overconfident from kriging on
-two points, a configuration in which the estimate is dominated by the estimated mean and its
-covariance is meaningless. The ceiling $n_{\max}$ addresses the converse. Since the radius is
-proportional to the declared uncertainty, a cloud still fifteen kilometres wide calls for a disc
-of ninety kilometres, that is, for the entire survey, and adaptive kriging then becomes an
-ordinary kriging that pays a full factorisation at every step and recovers nothing of what it
-was meant to save. Bounding the count rather than the radius keeps the selection meaningful
-whether the samples are dense or sparse.
-
-The cost per step follows from \cref{th:kriging_mean_cost} with $\tilde{n}$ replaced by the
-window size $\tilde{n}_\mathrm{w}$, one factorisation in
-$\mathcal{O}\left(\tilde{n}_\mathrm{w}^3\right)$ shared by the particles of the step, and one
-hyperparameter fit. The saving is therefore cubic in the ratio of the window to the survey, and
-it is bought at the price of a fit that the static estimator performs once for the whole
-mission.
-
+\begin{comment}
 \subsection{Numerical Results}
 
 \textbf{TODO: à vérifier — section entièrement rédigée par Claude. Chiffres à
@@ -83,8 +131,8 @@ thirty-six}, and the accuracy is the same.
 
 The saving that follows from \cref{th:kriging_mean_cost} is not linear in that ratio. Per step
 the estimator pays one factorisation in
-$\mathcal{O}\left(\tilde{n}_\mathrm{w}^3\right)$ and, for each of the $N$ particles, a
-triangular solve in $\mathcal{O}\left(\tilde{n}_\mathrm{w}^2\right)$, the second term dominating
+$\mathcal{O}\left(\tilde{N}_\mathrm{w}^3\right)$ and, for each of the $N$ particles, a
+triangular solve in $\mathcal{O}\left(\tilde{N}_\mathrm{w}^2\right)$, the second term dominating
 since $N$ far exceeds the window. Summed over the mission, adaptive kriging spends
 $14.4$ Gflop against $7386$ for the static estimator evaluated exactly, a factor of about five
 hundred.
@@ -210,7 +258,7 @@ pattern. \textbf{Clustering does not make the estimate better.}
 \end{table}
 
 What it makes cheaper is the whole of it, by a factor of about thirteen, and the two columns
-say why. Plain adaptive kriging factorises one window of $\tilde{n}_\mathrm{w}$ samples and
+say why. Plain adaptive kriging factorises one window of $\tilde{N}_\mathrm{w}$ samples and
 solves all $N$ particles against it. Clustered adaptive kriging factorises one window per mode,
 which costs $\sum_c n_c^3$ instead of $\left(\sum_c n_c\right)^3$, and \textbf{each mode solves
 only the particles that belong to it}, so the dominant term is divided twice over. Measured, the
@@ -249,3 +297,4 @@ was conceived is therefore reached by degrading the map, not by changing the fil
 	cent of the time. The measurements of this chapter are therefore reported as operation
 	counts, which are reproducible, and not as durations, which are not.
 \end{remark}
+\end{comment}

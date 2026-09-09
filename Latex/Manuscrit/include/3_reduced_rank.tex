@@ -1,6 +1,6 @@
 \section{Reduced-Rank Kernel Approximation}\label{sec:reduced_rank}
 
-Exact GP regression requires inverting the $\tilde{n}d_z\times\tilde{n}d_z$ Gram matrix $G(\tilde{\mathbf{x}})$, which scales as $\mathcal{O}\left(\tilde{n}^3\right)$. When the number of training points is large, this operation becomes prohibitive. Reduced-rank methods \cite{bib:Nystrom,bib:inducing-points} circumvent this issue by approximating the kernel as a linear combination of $r_{\mathrm{KL}}\in\mathbb{N}^*$ basis functions, with $r_{\mathrm{KL}}<\tilde{n}$. The inversion cost is reduced to $\mathcal{O}\left(r_{\mathrm{KL}}^3\right)$, bringing down the overall kriging cost to $\mathcal{O}\left(r_{\mathrm{KL}}^2\tilde{n}\right)$.
+Exact GP regression requires inverting the $\tilde{N}d_z\times\tilde{N}d_z$ Gram matrix $G(\tilde{\mathbf{x}})$, which scales as $\mathcal{O}\left(\tilde{N}^3\right)$. When the number of training points is large, this operation becomes prohibitive. Reduced-rank methods \cite{bib:Nystrom,bib:inducing-points} circumvent this issue by approximating the kernel as a linear combination of $r_{\mathrm{KL}}\in\mathbb{N}^*$ basis functions, with $r_{\mathrm{KL}}<\tilde{N}$. The inversion cost is reduced to $\mathcal{O}\left(r_{\mathrm{KL}}^3\right)$, bringing down the overall kriging cost to $\mathcal{O}\left(r_{\mathrm{KL}}^2\tilde{N}\right)$.
 
 Mercer's theorem \cite{bib:Mercer}, presented in \Cref{th:Mercer}, establishes the existence of such a decomposition as soon as $k$ is a continuous SPD kernel, which Matérn kernels satisfy, as proven by \Cref{th:Matérn_properties}, and $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$. The Woodbury inversion formula is then used to rewrite the kriging estimator in a computationally efficient expression.
 
@@ -110,18 +110,18 @@ By \Cref{th:Mercer}, the eigenvalues $\lambda_i$ are strictly positive, so that 
 \end{equation}
 and then:
 \begin{equation}
-	G(\tilde{\mathbf{x}})\approx\Psi(\tilde{\mathbf{x}})\:\Lambda\:\Psi(\tilde{\mathbf{x}})^\top+I_{\tilde{n}}\otimes\tilde{R},\qquad\Psi(\tilde{\mathbf{x}})=\begin{bmatrix}\Psi(\tilde{x}_1)\\\vdots\\\Psi(\tilde{x}_{\tilde{n}})\end{bmatrix}\label{eq:reduced_rank_Gram}
+	G(\tilde{\mathbf{x}})\approx\Psi(\tilde{\mathbf{x}})\:\Lambda\:\Psi(\tilde{\mathbf{x}})^\top+I_{\tilde{N}}\otimes\tilde{R},\qquad\Psi(\tilde{\mathbf{x}})=\begin{bmatrix}\Psi(\tilde{x}_1)\\\vdots\\\Psi(\tilde{x}_{\tilde{N}})\end{bmatrix}\label{eq:reduced_rank_Gram}
 \end{equation}
 
 \begin{proposition}[Reduced-rank simple kriging]\label{th:reduced_rank_kriging}
 	Let:
 	\begin{equation}
-		\tilde{G}(\tilde{\mathbf{x}})\triangleq\Lambda^{-1}+\Psi(\tilde{\mathbf{x}})^\top\left(I_{\tilde{n}}\otimes\tilde{R}\right)^{-1}\Psi(\tilde{\mathbf{x}})\in\mathcal{M}_{r_{\mathrm{KL}},r_{\mathrm{KL}}}(\mathbb{R})
+		\tilde{G}(\tilde{\mathbf{x}})\triangleq\Lambda^{-1}+\Psi(\tilde{\mathbf{x}})^\top\left(I_{\tilde{N}}\otimes\tilde{R}\right)^{-1}\Psi(\tilde{\mathbf{x}})\in\mathcal{M}_{r_{\mathrm{KL}},r_{\mathrm{KL}}}(\mathbb{R})
 	\end{equation}
 	be the reduced-rank Gram matrix. Under the reduced-rank approximation of \eqref{eq:reduced_rank_Gram}, the centred SK estimator of \Cref{th:simple_kriging} and its error covariance matrix reduce to:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top\left(I_{\tilde{n}}\otimes\tilde{R}\right)^{-1}\tilde{\mathbf{z}}\\
+		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top\left(I_{\tilde{N}}\otimes\tilde{R}\right)^{-1}\tilde{\mathbf{z}}\\
 		R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&\approx R+\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(x)^\top
 		\end{aligned}\right.\label{eq:reduced_rank_kriging}
 	\end{equation}

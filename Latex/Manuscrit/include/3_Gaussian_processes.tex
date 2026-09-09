@@ -162,7 +162,7 @@ In order for the GP to be non-degenerate, the matrix $k(\mathbf{x},\mathbf{x})$ 
 
 Throughout the rest of this document, we assume that the covariance kernel $k$ is SPD and that the points of every collection $\mathbf{x}=(x_1,\dots,x_n)\in\mathcal{U}^n$ are pairwise distinct. This ensures that we only work with non-degenerate GPs.
 
-\subsection{Common Kernels}
+\subsection{Common Kernels}\label{sec:covariance_kernels}
 
 Assume in this section that $\mathcal{U}$ is a finite-dimensional normed vector space, \textit{i.e.} $\mathcal{U}=\mathbb{R}^{d_x}$ for some $d_x\in\mathbb{N}^*$, up to isomorphism. A natural way to build kernels on $\mathcal{U}$ is to let the correlation between the field values at two points $x,x'$ depend only on the distance $\|x-x'\|$ between them. Kernels of this form are called radial kernels \cite{bib:Stein-kriging}, and are formally defined by \Cref{th:radial_kernel}.
 

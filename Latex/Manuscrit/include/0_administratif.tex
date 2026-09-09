@@ -18,47 +18,45 @@
 \thispagestyle{empty}
 \newgeometry{
 	top=1.5cm,
-	bottom=2cm,
+	bottom=1.5cm,
 	left=2cm,
 	right=2cm
 }
 
-\hspace{0.5cm}
 \includegraphics[height=1.7cm]{../../Images/Logo université de Bordeaux.pdf}
 \hfill
 \includegraphics[height=1.7cm]{../../Images/Logo ONERA.pdf}
-\hspace{0.5cm}
 
 \begin{center}
 	\doublespacing
 
 	\textsc{\Large Thèse présentée\\pour obtenir le grade de}\\
-	\textsc{\textbf{\LARGE Docteur\\de l'Université de Bordeaux}}\\[0.8cm]
+	\textsc{\textbf{\LARGE Docteur\\de l'Université de Bordeaux}}\\[0.55cm]
 
 	\textsc{\Large École doctorale Sciences Physiques \& de l'Ingénieur}\\
-	\textsc{Automatique, Productique, Signal et Image, Ingénierie cognique}\\[0.8cm]
+	\textsc{Automatique, Productique, Signal et Image, Ingénierie cognique}\\[0.55cm]
 
-	{\Large Par \textbf{Bastien HUBERT}}\\[0.8cm]
+	{\Large Par \textbf{Bastien HUBERT}}\\[0.55cm]
 
-	{\Large Cartographie et Navigation Autonome sur Champs Physiques par Filtrage Particulaire à Processus Gaussiens}\\[0.8cm]
+	{\Large Cartographie et Navigation Autonome sur Champs Physiques\\par Filtrage Particulaire à Processus Gaussiens}\\[0.55cm]
 
-	{\large Autonomous Navigation and Mapping on Physical Fields via\\Gaussian Process Particle Filtering}\\[0.8cm]
+	{\large Autonomous Navigation and Mapping on Physical Fields\\by Gaussian Process-based Particle Filtering}\\[0.55cm]
 
 	\singlespacing
+	{\renewcommand{\arraystretch}{1}
 	\begin{tabular}{rl}
 		Sous la direction de :&\textbf{Audrey GIREMUS}\\
 		la co-direction de :&\textbf{Karim DAHIA}\\
-		et l'encadrement de :&\textbf{Nicolas MERLINGE}\\
-	\end{tabular}
+		et l'encadrement de :&\textbf{Nicolas MERLINGE}
+	\end{tabular}}
 \end{center}
 
-\vfill
+\vfill\vfill
 
 {\large Thèse soutenue le 00 janvier 0000}
-\vspace{0.7cm}
+\vfill
 
 \hspace{1cm}Membres du jury :
-
 \begin{center}
 	\begin{tabular}{lllr}
 		Manon KOK&Professeure associée&TU Delft&Rapporteure\\
@@ -222,7 +220,7 @@
 	\lignetoc{$I,I_n$}{Identity matrix, subscript: of size $n$}
 	\lignetoc{$\mathbf{1}_n$}{Vector of ones of size $n$}
 	\lignetoc{$J_f$}{Jacobian matrix of a function $f$}
-	\lignetoc{$k(\cdot,\cdot),k_{\mathrm{SE}},k_\nu,k_{\mathrm{sep}},k_{\mathrm{MS}},k_B,k_{r_{\mathrm{KL}}}$}{Covariance kernels (generic, squared-exponential, Matérn, separable, multi-scale, augmented, reduced-rank)}
+	\lignetoc{$k(\cdot,\cdot),k_{\mathrm{SE}},k_\nu,k_{\mathrm{sep}},k_{\mathrm{MS}},k_B,k_{r_{\mathrm{KL}}}$}{Covariance kernels}
 	\lignetoc{$K,K_h,K_{\mathrm{Epa}},K_{\mathrm{Gauss}}$}{Regularisation kernels}
 	\lignetoc{$K_\nu$}{Modified Bessel function of the second kind}
 	\lignetoc{$K_k$}{Kalman gain}
@@ -232,8 +230,7 @@
 	\lignetoc{$\hat{m}_{\mathrm{OK}},\hat{m}_{\mathrm{UK}}$}{Estimated ordinary and universal-kriging means}
 	\lignetoc{$\mathcal{M}_{m,n}(\mathbb{R})$}{Set of real $m\times n$ matrices}
 	\lignetoc{$n_k$}{Observation noise}
-	\lignetoc{$\tilde{n}$}{Number of training points}
-	\lignetoc{$N$}{Number of particles or samples}
+	\lignetoc{$N,\tilde{N}$}{Number of particles, of training points}
 	\lignetoc{$\hat{N}_{\mathrm{eff}},N_{\mathrm{eff}}$}{Estimated and real effective sample size}
 	\lignetoc{$N_{\mathrm{th}}$}{Resampling threshold}
 	\lignetoc{$\mathbb{N},\mathbb{N}^*$}{Sets of natural and strictly positive natural integers}

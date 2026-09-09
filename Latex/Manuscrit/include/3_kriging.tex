@@ -1,4 +1,4 @@
-\section{Kriging}\label{sec:kriging}
+\section{Gaussian Process Regression}\label{sec:kriging}
 
 Gaussian process regression, also known as kriging \cite{bib:Matheron,bib:Rasmussen-regression,bib:GP-intro}, estimates the value of a field at an unobserved location using noisy measurements of the same field at known locations. Formally, let $f\sim\mathcal{GP}(m,k):\mathcal{U}\to\mathbb{R}^{d_z}$, and $x\in\mathcal{U}$. We wish to estimate the law of:
 \begin{equation}
@@ -8,11 +8,11 @@ where $\varepsilon$ is independent of $f$.
 
 While kriging usually aims to reconstruct $f(x)$ itself, the query noise $\varepsilon$ models the observation uncertainty, so that kriging estimates the noisy observation from \eqref{eq:navigation_problem}. The standard formulation can nonetheless be recovered by taking $R=0$.
 
-Without further information regarding $f$, we would only be able to state that $z$ follows a Gaussian distribution of expectation $m(x)$ and covariance $k(x,x)+R$. However, we are given $\tilde{n}\in\mathbb{N}^*$ distinct training points $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{n}})\in\mathcal{U}^{\tilde{n}}$ and their corresponding noisy observations:
+Without further information regarding $f$, we would only be able to state that $z$ follows a Gaussian distribution of expectation $m(x)$ and covariance $k(x,x)+R$. However, we are given $\tilde{N}\in\mathbb{N}^*$ distinct training points $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\mathcal{U}^{\tilde{N}}$ and their corresponding noisy observations:
 \begin{equation}
 	\tilde{\mathbf{z}}\triangleq\begin{bmatrix}
-		f(\tilde{x}_1)+\varepsilon_1\\\vdots\\f(\tilde{x}_{\tilde{n}})+\varepsilon_{\tilde{n}}
-	\end{bmatrix}\in\mathbb{R}^{\tilde{n}d_z},\qquad\varepsilon_i\sim\mathcal{N}(0,\tilde{R}),\qquad\tilde{R}\in\mathcal{S}_{d_z}^+(\mathbb{R})
+		f(\tilde{x}_1)+\varepsilon_1\\\vdots\\f(\tilde{x}_{\tilde{N}})+\varepsilon_{\tilde{N}}
+	\end{bmatrix}\in\mathbb{R}^{\tilde{N}d_z},\qquad\varepsilon_i\sim\mathcal{N}(0,\tilde{R}),\qquad\tilde{R}\in\mathcal{S}_{d_z}^+(\mathbb{R})
 \end{equation}
 where $\varepsilon_1,\dots,\varepsilon_{\tilde n}$ are mutually independent and independent of $f$.
 
@@ -23,8 +23,8 @@ The goal of this section is to derive the best linear unbiased estimator (BLUE) 
 parametrised by a weight matrix:
 \begin{equation}
 	W\triangleq\begin{bmatrix}
-	w_1\\\vdots\\w_{\tilde{n}}
-	\end{bmatrix}\in\mathcal{M}_{\tilde{n}d_z,d_z}(\mathbb{R})
+	w_1\\\vdots\\w_{\tilde{N}}
+	\end{bmatrix}\in\mathcal{M}_{\tilde{N}d_z,d_z}(\mathbb{R})
 \end{equation}
 such that the error vector has an expectation of $0$ and a minimum covariance. This setting is illustrated by \Cref{fig:kriging_example} for a $\mathbb{R}^2\to\mathbb{R}$ field.
 
@@ -41,15 +41,15 @@ Since $\hat{z}-z$ is a vector, its covariance is a matrix, and cannot be minimis
 In the following, we present three kriging estimates, based on increasingly relaxed assumptions made on our knowledge of the underlying GP. Each method relies on the inversion of the Gram matrix:
 \begin{equation}
 	\begin{aligned}
-	G(\tilde{\mathbf{x}})&\triangleq k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{n}}\otimes\tilde{R}\\
+	G(\tilde{\mathbf{x}})&\triangleq k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}\\
 	&=\begin{bmatrix}
-	k(\tilde{x}_1,\tilde{x}_1)+\tilde{R}&\cdots&k(\tilde{x}_1,\tilde{x}_{\tilde{n}})\\\vdots&\ddots&\vdots\\k(\tilde{x}_{\tilde{n}},\tilde{x}_1)&\cdots&k(\tilde{x}_{\tilde{n}},\tilde{x}_{\tilde{n}})+\tilde{R}
+	k(\tilde{x}_1,\tilde{x}_1)+\tilde{R}&\cdots&k(\tilde{x}_1,\tilde{x}_{\tilde{N}})\\\vdots&\ddots&\vdots\\k(\tilde{x}_{\tilde{N}},\tilde{x}_1)&\cdots&k(\tilde{x}_{\tilde{N}},\tilde{x}_{\tilde{N}})+\tilde{R}
 	\end{bmatrix}
 	\end{aligned}
 \end{equation}
 of $\tilde{\mathbf{x}}$ with respect to $f$, where $\otimes$ is the Kronecker matrix product. Since $k$ is SPD and the training points are distinct, it comes that:
 \begin{equation}
-	G(\tilde{\mathbf{x}})\in\mathcal{S}_{\tilde{n}d_z}^{++}(\mathbb{R})
+	G(\tilde{\mathbf{x}})\in\mathcal{S}_{\tilde{N}d_z}^{++}(\mathbb{R})
 \end{equation}
 and so $G(\tilde{\mathbf{x}})$ is invertible, even in the noiseless case $\tilde{R}=0$.
 
@@ -121,7 +121,7 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 \end{remark}
 
 \begin{proposition}[Exact interpolation in the noiseless case]
-	Assume that $\tilde{R}=0$, and let $i\in[\![1,\tilde{n}]\!]$. The SK estimator interpolates the data at $\tilde{x}_i$ exactly:
+	Assume that $\tilde{R}=0$, and let $i\in[\![1,\tilde{N}]\!]$. The SK estimator interpolates the data at $\tilde{x}_i$ exactly:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{z}_{\mathrm{SK}}(\tilde{x}_i,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=\tilde{z}_i\\
@@ -133,7 +133,7 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 \end{proposition}
 
 \begin{proof}
-	Since $\tilde{R}=0$, the Gram matrix reduces to $G(\tilde{\mathbf{x}})=k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$. Let $e_i\triangleq[0,\dots,0,1,0,\dots,0]^\top$ be the $i$-th canonical basis vector of $\mathbb{R}^{\tilde{n}}$. The matrix $e_i^\top\otimes I_{d_z}$ extracts the $i$-th block of a stacked matrix, such that:
+	Since $\tilde{R}=0$, the Gram matrix reduces to $G(\tilde{\mathbf{x}})=k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$. Let $e_i\triangleq[0,\dots,0,1,0,\dots,0]^\top$ be the $i$-th canonical basis vector of $\mathbb{R}^{\tilde{N}}$. The matrix $e_i^\top\otimes I_{d_z}$ extracts the $i$-th block of a stacked matrix, such that:
 	\begin{equation}
 		\left(e_i^\top\otimes I_{d_z}\right)G(\tilde{\mathbf{x}})=\left(e_i^\top\otimes I_{d_z}\right)k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})=k(\tilde{x}_i,\tilde{\mathbf{x}})
 	\end{equation}
@@ -189,9 +189,9 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 This result is a special case of the more general result established in \Cref{th:MMSE_estimator}. Since the unbiased hypothesis of the BLUE is automatically verified by the SK estimator, the minimisation criterion \eqref{eq:error_covariance} amounts to finding the MMSE estimator of $z$ given $\tilde{\mathbf{z}}$, which is always the conditional expectation.
 
 \begin{remark}[Simultaneous estimation]
-	The simultaneous estimation of $f$ at several query points $\mathbf{x}=(x_1,\dots,x_n)\in\mathcal{U}^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. In particular, the $\mathcal{O}\left(\tilde{n}^3\right)$ cost of inverting $G(\tilde{\mathbf{x}})$ can be shared across the $n$ estimations whether they are performed successively or simultaneously.
+	The simultaneous estimation of $f$ at several query points $\mathbf{x}=(x_1,\dots,x_n)\in\mathcal{U}^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. In particular, the $\mathcal{O}\left(\tilde{N}^3\right)$ cost of inverting $G(\tilde{\mathbf{x}})$ can be shared across the $n$ estimations whether they are performed successively or simultaneously.
 
-	However, computing only the $n$ diagonal blocks of $R_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}})$ costs $\mathcal{O}(\tilde{n}^3+n\tilde{n}^2)$, whereas forming the full matrix before discarding its off-diagonal blocks costs $\mathcal{O}(\tilde{n}^3+n\tilde{n}^2+n^2\tilde{n})$ due to the extra off-diagonal matrix products. The off-diagonal blocks describe the correlation between the estimation errors made at distinct query points, and should only be computed when that correlation is needed.
+	However, computing only the $n$ diagonal blocks of $R_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}})$ costs $\mathcal{O}(\tilde{N}^3+n\tilde{N}^2)$, whereas forming the full matrix before discarding its off-diagonal blocks costs $\mathcal{O}(\tilde{N}^3+n\tilde{N}^2+n^2\tilde{N})$ due to the extra off-diagonal matrix products. The off-diagonal blocks describe the correlation between the estimation errors made at distinct query points, and should only be computed when that correlation is needed.
 \end{remark}
 
 \subsection{Ordinary Kriging}
@@ -203,13 +203,13 @@ The unbiased assumption of the OK estimator yields:
 	\begin{aligned}
 	&\mathbb{E}[\hat{z}-z]=0\\
 	\iff\quad&W^\top\mathbb{E}[\tilde{\mathbf{z}}]-\mathbb{E}[z]=0\\
-	\iff\quad&\left(\sum_{i=1}^{\tilde{n}}w_i^\top-I_{d_z}\right)m=0\\
+	\iff\quad&\left(\sum_{i=1}^{\tilde{N}}w_i^\top-I_{d_z}\right)m=0\\
 	\iff\quad&C^\top W-I_{d_z}=0
 	\end{aligned}\label{eq:ordinary_kriging_constraint}
 \end{equation}
 with:
 \begin{equation}
-	C\triangleq\mathbf{1}_{\tilde{n}}\otimes I_{d_z}\in\mathcal{M}_{\tilde{n}d_z,d_z}(\mathbb{R}),\qquad\mathbf{1}_{\tilde{n}}\triangleq\begin{bmatrix}1\\\vdots\\1\end{bmatrix}\in\mathbb{R}^{\tilde{n}}
+	C\triangleq\mathbf{1}_{\tilde{N}}\otimes I_{d_z}\in\mathcal{M}_{\tilde{N}d_z,d_z}(\mathbb{R}),\qquad\mathbf{1}_{\tilde{N}}\triangleq\begin{bmatrix}1\\\vdots\\1\end{bmatrix}\in\mathbb{R}^{\tilde{N}}
 \end{equation}
 
 The OK weights thus minimise \eqref{eq:error_covariance} under the constraint \eqref{eq:ordinary_kriging_constraint}. Using the Lagrange multiplier method \cite{bib:Lagrange-multipliers}, \Cref{th:ordinary_kriging} derives the corresponding estimator and covariance matrix, and \Cref{th:ordinary_simple_kriging_link} establishes the link between ordinary and simple kriging.
@@ -249,7 +249,7 @@ The OK weights thus minimise \eqref{eq:error_covariance} under the constraint \e
 	\begin{equation}
 		\underbrace{\begin{bmatrix}
 		\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\\\vdots\\\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
-		\end{bmatrix}}_{\tilde{n}\text{ times}}=C\:\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
+		\end{bmatrix}}_{\tilde{N}\text{ times}}=C\:\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
 	\end{equation}
 
 	Ordinary kriging can therefore be interpreted as simple kriging in which the mean $m$ is concurrently estimated from the observations. The uncertainty associated with this second estimation is captured by the covariance term $R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})\succeq0$, and is added to the SK covariance.
@@ -275,12 +275,12 @@ and $\beta$ gathers the unknown coefficients $\beta_i\in\mathbb{R}^{d_z}$:
 The trend matrix at the training points stacks these evaluations:
 \begin{equation}
 	g(\tilde{\mathbf{x}})=\begin{bmatrix}
-	g(\tilde{x}_1)\\\vdots\\g(\tilde{x}_{\tilde{n}})
-	\end{bmatrix}\in\mathcal{M}_{\tilde{n}d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
+	g(\tilde{x}_1)\\\vdots\\g(\tilde{x}_{\tilde{N}})
+	\end{bmatrix}\in\mathcal{M}_{\tilde{N}d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
 \end{equation}
-so that $m(\tilde{\mathbf{x}})=g(\tilde{\mathbf{x}})\:\beta$ lies in $\mathbb{R}^{\tilde{n}d_z}$, as does $\tilde{\mathbf{z}}$.
+so that $m(\tilde{\mathbf{x}})=g(\tilde{\mathbf{x}})\:\beta$ lies in $\mathbb{R}^{\tilde{N}d_z}$, as does $\tilde{\mathbf{z}}$.
 
-This matrix is assumed to have full column rank, which requires at least $\tilde{n}\geq r_{\mathrm{UK}}$ training points, and the trend functions to be linearly independent once restricted to the training points. \Cref{th:universal_kriging} generalises \Cref{th:ordinary_kriging} accordingly.
+This matrix is assumed to have full column rank, which requires at least $\tilde{N}\geq r_{\mathrm{UK}}$ training points, and the trend functions to be linearly independent once restricted to the training points. \Cref{th:universal_kriging} generalises \Cref{th:ordinary_kriging} accordingly.
 
 \begin{proposition}[Universal kriging estimator]\label{th:universal_kriging}
 	Assume that $g(\tilde{\mathbf{x}})$ has full column rank. The UK estimator of $z$ given $\tilde{\mathbf{z}}$ and its error covariance are:
@@ -358,11 +358,12 @@ proposition, et son premier paragraphe, qui doublonnait le second, a été suppr
 à décider si son corps doit être reformulé en énoncé.}
 
 \begin{remark}[Cost of estimating the mean]\label{th:kriging_mean_cost}
-	Ordinary and universal kriging both add the estimation of a mean to their simple counterpart, at a cost that \eqref{eq:universal_kriging_equations} makes explicit. Besides the $\mathcal{O}\left(\tilde{n}^3\right)$ factorisation of $G(\tilde{\mathbf{x}})$, they need $G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, which reuses that factorisation for $r_{\mathrm{UK}}$ additional right-hand sides and costs $\mathcal{O}\left(r_{\mathrm{UK}}\tilde{n}^2\right)$, then the assembly and the inversion of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, for $\mathcal{O}\left(r_{\mathrm{UK}}^2\tilde{n}+r_{\mathrm{UK}}^3\right)$. Like the factorisation itself, these are paid once and shared across query points, each of which then carries an extra $\mathcal{O}\left(r_{\mathrm{UK}}\tilde{n}\right)$.
+	Ordinary and universal kriging both add the estimation of a mean to their simple counterpart, at a cost that \eqref{eq:universal_kriging_equations} makes explicit. Besides the $\mathcal{O}\left(\tilde{N}^3\right)$ factorisation of $G(\tilde{\mathbf{x}})$, they need $G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, which reuses that factorisation for $r_{\mathrm{UK}}$ additional right-hand sides and costs $\mathcal{O}\left(r_{\mathrm{UK}}\tilde{N}^2\right)$, then the assembly and the inversion of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, for $\mathcal{O}\left(r_{\mathrm{UK}}^2\tilde{N}+r_{\mathrm{UK}}^3\right)$. Like the factorisation itself, these are paid once and shared across query points, each of which then carries an extra $\mathcal{O}\left(r_{\mathrm{UK}}\tilde{N}\right)$.
 
-	Estimating the mean is therefore free at the dominant order as long as $r_{\mathrm{UK}}\ll\tilde{n}$, ordinary kriging being the extreme case $r_{\mathrm{UK}}=1$ of one additional right-hand side and a $d_z\times d_z$ inversion. The same ratio governs the conditioning of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, which degrades as $r_{\mathrm{UK}}$ approaches $\tilde{n}$, so the arithmetic cost and the numerical one are bounded together.
+	Estimating the mean is therefore free at the dominant order as long as $r_{\mathrm{UK}}\ll\tilde{N}$, ordinary kriging being the extreme case $r_{\mathrm{UK}}=1$ of one additional right-hand side and a $d_z\times d_z$ inversion. The same ratio governs the conditioning of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, which degrades as $r_{\mathrm{UK}}$ approaches $\tilde{N}$, so the arithmetic cost and the numerical one are bounded together.
 \end{remark}
 
+\begin{comment}
 \subsection{Sequential Kriging Estimation}
 
 \textbf{TODO: à reprendre}
@@ -372,7 +373,7 @@ So far, we have assumed that the training points were all available simultaneous
 Kriging so far assumes the training set to be given once and for all. When observations arrive by batches, as they do along a trajectory, refactorising $G(\tilde{\mathbf{x}})$ at every batch is wasteful, since the previous estimate already summarises the data it was built from. \Cref{th:kriging_update} gives the corresponding update, and \Cref{th:universal_kriging_update} shows that the same formula serves the three estimators.
 
 \begin{proposition}[Sequential kriging update]\label{th:kriging_update}
-	Let $\tilde{\mathbf{x}}_{\mathrm{new}}\in\mathcal{U}^{\tilde{n}_{\mathrm{new}}}$ be a batch of new training points, disjoint from $\tilde{\mathbf{x}}$, and $\tilde{\mathbf{z}}_{\mathrm{new}}$ their observations. Writing $\hat{z}$ and $R$ for the SK estimator and covariance built on $\tilde{\mathbf{x}}$ alone, their updates read:
+	Let $\tilde{\mathbf{x}}_{\mathrm{new}}\in\mathcal{U}^{\tilde{N}_{\mathrm{new}}}$ be a batch of new training points, disjoint from $\tilde{\mathbf{x}}$, and $\tilde{\mathbf{z}}_{\mathrm{new}}$ their observations. Writing $\hat{z}$ and $R$ for the SK estimator and covariance built on $\tilde{\mathbf{x}}$ alone, their updates read:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{z}_{\mathrm{new}}(x)&=\hat{z}(x)+R(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:R(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
@@ -396,7 +397,7 @@ Kriging so far assumes the training set to be given once and for all. When obser
 
 What such a recursion carries is the pair $\left(\hat{m}_{\mathrm{UK}},M\right)$, where $M$ is the matrix inverted in \eqref{eq:kriged_universal_mean}. That matrix is the error covariance of the coefficients themselves, $R_{\hat{m}_{\mathrm{UK}}}$ being only its image at a query point. Writing $U_{\mathrm{new}}$ for the factor of \eqref{eq:kriged_universal_mean} evaluated at the new points:
 \begin{equation}
-	U_{\mathrm{new}}\triangleq g(\tilde{\mathbf{x}}_{\mathrm{new}})-k(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\in\mathcal{M}_{\tilde{n}_{\mathrm{new}}d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
+	U_{\mathrm{new}}\triangleq g(\tilde{\mathbf{x}}_{\mathrm{new}})-k(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\in\mathcal{M}_{\tilde{N}_{\mathrm{new}}d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
 \end{equation}
 the batch updates them as:
 \begin{equation}
@@ -419,3 +420,4 @@ The two terms separate what the new batch teaches about the field from what it t
 
 	The state estimate is uncertain, so the training input carries an error, and input noise does not act like observation noise. More importantly, $\hat{x}_k$ was produced by a correction step that already used $z_k$. The two members of the pair are thus correlated, and the map is taught to agree with the very estimate that produced it.
 \end{remark}
+\end{comment}

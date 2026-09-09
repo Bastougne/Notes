@@ -529,7 +529,7 @@ function latex_cost_table(tab_dir, n_sweep, d_z, deg_poly)
     % prefixe suffit a garder trois chiffres significatifs par valeur.
     fprintf(fid, ['Estimator & \\multicolumn{%d}{c|}{Setup (flops)}' ...
                   ' & \\multicolumn{%d}{c|}{Per query (flops)}\\\\\\hline\n'], n, n);
-    fprintf(fid, '$\\tilde{n}$');
+    fprintf(fid, '$\\tilde{N}$');
     fprintf(fid, ' & $%d$', [n_sweep, n_sweep]);
     fprintf(fid, ' \\\\\\hline\n');
     for i = 1:numel(names)

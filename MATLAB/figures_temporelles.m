@@ -69,7 +69,7 @@ yline(par.krig.n_min, ':', 'LineWidth', linewidth, 'HandleVisibility', 'off');
 marqueur(k_vir, fontsize);
 hold off; set(gca, 'YScale', 'log');
 xlabel('$k$', 'Interpreter', 'latex', 'FontSize', fontsize);
-ylabel('$\tilde{n}_\mathrm{w}(k)$', 'Interpreter', 'latex', 'FontSize', fontsize);
+ylabel('$\tilde{N}_\mathrm{w}(k)$', 'Interpreter', 'latex', 'FontSize', fontsize);
 legend(etiq(sel), 'Interpreter', 'latex', 'FontSize', fontsize, 'Location', 'northeast');
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
 xlim([1 n_it]);

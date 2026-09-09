@@ -35,7 +35,7 @@ function out = run_filter(kind, model, z_obs, scen, opt)
     out.n_res   = 0;
 
     for k = 1:n_iter
-        [X, w, info] = step(kind, X, w, z_obs(k, :), scen.F, scen.Bu(:, k), Lq, model, opt);
+        [X, w, info] = step(kind, X, w, z_obs(k, :), scen.F, scen.Bu(:, k), Lq, model, opt, k);
 
         x_hat = X * w';
         Xc    = X - x_hat;
@@ -52,7 +52,7 @@ function out = run_filter(kind, model, z_obs, scen, opt)
     end
 end
 
-function [X, w, info] = step(kind, X, w, z, F, Bu, Lq, model, opt)
+function [X, w, info] = step(kind, X, w, z, F, Bu, Lq, model, opt, k)
 % PF  propager, pondérer, rééchantillonner quand le nuage s'appauvrit.
 % RPF le même, plus un noyau qui disperse le nuage rééchantillonné.
 % APF classer les parents sur la transition, rééchantillonner là-dessus, puis propager et
@@ -62,7 +62,7 @@ function [X, w, info] = step(kind, X, w, z, F, Bu, Lq, model, opt)
 
     if strcmp(kind, 'APF')
         Mu  = F * X + Bu;                              % moyenne de la transition
-        ctx = context(Mu, w);
+        ctx = context(Mu, w, k);
         [z_mu, R_mu, n_mu] = model.query(Mu, ctx);
         log_lam = log_likelihood(z, z_mu, R_mu);
         lambda  = normalise(log(w') + log_lam);
@@ -78,7 +78,7 @@ function [X, w, info] = step(kind, X, w, z, F, Bu, Lq, model, opt)
         if isfield(opt, 'apf_ctx') && strcmp(opt.apf_ctx, 'reuse')
             ctx2 = ctx;
         else
-            ctx2 = context(X, ones(1, n) / n);   % rééchantillonnées, donc équipondérées
+            ctx2 = context(X, ones(1, n) / n, k); % rééchantillonnées, donc équipondérées
         end
         [z_x, R_x, n_x, n_modes, cout] = model.query(X, ctx2);
         w = normalise(log_likelihood(z, z_x, R_x) - log_lam(idx));
@@ -89,7 +89,7 @@ function [X, w, info] = step(kind, X, w, z, F, Bu, Lq, model, opt)
     end
 
     X   = F * X + Bu + Lq * randn(d, n);
-    ctx = context(X, w);
+    ctx = context(X, w, k);
     [z_x, R_x, n_used, n_modes, cout] = model.query(X, ctx);
     w   = normalise(log(w') + log_likelihood(z, z_x, R_x));
 
@@ -109,11 +109,17 @@ function [X, w, info] = step(kind, X, w, z, F, Bu, Lq, model, opt)
     info = struct('n_used', n_used, 'n_modes', n_modes, 'resampled', resampled, 'cout', cout);
 end
 
-function ctx = context(X, w)
+function ctx = context(X, w, k)
 % Ce que le modèle d'observation a le droit de savoir du nuage. Les modèles statiques
 % l'ignorent ; c'est toute l'entrée des modèles adaptatifs.
+%
+% L'indice du pas ne sert qu'au sous-échantillonnage retiré à chaque pas, qui a besoin
+% d'un flux aléatoire reproductible et différent d'un pas à l'autre. Aucun autre modèle ne
+% le lit, et aucun ne doit s'en servir pour autre chose : un modèle d'observation qui
+% saurait où il en est dans la mission ne serait plus un modèle d'observation.
     ctx.X      = X;
     ctx.w      = w;
+    ctx.k      = k;
     ctx.x_pred = X * w';
     Xc         = X - ctx.x_pred;
     ctx.P_pred = (Xc .* w) * Xc';

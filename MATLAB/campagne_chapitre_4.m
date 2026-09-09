@@ -78,6 +78,40 @@ par.krig.refit        = 'fenetre';   % 'fenetre' ou 'global', voir krigeage
 par.krig.window_factor = 2;          % alpha de l'article, coefficient de dilatation
 par.krig.n_min        = 25;          % plancher sur les points retenus (2A)
 par.krig.bandwidth    = 1200;        % m, celle de 2A ; 'reference' la ramène à 1000
+par.krig.p_alea       = 0.5;         % probabilité de garder chaque point du relevé dans le
+                                     % contrôle négatif 'ak_alea'. Éclaircissement de
+                                     % Bernoulli, tiré une fois pour la mission : à
+                                     % probabilité p sur une maille m, la densité moyenne
+                                     % devient celle d'une maille m/sqrt(p), ce qui donne
+                                     % une équivalence exacte avec un relevé plus grossier
+                                     % — 2,50 km éclairci de moitié vaut 3,54 km plein,
+                                     % 4,50 vaut 6,36, et la campagne A a déjà mesuré ces
+                                     % mailles-là. Un effectif fixe n'a aucun équivalent de
+                                     % ce genre et ne compare rien d'une maille à l'autre.
+par.krig.alea_par_pas = false;     % false : le sous-ensemble de 'ak_alea' est fige pour la
+                                     % mission, donc tabulable et gratuit par pas, mais son
+                                     % erreur de carte est une fonction fixe de la position,
+                                     % donc correlee le long de la trajectoire. true : il est
+                                     % retire a chaque pas, l'erreur se decorrele et se
+                                     % moyenne, mais la tabulation devient impossible et le
+                                     % cout passe a N n^2 par pas.
+par.krig.rayon_boule  = 0;           % m, rayon des boules de 'ak_boules'. ZÉRO SÉLECTIONNE
+                                     % LES k_voisins PLUS PROCHES échantillons de chaque
+                                     % particule plutôt qu'une boule. Un rayon fixe ne se
+                                     % transporte pas d'une maille à l'autre : 3,5 km attrape
+                                     % trois points par particule sur une maille de 3,5 km et
+                                     % moins d'un sur une maille de 7,5, si bien que
+                                     % l'effondrement mesuré serait celui du rayon et non
+                                     % celui de la méthode. Une valeur positive rétablit la
+                                     % réunion des boules, pour qui veut la balayer.
+par.krig.k_voisins    = 4;           % voisins retenus par particule dans 'ak_boules' quand
+                                     % rayon_boule vaut zéro. QUATRE parce que sur un réseau
+                                     % les quatre plus proches échantillons d'un point sont
+                                     % les coins de sa cellule : c'est le pochoir du
+                                     % bilinéaire, donc la sélection évidente généralisée au
+                                     % krigeage. À un seul voisin la réunion tombe à un ou
+                                     % deux points dès que le nuage se resserre, et le
+                                     % contrôle négatif deviendrait un homme de paille.
 par.map.name   = 'carte_magnetometrie_anomalie_mexique.mat';
 par.map.file   = fullfile(here, '..', '..', 'MATLAB 2A - sauvegarde', 'Cartes', par.map.name);
 par.path.cache = fullfile(here, 'cache');
@@ -246,6 +280,21 @@ switch par.campagne
         par.compare.filters = {'RPF'};
         par.mc.n_runs       = 100;
         par.balayage = struct('champ', 'mc.n_part', 'valeurs', [1250 2500 5000 10000]);
+
+    case 'E'    % les deux contrôles négatifs de la sélection, contre l'AK et le CA-OK.
+                % 'ak_alea' isole la place des points de leur nombre, 'ak_boules' est la
+                % sélection « évidente » qu'on attend en échec par les deux bouts. Le
+                % balayage porte sur le rayon des boules, la borne basse devant montrer
+                % l'effondrement quand le nuage se resserre.
+        % Pas de balayage ici : seul 'ak_boules' dépend du rayon, et rejouer la
+        % tabulation de 'ok' à chaque valeur coûterait bien plus que la mesure. Le
+        % balayage du rayon se lance à part, sur ce seul modèle :
+        %   over.campagne='libre'; over.compare.models={'ak_boules'};
+        %   over.balayage=struct('champ','krig.rayon_boule','valeurs',[1750 3500 7000 14000]);
+        par.compare.models  = {'carte', 'ok', 'ak', 'cak', 'ak_alea', 'ak_boules'};
+        par.compare.filters = {'RPF'};
+        par.mc.n_runs       = 100;
+        par.balayage = struct('champ', '', 'valeurs', 0);
 
     case 'libre'    % ce que les lignes du haut ont posé, sans balayage
         par.balayage = struct('champ', '', 'valeurs', 0);
