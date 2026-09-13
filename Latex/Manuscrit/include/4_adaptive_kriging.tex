@@ -22,17 +22,14 @@ The above results show that the computational limits described in \cref{sec:stat
 	k_{3/2}:x,x'\mapsto\sigma_f^2\left(1+\frac{\sqrt{3}\:\|x-x'\|_2}{l}\right)\exp\left(-\frac{\sqrt{3}\:\|x-x'\|_2}{l}\right)
 \end{equation}
 
-The considered kernel is thus radial, and the resulting GP is therefore stationary. This is unrealistic for a physical field, especially at large spatial scales. However, stationarity cannot be simply dropped, as the hyperparameters $\theta\triangleq(\sigma_f,l)$ of such a kernel would have to be fitted at every point of the domain, where a single sample is available. We therefore assume the field to be non-stationary, but its hyperparameters to vary over a scale $L_\theta$ much larger than the correlation length itself. Under this hypothesis, a neighbourhood of radius $r_\mathrm{w}$ such that:
-\begin{equation}
-	l\ll r_\mathrm{w}\ll L_\theta
-\end{equation}
-is large enough to enable the accurate estimation of $\sigma_f$ and $l$, while small enough to avoid averaging those values over distances on which they change.
+The considered kernel is thus radial, and the resulting GP is therefore stationary. This is unrealistic for a physical field, especially at large spatial scales. However, stationarity cannot be simply dropped, as the hyperparameters of such a kernel would have to be fitted at every point of the domain, where a single sample is available. We therefore assume the field to be non-stationary, but its hyperparameters to vary over a scale much larger than the grid resolution of the training data. Under this hypothesis, the hyperparameters must be estimated over a region large enough to provide sufficient data for accurate estimation, while remaining small enough to avoid averaging them over distances on which they vary significantly.
 
-In this section, we propose an adaptive subsampling strategy to optimise the kriging performance of the filter according to three criteria:
+In this section, we propose an adaptive subsampling strategy to optimise the kriging performance of the filter according to four criteria:
 \begin{itemize}
-	\item They must cover a region whose characteristic size is of the order of $r_\mathrm{w}$, so that the local hyperparameters can be accurately estimated without averaging them over a region where they vary significantly.
-	\item The retained training points must cover an area large enough to avoid extrapolation at the particle locations, which degrades the reconstruction of the observation function, as quantified in \cref{sec:kriging_method}.
-	\item Finally, the number of retained training points must remain small enough to ensure that the filter can be computed within real-time constraints.
+	\item The retained training points must cover an area large enough to avoid extrapolation at the particle locations.
+	\item A sufficient number of training points must be retained to ensure that the hyperparameters are accurately estimated.
+	\item The retained training points must be confined to a sufficiently small region for the hyperparameters to be approximately constant within this region.
+	\item Finally, their number must remain small enough to ensure that the filter can be computed within real-time constraints.
 \end{itemize}
 
 The first constraint naturally gives the shape of retained subset. Let $\hat{x}_{k|k-1}$ be the predicted estimation of the filter at time $k$:
@@ -44,38 +41,48 @@ and $\hat{P}_{k|k-1}$ denote the corresponding covariance matrix:
 	\hat{P}_{k|k-1}\triangleq\sum_{i=1}^Nw_{k-1}^{(i)}\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)^\top
 \end{equation}
 
-\textbf{TODO: à relire}
-These two quantities can be computed after the prediction step at time $k$, but before the following weight update. In particular, they represent the state of the particle set at time $k$ before kriging the environment.
+\textbf{TODO: est-ce qu'on devrait prendre les poids en compte ici ?}
+These two quantities can be computed after the prediction step at time $k$, but before the following weight update, and represent a Gaussian approximation of the particle set at time $k$ before kriging the environment.
 
-The window itself is a region of the domain the map is defined on, and not of the state space: $\hat{P}_{k|k-1}$ mixes positions and velocities, so its eigenvalues carry no single unit and a radius drawn from them would be meaningless. The relevant quantity is the position block of the predicted covariance:
+In this approximation, each particle has a $99\%$ chance to verify:
 \begin{equation}
-	\hat{P}^{\mathrm{pos}}_{k|k-1}\triangleq\varphi_{\mathrm{pos}}\:\hat{P}_{k|k-1}\:\varphi_{\mathrm{pos}}^\top
+	\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\Pi_{\mathrm{pos}}\:x_k\right\|_{\hat{P}_{\mathrm{pos},k|k-1}}^2\leq\chi_{d_{\mathrm{pos}}}^2(99\%)
 \end{equation}
-
-Indeed, if the particles follow a Gaussian distribution of mean $\hat{x}_{k|k-1}$ and covariance matrix $\hat{P}_{k|k-1}$, then each particle $x_k^{(i)}$ has a $q$ chance that:
+where $d_{\mathrm{pos}}$ is the dimension of the position subspace, $\hat{P}_{\mathrm{pos}}$ is the covariance matrix associated with the projection of the predicted state onto this subspace:
 \begin{equation}
-	\left\|\varphi_{\mathrm{pos}}\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)\right\|_{\hat{P}^{\mathrm{pos}}_{k|k-1}}^2\leq\chi_2^2(q)
+	\hat{P}_{\mathrm{pos},k|k-1}\triangleq\Pi_{\mathrm{pos}}\:\hat{P}_{k|k-1}\:\Pi_{\mathrm{pos}}^\top
 \end{equation}
-where $\chi_d^2(q)$ is the $q$ quantile of a $\chi^2$ distribution with $d$ degrees of freedom, and $q\triangleq99\%$ is the confidence level already used by the convergence criterion of the previous section.
+and $\chi_{d_{\mathrm{pos}}}^2(99\%)$ is the $99\%$ quantile of a $\chi^2$ distribution with $d_{\mathrm{pos}}$ degrees of freedom. This means that the particles are likely to be contained in an ellipsoid centred on $\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}$, and whose shape is given by the eigenvectors of $\hat{P}_{\mathrm{pos},k|k-1}$.
 
-That region is an ellipse, which is an inconvenient shape to select training data with. Bounding it by a disc costs a single spectral inequality: since $\left(\hat{P}^{\mathrm{pos}}_{k|k-1}\right)^{-1}\succeq\lambda_{\max}^{-1}\left(\hat{P}^{\mathrm{pos}}_{k|k-1}\right)\:I_2$, it comes that:
+However, this geometry is tied to the particle set, and does not directly translate into the physical position space. Furthermore, when $\hat{P}_{\mathrm{pos},k|k-1}$ is highly anisotropic, the resulting ellipsoid may provide insufficient coverage along directions of lower uncertainty, leading to extrapolation. To solve this issue, we use the Rayleigh quotient \cite{bib:matrix-cookbook} to convert the Mahalanobis inequality into a Euclidean one:
 \begin{equation}
 	\begin{aligned}
-	\left\|\varphi_{\mathrm{pos}}\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)\right\|_2&\leq\sqrt{\lambda_{\max}\left(\hat{P}^{\mathrm{pos}}_{k|k-1}\right)}\times\left\|\varphi_{\mathrm{pos}}\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)\right\|_{\hat{P}^{\mathrm{pos}}_{k|k-1}}\\
-	&\leq c(q)\:\sqrt{\lambda_{\max}\left(\hat{P}^{\mathrm{pos}}_{k|k-1}\right)}
+	\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\Pi_{\mathrm{pos}}\:x_k\right\|_{\hat{P}_{\mathrm{pos},k|k-1}}^2&\leq\lambda_{\max}\left(\hat{P}_{\mathrm{pos},k|k-1}\right)\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\Pi_{\mathrm{pos}}\:x_k\right\|_2^2\\
+	&\leq\chi_{d_{\mathrm{pos}}}^2(99\%)\:\lambda_{\max}\left(\hat{P}_{\mathrm{pos},k|k-1}\right)
 	\end{aligned}
 \end{equation}
-with a probability of at least $q$, the coefficient being available in closed form since a $\chi^2$ distribution with two degrees of freedom is an exponential one:
+
+The first subsampling criterion is thus satisfied by retaining training points within a ball of radius:
 \begin{equation}
-	c(q)\triangleq\sqrt{\chi_2^2(q)}=\sqrt{-2\ln(1-q)}\label{eq:window_coefficient}
+	r_{\mathrm{cov},k}\triangleq\alpha_{\mathrm{cov}}\sqrt{\chi_{d_{\mathrm{pos}}}^2(99\%)}\sqrt{\lambda_{\max}\left(\hat{P}_{\mathrm{pos},k|k-1}\right)}
+\end{equation}
+and centred on $\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}$, where $\alpha_{\mathrm{cov}}\geq1$ is a dilation factor, introduced to provide a margin around the particle set and reduce the risk of extrapolation at its boundaries.
+
+However, when the particle set collapses on a small region of space, the ball may not contain enough training points to satisfy the second criterion. We thus introduce a second radius to ensure that at least $\tilde{n}_{\min}$ training points are retained:
+\begin{equation}
+	r_{\min,k}\triangleq\min_{r\in\mathbb{R}^+}\left(\operatorname{Card}\left\{i\in[\![1,\tilde{n}]\!]\:\middle|\:\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\tilde{x}_i\right\|_2\leq r\right\}\geq \tilde{n}_{\min}\right)
 \end{equation}
 
-The probability is bounded from below rather than attained, the disc containing the ellipse it was built from, with equality only where $\hat{P}^{\mathrm{pos}}_{k|k-1}$ is isotropic. At the retained confidence level $c(99\%)=3.03$, and the value $c=3$ used in the remainder is the radius of the disc holding $98.9\%$ of the cloud.
+The retained training set is thus defined at each time step $k$ as:
+\begin{equation}
+	\tilde{\mathbf{x}}_k^r\triangleq\left\{\tilde{x}_i\in\tilde{\mathbf{x}}\:\middle|\:\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\tilde{x}_i\right\|_2\leq\max\left(r_{\mathrm{cov},k},r_{\min,k}\right)\right\}
+\end{equation}
 
-\textbf{TODO: il faut dire que "naïvement" on pourrait prendre la boule centrée sur l'état prédit et dont le rayon vient d'être calculé, mais il manque 3 choses:\\
-- on n'est qu'à 99\% de chance de tomber dedans et encore on pourrait être à la limite\\
-- on n'a pas de taille/de nombre de données minimale\\
-- si c'est immense, ce qui est possible, alors on a besoin de garder la fenêtre grande car il ne faut pas extrapoler en les particules, mais on peut quand-même n'estimer les HP que sur certaines données d'entrainement pour gagner du temps}
+In particular, since the navigation estimate varies slowly between two consecutive time steps, the retained training set is likely to remain similar. The hyperparameters estimated at time $k-1$ can thus be used as initial values for the estimation at time $k$, reducing the number of iterations required for convergence of the hyperparameter estimation algorithm.
+
+Unfortunately, the third and fourth criteria may conflict with the first one in situations where the particle set spans over a large region of space. They will therefore not be considered in this section, but will be addressed in \cref{sec:CAK_PF}.\textbf{TODO: à reformuler et/ou déplacer}
+
+This method, referred to as Adaptive Kriging (AK) and originally proposed in \cite{bib:AK-PF}, can be integrated into any navigation algorithm presented in \cref{sec:Bayesian_estimation}. In this section, we focus on its integration into the RPF of \Cref{alg:RPF}, resulting in the Adaptive Kriging Regularised Particle Filter (AK-RPF) given in \Cref{alg:AK_RPF}.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
@@ -97,10 +104,6 @@ The probability is bounded from below rather than attained, the disc containing 
 \subsection{Numerical Results}
 
 As for static kriging, this section evaluates the performance of the AK-PF across the six grid resolutions. The static kriging RPF performance are also given as a reference. Along the RMSE, the NEES, an other metric is introduced to help explain the variations in computational and memory costs between each configuration. This metric is the number of retained training points, \textit{i.e.} the value of $\tilde{N}^r$, at each time step. Since the 
-
-\textbf{TODO: nouvelle métrique} The third is the number of survey samples read per query, written $\tilde{N}_\mathrm{w}$,
-together with the number of hyperparameter fits, both of which measure cost in a way that a wall
-clock cannot since they do not depend on the machine.
 
 \subsection{Sensitivity to the Window Parameters}
 

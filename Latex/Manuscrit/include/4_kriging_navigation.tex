@@ -318,15 +318,14 @@ Each configuration is run over $n_\mathrm{MC}=1000$ Monte Carlo realisations, re
 \begin{itemize}
 	\item The estimation RMSE, defined as:
 	\begin{equation}
-		\mathrm{RMSE}_{\hat{x}}:k\mapsto\sqrt{\frac{1}{n_\mathrm{MC}}\sum_{i=1}^{n_\mathrm{MC}}\left\|\varphi_{\mathrm{pos}}\left(\hat{x}_k^{(i)}\right)-\varphi_{\mathrm{pos}}(x_k)\right\|_2^2}
+		\mathrm{RMSE}_{\hat{x}}:k\mapsto\sqrt{\frac{1}{n_\mathrm{MC}}\sum_{i=1}^{n_\mathrm{MC}}\left\|\Pi_{\mathrm{pos}}\:\hat{x}_k^{(i)}-\Pi_{\mathrm{pos}}\:x_k\right\|_2^2}
 	\end{equation}
-	where $\hat{x}_k^{(i)}$ is the state estimated by the $i$-th filter at time $k$, $x_k$ is the corresponding true state, and $\varphi_{\mathrm{pos}}$ is the projection onto the positions:\textbf{TODO: définir une matrice à la place}
+	where $\hat{x}_k^{(i)}$ is the state estimated by the $i$-th filter at time $k$, $x_k$ is the corresponding true state, and $\Pi_{\mathrm{pos}}$ is the projection matrix onto the position subspace:
 	\begin{equation}
-		\varphi_{\mathrm{pos}}:\begin{bmatrix}
-		p^{(x)}&p^{(y)}&v^{(x)}&v^{(y)}
-		\end{bmatrix}^\top\mapsto\begin{bmatrix}
-		p^{(x)}&p^{(y)}
-		\end{bmatrix}^\top
+		\Pi_{\mathrm{pos}}\triangleq\begin{bmatrix}
+		1&0&0&0\\
+		0&1&0&0
+		\end{bmatrix}
 	\end{equation}
 
 	This metric gives an absolute value for the average error made by the filter.

@@ -66,22 +66,55 @@ is continuous on $\mathcal{H}$ for every $x\in\mathcal{U}$. Its reproducing kern
 	See \cref{sec:proof_native_RKHS}.
 \end{proof}
 
-\textbf{TODO: reprendre ici}
+\textbf{TODO: courte intro ici}
 
-
-
-Let $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}$ be a scalar SPSD kernel on an arbitrary set $\mathcal{U}$. \Cref{th:RKHS} formally defines the RKHS induced by $k$.
-
-\begin{definition}[Reproducing kernel Hilbert space]\label{th:RKHS_native}
-	The reproducing kernel Hilbert space (RKHS) $\mathcal{H}_k$ associated with $k$ is the completion of the span of $\{k(\cdot,x)\:|\:x\in\mathcal{U}\}$ for the inner product defined on the generators by:
-
-	It is characterised by the reproducing property. For all $\psi\in\mathcal{H}_k$ and $x\in\mathcal{U}$,
+\begin{definition}[Feature map]\label{th:feature_map}
+	Let $k$ be an SPSD kernel on $\mathcal{U}$, and $\mathcal{H}_k$ be its native RKHS. The feature map of $\mathcal{H}_k$ is:
 	\begin{equation}
-		\psi(x)=\langle\psi\:|\:k(\cdot,x)\rangle_{\mathcal{H}_k}\label{eq:reproducing_property}
+		\Phi:\left\{\begin{aligned}
+		\mathcal{U}&\to\mathcal{H}_k\\
+		x&\mapsto k(x,\cdot)
+		\end{aligned}\right.
 	\end{equation}
+
+	The reproducing property can thus be rewritten as:
+	\begin{equation}
+		\forall x\in\mathcal{U},\:\forall f\in\mathcal{H}_k,\:f(x)=\langle f|\Phi(x)\rangle_{\mathcal{H}_k}
+	\end{equation}
+
+	In particular, the kernel trick:
+	\begin{equation}
+		\forall x,x'\in\mathcal{U},\:\langle\Phi(x)|\Phi(x')\rangle_{\mathcal{H}_k}=k(x,x')
+	\end{equation}
+	can be used to compute inner products in $\mathcal{H}_k$ without explicitly constructing the feature map $\Phi$ or evaluating $\langle\cdot|\cdot\rangle_{\mathcal{H}_k}$.
 \end{definition}
 
-The reproducing property \eqref{eq:reproducing_property} states that point evaluation amounts to applying a continuous linear functional on $\mathcal{H}_k$, which endows the space with a regularity entirely dictated by $k$. This space provides a variational reading of kriging \cite{bib:GP-kernel-methods}.
+\subsection{Link with Gaussian Processes}
+
+In this section, we show that the GP viewpoint of kriging is equivalent to a variational reading in the native RKHS $\mathcal{H}_k$ of its covariance kernel $k$, as shown by \Cref{th:RKHS_regularisation}. We then characterise the form of an RKHS for which the reproducing kernel admits a Mercer decomposition.
+
+\begin{proposition}[Regularised least-squares in RKHS]\label{th:RKHS_regularisation}
+	Let $(\mathcal{H}_k,\langle\cdot|\cdot\rangle_{\mathcal{H}_k},k)$ be an RKHS. Let $\tilde{N}\in\mathbb{N}^*$, and $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\mathcal{U}^{\tilde{N}}$ pairwise distinct. Finally, let $\tilde{\mathbf{z}}\triangleq(\tilde{z}_1,\dots,\tilde{z}_{\tilde{N}})\in\mathbb{R}^{\tilde{N}}$ and $\lambda\geq0$. The regularised least-squares problem:
+	\begin{equation}
+		\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}\left(\frac{1}{\tilde{N}}\sum_{i=1}^{\tilde{N}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\lambda\|\psi\|_{\mathcal{H}_k}^2\right)
+	\end{equation}
+	admits a unique solution, given by:
+	\begin{equation}
+		\psi_{\mathrm{RKHS}}(x)=k(x,\tilde{\mathbf{x}})\left(k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda\tilde{N}I_{\tilde{N}}\right)^{-1}\tilde{\mathbf{z}}
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	\textbf{TODO: compléter la preuve + changer les notations pour être cohérent avec le krigeage/les estimateurs ?}
+\end{proof}
+
+\subsection{Kernel Mean Embedding}
+
+\subsection{Kernel Kalman Filter}
+
+\textbf{TODO: reprendre ici}
+
+The reproducing property states that point evaluation amounts to applying a continuous linear functional on $\mathcal{H}_k$, which endows the space with a regularity entirely dictated by $k$. This space provides a variational reading of kriging \cite{bib:GP-kernel-methods}.
 
 \begin{proposition}[Kriging as minimum-norm interpolation]
 	In the centred case, the SK estimator \eqref{eq:simple_kriging_equations} is the solution of the regularised least-squares problem in $\mathcal{H}_k$:
