@@ -178,7 +178,7 @@ Ordinary kriging is thus retained for the remainder of this chapter. Estimating 
 
 Recall that \cref{sec:covariance_kernels} considered every kernel subsequently used for kriging to be fully known, with both their form and hyperparameters specified. This assumption is relaxed here by considering only the form to be known, while the hyperparameters $\theta$ must be estimated from the available data.
 
-\textbf{TODO: à vérifier, sous-section rédigée par Claude}
+\textbf{TODO: à vérifier, sous-section rédigée par Claude + renommer l'algo pour que ça colle avec l'AK-RPF}
 
 \Cref{sec:Gaussian_processes} derives every result conditionally on the kernel, and \cref{sec:kriging_method} compares its estimators with that kernel held fixed. This assumption is discharged here. A kernel is specified by a vector of hyperparameters $\theta$ whose components are of two kinds. Some describe the class of fields the GP is assumed to belong to, such as a regularity or a set of active input directions, and are posited by the modeller alongside the kernel family itself. The others describe the particular field being surveyed, such as the amplitude of its variations or the distance over which they decorrelate, and are read from the training data of \cref{th:kriging_navigation_assumptions}. Only the latter are estimated below.
 

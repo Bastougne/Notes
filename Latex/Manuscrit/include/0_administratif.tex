@@ -186,16 +186,18 @@
 	\lignetoc{$\mathbbm{1}$}{Indicator function}
 	\lignetoc{$[\![\cdot,\cdot]\!]$}{Discrete interval}
 	\lignetoc{$\cdot_{m|n}$}{"at time $m$ conditioned on the observations from $1$ to $n$"}
+	\lignetoc{$\alpha_{\mathrm{reg}},\alpha_{\mathrm{cov}}$}{Regularisation and window dilation coefficients}
 	\lignetoc{$\Gamma$}{Gamma function}
 	\lignetoc{$\delta_x$}{Dirac measure at $x$}
 	\lignetoc{$\varepsilon,\varepsilon_i$}{Query and training noises}
 	\lignetoc{$\theta$}{Kernel hyperparameters}
 	\lignetoc{$\lambda_k^{(i)}$}{Auxiliary weights}
-	\lignetoc{$\lambda_{\min},\lambda_i$}{Smallest and $i$-th eigenvalues of a matrix}
+	\lignetoc{$\lambda_{\min},\lambda_{\max},\lambda_i$}{Smallest, largest and $i$-th eigenvalues of a matrix}
 	\lignetoc{$\mu$}{Target probability measure, of density $p$}
 	\lignetoc{$\mu_k^{(i)}$}{Auxiliary particle}
 	\lignetoc{$\nu$}{Proposal (importance) measure, of density $q$}
 	\lignetoc{$\pi_k$}{Projection of a trajectory onto its last component}
+	\lignetoc{$\Pi_{\mathrm{pos}}$}{Projection matrix onto the position subspace}
 	\lignetoc{$\rho$}{Distance on the estimator space $\mathcal{F}$}
 	\lignetoc{$\varphi$}{Mapping of the state}
 	\lignetoc{$\hat{\psi}_{\mathrm{MMSE}},\hat{\psi}_{\mathrm{MMAE}},\hat{\psi}_{\mathrm{MAP}},\hat{\psi}_{\mathrm{ML}}$}{State estimators}
@@ -206,6 +208,7 @@
 	\lignetoc{$\operatorname{cdf}$}{Cumulative distribution function}
 	\lignetoc{$d_x,d_z,d_{\varphi}$}{Dimensions of the state, observation, and mapping}
 	\lignetoc{$d_w,d_n$}{Dimensions of the evolution and observation noises}
+	\lignetoc{$d_{\mathrm{pos}}$}{Dimension of the position subspace}
 	\lignetoc{$\det$}{Determinant of a matrix}
 	\lignetoc{$\mathbb{E}[\cdot]$, $\mathbb{E}_p[\cdot]$}{Expectation, subscript: under the law $p$}
 	\lignetoc{$\exp$}{Exponential function}
@@ -231,6 +234,7 @@
 	\lignetoc{$\mathcal{M}_{m,n}(\mathbb{R})$}{Set of real $m\times n$ matrices}
 	\lignetoc{$n_k$}{Observation noise}
 	\lignetoc{$N,\tilde{N}$}{Number of particles, of training points}
+	\lignetoc{$\tilde{N}^r,\tilde{N}_{\min}$}{Number of retained training points and its floor}
 	\lignetoc{$\hat{N}_{\mathrm{eff}},N_{\mathrm{eff}}$}{Estimated and real effective sample size}
 	\lignetoc{$N_{\mathrm{th}}$}{Resampling threshold}
 	\lignetoc{$\mathbb{N},\mathbb{N}^*$}{Sets of natural and strictly positive natural integers}
@@ -246,6 +250,7 @@
 	\lignetoc{$q$}{Proposal (importance) density}
 	\lignetoc{$Q_k,Q_k^n,Q_k^l,Q_k^{nl},\overline{Q}_k^l$}{Evolution noise covariances}
 	\lignetoc{$r_{\mathrm{UK}},r_{\mathrm{KL}}$}{Number of trend functions and KL rank}
+	\lignetoc{$r_{\mathrm{cov},k},r_{\min,k}$}{Covariance and minimum-count window radii}
 	\lignetoc{$\operatorname{rank}$}{Rank of a kernel or operator}
 	\lignetoc{$R,R_k,\tilde{R}$}{Observation and training noise covariances}
 	\lignetoc{$R_{\mathrm{SK}},R_{\mathrm{OK}},R_{\mathrm{UK}},R_{\mathrm{K}},R_{\hat{m}}$}{Kriging error covariances}
@@ -261,7 +266,7 @@
 	\lignetoc{$w_k,w_k^l,w_k^n,\overline{w}_k^l$}{Evolution noises}
 	\lignetoc{$w_k^{(i)},\tilde{w}_k^{(i)}$}{Normalised and unnormalised particle weights}
 	\lignetoc{$x_k,x_k^n,x_k^l,\mathbf{x}_{0:k}$}{System states and trajectory}
-	\lignetoc{$\mathbf{x},\mathbf{x}',\tilde{\mathbf{x}}$}{Input tuples and training inputs}
+	\lignetoc{$\mathbf{x},\mathbf{x}',\tilde{\mathbf{x}},\tilde{\mathbf{x}}_k^r$}{Input tuples, training inputs and their retained subset}
 	\lignetoc{$x_k^{(i)}$}{Particle}
 	\lignetoc{$x_{k|k-1},x_{k|k},\hat{x}_k$}{Predicted, corrected and estimated state}
 	\lignetoc{$y_k$}{Innovation vector}

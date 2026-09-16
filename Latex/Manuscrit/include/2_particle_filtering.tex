@@ -429,11 +429,11 @@ The full RBPF algorithm is summarised in \Cref{alg:RBPF}.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}\setstretch{1.5}
-	\State{$\forall i\in[\![1,N]\!]$, propagate $x_k^{n(i)}$ \hfill using \eqref{eq:RBPF_propagation}}\phantom{ through \eqref{eq:RBPF_precorrection_fin}}
-	\State{$\forall i\in[\![1,N]\!]$, update $\hat{x}_{k-1|k-1}^{l(i)}$ and $P_{k-1|k-1}^{l(i)}$ \hfill using \eqref{eq:RBPF_precorrection_debut} through \eqref{eq:RBPF_precorrection_fin}}
-	\State{$\forall i\in[\![1,N]\!]$, predict $\hat{x}_{k|k-1}^{l(i)}$ and $P_{k|k-1}^{l(i)}$ \hfill using \eqref{eq:RBPF_prediction_debut} through \eqref{eq:RBPF_prediction_fin}}
-	\State{$\forall i\in[\![1,N]\!]$, update $w_k^{n(i)}$ \hfill using \eqref{eq:RBPF_update_debut} through \eqref{eq:RBPF_update_fin}}
-	\State{$\forall i\in[\![1,N]\!]$, compute $\hat{x}_{k|k}^{l(i)}$ and $P_{k|k}^{l(i)}$ \hfill using \eqref{eq:RBPF_correction_debut} through \eqref{eq:RBPF_correction_fin}}
+	\State{$\forall i\in[\![1,N]\!]$, propagate $x_k^{n(i)}$ \hfill using \eqref{eq:RBPF_propagation}}\phantom{ through \eqref{eq:RBPF_precorrection_fin}\hspace*{16mm}\mbox{}}
+	\State{$\forall i\in[\![1,N]\!]$, update $\hat{x}_{k-1|k-1}^{l(i)}$ and $P_{k-1|k-1}^{l(i)}$ \hfill using \eqref{eq:RBPF_precorrection_debut} through \eqref{eq:RBPF_precorrection_fin}\hspace*{16mm}\mbox{}}
+	\State{$\forall i\in[\![1,N]\!]$, predict $\hat{x}_{k|k-1}^{l(i)}$ and $P_{k|k-1}^{l(i)}$ \hfill using \eqref{eq:RBPF_prediction_debut} through \eqref{eq:RBPF_prediction_fin}\hspace*{16mm}\mbox{}}
+	\State{$\forall i\in[\![1,N]\!]$, update $w_k^{n(i)}$ \hfill using \eqref{eq:RBPF_update_debut} through \eqref{eq:RBPF_update_fin}\hspace*{16mm}\mbox{}}
+	\State{$\forall i\in[\![1,N]\!]$, compute $\hat{x}_{k|k}^{l(i)}$ and $P_{k|k}^{l(i)}$ \hfill using \eqref{eq:RBPF_correction_debut} through \eqref{eq:RBPF_correction_fin}\hspace*{16mm}\mbox{}}
 	\end{algorithmic}\caption{Rao-Blackwellised Particle Filter}\label{alg:RBPF}
 \end{algorithm}
 

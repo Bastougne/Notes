@@ -1,23 +1,56 @@
 \section{Adaptive Kriging}\label{sec:AK_PF}
 
-In this section, we propose to use training data subsampling, \textit{i.e.} selecting a subset $\tilde{\mathbf{x}}^r$ of size $\tilde{N}^r$ of the training points and only using them to perform the regression, as a way to solve the computational issues raised above. Since the computational cost of kriging scales cubically with the number of training points, quadratically for memory, discarding half the data reduces the computational load by a factor of $8$ and requires $4$ times less storage.
+In this section, we propose to use training data subsampling, \textit{i.e.} selecting a subset $\tilde{\mathbf{x}}^r$ of $\tilde{N}^r$ training points and using only these points for regression, as a way to alleviate the computational issues raised above. Since the computational and memory costs of kriging scale quadratically with the number of training points, discarding half the data reduces the computational load by a factor of $4$ and requires $4$ times less storage.
 
 However, this method comes at a cost. In the following, we describe two subsampling strategies, each requiring to perform a subsampling step at each time step. This means that no precomputation can be done before the mission, and in particular that inverting $G(\tilde{\mathbf{x}}^r)\in\mathcal{S}_{\tilde{N}^r\:d_z}^{++}(\mathbb{R})$ and $C^\top G(\tilde{\mathbf{x}}^r)^{-1}C\in\mathcal{S}_{d_z}^{++}(\mathbb{R})$ must be done in real time.
 
 \subsection{Random Subsampling}
 
-The simplest idea to reduce the number of training points is to let $p\in[0,1]$, and draw $s^{(i)}$ from a Bernoulli distribution of success probability $p$. Any training sample $\tilde{x}_i$ for which the corresponding $s^{(i)}$ is a success is retained to form $\tilde{\mathbf{x}}^r$, while the others are discarded.
+The simplest idea to reduce the number of training points is to let $p\in[0,1]$, and draw independently $s_{i,k}$ from a Bernoulli distribution of success probability $p$, for each $i\in[\![1,\tilde{N}]\!]$. Any training sample $\tilde{x}_i$ for which the corresponding $s_{i,k}$ is a success is retained to form $\tilde{\mathbf{x}}_k^r$, while the others are discarded. This operation is performed at the beginning of each time step to avoid skewing the reconstruction. Since the training points are randomly selected across the map rather than localised to a specific region of space, the hyperparameters are estimated before the mission on the entire training set, similarly to the static kriging version.
 
 By linearity of the expectation, the number of retained data is, on average:
 \begin{equation}
-	\tilde{N}^r=p\times\tilde{N}
+	\mathbb{E}\left[\tilde{N}^r\right]=p\times\tilde{N}
 \end{equation}
+and corresponds, on average, to the density of a regular grid whose resolution is degraded by a factor of $1/\sqrt{p}$, \textit{e.g.} $3.5$km instead of $2.5$km for $p=0.5$.
 
-\textbf{TODO: numerical results here}
+Similarly to the case of bilinear interpolation and static kriging presented above, the simulations described in \Cref{sec:scenario} were run using random subsampling with $p=0.5$. The results are compared here with those obtained with static kriging. \Cref{fig:eclairci_RMSE,fig:eclairci_NEES} respectively compare the RMSE and NEES of the two approaches on each of the six grid resolutions, while \Cref{fig:convergence_eclairci} presents the corresponding convergence rates. Finally, \Cref{tab:cout_eclairci} gives the comparative computational cost of each method across the six resolutions.
+
+\begin{figure}[!p]
+	\centering
+	\includegraphics[width=\textwidth]{../../Images/RMSE eclairci par maille.pdf}
+	\caption{}\label{fig:eclairci_RMSE}
+\end{figure}
+
+\begin{figure}[!p]
+	\centering
+	\includegraphics[width=\textwidth]{../../Images/NEES eclairci par maille.pdf}
+	\caption{}\label{fig:eclairci_NEES}
+\end{figure}
+
+\begin{figure}[!htb]
+	\centering\includegraphics[width=\textwidth]{../../Images/Convergence eclairci.pdf}
+	\caption{}\label{fig:convergence_eclairci}
+\end{figure}
+
+For the RMSE curves, random subsampling is systematically outperformed by static kriging, especially before the first turn. From $4.5$km onward, random subsampling only reaches its error plateau during this turn, whereas static kriging stabilises before it. This indicates that, although the subsampling is randomised at each time step, and each training point is therefore available to the filter on average $50\%$ of the time, the resulting map is too degraded to provide an accurate navigation solution.
+
+Nevertheless, the similarity between random subsampling at resolutions of $2.5$ and $5.5$km and static kriging at resolutions of $3.5\approx2.5/\sqrt{0.5}$ and $7.5\approx5.5/\sqrt{0.5}$ respectively, is noteworthy. This suggests that random subsampling effectively behaves as a map with a degraded resolution. Although the full training set is likely to have been sampled at least once over the course of the mission, only half of the points are available to the filter at each time step.
+
+Regarding the NEES, the curves are consistently similar between both methods, further highlighting the ability of kriging to accurately quantify its uncertainty. As already established in \Cref{sec:kriging_method}, the kriging covariance increases in regions where less data are available, and thus the predicted uncertainty naturally follows the degradation of the map. Despite this, random subsampling achieves lower convergence rates at every grid resolution, showing that this method is unable to match the navigation performance of static kriging.
+
+\begin{table}[!htb]
+	\centering\input{include/cout_eclairci.tex}
+	\caption{}\label{tab:cout_eclairci}
+\end{table}
+
+Finally, \Cref{tab:cout_eclairci} illustrates the only advantage of random subsampling over static kriging. By reducing the number of available training points by half on average, this method reduces the computational cost by $75\%$ for every grid resolution.
 
 \subsection{Adaptive Subsampling Window}
 
-The above results show that the computational limits described in \cref{sec:static_results} are not the only reasons to forgo using static kriging-based navigation algorithms. Indeed, the estimators introduced in \cref{sec:kriging} assume the use of a single kernel over the entire domain, and \cref{th:kriging_navigation_assumptions} inherits that hypothesis. In \cref{sec:HP_estimation}, we estimated the hyperparameters of the kernel once before the mission, meaning that they are assumed to be independent of the inputs:
+The above results show that, while subsampling does reduce the computational cost of the algorithm, indiscriminately discarding training points is detrimental to the navigation performance. A more suitable strategy should therefore retain only a limited number of training points while selecting those that are most relevant to the current situation.
+
+Since, at each time step, the filter only queries the map where its particles lie, this suggests retaining the points surrounding the particle set. Beyond reducing the computational cost, a local selection also relaxes a second limitation of static kriging. Indeed, the estimators introduced in \cref{sec:kriging} assume the use of a single kernel over the entire domain, and \cref{th:kriging_navigation_assumptions} inherits that hypothesis. In \cref{sec:HP_estimation}, we estimated the hyperparameters of the kernel once before the mission, meaning that they are assumed to be independent of the inputs:
 \begin{equation}
 	k_{3/2}:x,x'\mapsto\sigma_f^2\left(1+\frac{\sqrt{3}\:\|x-x'\|_2}{l}\right)\exp\left(-\frac{\sqrt{3}\:\|x-x'\|_2}{l}\right)
 \end{equation}
@@ -32,7 +65,7 @@ In this section, we propose an adaptive subsampling strategy to optimise the kri
 	\item Finally, their number must remain small enough to ensure that the filter can be computed within real-time constraints.
 \end{itemize}
 
-The first constraint naturally gives the shape of retained subset. Let $\hat{x}_{k|k-1}$ be the predicted estimation of the filter at time $k$:
+The first constraint naturally gives the shape of the retained subset. Let $\hat{x}_{k|k-1}$ be the predicted estimate of the filter at time $k$:
 \begin{equation}
 	\hat{x}_{k|k-1}\triangleq\sum_{i=1}^Nw_{k-1}^{(i)}\:x_k^{(i)}\approx\mathbb{E}_{p(\cdot|\mathbf{z}_{1:k-1})}[x_k]
 \end{equation}
@@ -41,14 +74,13 @@ and $\hat{P}_{k|k-1}$ denote the corresponding covariance matrix:
 	\hat{P}_{k|k-1}\triangleq\sum_{i=1}^Nw_{k-1}^{(i)}\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)^\top
 \end{equation}
 
-\textbf{TODO: est-ce qu'on devrait prendre les poids en compte ici ?}
-These two quantities can be computed after the prediction step at time $k$, but before the following weight update, and represent a Gaussian approximation of the particle set at time $k$ before kriging the environment.
+These two quantities can be computed after the prediction step at time $k$, but before the following weight update, and represent a Gaussian approximation of the particle set at time $k$ before kriging the environment. It must be noted that, while the selection itself should only depend on the particle locations, both sums are weighted by the $w_{k-1}^{(i)}$ to limit the effect of resampling on the resulting moments. Although this may result in some particles being left outside the retained region, this is not detrimental when their associated weights are low.
 
 In this approximation, each particle has a $99\%$ chance to verify:
 \begin{equation}
-	\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\Pi_{\mathrm{pos}}\:x_k\right\|_{\hat{P}_{\mathrm{pos},k|k-1}}^2\leq\chi_{d_{\mathrm{pos}}}^2(99\%)
+	\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\Pi_{\mathrm{pos}}\:x_k^{(i)}\right\|_{\hat{P}_{\mathrm{pos},k|k-1}}^2\leq\chi_{d_{\mathrm{pos}}}^2(99\%)
 \end{equation}
-where $d_{\mathrm{pos}}$ is the dimension of the position subspace, $\hat{P}_{\mathrm{pos}}$ is the covariance matrix associated with the projection of the predicted state onto this subspace:
+where $d_{\mathrm{pos}}$ is the dimension of the position subspace, $\hat{P}_{\mathrm{pos},k|k-1}$ is the covariance matrix associated with the projection of the predicted state onto this subspace:
 \begin{equation}
 	\hat{P}_{\mathrm{pos},k|k-1}\triangleq\Pi_{\mathrm{pos}}\:\hat{P}_{k|k-1}\:\Pi_{\mathrm{pos}}^\top
 \end{equation}
@@ -57,7 +89,7 @@ and $\chi_{d_{\mathrm{pos}}}^2(99\%)$ is the $99\%$ quantile of a $\chi^2$ distr
 However, this geometry is tied to the particle set, and does not directly translate into the physical position space. Furthermore, when $\hat{P}_{\mathrm{pos},k|k-1}$ is highly anisotropic, the resulting ellipsoid may provide insufficient coverage along directions of lower uncertainty, leading to extrapolation. To solve this issue, we use the Rayleigh quotient \cite{bib:matrix-cookbook} to convert the Mahalanobis inequality into a Euclidean one:
 \begin{equation}
 	\begin{aligned}
-	\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\Pi_{\mathrm{pos}}\:x_k\right\|_{\hat{P}_{\mathrm{pos},k|k-1}}^2&\leq\lambda_{\max}\left(\hat{P}_{\mathrm{pos},k|k-1}\right)\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\Pi_{\mathrm{pos}}\:x_k\right\|_2^2\\
+	\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\Pi_{\mathrm{pos}}\:x_k^{(i)}\right\|_2^2&\leq\lambda_{\max}\left(\hat{P}_{\mathrm{pos},k|k-1}\right)\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\Pi_{\mathrm{pos}}\:x_k^{(i)}\right\|_{\hat{P}_{\mathrm{pos},k|k-1}}^2\\
 	&\leq\chi_{d_{\mathrm{pos}}}^2(99\%)\:\lambda_{\max}\left(\hat{P}_{\mathrm{pos},k|k-1}\right)
 	\end{aligned}
 \end{equation}
@@ -68,26 +100,38 @@ The first subsampling criterion is thus satisfied by retaining training points w
 \end{equation}
 and centred on $\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}$, where $\alpha_{\mathrm{cov}}\geq1$ is a dilation factor, introduced to provide a margin around the particle set and reduce the risk of extrapolation at its boundaries.
 
-However, when the particle set collapses on a small region of space, the ball may not contain enough training points to satisfy the second criterion. We thus introduce a second radius to ensure that at least $\tilde{n}_{\min}$ training points are retained:
+However, when the particle set collapses on a small region of space, the ball may not contain enough training points to satisfy the second criterion. We thus introduce a second radius to ensure that at least $\tilde{N}_{\min}$ training points are retained:
 \begin{equation}
-	r_{\min,k}\triangleq\min_{r\in\mathbb{R}^+}\left(\operatorname{Card}\left\{i\in[\![1,\tilde{n}]\!]\:\middle|\:\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\tilde{x}_i\right\|_2\leq r\right\}\geq \tilde{n}_{\min}\right)
+	r_{\min,k}\triangleq\min_{r\in\mathbb{R}^+}\left(\operatorname{Card}\left\{i\in[\![1,\tilde{N}]\!]\:\middle|\:\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\tilde{x}_i\right\|_2\leq r\right\}\geq\tilde{N}_{\min}\right)
 \end{equation}
 
 The retained training set is thus defined at each time step $k$ as:
 \begin{equation}
-	\tilde{\mathbf{x}}_k^r\triangleq\left\{\tilde{x}_i\in\tilde{\mathbf{x}}\:\middle|\:\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\tilde{x}_i\right\|_2\leq\max\left(r_{\mathrm{cov},k},r_{\min,k}\right)\right\}
+	\tilde{\mathbf{x}}_k^r\triangleq\left\{\tilde{x}_i\in\tilde{\mathbf{x}}\:\middle|\:\left\|\Pi_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\tilde{x}_i\right\|_2\leq\max\left(r_{\mathrm{cov},k},r_{\min,k}\right)\right\}\label{eq:AK_window}
+\end{equation}
+and:
+\begin{equation}
+	\tilde{\mathbf{z}}_k^r\triangleq\{\tilde{z}_i\mid\tilde{x}_i\in\tilde{\mathbf{x}}_k^r\}\label{eq:AK_window_z}
 \end{equation}
 
-In particular, since the navigation estimate varies slowly between two consecutive time steps, the retained training set is likely to remain similar. The hyperparameters estimated at time $k-1$ can thus be used as initial values for the estimation at time $k$, reducing the number of iterations required for convergence of the hyperparameter estimation algorithm.
+At each time step, the hyperparameters $\hat{\theta}_k$ of the kernel are then re-estimated by maximum likelihood on the retained training set, as described in \cref{sec:HP_estimation}. In particular, since the navigation estimate varies slowly between two consecutive time steps, the retained training set is likely to remain similar. The hyperparameters estimated at time $k-1$ can thus be used as initial values for the estimation at time $k$, reducing the number of iterations required for convergence of the hyperparameter estimation algorithm.
 
-Unfortunately, the third and fourth criteria may conflict with the first one in situations where the particle set spans over a large region of space. They will therefore not be considered in this section, but will be addressed in \cref{sec:CAK_PF}.\textbf{TODO: à reformuler et/ou déplacer}
+The likelihood \eqref{eq:kriged_likelihood} is thus computed on the retained subset alone and using the updated hyperparameters:
+\begin{equation}
+	z_k|x_k,\tilde{\mathbf{z}}_k^r\sim\mathcal{N}\left(\hat{z}_{\mathrm{K}}\left(x_k,\tilde{\mathbf{x}}_k^r,\tilde{\mathbf{z}}_k^r;\hat{\theta}_k\right),R_{\mathrm{K}}\left(x_k,\tilde{\mathbf{x}}_k^r;\hat{\theta}_k\right)\right)\label{eq:AK_likelihood}
+\end{equation}
 
-This method, referred to as Adaptive Kriging (AK) and originally proposed in \cite{bib:AK-PF}, can be integrated into any navigation algorithm presented in \cref{sec:Bayesian_estimation}. In this section, we focus on its integration into the RPF of \Cref{alg:RPF}, resulting in the Adaptive Kriging Regularised Particle Filter (AK-RPF) given in \Cref{alg:AK_RPF}.
+This method, referred to as Adaptive Kriging (AK) and originally proposed in \cite{bib:AK-PF}, can be integrated into any navigation algorithm presented in \cref{sec:Bayesian_estimation}. In this section, we focus on its integration into the RPF of \Cref{alg:RPF} using the transition density as proposal, as described in \eqref{eq:prior_proposal}. The resulting algorithm is the Adaptive Kriging Regularised Particle Filter (AK-RPF) given in \Cref{alg:AK_RPF}.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim q\left(\cdot|x_{k-1}^{(i)},z_k\right)$}\Comment{Particle propagation}
-	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\dfrac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}$}\Comment{Weight update}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{(i)}\right)$}\Comment{Particle propagation}
+	\State{$\displaystyle\hat{x}_{k|k-1}=\sum_{i=1}^Nw_{k-1}^{(i)}x_k^{(i)}$}\Comment{\textbf{Predicted estimation}}
+	\State{$\displaystyle\hat{P}_{k|k-1}=\sum_{i=1}^Nw_{k-1}^{(i)}\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)\left(x_k^{(i)}-\hat{x}_{k|k-1}\right)^\top$}
+	\State{Compute $\tilde{\mathbf{x}}_k^r$ and $\tilde{\mathbf{z}}_k^r$ with \eqref{eq:AK_window} and \eqref{eq:AK_window_z}}\Comment{\textbf{Adaptive subsampling}}
+	\State{$\hat{\theta}_k\gets\operatorname{MLE}\left(\tilde{\mathbf{x}}_k^r,\tilde{\mathbf{z}}_k^r,\hat{\theta}_{k-1}\right)$}\Comment{\textbf{Hyperparameter estimation}}
+	\State{$\forall i\in[\![1,N]\!],\:$compute $\tilde{p}\left(z_k|x_k^{(i)}\right)$ from \eqref{eq:AK_likelihood}}\Comment{\textbf{Kriging}}
+	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\tilde{p}\left(z_k|x_k^{(i)}\right)$}\Comment{Weight update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
 	\State{$\displaystyle\hat{N}_{\mathrm{eff}}=\left.1\middle/\sum_{i=1}^N\left(w_k^{(i)}\right)^2\right.$}\Comment{Resampling criterion}
 	\If{$\hat{N}_{\mathrm{eff}}<N_{\mathrm{th}}$}
@@ -103,13 +147,95 @@ This method, referred to as Adaptive Kriging (AK) and originally proposed in \ci
 
 \subsection{Numerical Results}
 
-As for static kriging, this section evaluates the performance of the AK-PF across the six grid resolutions. The static kriging RPF performance are also given as a reference. Along the RMSE, the NEES, an other metric is introduced to help explain the variations in computational and memory costs between each configuration. This metric is the number of retained training points, \textit{i.e.} the value of $\tilde{N}^r$, at each time step. Since the 
+As for static kriging, this section evaluates the performance of the AK-RPF across the six grid resolutions, with:
+\begin{equation}
+\alpha_{\mathrm{cov}}=2\quad\text{and}\quad\tilde{N}_{\min}=25
+\end{equation}
+
+The static kriging RPF performance is also given as a reference. Alongside the RMSE and the NEES, another metric is introduced to help explain the variations in computational and memory costs between each configuration. This metric is the number of retained training points, \textit{i.e.} the value of $\tilde{N}^r$, at each time step. Since the 
+
+\begin{figure}[!p]
+	\centering
+	\includegraphics[width=\textwidth]{../../Images/RMSE adaptatif par maille.pdf}
+	\caption{}\label{fig:AK_RMSE}
+\end{figure}
+
+\begin{figure}[!p]
+	\centering
+	\includegraphics[width=\textwidth]{../../Images/NEES adaptatif par maille.pdf}
+	\caption{}\label{fig:AK_NEES}
+\end{figure}
+
+\begin{figure}[!htb]
+	\centering\includegraphics[width=\textwidth]{../../Images/Convergence adaptatif.pdf}
+	\caption{}\label{fig:convergence_adaptatif}
+\end{figure}
+
+\begin{figure}[!htb]
+	\centering\includegraphics[width=0.7\textwidth]{../../Images/Echantillons retenus par maille.pdf}
+	\caption{}\label{fig:AK_echantillons}
+\end{figure}
+
+\begin{table}[!htb]
+	\centering\input{include/cout_adaptatif.tex}
+	\caption{}\label{tab:cout_adaptatif}
+\end{table}
+
+Unfortunately, the third and fourth criteria may conflict with the first one in situations where the particle set spans over a large region of space. This is especially the case before the first turn, when \Cref{fig:AK_echantillons} shows the window retaining up to about $1300$ training points at the finest grid resolution. These two criteria are addressed in \cref{sec:CAK_PF}.
 
 \subsection{Sensitivity to the Window Parameters}
 
 \section{Clustered Adaptive Kriging}\label{sec:CAK_PF}
 
-While it outperforms static kriging, the Ak-RPF window can still 
+While it outperforms static kriging, the AK window can still 
+
+\subsection{"Réunion" Results}
+
+\begin{figure}[!p]
+	\centering
+	\includegraphics[width=\textwidth]{../../Images/RMSE reunion par maille.pdf}
+	\caption{}\label{fig:reunion_RMSE}
+\end{figure}
+
+\begin{figure}[!p]
+	\centering
+	\includegraphics[width=\textwidth]{../../Images/NEES reunion par maille.pdf}
+	\caption{}\label{fig:reunion_NEES}
+\end{figure}
+
+\begin{figure}[!htb]
+	\centering\includegraphics[width=\textwidth]{../../Images/Convergence reunion.pdf}
+	\caption{}\label{fig:convergence_reunion}
+\end{figure}
+
+\begin{table}[!htb]
+	\centering\input{include/cout_reunion.tex}
+	\caption{}\label{tab:cout_reunion}
+\end{table}
+
+\subsection{CAK Results}
+
+\begin{figure}[!p]
+	\centering
+	\includegraphics[width=\textwidth]{../../Images/RMSE clusterise par maille.pdf}
+	\caption{}\label{fig:CAK_RMSE}
+\end{figure}
+
+\begin{figure}[!p]
+	\centering
+	\includegraphics[width=\textwidth]{../../Images/NEES clusterise par maille.pdf}
+	\caption{}\label{fig:CAK_NEES}
+\end{figure}
+
+\begin{figure}[!htb]
+	\centering\includegraphics[width=\textwidth]{../../Images/Convergence clusterise.pdf}
+	\caption{}\label{fig:convergence_clusterise}
+\end{figure}
+
+\begin{table}[!htb]
+	\centering\input{include/cout_clusterise.tex}
+	\caption{}\label{tab:cout_clusterise}
+\end{table}
 
 \begin{comment}
 \subsection{Numerical Results}
@@ -134,8 +260,8 @@ thirty-six}, and the accuracy is the same.
 
 The saving that follows from \cref{th:kriging_mean_cost} is not linear in that ratio. Per step
 the estimator pays one factorisation in
-$\mathcal{O}\left(\tilde{N}_\mathrm{w}^3\right)$ and, for each of the $N$ particles, a
-triangular solve in $\mathcal{O}\left(\tilde{N}_\mathrm{w}^2\right)$, the second term dominating
+$\mathcal{O}\left(\tilde{N}^r^3\right)$ and, for each of the $N$ particles, a
+triangular solve in $\mathcal{O}\left(\tilde{N}^r^2\right)$, the second term dominating
 since $N$ far exceeds the window. Summed over the mission, adaptive kriging spends
 $14.4$ Gflop against $7386$ for the static estimator evaluated exactly, a factor of about five
 hundred.
@@ -154,14 +280,14 @@ hundred.
 
 \Cref{fig:fenetre} shows why the window is so small. Its radius follows the covariance the
 filter declares, which collapses once the track is acquired, and from the thirtieth step
-onwards the disc contains fewer samples than the floor $n_{\min}$ admits. \textbf{For the whole
+onwards the disc contains fewer samples than the floor $\tilde{N}_{min}$ admits. \textbf{For the whole
 tracking phase it is the floor, and not the radius, that sets the window.} The dilation factor
-$\alpha_W$ is therefore inert over that phase, which a sweep confirms, and $n_{\min}$ is not a
+$\alpha_{\mathrm{cov}}$ is therefore inert over that phase, which a sweep confirms, and $\tilde{N}_{min}$ is not a
 guard against a degenerate case but the operating point itself.
 
 \begin{figure}[htbp]
 	\centering\includegraphics[width=0.7\textwidth]{../../Images/Fenetre au cours du vol.pdf}
-	\caption{Samples retained per query along the flight. The dotted line is the floor $n_{\min}$, and the dashed one marks the first half-turn.}\label{fig:fenetre}
+	\caption{Samples retained per query along the flight. The dotted line is the floor $\tilde{N}_{min}$, and the dashed one marks the first half-turn.}\label{fig:fenetre}
 \end{figure}
 
 Two parameters define that window, and \cref{tab:fenetrage} reports what each one
@@ -183,7 +309,7 @@ constrain an estimate whose cloud is still wide, and from twenty-five onwards it
 \textbf{Both are therefore taken at the cheap end of a plateau}, the dilation freely, the floor
 with the acquisition phase in mind.
 
-The ceiling $n_{\max}$ and the size of the subsample used for the local hyperparameter fit were
+The ceiling $\tilde{N}_{max}$ and the size of the subsample used for the local hyperparameter fit were
 swept in the same way and are flat as well, the ceiling never binding above two thousand:
 two thousand and six thousand four hundred return the same figures.
 
@@ -261,7 +387,7 @@ pattern. \textbf{Clustering does not make the estimate better.}
 \end{table}
 
 What it makes cheaper is the whole of it, by a factor of about thirteen, and the two columns
-say why. Plain adaptive kriging factorises one window of $\tilde{N}_\mathrm{w}$ samples and
+say why. Plain adaptive kriging factorises one window of $\tilde{N}^r$ samples and
 solves all $N$ particles against it. Clustered adaptive kriging factorises one window per mode,
 which costs $\sum_c n_c^3$ instead of $\left(\sum_c n_c\right)^3$, and \textbf{each mode solves
 only the particles that belong to it}, so the dominant term is divided twice over. Measured, the

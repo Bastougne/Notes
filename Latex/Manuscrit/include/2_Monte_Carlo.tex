@@ -450,9 +450,9 @@ Some advanced filters, such as the auxiliary particle filter, presented in \cref
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
 	\State{$\operatorname{cdf}_0=0$}\Comment{Computation of the CDF}
-	\State{$\forall i\in[\![1,N]\!],\:\operatorname{cdf}_i=\operatorname{cdf}_{i-1}+w_k^{(i)}$\vspace{0.5\baselineskip}}
+	\State{$\forall i\in[\![1,N]\!],\:\operatorname{cdf}_i=\operatorname{cdf}_{i-1}+w_k^{(i)}$}
 	\State{$u_1\sim\mathcal{U}([0,1/N])$}\Comment{Kitagawa samples}
-	\State{$\forall j\in[\![2,N]\!],\:u_j=u_1+(j-1)/N$\vspace{0.5\baselineskip}}
+	\State{$\forall j\in[\![2,N]\!],\:u_j=u_1+(j-1)/N$}
 	\State{$i=1$}
 	\For{$j=1:N$}
 	\While{$u_j\geq\operatorname{cdf}_i$}\Comment{Computation of the parent index}

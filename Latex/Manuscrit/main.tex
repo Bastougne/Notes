@@ -17,6 +17,11 @@
 \setlength{\emergencystretch}{1em} % meilleure justification du texte
 \renewcommand{\arraystretch}{1.3} % tableaux plus aérés
 
+\AtBeginEnvironment{algorithmic}{ % algorithmes plus aérés
+    \setlength{\baselineskip}{1.3\baselineskip}
+	\vspace{1mm}
+}
+
 \makeatletter
 \let\ps@plain\ps@headings % headers de pages de chapitres comme pour les pages usuelles
 \makeatother

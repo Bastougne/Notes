@@ -369,11 +369,9 @@ The resulting algorithm, known as the Kalman filter \cite{bib:discrete-Kalman}, 
 	\begin{algorithmic}
 	\State{$\hat{x}_{k|k-1}=F_k\:\hat{x}_{k-1|k-1}+b_k^{(e)}$}\Comment{State prediction}
 	\State{$P_{k|k-1}=F_k\:P_{k-1|k-1}\:F_k^\top+Q_k$}\Comment{Covariance prediction}
-	\State{}
 	\State{$y_k=z_k-\left(H_k\:\hat{x}_{k|k-1}+b_k^{(o)}\right)$}\Comment{Innovation}
 	\State{$S_k=H_k\:P_{k|k-1}\:H_k^\top+R_k$}\Comment{Innovation covariance}
 	\State{$K_k=P_{k|k-1}\:H_k^\top\:S_k^{-1}$}\Comment{Kalman gain}
-	\State{}
 	\State{$\hat{x}_{k|k}=\hat{x}_{k|k-1}+K_k\:y_k$}\Comment{State correction}
 	\State{$P_{k|k}=(I-K_k\:H_k)\:P_{k|k-1}$}\Comment{Covariance correction}
 	\end{algorithmic}\caption{Kalman Filter}\label{alg:Kalman_filter}
@@ -433,12 +431,10 @@ Assuming that $f_k$ and $h_k$ are differentiable along the state trajectory, we 
 	\State{$\tilde{F}_k=J_{f_k}\left(\hat{x}_{k-1|k-1}\right)$}\Comment{Evolution Jacobian}
 	\State{$\hat{x}_{k|k-1}=f_k\left(\hat{x}_{k-1|k-1}\right)+b_k^{(e)}$}\Comment{State prediction}
 	\State{$P_{k|k-1}=\tilde{F}_k\:P_{k-1|k-1}\:\tilde{F}_k^\top+Q_k$}\Comment{Covariance prediction}
-	\State{}
 	\State{$\tilde{H}_k=J_{h_k}\left(\hat{x}_{k|k-1}\right)$}\Comment{Observation Jacobian}
 	\State{$y_k=z_k-\left(h_k\left(\hat{x}_{k|k-1}\right)+b_k^{(o)}\right)$}\Comment{Innovation}
 	\State{$S_k=\tilde{H}_k\:P_{k|k-1}\:\tilde{H}_k^\top+R_k$}\Comment{Innovation covariance}
 	\State{$K_k=P_{k|k-1}\:\tilde{H}_k^\top\:S_k^{-1}$}\Comment{Kalman gain}
-	\State{}
 	\State{$\hat{x}_{k|k}=\hat{x}_{k|k-1}+K_k\:y_k$}\Comment{State correction}
 	\State{$P_{k|k}=(I-K_k\:\tilde{H}_k)\:P_{k|k-1}$}\Comment{Covariance correction}
 	\end{algorithmic}\caption{Extended Kalman Filter}\label{alg:EKF}
