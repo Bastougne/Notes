@@ -428,5 +428,28 @@ function save_pdf(fig, name, pdf_w, pdf_h, img_dir)
     end
     set(fig, 'PaperUnits', 'points', 'PaperSize', [pdf_w pdf_h], ...
              'PaperPosition', [0 0 pdf_w pdf_h]);
-    print(fig, fullfile(img_dir, [name '.pdf']), '-dpdf', '-vector');
+    % Written to a temporary file, and moved over the target only if the drawing
+    % changed. MATLAB stamps every export with its creation date and a fresh /ID, so
+    % two exports of an identical figure differ by some sixty bytes and git flagged
+    % every figure on every run. Moving a finished file also spares the target the
+    % truncation described above.
+    target = fullfile(img_dir, [name '.pdf']);
+    tmp    = [tempname '.pdf'];
+    print(fig, tmp, '-dpdf', '-vector');
+    if isfile(target) && strcmp(without_timestamps(tmp), without_timestamps(target))
+        delete(tmp);
+    else
+        movefile(tmp, target, 'f');
+    end
+end
+
+function s = without_timestamps(f)
+% The bytes of a PDF without its creation date and document ID, the only fields
+% that change between two exports of an identical figure. Read as bytes rather than
+% characters: decoding would map distinct compressed streams to the same text.
+    fid = fopen(f, 'r');
+    s   = char(fread(fid, Inf, '*uint8')');
+    fclose(fid);
+    s = regexprep(s, '/(CreationDate|ModDate)\s*\([^)]*\)', '');
+    s = regexprep(s, '/ID\s*\[[^\]]*\]', '');
 end

@@ -1,0 +1,644 @@
+\documentclass[preprint]{elsarticle}
+
+\usepackage{amsthm, amssymb, mathtools}
+\usepackage{hyperref, cleveref}
+\usepackage{enumitem}
+
+\usepackage[margin=0.8in]{geometry}
+
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+\newtheorem{corollary}{Corollary}[proposition]
+\newtheorem{lemma}{Lemma}
+
+\journal{Automatica}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{
+    Theoretical Analysis of Kriging Error under Training Data Subsampling
+}
+
+\author[ONERA,IMS]{Bastien HUBERT\:}
+\author[ONERA]{Karim DAHIA\:}
+\author[ONERA]{Nicolas MERLINGE\:}
+\author[IMS]{Audrey GIREMUS\:}
+
+\affiliation[ONERA]{
+    organization = {DTIS, ONERA, Université Paris-Saclay},
+    city         = {Palaiseau},
+    country      = {France},
+    email        = {,\:\{name.surname\}@onera.fr}
+}
+
+\affiliation[IMS]{
+    organization = {IMS, Université de Bordeaux, CNRS, Bordeaux INP},
+    city         = {Talence},
+    country      = {France},
+    email        = {,\:\{name.surname\}@u-bordeaux.fr}
+}
+
+\begin{abstract}
+    Gaussian process regression, or kriging, provides an optimal linear estimator under Gaussian prior assumptions. However, its high computational cost limits its applicability to large datasets. A common workaround involves subsampling the training data, typically by retaining only points near the estimation location.
+
+    This induces a loss of accuracy whose impact is often left unquantified. In this paper, we derive explicit bounds on the universal kriging error introduced by such data reduction strategies. By expressing the variance and interpolation errors in terms of residual covariances and observations, we show that this error is at most the simple kriging error plus the loss incurred on the estimation of the trend, which persists even when the discarded data are uncorrelated with the retained ones. This yields an upper bound computable from the retained data and the cross covariances only, and a nested decomposition that brackets the error between two computable quantities. These results bridge the gap between heuristic subsampling strategies and rigorous performance guarantees, providing computable criteria for robust subsampled Gaussian process regression.
+\end{abstract}
+
+\begin{keyword}
+    Gaussian process\sep kriging\sep subsampling\sep error bounds\sep computational complexity reduction
+\end{keyword}
+
+\end{frontmatter}
+
+\section{Introduction}
+
+Gaussian process regression (GPR) \cite{bib:Rasmussen} is a non-parametric Bayesian method widely used in spatial statistics such as astrophysics and geostatistics, and surrogate modelling. It is valued for its ability to provide not only point estimates but also uncertainty quantifications. However, its computational cost scales cubically with the number of training points, making it prohibitive in large-scale or real-time applications.
+
+A substantial body of work has addressed this limitation through approximation techniques. Low-rank methods, such as the Nyström approximation \cite{bib:Nystrom} or the Karhunen–Loève decomposition \cite{bib:Karhunen_Loeve} can be used to reduce the computational cost. Sparse variational methods can also approximate the covariance structure by using pseudo-inputs \cite{bib:variational_sparse_GP} or spectral expansions \cite{bib:sparse_GP}. While these methods are effective, they typically alter the underlying Gaussian process model, potentially affecting its interpretability or calibration.
+
+An alternative strategy is to reduce complexity by directly subsampling the training data. Local selections only consider the closest points to the prediction location \cite{bib:local_subsampling, bib:CAK-APF}, while other methods include sub-modularity \cite{bib:observation_selection}, greedy heuristics \cite{bib:greedy_selection}, entropy-based criteria \cite{bib:GP_optimisation}, determinantal point processes \cite{bib:determinantal}, or nearest-neighbour techniques \cite{bib:nn_GP}. While such approaches are computationally appealing and preserve the original model assumptions, they usually lack rigorous guarantees on the error induced by discarding observations. Some theoretical efforts have examined error bounds for GPR itself \cite{bib:GPR_error_bounds}, low-rank approximations \cite{bib:bach_kernel} or random subsampling \cite{bib:random_selection}, but general bounds quantifying the training data subsampling remain scarce.
+
+In this work, we provide explicit theoretical error bounds for subsampled GPR. Unlike previous methods that alter the model or rely on heuristic selection, our analysis focuses directly on the Gaussian process structure and yields interpretable, computable metrics to assess the impact of subsampling. In \cref{sec:problem_statement}, we recall the standard setting of universal kriging, which estimates the unknown trend of the process from the data, ordinary kriging being the special case of a constant mean, and introduce error metrics for subsampling. \Cref{sec:data_selection} reformulates both the $L^2$ variance error and the $L^1$ interpolation error in terms of residual quantities, representing the information contained in the training data that is lost during subsampling. This leads to closed-form expressions that characterise the loss of information from discarding data. Building on these results, \cref{sec:error_bounds} derives upper bounds that avoid inverting any matrix of the size of the discarded data, a nested decomposition that brackets the error, and bounds relying on entrywise assumptions on the kernel. Finally, proofs and relevant calculations are provided in \cref{sec:appendix}. Together, these results clarify how the robustness to subsampling depends on the correlation between retained and discarded data, the estimation of the trend, and the observation noise regime.
+
+\section{Problem Statement}\label{sec:problem_statement}
+
+\subsection{Gaussian Process Regression}\label{sec:gaussian_process_regression}
+
+Let $g:\mathcal{U}\rightarrow\mathcal{M}_{1,r_{\mathrm{UK}}}(\mathbb{R})$ gather $r_{\mathrm{UK}}\in\mathbb{N}^*$ known trend functions, and $f:\mathcal{U}\rightarrow\mathbb{R}$ be a realisation of a Gaussian process of mean $x\mapsto g(x)\beta$, with $\beta\in\mathbb{R}^{r_{\mathrm{UK}}}$ unknown, and of covariance kernel $k:\mathcal{U}\times\mathcal{U}\rightarrow\mathbb{R}$. Ordinary kriging, where the mean is an unknown constant, corresponds to $r_{\mathrm{UK}}=1$ and $g\equiv1$. For $\tilde{\mathbf{x}}\triangleq\begin{bmatrix}\tilde{x}_1&\dots&\tilde{x}_{\tilde{N}}\end{bmatrix}^T\in\mathcal{U}^{\tilde{N}}$ a set of $\tilde{N}\in\mathbb{N}^*$ training data and $\tilde{R}\in\mathbb{R}_+$ a noise regime, we are given the noisy realisations:
+\begin{equation}
+    \forall i\in[\![1,\tilde{N}]\!],\:\tilde{z}_i\triangleq f(\tilde{x}_i)+\varepsilon_i\quad\text{with}\quad\varepsilon_i\sim\mathcal{N}(0,\tilde{R})
+\end{equation}
+and we define $\tilde{\mathbf{z}}\triangleq\begin{bmatrix}\tilde{z}_1&\dots&\tilde{z}_{\tilde{N}}\end{bmatrix}^T\in\mathbb{R}^{\tilde{N}}$. For $m,n\in\mathbb{N}$, let $J_{m,n}$ denote the $m\times n$ matrix full of $1$, and let $g(\tilde{\mathbf{x}})\triangleq\begin{bmatrix}g(\tilde{x}_1)^T&\dots&g(\tilde{x}_{\tilde{N}})^T\end{bmatrix}^T\in\mathcal{M}_{\tilde{N},r_{\mathrm{UK}}}(\mathbb{R})$ be the trend matrix, assumed to have full column rank. At a query point $x\in\mathcal{U}$, the quantity to estimate is the noisy observation $z\triangleq f(x)+\varepsilon$, with $\varepsilon\sim\mathcal{N}(0,R)$ independent of $f$ and of the $\varepsilon_i$. The universal kriging estimator $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)$ is the best linear unbiased estimator (BLUE) of $z$ with respect to $\{\tilde{\mathbf{x}},\tilde{\mathbf{z}}\}$. Formally, the BLUE is defined as the linear combination of $\tilde{\mathbf{z}}$ that minimises the error variance among those that are unbiased whatever the value of $\beta$:
+\begin{gather}
+    \hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)=W^T\tilde{\mathbf{z}}\\
+    \text{with}\quad W=\underset{V^Tg(\tilde{\mathbf{x}})=g(x)}{\text{arg min}}\left(\mathbb{V}\left(z-V^T\tilde{\mathbf{z}}\right)\right)\label{eq:kriging_argmin}
+\end{gather}
+
+Let $G(\tilde{\mathbf{x}})$ be the Gram matrix of the observations and $\mathcal{G}(\tilde{\mathbf{x}})$ its bordered counterpart, and let $\bar{k}$ and $\bar{\mathbf{z}}$ be the covariance and observation vectors bordered accordingly:
+\begin{equation}
+    G(\tilde{\mathbf{x}})\triangleq k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\tilde{R}I_{\tilde{N}},\quad\mathcal{G}(\tilde{\mathbf{x}})\triangleq\begin{bmatrix}G(\tilde{\mathbf{x}})&g(\tilde{\mathbf{x}})\\g(\tilde{\mathbf{x}})^T&0\end{bmatrix},\quad\bar{k}(\tilde{\mathbf{x}},x)\triangleq\begin{bmatrix}k(\tilde{\mathbf{x}},x)\\g(x)^T\end{bmatrix},\quad\bar{\mathbf{z}}\triangleq\begin{bmatrix}\tilde{\mathbf{z}}\\0\end{bmatrix}
+\end{equation}
+with $\bar{k}(x,\tilde{\mathbf{x}})\triangleq\bar{k}(\tilde{\mathbf{x}},x)^T$. Handling the unbiasedness constraints with Lagrange multipliers, the optimum is reached for:
+\begin{equation}
+    \hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)=\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}\label{eq:kriging_f}
+\end{equation}
+
+Equivalently, $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)=g(x)\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)+k(x,\tilde{\mathbf{x}})G(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right)$, where $\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\triangleq M(\tilde{\mathbf{x}})g(\tilde{\mathbf{x}})^TG(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}$ is the generalised least squares estimate of $\beta$, of covariance $M(\tilde{\mathbf{x}})\triangleq\left(g(\tilde{\mathbf{x}})^TG(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^{-1}$. This estimator is also the \textit{a posteriori} expectation of $z$ conditional to $\{\tilde{\mathbf{x}},\tilde{\mathbf{z}}\}$ under a non-informative prior on $\beta$ \cite{bib:Rasmussen}.
+
+The associated error variance is:
+\begin{equation}
+    R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)\triangleq\mathbb{V}\left(\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-z\right)=k(x,x)+R-\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)\label{eq:kriging_R}
+\end{equation}
+
+A major limitation of this method is the $\mathcal{O}(\tilde{N}^3)$ computational cost, stemming from the inversion of the Gram matrix $G(\tilde{\mathbf{x}})$, or equivalently of $\mathcal{G}(\tilde{\mathbf{x}})$, in both \eqref{eq:kriging_f} and \eqref{eq:kriging_R}. One common approach to mitigate this is to omit certain elements of $\tilde{\mathbf{x}}$ to reduce the size of $G(\tilde{\mathbf{x}})$. However, this approximation introduces a loss of accuracy in \eqref{eq:kriging_argmin}. This paper aims to quantify the error induced by such subsampling approximations.
+
+\subsection{Subsampling Error Metrics}\label{sec:subsampling_errors}
+
+Formally, subsampling is achieved by splitting $\tilde{\mathbf{x}}$ into $\begin{bmatrix}\tilde{\mathbf{x}}_c&\tilde{\mathbf{x}}_f\end{bmatrix}^T$, with $\tilde{\mathbf{x}}_c$ being the $\tilde{N}_c$ retained data, usually close to the considered kriging location $x\in\mathcal{U}$, and $\tilde{\mathbf{x}}_f$ being the $\tilde{N}_f$ discarded data, usually far from $x$. A similar operation is performed on $\tilde{\mathbf{z}}$. This decomposition provides the foundation for all subsequent error bounds, as it explicitly isolates the predictive contribution of the discarded points from that of the retained training set.
+
+Two error metrics between $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)$ and $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)$ are considered in this paper, each capturing a distinct aspect of the kriging approximation. The first metric corresponds to the root mean squared error, and is formally introduced in \Cref{def:L2_error}. In contrast, since the kriging estimator is a deterministic function conditionally to $\tilde{\mathbf{z}}$, a natural alternative is to measure the absolute difference between the two estimators, as proposed by \Cref{def:L1_error}.
+
+\begin{definition}
+    Let $e_r$ denote the root variance error between the full and subsampled estimators in the $L^2$ space:
+    \begin{equation*}
+        e_r:x\in\mathcal{U}\mapsto\left\|\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)\right\|_{L^2}=\sqrt{\mathbb{E}\left[\left(\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)\right)^2\right]}
+    \end{equation*}\label{def:L2_error}
+    \vspace{-\baselineskip}
+\end{definition}
+
+\begin{definition}
+    The $L^1$ interpolation error $e_f$ between the full and subsampled estimators is defined as:
+    \begin{equation*}
+        e_f:x\in\mathcal{U}\mapsto\left\|\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)\right\|_{L^1}=\left|\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)\right|
+    \end{equation*}\label{def:L1_error}
+    \vspace{-\baselineskip}
+\end{definition}
+
+Both errors are well defined whatever the value of $\beta$: the two estimators being unbiased, their difference is a linear combination $V^T\tilde{\mathbf{z}}$ with $V^Tg(\tilde{\mathbf{x}})=0$, whose distribution therefore does not depend on $\beta$. The subsampled estimator exists as long as $g(\tilde{\mathbf{x}}_c)$ has full column rank, which requires $\tilde{N}_c\geq r_{\mathrm{UK}}$.
+
+\subsection{Kernel Assumptions}
+
+In order for $G(\tilde{\mathbf{x}})$ to be a valid covariance matrix, some assumptions must be made on $k$. Since $\tilde{R}$ may be equal to $0$, \Cref{def:SPD} provides the minimal requirement on $k$ ensuring that the Gram matrix is invertible. $\mathcal{G}(\tilde{\mathbf{x}})$ is then invertible as well, its Schur complement with respect to $G(\tilde{\mathbf{x}})$ being the negative definite matrix $-M(\tilde{\mathbf{x}})^{-1}$.
+
+\begin{definition}
+    Let $n\in\mathbb{N}^*$ and $\Sigma$ be an $n\times n$ real matrix. $\Sigma$ is symmetric positive definite (SPD) if $\Sigma$ is symmetric and:
+    \begin{equation*}
+        \forall\textbf{a}\in\mathbb{R}^n\backslash\{0_n\},\:\textbf{a}^T\Sigma\textbf{a}>0
+    \end{equation*}
+    $\Sigma$ is symmetric positive semi-definite (SPSD) if the inequality is not strict.
+\end{definition}
+
+\begin{proposition}
+    Let $\Sigma$ be a SPD matrix. $\Sigma$ is invertible.
+\end{proposition}
+
+\begin{proof}
+    This is a standard result that can be found in \cite{bib:matrix_analysis}.
+\end{proof}
+
+\begin{definition}
+    Let $k:\mathcal{U}\times\mathcal{U}\rightarrow\mathbb{R}$. $k$ is SPD if:
+    \begin{equation*}
+        \forall n\in\mathbb{N}^*,\:\forall\mathbf{x}\in\mathcal{U}^n\text{ pairwise distinct},\:k(\mathbf{x},\mathbf{x}) \text{ is SPD}
+    \end{equation*}\label{def:SPD}
+    \vspace{-\baselineskip}
+\end{definition}
+
+No other assumption is made on $k$, and every result of this paper holds for any SPD kernel.
+
+\section{Data Selection Errors}\label{sec:data_selection}
+
+\subsection{Importance of the Gram Matrix}
+
+As stated in \cref{sec:gaussian_process_regression}, most of the computational cost comes from inverting the Gram matrix. Ordering the rows and columns of $\mathcal{G}(\tilde{\mathbf{x}})$ as $\tilde{\mathbf{x}}_c$, the $r_{\mathrm{UK}}$ unbiasedness constraints, then $\tilde{\mathbf{x}}_f$, the decomposition introduced in \cref{sec:subsampling_errors} leads to the following block partitioning:
+\begin{equation}
+    \mathcal{G}(\tilde{\mathbf{x}})=\begin{bmatrix}A&B\\B^T&D\end{bmatrix}=\begin{bmatrix}\mathcal{G}(\tilde{\mathbf{x}}_c)&\bar{k}(\tilde{\mathbf{x}}_c,\tilde{\mathbf{x}}_f)\\\bar{k}(\tilde{\mathbf{x}}_c,\tilde{\mathbf{x}}_f)^T&G(\tilde{\mathbf{x}}_f)\end{bmatrix}\quad\text{with}\quad\bar{k}(\tilde{\mathbf{x}}_c,\tilde{\mathbf{x}}_f)\triangleq\begin{bmatrix}k(\tilde{\mathbf{x}}_c,\tilde{\mathbf{x}}_f)\\g(\tilde{\mathbf{x}}_f)^T\end{bmatrix}
+\end{equation}
+the bordered vectors being reordered accordingly, as $\bar{k}(\tilde{\mathbf{x}},x)=\begin{bmatrix}\bar{k}(\tilde{\mathbf{x}}_c,x)^T&k(\tilde{\mathbf{x}}_f,x)^T\end{bmatrix}^T$ and $\bar{\mathbf{z}}=\begin{bmatrix}\bar{\mathbf{z}}_c^T&\tilde{\mathbf{z}}_f^T\end{bmatrix}^T$ with $\bar{\mathbf{z}}_c\triangleq\begin{bmatrix}\tilde{\mathbf{z}}_c^T&0\end{bmatrix}^T$.
+
+Let $\mathcal{G}_h(\tilde{\mathbf{x}}_c)$ be the $(\tilde{N}+r_{\mathrm{UK}})\times(\tilde{N}+r_{\mathrm{UK}})$ hollowed-out Gram matrix:
+\begin{equation}
+    \mathcal{G}_h(\tilde{\mathbf{x}}_c)\triangleq\begin{bmatrix}\mathcal{G}(\tilde{\mathbf{x}}_c)&0_{\tilde{N}_c+r_{\mathrm{UK}},\tilde{N}_f}\\0_{\tilde{N}_f,\tilde{N}_c+r_{\mathrm{UK}}}&0_{\tilde{N}_f,\tilde{N}_f}\end{bmatrix}
+\end{equation}
+
+\Cref{th:subsampled_kriging} states that $\mathcal{G}_h(\tilde{\mathbf{x}}_c)$ acts as a substitute for $\mathcal{G}(\tilde{\mathbf{x}})$ in the subsampled case with respect to \eqref{eq:kriging_f} and \eqref{eq:kriging_R}.
+
+\begin{proposition}
+    The subsampled kriging estimator verifies:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        \hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)=&\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}_h(\tilde{\mathbf{x}}_c)^\dagger\bar{\mathbf{z}}\\
+        R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,g)=&k(x,x)+R-\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}_h(\tilde{\mathbf{x}}_c)^\dagger\bar{k}(\tilde{\mathbf{x}},x)
+        \end{aligned}\right.
+    \end{equation*}
+    where $\dagger$ denotes the Moore-Penrose pseudo-inverse symbol \cite{bib:matrix_analysis}.\label{th:subsampled_kriging}
+\end{proposition}
+
+\begin{proof}
+    The result comes from applying \eqref{eq:kriging_f} and \eqref{eq:kriging_R} to $\tilde{\mathbf{x}}_c$, and noting that:
+    \begin{equation*}
+        \mathcal{G}_h(\tilde{\mathbf{x}}_c)^\dagger=\begin{bmatrix}\mathcal{G}(\tilde{\mathbf{x}}_c)^{-1}&0\\0&0\end{bmatrix}\vspace{-1.1\baselineskip}
+    \end{equation*}
+\end{proof}
+
+Although it is not directly used in computations, \Cref{th:subsampled_kriging} further highlights the importance of the Gram matrix in the subsampling problem. In particular, \Cref{def:Gram_inverse_difference} serves as the foundation for the key reformulations of the studied errors established by \Cref{th:errors_inverse_Gram}.
+
+\begin{definition}
+    The Gram inverse difference matrix $\mathfrak{D}_G$ is the quantity defined as:
+    \begin{equation*}
+        \mathfrak{D}_G\triangleq\mathcal{G}(\tilde{\mathbf{x}})^{-1}-\mathcal{G}_h(\tilde{\mathbf{x}}_c)^\dagger
+    \end{equation*}\label{def:Gram_inverse_difference}
+    \vspace{-\baselineskip}
+\end{definition}
+
+\begin{proposition}
+    The two subsampling errors can be respectively expressed as:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        e_r(x)=&\sqrt{\bar{k}(x,\tilde{\mathbf{x}})\mathfrak{D}_G\bar{k}(\tilde{\mathbf{x}},x)}\\
+        e_f(x)=&\left|\bar{k}(x,\tilde{\mathbf{x}})\mathfrak{D}_G\bar{\mathbf{z}}\right|
+        \end{aligned}\right.
+    \end{equation*}\label{th:errors_inverse_Gram}
+    \vspace{-\baselineskip}
+\end{proposition}
+
+\begin{proof}
+    See proof in \cref{sec:errors_inverse_Gram}.
+\end{proof}
+
+\begin{remark}
+    An alternative reformulation of $e_r(x)$ is obtained in the demonstration of \Cref{th:errors_inverse_Gram}, and is worth comparing with the original definition of $e_f(x)$ given in \Cref{def:L1_error}.
+    \begin{equation*}
+        e_r(x)^2=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)
+    \end{equation*}
+    In particular, $R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,g)\geq R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)$.\label{rem:variance_difference}
+\end{remark}
+
+\subsection{Block Inversion and Residual Quantities}
+
+To isolate the impact of discarding $\tilde{\mathbf{x}}_f$ on the kriging estimator, $\mathfrak{D}_G$ is decomposed using the Woodbury block matrix inversion formula \cite{bib:matrix_cookbook}:
+\begin{equation}
+    \begin{aligned}
+    \mathfrak{D}_G=&\begin{bmatrix}A&B\\B^T&D\end{bmatrix}^{-1}-\begin{bmatrix}A^{-1}&0\\0&0\end{bmatrix}\\
+    =&\begin{bmatrix}A^{-1}BS^{-1}B^TA^{-1}&-A^{-1}BS^{-1}\\-S^{-1}B^TA^{-1}&S^{-1}\end{bmatrix}\\
+    =&\begin{bmatrix}-A^{-1}B\\I_{\tilde{N}_f}\end{bmatrix}S^{-1}\begin{bmatrix}-A^{-1}B\\I_{\tilde{N}_f}\end{bmatrix}^T
+    \end{aligned}\label{eq:decomposed_gram_inverse_difference}
+\end{equation}
+where $S$ is the Schur complement of $\mathcal{G}(\tilde{\mathbf{x}})$ with respect to $A=\mathcal{G}(\tilde{\mathbf{x}}_c)$, invertible since both $\mathcal{G}(\tilde{\mathbf{x}})$ and $A$ are:
+\begin{equation}
+    S\triangleq D-B^TA^{-1}B
+\end{equation}
+
+This decomposition, combined with \Cref{th:errors_inverse_Gram}, reveals two residual quantities that contribute to the error introduced by subsampling. The first one, called residual covariance function, quantifies the portion of the covariance between $x$ and the discarded training set $\tilde{\mathbf{x}}_f$ not accounted for by the retained set $\tilde{\mathbf{x}}_c$. It is the object of \Cref{def:residual_covariance_function}. Similarly, the residual observation vector captures the information contained within the discarded observations $\tilde{\mathbf{z}}_f$ and unexplained by the retained observations $\tilde{\mathbf{z}}_c$. Its expression is given by \Cref{def:residual_observation_vector}.
+
+\begin{definition}
+    The residual covariance function $\varphi$ is given by:
+    \begin{equation*}
+        \varphi:x\in\mathcal{U}\mapsto k(\tilde{\mathbf{x}}_f,x)-\bar{k}(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)\mathcal{G}(\tilde{\mathbf{x}}_c)^{-1}\bar{k}(\tilde{\mathbf{x}}_c,x)
+    \end{equation*}
+    with $\bar{k}(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)\triangleq\bar{k}(\tilde{\mathbf{x}}_c,\tilde{\mathbf{x}}_f)^T$.\label{def:residual_covariance_function}
+\end{definition}
+
+\begin{definition}
+    The residual observation vector $\psi$ is defined as:
+    \begin{equation*}
+        \psi\triangleq\tilde{\mathbf{z}}_f-\bar{k}(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)\mathcal{G}(\tilde{\mathbf{x}}_c)^{-1}\bar{\mathbf{z}}_c
+    \end{equation*}\label{def:residual_observation_vector}
+    \vspace{-\baselineskip}
+\end{definition}
+
+\Cref{th:residual_identities} gives relevant identities that link \eqref{eq:decomposed_gram_inverse_difference} with $\varphi$ and $\psi$. \Cref{th:errors_residual} and \Cref{th:errors_euclidean} push this further by showing that the studied metrics can be fully expressed as functions of those residual quantities, which \Cref{th:explicit_residuals} relates to their simple kriging counterparts.
+
+\begin{lemma}
+    The following residual identities hold:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        \varphi(x)=&\begin{bmatrix}-A^{-1}B\\I_{\tilde{N}_f}\end{bmatrix}^T\bar{k}(\tilde{\mathbf{x}},x)\\
+        \varphi(\tilde{\mathbf{x}}_f)=&S-\tilde{R}I_{\tilde{N}_f}\\
+        \psi=&\begin{bmatrix}-A^{-1}B\\I_{\tilde{N}_f}\end{bmatrix}^T\bar{\mathbf{z}}
+        \end{aligned}\right.
+    \end{equation*}\label{th:residual_identities}
+    \vspace{-\baselineskip}
+\end{lemma}
+
+\begin{proof}
+    Recall that $A=\mathcal{G}(\tilde{\mathbf{x}}_c)$ and $B=\bar{k}(\tilde{\mathbf{x}}_c,\tilde{\mathbf{x}}_f)$. Direct calculations give the desired results.
+\end{proof}
+
+\begin{proposition}
+    The residual forms of the two errors are given below:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        e_r(x)=&\sqrt{\varphi(x)^T\left(\varphi(\tilde{\mathbf{x}}_f)+\tilde{R}I_{\tilde{N}_f}\right)^{-1}\varphi(x)}\\
+        e_f(x)=&\left|\varphi(x)^T\left(\varphi(\tilde{\mathbf{x}}_f)+\tilde{R}I_{\tilde{N}_f}\right)^{-1}\psi\right|
+        \end{aligned}\right.
+    \end{equation*}\label{th:errors_residual}
+    \vspace{-\baselineskip}
+\end{proposition}
+
+\begin{proof}
+    These expressions are obtained by applying \eqref{eq:decomposed_gram_inverse_difference} and \Cref{th:residual_identities} to \Cref{th:errors_inverse_Gram}.
+\end{proof}
+
+\begin{lemma}
+    Let $\varphi_0$, $S_0$ and $\psi_0$ be the residual quantities of simple kriging, obtained by replacing the bordered Gram matrix with the Gram matrix:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        \varphi_0:x\in\mathcal{U}\mapsto&k(\tilde{\mathbf{x}}_f,x)-k(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)G(\tilde{\mathbf{x}}_c)^{-1}k(\tilde{\mathbf{x}}_c,x)\\
+        S_0\triangleq&G(\tilde{\mathbf{x}}_f)-k(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)G(\tilde{\mathbf{x}}_c)^{-1}k(\tilde{\mathbf{x}}_c,\tilde{\mathbf{x}}_f)\\
+        \psi_0\triangleq&\tilde{\mathbf{z}}_f-k(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)G(\tilde{\mathbf{x}}_c)^{-1}\tilde{\mathbf{z}}_c
+        \end{aligned}\right.
+    \end{equation*}
+    and let $U:x\in\mathcal{U}\mapsto g(x)-k(x,\tilde{\mathbf{x}}_c)G(\tilde{\mathbf{x}}_c)^{-1}g(\tilde{\mathbf{x}}_c)$ be the weights given to the estimated trend coefficients by $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)$, so that $U(\tilde{\mathbf{x}}_f)=g(\tilde{\mathbf{x}}_f)-k(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)G(\tilde{\mathbf{x}}_c)^{-1}g(\tilde{\mathbf{x}}_c)$ stacks its values on $\tilde{\mathbf{x}}_f$. The residual quantities verify:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        \varphi(x)=&\varphi_0(x)+U(\tilde{\mathbf{x}}_f)M(\tilde{\mathbf{x}}_c)U(x)^T\\
+        S=&S_0+U(\tilde{\mathbf{x}}_f)M(\tilde{\mathbf{x}}_c)U(\tilde{\mathbf{x}}_f)^T\\
+        \psi=&\psi_0-U(\tilde{\mathbf{x}}_f)\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)
+        \end{aligned}\right.
+    \end{equation*}
+    In particular, $S$ is SPD, and $\psi$ is unchanged when a trend $g(\tilde{\mathbf{x}})\gamma$, $\gamma\in\mathbb{R}^{r_{\mathrm{UK}}}$, is added to the observations.\label{th:explicit_residuals}
+\end{lemma}
+
+\begin{proof}
+    See proof in \cref{sec:explicit_residuals}.
+\end{proof}
+
+\begin{corollary}
+    Let $\langle\cdot|\cdot\rangle_S$ be the Mahalanobis inner product weighted by the inverse of $S=\varphi(\tilde{\mathbf{x}}_f)+\tilde{R}I_{\tilde{N}_f}$, which is SPD by \Cref{th:explicit_residuals}:
+    \begin{equation*}
+        \forall a,b\in\mathbb{R}^{\tilde{N}_f},\:\langle a|b\rangle_S\triangleq a^TS^{-1}b
+    \end{equation*}
+    and $\|\cdot\|_S$ the associated norm. The kriging errors can be interpreted as metrics in the $(\mathbb{R}^{\tilde{N}_f},\:\langle\cdot|\cdot\rangle_S)$ euclidean space:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        e_r(x)=&\|\varphi(x)\|_S\\
+        e_f(x)=&|\langle\varphi(x)|\psi\rangle_S|
+        \end{aligned}\right.
+    \end{equation*}\label{th:errors_euclidean}
+    \vspace{-\baselineskip}
+\end{corollary}
+
+\begin{remark}
+    Contrary to simple kriging, discarding data uncorrelated with both $\tilde{\mathbf{x}}_c$ and $x$ is not free. If $k(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)=0$ and $k(\tilde{\mathbf{x}}_f,x)=0$, then $\varphi_0(x)=0$, $U(\tilde{\mathbf{x}}_f)=g(\tilde{\mathbf{x}}_f)$ and $M(\tilde{\mathbf{x}})^{-1}=M(\tilde{\mathbf{x}}_c)^{-1}+g(\tilde{\mathbf{x}}_f)^TG(\tilde{\mathbf{x}}_f)^{-1}g(\tilde{\mathbf{x}}_f)$. Applying the Woodbury formula \cite{bib:matrix_cookbook} to $S=G(\tilde{\mathbf{x}}_f)+g(\tilde{\mathbf{x}}_f)M(\tilde{\mathbf{x}}_c)g(\tilde{\mathbf{x}}_f)^T$ in \Cref{th:errors_euclidean} yields:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        e_r(x)^2=&U(x)\left(M(\tilde{\mathbf{x}}_c)-M(\tilde{\mathbf{x}})\right)U(x)^T\\
+        e_f(x)=&\left|U(x)\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)\right)\right|
+        \end{aligned}\right.
+    \end{equation*}
+    The discarded data still reduce the covariance $M(\tilde{\mathbf{x}})$ of the estimated trend coefficients, and both errors measure what is lost from that estimation, weighted by the reliance $U(x)$ of the subsampled estimator on the trend. For ordinary kriging, $e_r(x)^2$ is the increase in variance of the estimated mean, weighted by $U(x)^2$.\label{rem:mean_floor}
+\end{remark}
+
+\subsection{Relations Between the Errors}
+
+This section introduces two relations between $e_r(x)$ and $e_f(x)$. The first relation is the concentration inequality described by \Cref{th:concentration_inequality}, while the second comes from algebraic considerations, and is given by \Cref{th:Cauchy-Schwarz_inequality}.
+
+\begin{proposition}
+    Let $\Phi$ be the cumulative distribution function of the standard normal distribution. For $\delta\in(0,1]$:
+    \begin{equation*}
+        e_f(x)\leq\Phi^{-1}\left(1-\frac{\delta}{2}\right)\cdot e_r(x)
+    \end{equation*}
+    with a probability of $1-\delta$.\label{th:concentration_inequality}
+\end{proposition}
+
+\begin{proof}
+    Since $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)$ follows a centred normal distribution of variance $e_r(x)^2$ whatever the value of $\beta$, the two errors are linked by the Gaussian tail relation:
+    \begin{equation*}
+        \forall t>0,\:\mathbb{P}\left(\frac{e_f(x)}{e_r(x)}\geq t\right)=2\Phi(-t)
+    \end{equation*}
+    Solving $2\Phi(-t)=\delta$ for $t$ yields $t=\Phi^{-1}\left(1-\frac{\delta}{2}\right)$. Thus:
+    \begin{equation*}
+        \mathbb{P}\left(e_f(x)\geq\Phi^{-1}\left(1-\frac{\delta}{2}\right)\cdot e_r(x)\right)=\delta
+    \end{equation*}
+    The result is obtained by taking the complementary probability of this last equation.
+\end{proof}
+
+\begin{remark}
+    A simpler, albeit more pessimistic, version of \Cref{th:concentration_inequality} can be derived from the inverse form of Mill's inequality \cite{bib:proba_course}:
+    \begin{equation*}
+        \forall\delta\in(0,1],\:\mathbb{P}\left(e_f(x)\leq\sqrt{2\ln\left(\frac{2}{\delta}\right)}\cdot e_r(x)\right)\geq1-\delta
+    \end{equation*}
+\end{remark}
+
+\begin{proposition}
+    $e_r(x)$ and $e_f(x)$ are linked by the following inequality:
+    \begin{equation*}
+        e_f(x)\leq e_r(x)\cdot\|\psi\|_S
+    \end{equation*}\label{th:Cauchy-Schwarz_inequality}
+    \vspace{-\baselineskip}
+\end{proposition}
+
+\begin{proof}
+    Applying the Cauchy-Schwarz inequality \cite{bib:matrix_analysis} to \Cref{th:errors_euclidean} proves the relation.
+\end{proof}
+
+\section{Computable Error Bounds}\label{sec:error_bounds}
+
+The residual forms of \Cref{th:errors_euclidean} still involve $S^{-1}$, whose size is the number of discarded data, so that computing $e_r(x)$ exactly is as costly as the full kriging estimator that subsampling aims to avoid. This section derives upper bounds that do not require this inversion, first by separating the contributions of simple kriging and of the trend estimation, then by nesting the retained data into a larger set whose own subsampling error is small, and finally from entrywise bounds on the covariances between the data.
+
+\subsection{Simple Kriging and Trend Contributions}\label{sec:split_bound}
+
+\Cref{th:explicit_residuals} splits the residual covariance function into the residual $\varphi_0(x)$ of simple kriging and a trend contribution. \Cref{th:split_bound} bounds these two parts separately, the latter being handled exactly as in \Cref{rem:mean_floor}.
+
+\begin{proposition}
+    Let $e_{r,0}(x)\triangleq\|\varphi_0(x)\|_{S_0}$ be the variance error that simple kriging would commit if the trend were known, and $P\triangleq U(\tilde{\mathbf{x}}_f)^TS_0^{-1}U(\tilde{\mathbf{x}}_f)$. Then:
+    \begin{equation*}
+        e_r(x)\leq e_{r,0}(x)+\sqrt{U(x)\left(M(\tilde{\mathbf{x}}_c)-\left(M(\tilde{\mathbf{x}}_c)^{-1}+P\right)^{-1}\right)U(x)^T}
+    \end{equation*}
+    with equality when $\varphi_0(x)=0$.\label{th:split_bound}
+\end{proposition}
+
+\begin{proof}
+    See proof in \cref{sec:split_bound_proof}.
+\end{proof}
+
+The simple kriging term $e_{r,0}(x)$ still requires $S_0^{-1}$. When the observations are noisy, \Cref{th:computable_bound} removes this last inversion.
+
+\begin{corollary}
+    Assume that $\tilde{R}>0$. Then $S_0\succeq\tilde{R}I_{\tilde{N}_f}$, and:
+    \begin{equation*}
+        e_r(x)\leq e_r^U(x)\triangleq\frac{\|\varphi_0(x)\|_2}{\sqrt{\tilde{R}}}+\sqrt{U(x)\left(M(\tilde{\mathbf{x}}_c)-\left(M(\tilde{\mathbf{x}}_c)^{-1}+\frac{1}{\tilde{R}}U(\tilde{\mathbf{x}}_f)^TU(\tilde{\mathbf{x}}_f)\right)^{-1}\right)U(x)^T}
+    \end{equation*}\label{th:computable_bound}
+    \vspace{-\baselineskip}
+\end{corollary}
+
+\begin{proof}
+    See proof in \cref{sec:split_bound_proof}.
+\end{proof}
+
+Unlike the residual forms, $e_r^U(x)$ only involves $G(\tilde{\mathbf{x}}_c)^{-1}$, the cross covariances $k(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)$ and $k(\tilde{\mathbf{x}}_f,x)$, and the trend matrices, at a cost of $\mathcal{O}(\tilde{N}_c^3+\tilde{N}_c\tilde{N}_f)$ that grows linearly with the number of discarded data. Through \Cref{th:concentration_inequality}, it also bounds the interpolation error, $e_f(x)\leq\Phi^{-1}\left(1-\frac{\delta}{2}\right)\cdot e_r^U(x)$ holding with a probability of at least $1-\delta$.
+
+\begin{remark}
+    The cruder bound $e_r(x)^2\leq\|\varphi(x)\|_2^2/\tilde{R}$, which follows from $S\succeq S_0\succeq\tilde{R}I_{\tilde{N}_f}$, is the Gauss-Radau estimate of the quadratic form $\varphi(x)^TS^{-1}\varphi(x)$ with a single node prescribed at $\tilde{R}\leq\lambda_{\min}(S)$ \cite{bib:Golub_Meurant}. Running $m$ iterations of the Lanczos algorithm on $S$ from $\varphi(x)$ yields Gauss-Radau upper bounds that converge to $e_r(x)^2$ as $m$ grows, at the cost of $m$ products by $S$ instead of its inversion.\label{rem:gauss_radau}
+\end{remark}
+
+\begin{remark}
+    The two terms of \Cref{th:split_bound} behave differently as the observation noise grows. When $\tilde{R}\rightarrow+\infty$ with the other quantities fixed, $e_{r,0}(x)$ vanishes, discarded and retained data becoming equally uninformative about $f(x)$, whereas the trend term does not. Since $U(x)\rightarrow g(x)$, $M(\tilde{\mathbf{x}}_c)^{-1}\sim g(\tilde{\mathbf{x}}_c)^Tg(\tilde{\mathbf{x}}_c)/\tilde{R}$ and $P\sim g(\tilde{\mathbf{x}}_f)^Tg(\tilde{\mathbf{x}}_f)/\tilde{R}$, it comes that, as soon as the right-hand side does not vanish:
+    \begin{equation*}
+        e_r(x)^2\sim\tilde{R}\:g(x)\left(\left(g(\tilde{\mathbf{x}}_c)^Tg(\tilde{\mathbf{x}}_c)\right)^{-1}-\left(g(\tilde{\mathbf{x}})^Tg(\tilde{\mathbf{x}})\right)^{-1}\right)g(x)^T
+    \end{equation*}
+    For ordinary kriging, this equivalent is $\tilde{R}\left(1/\tilde{N}_c-1/\tilde{N}\right)$: both estimators become averages of the observations, and discarding data increases the variance of the estimated mean.\label{rem:noise_regime}
+\end{remark}
+
+\subsection{Nested Subsampling}\label{sec:nested_bound}
+
+The bound of \Cref{th:computable_bound} replaces $S_0^{-1}$ by $I_{\tilde{N}_f}/\tilde{R}$, which is pessimistic when $\varphi_0(x)$ lies along the dominant eigenvectors of $S_0$. This happens when the discarded data are strongly correlated with the retained ones, typically just outside a spatial window. \Cref{th:nested_bound} handles these data exactly, and only applies the bound to the remaining ones.
+
+\begin{proposition}
+    Let $\tilde{\mathbf{x}}_e$ be a set of training data such that $\tilde{\mathbf{x}}_c\subset\tilde{\mathbf{x}}_e\subset\tilde{\mathbf{x}}$, and $e_r^{(e)}(x)$ be the variance error committed by subsampling $\tilde{\mathbf{x}}$ into $\tilde{\mathbf{x}}_e$. Then:
+    \begin{equation*}
+        e_r(x)^2=\left(R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_e,g)\right)+e_r^{(e)}(x)^2
+    \end{equation*}
+    Consequently, if $\tilde{R}>0$ and $e_r^{U,(e)}(x)$ denotes the bound of \Cref{th:computable_bound} for the retained set $\tilde{\mathbf{x}}_e$:
+    \begin{equation*}
+        R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_e,g)\leq e_r(x)^2\leq R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_e,g)+e_r^{U,(e)}(x)^2
+    \end{equation*}\label{th:nested_bound}
+    \vspace{-\baselineskip}
+\end{proposition}
+
+\begin{proof}
+    Applying \Cref{rem:variance_difference} to the subsamplings of $\tilde{\mathbf{x}}$ into $\tilde{\mathbf{x}}_c$ and into $\tilde{\mathbf{x}}_e$ gives $e_r(x)^2=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)$ and $e_r^{(e)}(x)^2=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_e,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)$, whose difference is the announced identity. The bracket follows from $e_r^{(e)}(x)^2\geq0$ and \Cref{th:computable_bound}.
+\end{proof}
+
+The first term is computed exactly on the $\tilde{N}_e$ data of $\tilde{\mathbf{x}}_e$, and is also a lower bound on $e_r(x)^2$. When $\tilde{\mathbf{x}}_e$ gathers $\tilde{\mathbf{x}}_c$ and the discarded data lying within a few correlation lengths of $x$, the remaining data are, for most kernels used in practice, screened by the neighbouring ones \cite{bib:screening}. Their contribution $e_r^{U,(e)}(x)$ then becomes small, and the bracket of \Cref{th:nested_bound} tightens as $\tilde{\mathbf{x}}_e$ grows, which makes it possible to assess a subsampling strategy at a fraction of the cost of the full kriging estimator.
+
+\subsection{Entrywise Bounds}\label{sec:entrywise_bounds}
+
+The previous bounds are evaluated on the data at hand. Bounds on the residual quantities can also be derived from entrywise bounds on the kernel and on the observations, which make explicit how the errors depend on the correlations between the data. Since $\psi$ is unchanged when a trend is added to the observations, the latter are measured from an arbitrary reference trend $g(\tilde{\mathbf{x}})\beta_0$, $\beta_0\in\mathbb{R}^{r_{\mathrm{UK}}}$, and the trend functions are assumed to verify $\|g(x')\|_2\leq g_{\max}$ for $x'=x$ and for every entry $x'$ of $\tilde{\mathbf{x}}$. We assume the following entrywise bounds:
+\begin{equation}
+    \left\{\begin{aligned}
+    |k(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)|\leq&\alpha J_{\tilde{N}_f,\tilde{N}_c}\\
+    |k(\tilde{\mathbf{x}}_j,\tilde{\mathbf{x}}_j)|\leq&(k_{\max}-\kappa)I_{\tilde{N}_j}+\kappa J_{\tilde{N}_j,\tilde{N}_j}\\
+    |k(\tilde{\mathbf{x}}_c,x)|\leq&\kappa J_{\tilde{N}_c,1}\\
+    |k(\tilde{\mathbf{x}}_f,x)|\leq&\eta J_{\tilde{N}_f,1}\\
+    |\tilde{\mathbf{z}}_j-g(\tilde{\mathbf{x}}_j)\beta_0|\leq&\tilde{z}_{\max}J_{\tilde{N}_j,1}
+    \end{aligned}\right.\label{eq:entrywise_assumptions}
+\end{equation}
+with $j\in\{c,f\}$, the absolute values being taken entrywise. Here, $\kappa$ bounds the covariances within $\tilde{\mathbf{x}}_c$, within $\tilde{\mathbf{x}}_f$, and between $\tilde{\mathbf{x}}_c$ and $x$, while $\alpha$ and $\eta$ respectively bound the covariances between $\tilde{\mathbf{x}}_c$ and $\tilde{\mathbf{x}}_f$, and between $\tilde{\mathbf{x}}_f$ and $x$. The constants $k_{\max}$ and $\tilde{z}_{\max}$ respectively bound the prior variances of the training data and the deviation of the observations from the reference trend, which can be minimised over $\beta_0$, the mid-range of $\tilde{\mathbf{z}}$ being optimal for ordinary kriging. The subsampling strategy described in \cref{sec:subsampling_errors}, which retains the data close to $x$ and discards the farther ones, aims at the regime:
+\begin{equation}
+    0<\eta,\alpha\ll\kappa\leq k_{\max}
+\end{equation}
+
+Let $\|\cdot\|_{op}$ denote the operator norm associated with the euclidean norm $\|\cdot\|_2$. We define:
+\begin{equation}
+    \lambda_j^-\triangleq\lambda_{\min}(G(\tilde{\mathbf{x}}_j)),\qquad\lambda_j^+\triangleq k_{\max}+(\tilde{N}_j-1)\kappa+\tilde{R},\qquad j\in\{c,f\}
+\end{equation}
+where $\lambda_j^+$ bounds $\lambda_{\max}(G(\tilde{\mathbf{x}}_j))$ by the Gershgorin circle theorem \cite{bib:matrix_analysis}. The conditioning of the trend on the retained data is measured by:
+\begin{equation}
+    \tau_c\triangleq\frac{\tilde{N}_cg_{\max}^2}{\lambda_{\min}\left(g(\tilde{\mathbf{x}}_c)^Tg(\tilde{\mathbf{x}}_c)\right)}\geq r_{\mathrm{UK}}
+\end{equation}
+which is equal to $1$ for ordinary kriging. \Cref{th:entrywise_residual} bounds the residual quantities, from which \Cref{th:entrywise_bounds} deduces bounds on the two errors.
+
+\begin{lemma}
+    Assume that \eqref{eq:entrywise_assumptions} holds and that $\lambda_c^-\lambda_f^->\alpha^2\tilde{N}_c\tilde{N}_f$. Then:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        \|\varphi(x)\|_2\leq\varphi_{\max}\triangleq&\sqrt{\tilde{N}_f}\left(\frac{\lambda_c^-\eta+\alpha\tilde{N}_c\kappa}{\lambda_c^-}+\frac{\tau_c\lambda_c^+\rho_c(\lambda_c^-+\tilde{N}_c\kappa)}{\tilde{N}_c\lambda_c^-}\right)\\
+        \|S^{-1}\|_{op}\leq s_{\max}\triangleq&\frac{\lambda_c^-}{\lambda_c^-\lambda_f^--\alpha^2\tilde{N}_c\tilde{N}_f}\\
+        \|\psi\|_2\leq\psi_{\max}\triangleq&\sqrt{\tilde{N}_f}\rho_c\frac{\lambda_c^-+\tau_c\lambda_c^+}{\lambda_c^-}\tilde{z}_{\max}
+        \end{aligned}\right.
+    \end{equation*}
+    where $\rho_c\triangleq(\lambda_c^-+\alpha\tilde{N}_c)/\lambda_c^-$.\label{th:entrywise_residual}
+\end{lemma}
+
+\begin{proof}
+    See proof in \cref{sec:entrywise_proof}.
+\end{proof}
+
+\begin{proposition}
+    Under the assumptions of \Cref{th:entrywise_residual}, the two errors verify:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        e_r(x)\leq&\varphi_{\max}\sqrt{s_{\max}}\\
+        e_f(x)\leq&\varphi_{\max}\:\psi_{\max}\:s_{\max}
+        \end{aligned}\right.
+    \end{equation*}
+    and $\|\psi\|_S\leq\psi_{\max}\sqrt{s_{\max}}$.\label{th:entrywise_bounds}
+\end{proposition}
+
+\begin{proof}
+    For $a,b\in\mathbb{R}^{\tilde{N}_f}$, $|\langle a|b\rangle_S|\leq\|a\|_2\cdot\|b\|_2\cdot\|S^{-1}\|_{op}$. Applying this inequality and \Cref{th:entrywise_residual} to \Cref{th:errors_euclidean} concludes the proof.
+\end{proof}
+
+As in \Cref{th:Cauchy-Schwarz_inequality}, the bound on $e_f(x)$ is the product of the bounds on $e_r(x)$ and $\|\psi\|_S$. Unlike their simple kriging counterparts, these bounds do not vanish when $\alpha$ and $\eta$ tend to $0$, their second term accounting for the estimation of the trend described by \Cref{rem:mean_floor}. They also decrease with $\lambda_c^-$ and $\lambda_f^-$, and thus remain valid when these eigenvalues are replaced by lower bounds such as $\tilde{R}$. Moreover, \cite{bib:smallest_eigenvalues} shows that the smallest eigenvalue of a covariance matrix remains bounded away from $0$ as the number of data grows, provided the training inputs are separated by a minimal distance.
+
+\begin{remark}
+    The condition $\lambda_c^-\lambda_f^->\alpha^2\tilde{N}_c\tilde{N}_f$ requires a gap between the retained and the discarded data, wide enough for their cross covariances to be small compared with the eigenvalues of the Gram matrices. When $\tilde{\mathbf{x}}_c$ is a window cut out of a continuous set of training data, $\alpha$ is reached by the closest data on either side of its boundary, and is close to $\kappa$, so that \Cref{th:entrywise_bounds} does not apply and the bounds of \cref{sec:split_bound,sec:nested_bound} are to be used instead. Even when it applies, its successive triangular and Cauchy-Schwarz inequalities make it loose, and its interest lies in the dependence it exhibits on $\alpha$, $\eta$ and $\kappa$ rather than in its numerical value.\label{rem:entrywise_scope}
+\end{remark}
+
+\section{Conclusions}
+
+This paper derived explicit $L^1$ and $L^2$ error bounds for universal kriging under training data subsampling, ordinary kriging being the special case of a constant mean. By decomposing the bordered Gramian covariance matrix of the observations and introducing residual quantities, we reformulated the subsampling errors into interpretable components, and related them to their simple kriging counterparts. This enabled the derivation of an upper bound separating the simple kriging error from the loss incurred on the estimation of the trend, computable without inverting any matrix of the size of the discarded data, as well as a nested decomposition that brackets the error between two computable quantities. Entrywise bounds on the kernel additionally express the errors in terms of the correlations within and between the retained and discarded data, although they only apply when both sets are well separated. Our analysis highlights how robustness to subsampling jointly depends on the correlation between the discarded and the retained training points, the observation noise, and the estimation of the unknown trend, to which even uncorrelated data contribute.
+
+Beyond clarifying the theoretical impact of subsampling, these results provide practical criteria for evaluating subsampling strategies, offering a principled alternative to heuristic selection rules. In particular, they make it possible to link the tolerated prediction error with the number of training points that can be discarded: if a maximum error level is specified, the bounds indicate how much data reduction is safe; conversely, given a subsampling strategy, they provide a quantifiable estimate of the induced error.
+
+\section{Appendix}\label{sec:appendix}
+
+\subsection[]{Proving \Cref{th:errors_inverse_Gram}}\label{sec:errors_inverse_Gram}
+
+Since the universal kriging interpolator minimises the error variance among the unbiased linear combinations of the observations, its error $e_{\tilde{\mathbf{x}}}\triangleq z-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)$ is orthogonal to every linear combination $V^T\tilde{\mathbf{z}}$ such that $V^Tg(\tilde{\mathbf{x}})=0$. Indeed, for such weights $V$, $W+tV$ satisfies the unbiasedness constraint for every $t\in\mathbb{R}$, so that $t\mapsto\mathbb{E}\left[\left(e_{\tilde{\mathbf{x}}}-tV^T\tilde{\mathbf{z}}\right)^2\right]$ is minimal at $t=0$, where its derivative $-2\mathbb{E}\left[e_{\tilde{\mathbf{x}}}V^T\tilde{\mathbf{z}}\right]$ vanishes. The difference between the two interpolators can be decomposed as follows:
+\begin{equation*}
+    \hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)=\underbrace{\left(z-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)\right)}_{e_{\tilde{\mathbf{x}}_c}\triangleq}-\underbrace{\left(z-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right)}_{e_{\tilde{\mathbf{x}}}\triangleq}
+\end{equation*}
+
+Thus:
+\begin{equation*}
+    \begin{aligned}
+    e_r(x)^2=&\mathbb{E}\left[\left(\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)\right)^2\right]\\
+    =&\mathbb{E}\left[\left(e_{\tilde{\mathbf{x}}_c}-e_{\tilde{\mathbf{x}}}\right)^2\right]\\
+    =&\mathbb{E}\left[e_{\tilde{\mathbf{x}}_c}^2\right]+\mathbb{E}\left[e_{\tilde{\mathbf{x}}}^2\right]-2\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}_c}\right]\\
+    =&\mathbb{E}\left[e_{\tilde{\mathbf{x}}_c}^2\right]+\mathbb{E}\left[e_{\tilde{\mathbf{x}}}^2\right]-2\mathbb{E}\left[e_{\tilde{\mathbf{x}}}\left(e_{\tilde{\mathbf{x}}}+\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)\right)\right]
+    \end{aligned}
+\end{equation*}
+
+Given that $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)$ is such a combination, $e_{\tilde{\mathbf{x}}}$ is orthogonal to it. Moreover, both interpolators being unbiased, the second moments of their errors are their variances. Therefore:
+\begin{equation*}
+    \begin{aligned}
+    e_r(x)^2=&\mathbb{E}\left[e_{\tilde{\mathbf{x}}_c}^2\right]-\mathbb{E}\left[e_{\tilde{\mathbf{x}}}^2\right]\\
+    =&R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)
+    \end{aligned}
+\end{equation*}
+
+Using \Cref{th:subsampled_kriging} yields:
+\begin{equation*}
+    \begin{aligned}
+    e_r(x)^2=&k(x,x)+R-\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}_h(\tilde{\mathbf{x}}_c)^\dagger\bar{k}(\tilde{\mathbf{x}},x)-k(x,x)-R+\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)\\
+    =&\bar{k}(x,\tilde{\mathbf{x}})\mathfrak{D}_G\bar{k}(\tilde{\mathbf{x}},x)
+    \end{aligned}
+\end{equation*}
+
+For $e_f(x)$, direct calculations give:
+\begin{equation*}
+    \begin{aligned}
+    e_f(x)=&\left|\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)\right|\\
+    =&\left|\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}-\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}_h(\tilde{\mathbf{x}}_c)^\dagger\bar{\mathbf{z}}\right|\\
+    =&\left|\bar{k}(x,\tilde{\mathbf{x}})\mathfrak{D}_G\bar{\mathbf{z}}\right|
+    \end{aligned}
+\end{equation*}
+
+\subsection[]{Proving \Cref{th:explicit_residuals}}\label{sec:explicit_residuals}
+
+Writing $G_c\triangleq G(\tilde{\mathbf{x}}_c)$, $g_c\triangleq g(\tilde{\mathbf{x}}_c)$ and $M_c\triangleq M(\tilde{\mathbf{x}}_c)$ for brevity, the block inversion of $A=\mathcal{G}(\tilde{\mathbf{x}}_c)$ gives:
+\begin{equation*}
+    \mathcal{G}(\tilde{\mathbf{x}}_c)^{-1}=\begin{bmatrix}G_c^{-1}-G_c^{-1}g_cM_cg_c^TG_c^{-1}&G_c^{-1}g_cM_c\\M_cg_c^TG_c^{-1}&-M_c\end{bmatrix}
+\end{equation*}
+
+Consequently, for $x'\in\mathcal{U}$, $y\in\mathbb{R}^{\tilde{N}_c}$ and $t\in\mathbb{R}^{r_{\mathrm{UK}}}$:
+\begin{equation*}
+    \bar{k}(x',\tilde{\mathbf{x}}_c)\mathcal{G}(\tilde{\mathbf{x}}_c)^{-1}\begin{bmatrix}y\\t\end{bmatrix}=k(x',\tilde{\mathbf{x}}_c)G_c^{-1}y-U(x')M_c\left(t-g_c^TG_c^{-1}y\right)
+\end{equation*}
+
+Taking $y=k(\tilde{\mathbf{x}}_c,x)$ and $t=g(x)^T$ for every $x'\in\tilde{\mathbf{x}}_f$ gives the expression of $\varphi(x)$, since $t-g_c^TG_c^{-1}y$ is then equal to $U(x)^T$. Taking the columns of $k(\tilde{\mathbf{x}}_c,\tilde{\mathbf{x}}_f)$ and of $g(\tilde{\mathbf{x}}_f)^T$ for $y$ and $t$ gives the expression of $S=D-B^TA^{-1}B$ in the same way, and $y=\tilde{\mathbf{z}}_c$ with $t=0$ gives that of $\psi$, since $g_c^TG_c^{-1}\tilde{\mathbf{z}}_c=M_c^{-1}\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)$.
+
+$S_0$ is the Schur complement of the SPD matrix $G(\tilde{\mathbf{x}})$ with respect to $G(\tilde{\mathbf{x}}_c)$, and is therefore SPD \cite{bib:matrix_analysis}. Adding the SPSD matrix $U(\tilde{\mathbf{x}}_f)M_cU(\tilde{\mathbf{x}}_f)^T$ keeps $S$ SPD. Finally, adding $g(\tilde{\mathbf{x}})\gamma$ to the observations adds $U(\tilde{\mathbf{x}}_f)\gamma$ to $\psi_0$ and $\gamma$ to $\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)$, which leaves $\psi$ unchanged.
+
+\subsection[]{Proving \Cref{th:split_bound} and \Cref{th:computable_bound}}\label{sec:split_bound_proof}
+
+By \Cref{th:explicit_residuals}, $\varphi(x)=\varphi_0(x)+U(\tilde{\mathbf{x}}_f)M(\tilde{\mathbf{x}}_c)U(x)^T$ and $S=S_0+U(\tilde{\mathbf{x}}_f)M(\tilde{\mathbf{x}}_c)U(\tilde{\mathbf{x}}_f)^T\succeq S_0$, so that $\|\cdot\|_S\leq\|\cdot\|_{S_0}$. Applying the triangular inequality to the norm $\|\cdot\|_S$ in \Cref{th:errors_euclidean} thus gives:
+\begin{equation*}
+    e_r(x)\leq\|\varphi_0(x)\|_{S_0}+\left\|U(\tilde{\mathbf{x}}_f)M(\tilde{\mathbf{x}}_c)U(x)^T\right\|_S
+\end{equation*}
+with equality when $\varphi_0(x)=0$. Writing $U_f\triangleq U(\tilde{\mathbf{x}}_f)$ and $M_c\triangleq M(\tilde{\mathbf{x}}_c)$ for brevity, the Woodbury formula \cite{bib:matrix_cookbook} applied to $S=S_0+U_fM_cU_f^T$ yields $U_f^TS^{-1}U_f=P-P(M_c^{-1}+P)^{-1}P=P(M_c^{-1}+P)^{-1}M_c^{-1}$, hence:
+\begin{equation*}
+    \left\|U_fM_cU(x)^T\right\|_S^2=U(x)M_cP(M_c^{-1}+P)^{-1}U(x)^T=U(x)\left(M_c-(M_c^{-1}+P)^{-1}\right)U(x)^T
+\end{equation*}
+which proves \Cref{th:split_bound}.
+
+For \Cref{th:computable_bound}, note that $S_0-\tilde{R}I_{\tilde{N}_f}$ is the Schur complement of $k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\tilde{R}\begin{bmatrix}I_{\tilde{N}_c}&0\\0&0\end{bmatrix}$ with respect to $G(\tilde{\mathbf{x}}_c)$. This matrix being SPSD, so is its Schur complement \cite{bib:matrix_analysis}, and $S_0\succeq\tilde{R}I_{\tilde{N}_f}$. Consequently, $\|\varphi_0(x)\|_{S_0}\leq\|\varphi_0(x)\|_2/\sqrt{\tilde{R}}$ and $P\preceq U_f^TU_f/\tilde{R}$. Since $P\mapsto M_c-(M_c^{-1}+P)^{-1}$ is non-decreasing for the Loewner order, applying these inequalities to \Cref{th:split_bound} concludes the proof.
+
+\subsection[]{Proving \Cref{th:entrywise_residual}}\label{sec:entrywise_proof}
+
+Since $G(\tilde{\mathbf{x}}_c)$ is SPD, and the operator norm of a matrix is bounded by its Frobenius norm, \eqref{eq:entrywise_assumptions} gives:
+\begin{equation*}
+    \begin{aligned}
+    \|\varphi_0(x)\|_2\leq&\|k(\tilde{\mathbf{x}}_f,x)\|_2+\frac{\|k(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)\|_{op}\:\|k(\tilde{\mathbf{x}}_c,x)\|_2}{\lambda_c^-}\\
+    \leq&\sqrt{\tilde{N}_f}\eta+\frac{\sqrt{\tilde{N}_c\tilde{N}_f}\alpha\cdot\sqrt{\tilde{N}_c}\kappa}{\lambda_c^-}=\sqrt{\tilde{N}_f}\frac{\lambda_c^-\eta+\alpha\tilde{N}_c\kappa}{\lambda_c^-}
+    \end{aligned}
+\end{equation*}
+
+The same steps, applied to $U(\tilde{\mathbf{x}}_f)$ and $U(x)$ with $\|g(\tilde{\mathbf{x}}_j)\|_{op}\leq\sqrt{\tilde{N}_j}g_{\max}$, give:
+\begin{equation*}
+    \|U(\tilde{\mathbf{x}}_f)\|_{op}\leq\sqrt{\tilde{N}_f}g_{\max}\rho_c,\qquad\|U(x)\|_2\leq g_{\max}\frac{\lambda_c^-+\tilde{N}_c\kappa}{\lambda_c^-}
+\end{equation*}
+
+Besides, for every unit vector $v\in\mathbb{R}^{r_{\mathrm{UK}}}$, the Rayleigh quotient \cite{bib:matrix_analysis} and the definitions of $\lambda_c^+$ and $\tau_c$ give:
+\begin{equation*}
+    v^TM(\tilde{\mathbf{x}}_c)^{-1}v=\left(g(\tilde{\mathbf{x}}_c)v\right)^TG(\tilde{\mathbf{x}}_c)^{-1}\left(g(\tilde{\mathbf{x}}_c)v\right)\geq\frac{\|g(\tilde{\mathbf{x}}_c)v\|_2^2}{\lambda_c^+}\geq\frac{\tilde{N}_cg_{\max}^2}{\tau_c\lambda_c^+}
+\end{equation*}
+hence $\|M(\tilde{\mathbf{x}}_c)\|_{op}\leq\tau_c\lambda_c^+/(\tilde{N}_cg_{\max}^2)$. Combining these inequalities with $\varphi(x)=\varphi_0(x)+U(\tilde{\mathbf{x}}_f)M(\tilde{\mathbf{x}}_c)U(x)^T$ from \Cref{th:explicit_residuals} through the triangular inequality gives the bound on $\|\varphi(x)\|_2$.
+
+Since $S-S_0$ is SPSD by \Cref{th:explicit_residuals}, $\lambda_{\min}(S)\geq\lambda_{\min}(S_0)$. For every unit vector $v\in\mathbb{R}^{\tilde{N}_f}$:
+\begin{equation*}
+    \begin{aligned}
+    v^TS_0v=&v^TG(\tilde{\mathbf{x}}_f)v-\left(k(\tilde{\mathbf{x}}_c,\tilde{\mathbf{x}}_f)v\right)^TG(\tilde{\mathbf{x}}_c)^{-1}\left(k(\tilde{\mathbf{x}}_c,\tilde{\mathbf{x}}_f)v\right)\\
+    \geq&\lambda_f^--\frac{\|k(\tilde{\mathbf{x}}_c,\tilde{\mathbf{x}}_f)\|_{op}^2}{\lambda_c^-}\geq\frac{\lambda_c^-\lambda_f^--\alpha^2\tilde{N}_c\tilde{N}_f}{\lambda_c^-}
+    \end{aligned}
+\end{equation*}
+
+This lower bound does not depend on $v$, and thus also bounds $\lambda_{\min}(S_0)$, the minimum of $v^TS_0v$ over the unit vectors. It is positive by assumption, so that $\|S^{-1}\|_{op}=\lambda_{\min}(S)^{-1}\leq s_{\max}$.
+
+Finally, since $\psi$ is unchanged when a trend is added to the observations, \Cref{th:explicit_residuals} can be applied to the observations $\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\beta_0$:
+\begin{equation*}
+    \begin{aligned}
+    \psi=&\left(\tilde{\mathbf{z}}_f-g(\tilde{\mathbf{x}}_f)\beta_0\right)-k(\tilde{\mathbf{x}}_f,\tilde{\mathbf{x}}_c)G(\tilde{\mathbf{x}}_c)^{-1}\left(\tilde{\mathbf{z}}_c-g(\tilde{\mathbf{x}}_c)\beta_0\right)\\
+    &-U(\tilde{\mathbf{x}}_f)\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)-\beta_0\right)
+    \end{aligned}
+\end{equation*}
+
+The steps used for $\varphi_0(x)$ bound the norm of the first two terms by $\sqrt{\tilde{N}_f}\rho_c\tilde{z}_{\max}$, while:
+\begin{equation*}
+    \begin{aligned}
+    \left\|\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}_c,\tilde{\mathbf{z}}_c,g)-\beta_0\right\|_2=&\left\|M(\tilde{\mathbf{x}}_c)g(\tilde{\mathbf{x}}_c)^TG(\tilde{\mathbf{x}}_c)^{-1}\left(\tilde{\mathbf{z}}_c-g(\tilde{\mathbf{x}}_c)\beta_0\right)\right\|_2\\
+    \leq&\frac{\tau_c\lambda_c^+}{\tilde{N}_cg_{\max}^2}\cdot\frac{\sqrt{\tilde{N}_c}g_{\max}\cdot\sqrt{\tilde{N}_c}\tilde{z}_{\max}}{\lambda_c^-}=\frac{\tau_c\lambda_c^+}{g_{\max}\lambda_c^-}\tilde{z}_{\max}
+    \end{aligned}
+\end{equation*}
+which concludes with the triangular inequality.
+
+\bibliographystyle{elsarticle-num}
+\bibliography{biblio.bib}
+
+\end{document}

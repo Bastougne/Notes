@@ -48,6 +48,7 @@ Using \cref{th:kriging_navigation_assumptions}, the likelihood follows:
 \end{equation}
 where $\hat{z}_{\mathrm{K}}$ denotes any of the three kriging estimators, $R_{\mathrm{K}}$ is the corresponding covariance matrix, and $m$ and $g$ are optional arguments depending on the chosen kriging method. In particular, $R_{\mathrm{K}}$ already carries the query noise $R_k$, so it must not be added a second time.
 
+\begin{comment}
 \textbf{TODO: à reprendre}
 \begin{remark}[Correlated map error]\label{th:correlated_map_error}
 	The filtering recursion does not call for \eqref{eq:kriged_likelihood}, but for $p(z_k|\mathbf{x}_{0:k},\mathbf{z}_{1:k-1},\tilde{\mathbf{z}})$. Marginalising over the field, then using that the observation noise is white once $h$ is given:
@@ -67,6 +68,7 @@ where $\hat{z}_{\mathrm{K}}$ denotes any of the three kriging estimators, $R_{\m
 
 	The filter then counts as independent evidence two observations that carry almost the same reconstruction error, so its covariance shrinks faster than it should and a reconstruction bias reinforces itself instead of averaging out. The severity of the approximation is measured by $\alpha_{\mathrm{corr}}$, the number of consecutive steps spent within one correlation length of that error, that is, the ratio of this length to the distance $v\:\Delta_t$ covered in one time step. It stays close to $1$ as long as a time step covers more than the spacing of the training data. None of the usual guards is applied here, neither inflating $R_k$, nor discarding observations at the rate at which the field decorrelates, nor modelling the error as a Gauss-Markov process along the trajectory and augmenting the state accordingly \cite{bib:correlated-map-error}.
 \end{remark}
+\end{comment}
 
 \subsection{Choosing the Kriging Method}\label{sec:kriging_method}
 
@@ -167,7 +169,7 @@ Furthermore, every estimator requires the $\mathcal{O}(\tilde{N}^3)$ inversion o
 
 \begin{table}[!htb]
 	\centering\input{include/kriging_cost.tex}
-	\caption{Computational cost of the five estimators, split into the setup and the query costs. The simple kriging row is the cost of reconstructing the field, paid by every estimator, and the following ones are what estimating the mean adds to it. Since their cost is independent of the mean they were givenn the two simple estimators share the same row.}\label{tab:kriging_cost}
+	\caption{Computational cost of the five estimators, split into the setup and the query costs. The simple kriging row is the cost of reconstructing the field, paid by every estimator, and the following ones are what estimating the mean adds to it. Since their cost is independent of the mean they were given, the two simple estimators share the same row.}\label{tab:kriging_cost}
 \end{table}
 
 From $7$ to $1600$ training points, the setup cost of simple kriging rises from $114$ flops to $1.37$ Gflop, and its per-query cost from $49$ to $2.56$ Mflop. In our scenarios, every particle is a query point at each time step, so real-time constraints rule out a training set of that size. The other end of the table is no more comfortable: on seven points, the affine basis costs twice the reconstruction of the field, $255$ flops against $114$, and the degree $5$ basis ten times.
@@ -178,7 +180,9 @@ Ordinary kriging is thus retained for the remainder of this chapter. Estimating 
 
 Recall that \cref{sec:covariance_kernels} considered every kernel subsequently used for kriging to be fully known, with both their form and hyperparameters specified. This assumption is relaxed here by considering only the form to be known, while the hyperparameters $\theta$ must be estimated from the available data.
 
-\textbf{TODO: à vérifier, sous-section rédigée par Claude + renommer l'algo pour que ça colle avec l'AK-RPF}
+\begin{comment}
+	\textbf{TODO: à vérifier, sous-section rédigée par Claude + renommer l'algo pour que ça colle avec l'AK-RPF}
+\end{comment}
 
 \Cref{sec:Gaussian_processes} derives every result conditionally on the kernel, and \cref{sec:kriging_method} compares its estimators with that kernel held fixed. This assumption is discharged here. A kernel is specified by a vector of hyperparameters $\theta$ whose components are of two kinds. Some describe the class of fields the GP is assumed to belong to, such as a regularity or a set of active input directions, and are posited by the modeller alongside the kernel family itself. The others describe the particular field being surveyed, such as the amplitude of its variations or the distance over which they decorrelate, and are read from the training data of \cref{th:kriging_navigation_assumptions}. Only the latter are estimated below.
 
@@ -243,7 +247,7 @@ The step is iterated from $\eta^{(0)}=\log\theta^{(0)}$ until the gradient falls
 
 Every navigation result of this chapter is produced by the same scenario, as described in this section. The observation field represented by $h$ is a magnetic anomaly map of a $200\text{km}\times200\text{km}$ region above Mexico, and extracted from \cite{bib:carte-magnetique}. The map is sampled on a regular grid of $201\times201$ points with a resolution of $1\text{km}\times1\text{km}$, and is read by a bilinear interpolation between the points.
 
-From this map are extracted $\tilde{N}$ training samples $(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$, where $\tilde{\mathbf{x}}$ is sampled from a regular grid, each node being independently jittered by up to $30\%$ of the grid resolution along both axes. The grid resolution is varied from $2.5$km to $7.5$km, with increments of $1$km. This corresponds to $\tilde{N}\in\{79^2,56^2,44^2,36^2,30^2,26^2\}$. The corresponding observations $\tilde{\mathbf{z}}$ are corrupted by a Gaussian white noise of variance $\tilde{R}=10^2\text{nT}^2$. The irregular grid models navigation errors during the prior survey mission, while the white noise represents the imperfect measurements of a real sensor.
+From this map are extracted $\tilde{N}$ training samples $(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$, where $\tilde{\mathbf{x}}$ is sampled from a regular grid, each node being independently jittered by up to $30\%$ of the grid resolution along both axes. The grid resolution $\Delta_g$ is varied from $2.5$km to $7.5$km, with increments of $1$km. This corresponds to $\tilde{N}\in\{79^2,56^2,44^2,36^2,30^2,26^2\}$. The corresponding observations $\tilde{\mathbf{z}}$ are corrupted by a Gaussian white noise of variance $\tilde{R}=10^2\text{nT}^2$. The irregular grid models navigation errors during the prior survey mission, while the white noise represents the imperfect measurements of a real sensor.
 
 The vehicle flies over the map at a constant speed of $500$m/s along a mower pattern consisting of three parallel branches, each $80$km long, and connected by half-turns with a radius of $25.5$km. The trajectory is sampled every $\Delta_t=5$s, and lasts $n_\mathrm{steps}=150$ steps. A single time step thus covers $2.50$km.
 
@@ -275,11 +279,11 @@ The filter is an RPF, initialised on a cloud of $N=5000$ particles, drawn around
 	0&0&0&2^2\\
 	\end{bmatrix}
 \end{equation}
-in the same units, to prevent the particle cloud from being centred on the true initial state. The resampling threshold is fixed to $N_\mathrm{th}=0.5N$, and the regularisation coefficient is $\alpha_\mathrm{reg}=0.3$. This scenario is summarised by \Cref{tab:scenario}, and illustrated by \Cref{fig:magnetic_anomaly_map}.
+in the same units, to prevent the particle cloud from being centred on the true initial state. The resampling threshold is fixed to $N_\mathrm{th}=0.5N$, and the regularisation coefficient is $\alpha_\mathrm{reg}=0.3$. This scenario is illustrated by \Cref{fig:magnetic_anomaly_map} and summarised by \Cref{tab:scenario}.
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=\textwidth]{../../Images/Carte anomalie magnetique.pdf}
-	\caption{The magnetic field anomaly used throughout this chapter. The black line represents the overflown trajectory, and the red crosses correspond to the training points on a $7.5$km-resolution grid.}\label{fig:magnetic_anomaly_map}
+	\caption{The magnetic field anomaly used throughout this chapter. The black line represents the overflown trajectory, and the red crosses correspond to the training points on a $7.5$km-resolution grid. The black dot signals the beginning of the trajectory.}\label{fig:magnetic_anomaly_map}
 \end{figure}
 
 \begin{table}[!htb]
@@ -288,8 +292,8 @@ in the same units, to prevent the particle cloud from being centred on the true 
 		\multirow{2}{*}{Map}&Surface&$200\text{km}\times200\text{km}$\\\cline{2-3}
 		&Resolution&$1\text{km}\times1\text{km}$\\\hline
 		\multirow{5}{*}{Kriging}&Samples&Jittered grid\\\cline{2-3}
-		&Jitter&$0.3\times$Resolution\\\cline{2-3}
-		&Resolution&$\in\{2.5,3.5,\dots,7.5\}$km\\\cline{2-3}
+		&Jitter&$0.3\:\Delta_g$\\\cline{2-3}
+		&$\Delta_g$&$\in\{2.5,3.5,\dots,7.5\}$km\\\cline{2-3}
 		&$\tilde{N}$&$\in\{79^2,56^2,44^2,36^2,30^2,26^2\}$\\\cline{2-3}
 		&$\tilde{R}$&$10^2\text{nT}^2$\\\hline
 		\multirow{6}{*}{Trajectory}&Form&$3$-branch mower\\\cline{2-3}
@@ -352,7 +356,7 @@ Similarly, a run is declared convergent under two different criteria, as each de
 In this section, we compare the performance of the filter using $13$ different observation functions:
 \begin{itemize}
 	\item The first configuration corresponds to the known map, and serves as a reference case.
-	\item The six next use ordinary kriging at different grid resolutions.
+	\item The six next use ordinary kriging at different grid resolutions. This method is called static kriging for the purpose of distinguishing it from the adaptive methods presented in the subsequent sections.
 	\item The final six instead use bilinear interpolation on the same grid.
 \end{itemize}
 
@@ -364,23 +368,27 @@ Before analysing the filters themselves, it is important to assess the quality o
 	\caption{Reconstruction ARMSE of the field over the trajectory corridor for ordinary kriging and bilinear interpolation as a function of the training grid resolution. The domain $E$ considered is a rectangular corridor around the true trajectory, with a $28km$ margin. It covers $74\%$ of the map.}\label{fig:reconstruction_ARMSE}
 \end{figure}
 
-As one could have expected, denser grids lead to better reconstructions, the ARMSE evolving as the logarithm of the grid resolution. However, kriging and bilinear interpolation exhibit similar errors, within $1$nT of each other at every resolution but the finest. Thus, the advantage of kriging cannot be primarily attributed to the reconstruction accuracy alone.
+\begin{comment}
+	\textbf{TODO: parler de rugosité locale du champ le long de la trajectoire. Mesurée dans MATLAB/notes\_rugosite\_nees.md : écart-type du champ dans un carré de $\pm10$km autour de la position, médiane $125$nT sur le vol, maximum $281$nT au pas $47$, et mêmes valeurs sur les cinq segments du vol ($112$ à $132$nT), donc indépendante du découpage droite/virage. C'est elle qui justifie l'explication de la NEES de \cref{sec:AK_PF} par la non-stationnarité : l'incertitude déclarée du krigeage statique y est anticorrélée ($-0{,}51$ au sens de Spearman), celle de l'AK non ($-0{,}01$). À déplacer avec la figure de la carte, la rugosité étant une propriété du scénario.}
+\end{comment}
+
+As one could have expected, denser grids lead to better reconstructions, the ARMSE evolving as the logarithm of $\Delta_g$. However, kriging and bilinear interpolation exhibit similar errors, within $1$nT of each other at every resolution but the finest. Thus, the advantage of kriging cannot be primarily attributed to the reconstruction accuracy alone.
 
 Focusing now on the filter performance, \Cref{fig:kriging_RMSE,fig:kriging_NEES} respectively compare the RMSE and NEES of the filter using the true map, kriging and bilinear interpolation on each of the six grid resolutions. For the sake of readability, both metrics are only computed on the converged runs with respect to the threshold criterion.
 
 \begin{figure}[!p]
 	\centering
 	\includegraphics[width=\textwidth]{../../Images/RMSE par maille.pdf}
-	\caption{Estimation RMSE for the $13$ configurations. Each panel corresponds to a different grid resolution, and the true map result is repeated for comparison.}\label{fig:kriging_RMSE}
+	\caption{Estimation RMSE of the navigation algorithms using the known map, bilinear interpolation and static kriging. Each panel corresponds to a different grid resolution, and the true map result is repeated for comparison.}\label{fig:kriging_RMSE}
 \end{figure}
 
 \begin{figure}[!p]
 	\centering
 	\includegraphics[width=\textwidth]{../../Images/NEES par maille.pdf}
-	\caption{Estimation NEES for the $13$ configurations. The shaded area delimits the quantiles of a $\chi^2$ law with $d_x$ degrees of freedom, within which the NEES of a consistent filter falls with probability $0.99$.}\label{fig:kriging_NEES}
+	\caption{Estimation NEES of the navigation algorithms using the known map, bilinear interpolation and static kriging. The shaded area delimits the quantiles of a $\chi^2$ law with $d_x$ degrees of freedom, within which the NEES of a consistent filter falls with probability $0.99$.}\label{fig:kriging_NEES}
 \end{figure}
 
-Three main results can be drawn from the RMSE curves. First, filters with access to more training points from a denser grid achieve better performance, with the limit case of the filter using the true map outperforming every other configuration. Second, kriging-based filters consistently achieve lower RMSEs than their bilinear counterparts despite having similar map reconstruction accuracy. This result, combined with \Cref{fig:reconstruction_ARMSE}, indicates that the advantage of kriging lies in its ability to quantify reconstruction uncertainty through its covariance matrix. Finally, the time required to reach a stable estimation error increases from $13$ to $25$ steps as the grid resolution decreases from $2.5$ to $7.5$ km.
+Three main results can be drawn from the RMSE curves. First, filters with access to more training points from a denser grid achieve better performance, with the limit case of the filter using the true map outperforming every other configuration. Second, kriging-based filters consistently achieve lower RMSEs than their bilinear counterparts despite having similar map reconstruction accuracy. This result, combined with \Cref{fig:reconstruction_ARMSE}, indicates that the advantage of kriging lies in its ability to quantify reconstruction uncertainty through its covariance matrix. Finally, the time required to reach a stable estimation error increases from $13$ to $25$ steps as the grid resolution decreases from $2.5$ to $7.5$ km. In particular, the vehicle begins its first turn at $k=33$, so any potential information gained from this turn does not affect this result.
 
 The NEES curves further highlight the superiority of kriging methods by taking the estimated error covariance matrix into account. Kriging-based filters stay within the consistency band at every resolution, whereas bilinear interpolation lies above it even on the densest map. This shows that kriging not only leads to more accurate state estimates than bilinear interpolation, but also provides a better characterisation of their associated uncertainty.
 
@@ -388,12 +396,12 @@ In terms of convergence rates, \Cref{fig:erreur_maille} starts by extracting the
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=\textwidth]{../../Images/Erreur finale par maille.pdf}
-	\caption{Average median RMSE and NEES at the end of the flight for each grid resolution. These metrics are used to determine whether a run has converged.}\label{fig:erreur_maille}
+	\caption{Average median RMSE and NEES at the end of the flight using the known map, bilinear interpolation and static kriging as a function of grid resolution.}\label{fig:erreur_maille}
 \end{figure}
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=\textwidth]{../../Images/Convergence par maille.pdf}
-	\caption{Percentage of converged runs against the grid resolution for the two metrics. The true map does not depend on the resolution, and has a convergence rate of $98\%$ under both criteria.}\label{fig:convergence_maille}
+	\caption{Percentage of converged runs for the known map, bilinear interpolation and static kriging against the grid resolution for the two metrics. The true map does not depend on the resolution, and has a convergence rate of $98\%$ under both criteria.}\label{fig:convergence_maille}
 \end{figure}
 
 The first two figures show that the bilinear to kriging RMSE ratio ranges from $1.4$ to $1.9$, and increases to $9$ to $56$ for the NEES. Furthermore, while the RMSE ratio tends to decrease at lower grid resolutions, the NEES ratio follows the opposite trend. Bilinear interpolation thus completely fails to measure its accuracy at lower resolutions, while kriging degrades in step with its own accuracy.
@@ -404,7 +412,7 @@ However, the advantages of kriging come at an increased computational and memory
 
 \begin{table}[!htb]
 	\centering\input{include/cout_maille.tex}
-	\caption{}\label{tab:cout_maille}
+	\caption{Memory and computational costs of the navigation algorithm using the known map, bilinear interpolation, or static kriging. Since the cost of kriging depends on the number of training data, one row is assigned per grid resolution.}\label{tab:cout_maille}
 \end{table}
 
 While the setup cost can be paid before the mission, the vehicle must still be able to store between $3.67$ and $312$MB of data, and sustain an average computational rate of $0.46$ to $38.9$Gflops/s over the navigation period. These requirements remain affordable at low grid resolutions, but these configurations result in poor navigation performance, as shown above. Increasing the grid resolution improves navigation accuracy, but quickly leads to prohibitive storage and computational requirements.

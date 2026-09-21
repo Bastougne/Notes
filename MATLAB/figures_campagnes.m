@@ -7,11 +7,10 @@
 %   Carte anomalie magnetique  le champ, le releve secoue et la trajectoire de reference
 %   ARMSE de reconstruction    l'erreur de carte contre la maille, et sa loi de puissance
 %   Erreur finale par maille   RMSE et NEES medianes sur les dix derniers pas
-%   Echantillons retenus par maille  la fenetre de l'AK a chaque pas, une courbe par maille
-%   Modes au cours du vol      ce que trouve le mean-shift, pas par pas, campagne B
-%   Fenetre au cours du vol    echantillons retenus par requete et plancher n_min, campagne B
+%   Echantillons retenus par maille  la fenetre de l'AK a chaque pas, une courbe par maille,
+%                              en log avant le premier virage et en lineaire apres
 %
-% puis cinq comparaisons par paires, chacune avec la carte connue en borne, en trois
+% puis quatre comparaisons par paires, chacune avec la carte connue en borne, en trois
 % figures : 'RMSE <etape>', grille 3 x 2 d'une maille par case ; 'NEES <etape>', la meme en
 % echelle log avec la bande du chi2 ; et la convergence contre la maille, deux criteres en
 % deux panneaux. Les etapes, dans l'ordre du chapitre :
@@ -19,14 +18,13 @@
 %   par maille              bilineaire contre statique, sous les noms historiques
 %   eclairci par maille     statique contre releve eclairci
 %   adaptatif par maille    statique contre AK
-%   reunion par maille      AK contre reunion des voisins
-%   clusterise par maille   AK contre CA-OK
+%   CAK et NNAK par maille  AK contre CA-OK et contre NNAK, sur une seule serie
 %
 % COULEUR, TRAIT ET NOM DE CHAQUE METHODE sortent d'une seule fonction, style_modele, en fin
 % de fichier : figures, legendes et en-tetes de tableaux la consultent tous, et renommer une
 % methode ne touche qu'une ligne.
 %
-% et neuf tableaux sous Latex/Manuscrit/include/ :
+% et huit tableaux sous Latex/Manuscrit/include/ :
 %
 %   cout_maille.tex   le cout analytique par maille          campagne A
 %   cout_<etape>.tex  le cout de chaque comparaison, sauf la premiere
@@ -349,8 +347,9 @@ hold on; box on; grid on;
 plot(pas, ARMSE(:, 1), lb, 'Color', cb, 'Marker', 'o', 'LineWidth', linewidth);
 plot(pas, ARMSE(:, 2), lk, 'Color', ck, 'Marker', 'o', 'LineWidth', linewidth);
 hold off;
-fs = 12 * 348 / (0.7 * textwidth);
-xlabel('Map resolution (km)', 'Interpreter', 'latex', 'FontSize', fs);
+fs = 12 * 348 / (0.6 * textwidth);   % inseree a 0.6\textwidth, donc 16,4 pt pour 12 au rendu :
+                                     % reglee pour 0.7, la police tombait a 10,3 pt
+xlabel('Grid resolution (km)', 'Interpreter', 'latex', 'FontSize', fs);
 ylabel('$\mathrm{ARMSE}_{\hat{z}}$ (nT)', 'Interpreter', 'latex', 'FontSize', fs);
 legend({eb, ek}, 'Interpreter', 'latex', 'FontSize', fs, 'Location', 'southeast');
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fs);
@@ -419,11 +418,14 @@ fprintf(fid, '\\begin{tabular}{|l|ccc|c|}\\hline\n');
 % de comparaison du chapitre, et un lecteur qui lit 29.2T ici et 29.3T la-bas croit a une
 % erreur, alors que l'ecart n'est que la factorisation. L'unite passe sur une ligne d'en-tete
 % commune, sans quoi la cinquieme colonne ne tient plus dans \textwidth.
-fprintf(fid, ' & \\multicolumn{3}{c|}{Cost (flops)} & Memory\\\\\n');
-fprintf(fid, 'Observation model & Setup & Queries & Total & (bytes)\\\\\\hline\n');
-fprintf(fid, '%s & -- & %s & %s & %s\\\\\n', e_connue, flops_tex(cout_bil), ...
+fprintf(fid, ['\\multirow{2}{*}{Observation model} & \\multicolumn{3}{c|}{Cost (flops)}' ...
+              ' & \\multirow{2}{*}{Memory (bytes)}\\\\\\cline{2-4}\n']);
+fprintf(fid, ' & Setup & Queries & Total & \\\\\\hline\n');
+% $0$ et non un tiret dans la colonne Setup : ni la carte connue ni le bilineaire n'ont de
+% systeme d'entrainement a resoudre, et leur preparation coute donc exactement zero flop.
+fprintf(fid, '%s & $0$ & %s & %s & %s\\\\\n', e_connue, flops_tex(cout_bil), ...
         flops_tex(cout_bil), flops_tex(mem_carte));
-fprintf(fid, '%s & -- & %s & %s & %s\\\\\\hline\n', e_bilin, flops_tex(cout_bil), ...
+fprintf(fid, '%s & $0$ & %s & %s & %s\\\\\\hline\n', e_bilin, flops_tex(cout_bil), ...
         flops_tex(cout_bil), flops_tex(mem_bil(1)));
 for ip = 1:numel(pas)
     fprintf(fid, '%s, $%.1f$km & %s & %s & %s & %s\\\\\n', e_stat, ...
@@ -488,9 +490,10 @@ exporter(fig, 'Erreur finale par maille', textwidth, 230, img_dir);
 %% Les comparaisons par paires, sur les six mailles
 %
 % LE CHAPITRE PROGRESSE PAR ETAPES, et chaque etape a sa figure. Le bilineaire contre le
-% krigeage statique, puis le statique contre l'adaptatif, puis l'adaptatif contre le
-% clusterise. Chacune porte la carte connue en pointille, comme borne que personne ne
-% depasse, et ne montre qu'UN pas de la progression : trois courbes par case, jamais sept.
+% krigeage statique, puis le statique contre l'adaptatif, puis l'adaptatif contre ses deux
+% variantes. Chacune porte la carte connue en pointille, comme borne que personne ne
+% depasse, et ne montre qu'UN pas de la progression : trois ou quatre courbes par case,
+% jamais sept.
 %
 % Les controles negatifs se lisent de la meme facon, contre l'etape qu'ils mettent en
 % cause — le releve eclairci contre le statique, puisqu'il pretend en resoudre le cout.
@@ -553,6 +556,10 @@ CNE  = nan(n_it, numel(pas), n_mod);       % NEES par pas
 CCV  = nan(numel(pas), n_mod, 2);          % convergence, seuil et Mahalanobis
 CNU  = nan(numel(pas), n_mod);             % echantillons retenus
 CGF  = nan(numel(pas), n_mod);             % cout par essai, en flops
+CGP  = nan(numel(pas), n_mod, 3);          % le meme, par poste : krigeage, hyperparametres,
+                                           % clusterisation. Le krigeage reunit la
+                                           % factorisation et les requetes, qu'aucune methode
+                                           % ne paie l'une sans l'autre.
 trouve = false(numel(pas), n_mod);         % l'entree existe-t-elle dans le vivier
 
 for im = 1:n_mod
@@ -578,14 +585,16 @@ for im = 1:n_mod
         % fenetre etant fixe. Pour ces derniers on applique la formule du tableau par
         % maille — une factorisation en n^3/3, une requete en n^2 par particule et par pas.
         if any(pool(e).cout(:))
-            CGF(ip, im) = sum(cout_e(pool(e), SE.par, n_opt));
+            c4 = cout_e(pool(e), SE.par, n_opt);
+            CGP(ip, im, :) = [c4(1) + c4(3), c4(2), c4(4)];
         elseif CNU(ip, im) > 0 && ~strcmp(cand{im, 1}, 'bilin')
             % Le bilineaire enregistre la taille du releve dans n_used mais ne resout rien :
             % il lit en huit flops, comme dans cout_maille.tex, et non en n^2.
-            CGF(ip, im) = CNU(ip, im)^3 / 3 + n_query * CNU(ip, im)^2;
+            CGP(ip, im, :) = [CNU(ip, im)^3 / 3 + n_query * CNU(ip, im)^2, 0, 0];
         else
-            CGF(ip, im) = n_query * 8;     % huit flops par lecture, sans entrainement
+            CGP(ip, im, :) = [n_query * 8, 0, 0];   % huit flops par lecture, sans entrainement
         end
+        CGF(ip, im) = sum(CGP(ip, im, :));
     end
 end
 
@@ -607,19 +616,24 @@ if ~isempty(iv)
     end
 end
 
-% LES CINQ COMPARAISONS DU CHAPITRE. Chaque ligne donne les trois modeles a superposer, le
-% nom des deux grilles, celui de la figure de convergence et celui du tableau de cout. Les
+% LES QUATRE COMPARAISONS DU CHAPITRE. Chaque ligne donne les modeles a superposer, le nom
+% des deux grilles, celui de la figure de convergence et celui du tableau de cout. Les
 % legendes viennent de style_modele. La premiere sort sous les noms de fichier historiques,
 % que le manuscrit cite deja.
 %
 % L'ordre suit la progression : le bilineaire d'abord, que le krigeage statique remplace ;
-% puis les deux controles negatifs du sous-echantillonnage et du fenetrage, chacun contre
-% l'estimateur qu'il pretend egaler ; puis les deux contributions, fenetrage et clusters.
-etapes = {[1 3 2], 'par maille',            'Convergence par maille', ''
-          [1 3 6], 'eclairci par maille',   'Convergence eclairci',   'cout_eclairci'
-          [1 3 4], 'adaptatif par maille',  'Convergence adaptatif',  'cout_adaptatif'
-          [1 4 7], 'reunion par maille',    'Convergence reunion',    'cout_reunion'
-          [1 4 5], 'clusterise par maille', 'Convergence clusterise', 'cout_clusterise'};
+% puis le controle negatif du sous-echantillonnage contre le statique ; puis le fenetrage
+% contre le statique ; puis le CAK et la NNAK contre l'AK, sur une seule serie de figures.
+%
+% LA DERNIERE PORTE QUATRE COURBES, ET NON TROIS (21 septembre) : Bastien a demande que le
+% CAK et la NNAK partagent leurs figures, les deux methodes ayant chacune leur avantage —
+% l'une garde la precision de l'AK pour moins cher, l'autre descend plus bas en cout mais
+% perd de la coherence. Les series 'reunion par maille' et 'clusterise par maille' ont ete
+% supprimees le meme jour, PDF et tableaux compris, la serie fusionnee les remplacant.
+etapes = {[1 3 2],   'par maille',           'Convergence par maille', ''
+          [1 3 6],   'eclairci par maille',  'Convergence eclairci',   'cout_eclairci'
+          [1 3 4],   'adaptatif par maille', 'Convergence adaptatif',  'cout_adaptatif'
+          [1 4 5 7], 'CAK et NNAK par maille', 'Convergence CAK et NNAK', 'cout_CAK_NNAK'};
 for s = 1:size(etapes, 1)
     sel  = etapes{s, 1};
     cles = cand(sel, 1)';
@@ -654,35 +668,138 @@ for s = 1:size(etapes, 1)
         end
     end
     ylabel(t2, 'Converged runs (\%)', 'Interpreter', 'latex', 'FontSize', fontsize);
-    xlabel(t2, 'Map resolution (km)', 'Interpreter', 'latex', 'FontSize', fontsize);
+    xlabel(t2, 'Grid resolution (km)', 'Interpreter', 'latex', 'FontSize', fontsize);
     exporter(f2, etapes{s, 3}, textwidth, 230, img_dir);
 
     % Le tableau de cout de la premiere etape existe deja sous cout_maille.tex, avec ses
     % colonnes de setup et de requetes : on ne le refait pas.
     if isempty(etapes{s, 4}), continue, end
     fid = fopen(fullfile(tab_dir, [etapes{s, 4} '.tex']), 'w', 'n', 'UTF-8');
+    % « A against B », ou « A against B and C » quand la figure superpose deux alternatives
+    % a la methode de reference : la ligne de commentaire les nomme toutes.
+    autres = cellfun(@nom_prose, leg(3:end), 'UniformOutput', false);
+    if numel(autres) == 1
+        contre = autres{1};
+    else
+        contre = [strjoin(autres(1:end - 1), ', '), ' and ', autres{end}];
+    end
+    % LA CARTE CONNUE N'A PAS DE COLONNE : elle ne krige rien et sa lecture en huit flops ne
+    % se compare a rien. Elle reste la borne des figures, pas celle du cout.
+    garde = ~strcmp(cand(sel, 1)', 'connue');
+    sel_t = sel(garde);  leg_t = leg(garde);
+    % UNE COLONNE PAR POSTE REELLEMENT PAYE : le krigeage pour tous, l'ajustement local des
+    % hyperparametres pour les methodes adaptatives, la clusterisation pour le CA-OK. Le
+    % krigeage statique n'en paie qu'un, et tient donc en une seule colonne.
+    postes = {'Kriging', 'Hyperparameters', 'Clustering'};
+    col    = zeros(0, 2);
+    for im = 1:numel(sel_t)
+        for q = 1:3
+            if q == 1 || any(CGP(:, sel_t(im), q) > 0)
+                col(end + 1, :) = [im, q];   %#ok<AGROW>
+            end
+        end
+    end
+    % LE TROISIEME POSTE N'A PAS LE MEME SENS POUR TOUT LE MONDE. Les deux methodes qui le
+    % paient comptent leurs distances dans cout(4), mais ce sont le mean-shift pour le CAK
+    % et la recherche des plus proches voisins pour la NNAK, qui ne clusterise rien. Le
+    % tableau de la NNAK l'intitulait « Clustering » jusqu'au 21 septembre.
+    lib = cell(size(col, 1), 1);
+    for j = 1:size(col, 1)
+        lib{j} = postes{col(j, 2)};
+        if col(j, 2) == 3 && strcmp(cand{sel_t(col(j, 1)), 1}, 'reunion')
+            lib{j} = 'Neighbour search';
+        end
+    end
+    % AU-DELA DE SIX COLONNES CHIFFREES LE TABLEAU DEBORDE DE LA PAGE : celui qui oppose le
+    % CAK et la NNAK a l'AK en demandait huit et depassait de 181 pt, colonnes deja
+    % resserrees a 3 pt. On n'y garde alors qu'un total par methode. La decomposition par
+    % poste ne se perd pas, tab:cout_cak la donnant a la maille de reference.
+    % SEPT COLONNES OU PLUS : les deux en-tetes longs s'abregent, HP et NN, Bastien les
+    % developpant dans la legende. La decomposition par poste y tient a laquelle il tient,
+    % et c'etaient les mots qui debordaient de 181 pt, pas les nombres : ainsi abreges, ils
+    % rentrent sans reduire le corps ni resserrer les colonnes au-dela des 3 pt habituels.
+    serre = size(col, 1) > 6;
+    if serre
+        lib = strrep(lib, 'Hyperparameters', 'HP');
+        lib = strrep(lib, 'Neighbour search', 'NN');
+    end
+    explique = ['%% The kriging column gathers the factorisation and the queries, which no\n' ...
+                '%% method pays one without the other; the hyperparameter column is the local\n' ...
+                '%% fits, and the last column, where there is one, the mean-shift of the CAK or\n' ...
+                '%% the neighbour search of the NNAK. A method that does not pay a cost has no\n' ...
+                '%% column for it.\n'];
+    if serre
+        explique = [explique '%% Two headings are abbreviated here, HP for the hyperparameter fits\n' ...
+                             '%% and NN for the neighbour search.\n'];
+    end
     fprintf(fid, ['%% Generated by figures_campagnes.m, do not edit by hand.\n' ...
         '%% %s against %s.\n' ...
         '%% Analytic flop counts per run, not timings, for %d particles over %d steps.\n' ...
-        '%% Where the model records its windows, they are counted as in cout_cak.tex:\n' ...
-        '%% factorisations with the local fits, queries, clustering. Where the training set\n' ...
-        '%% is fixed, n^3/3 for the setup plus N n^2 per query. The known map reads in eight\n' ...
-        '%% flops per query.\n\n'], ...
-        leg{2}, lower(leg{3}), par.mc.n_part, par.mc.n_steps);
-    fprintf(fid, '\\begin{tabular}{|c|ccc|}\\hline\n');
-    % Le meme nombre que la colonne Total de cout_maille.tex, et l'en-tete le dit.
-    fprintf(fid, ' & \\multicolumn{%d}{c|}{Total cost (flops)}\\\\\n', numel(sel));
-    fprintf(fid, 'Map resolution');
-    for im = 1:numel(sel), fprintf(fid, ' & %s', leg{im}); end
+        explique ...
+        '%% Where the training set is fixed, n^3/3 for the setup plus N n^2 per query.\n\n'], ...
+        leg{2}, contre, par.mc.n_part, par.mc.n_steps);
+    % LES TRAITS SUIVENT tab:kriging_covariance et tab:kriging_cost : un filet vertical entre
+    % les methodes, un \hline apres chaque ligne, et deux lignes d'en-tete SANS \multirow,
+    % qui espacait irregulierement le haut du tableau. Chaque colonne porte donc son poste,
+    % y compris celle du krigeage statique, qui n'en a qu'un.
+    spec = '|c';
+    for im = 1:numel(sel_t)
+        spec = [spec '|' repmat('c', 1, sum(col(:, 1) == im))];   %#ok<AGROW>
+    end
+    % AU-DELA DE QUATRE COLONNES, l'espacement par defaut fait deborder la page de 30 pt :
+    % six colonnes portent deux fois « Hyperparameters ». On le resserre dans un groupe, pour
+    % que le reste du document garde le sien.
+    large = size(col, 1) > 4;
+    if large, fprintf(fid, '{\\setlength{\\tabcolsep}{3pt}%%\n'); end
+    fprintf(fid, '\\begin{tabular}{%s|}\\hline\n', spec);
+    % LES FILETS SUIVENT tab:cout_maille : un seul \hline, sous l'en-tete, et un filet
+    % vertical entre les methodes. UNE SEULE LIGNE D'EN-TETE quand chaque methode tient en
+    % une colonne ; deux sinon, la methode qui n'a qu'un poste etant alors a cheval sur les
+    % deux plutot que de laisser une case vide. L'unite est dans la legende, pas en bandeau.
+    deux = size(col, 1) > numel(sel_t);
+    if deux
+        fprintf(fid, '\\multirow{2}{*}{$\\Delta_g$}');
+    else
+        fprintf(fid, '$\\Delta_g$');
+    end
+    cl = '';
+    for im = 1:numel(sel_t)
+        n_c = sum(col(:, 1) == im);
+        if n_c > 1
+            j0 = find(col(:, 1) == im, 1) + 1;
+            fprintf(fid, ' & \\multicolumn{%d}{c|}{%s}', n_c, leg_t{im});
+            cl = [cl sprintf('\\cline{%d-%d}', j0, j0 + n_c - 1)];   %#ok<AGROW>
+        elseif deux
+            fprintf(fid, ' & \\multirow{2}{*}{%s}', leg_t{im});
+        else
+            fprintf(fid, ' & %s', leg_t{im});
+        end
+    end
+    if deux
+        fprintf(fid, '\\\\%s\n', cl);
+        for j = 1:size(col, 1)
+            if sum(col(:, 1) == col(j, 1)) == 1
+                fprintf(fid, ' &');
+            else
+                fprintf(fid, ' & %s', lib{j});
+            end
+        end
+    end
     fprintf(fid, '\\\\\\hline\n');
     for ip = 1:numel(pas)
         fprintf(fid, '$%.1f$km', pas(ip));
-        for im = 1:numel(sel)
-            fprintf(fid, ' & %s', flops_tex(CGF(ip, sel(im))));
+        for j = 1:size(col, 1)
+            if col(j, 2) == 0
+                v = CGF(ip, sel_t(col(j, 1)));          % le total, colonnes resserrees
+            else
+                v = CGP(ip, sel_t(col(j, 1)), col(j, 2));
+            end
+            fprintf(fid, ' & %s', flops_tex(v));
         end
         fprintf(fid, '\\\\\n');
     end
     fprintf(fid, '\\hline\n\\end{tabular}\n');
+    if large, fprintf(fid, '}\n'); end
     fclose(fid);
 end
 
@@ -695,38 +812,94 @@ end
 % UNE SEULE METHODE, DONC UNE SEULE TEINTE : l'orange de l'AK, du plus sombre pour la maille
 % la plus fine au plus clair pour la plus lache. La couleur reste celle de la methode, et la
 % maille se lit dans sa valeur.
-fen_w  = 348;  fen_h = 280;                  % insere a 0.7\textwidth, comme l'ARMSE
-fen_fs = 12 * fen_w / (0.7 * textwidth);
-teinte = interp1([0 0.5 1], [0.45 0.18 0.00; 0.93 0.50 0.05; 1.00 0.76 0.38], ...
+%
+% DEUX AXES COTE A COTE, COUPES AU PREMIER VIRAGE : log avant, lineaire apres. Les deux
+% regimes n'ont pas la meme echelle — la fenetre s'etage sur deux decades a l'acquisition,
+% puis tient a quelques points du plancher n_min — et aucune echelle unique ne montre les
+% deux. Pas sur un seul axe continu pour autant : une meme hauteur y vaudrait 1000 d'un cote
+% et 31 de l'autre, et au virage la courbe de 7,5 km sauterait de 20 a 91 % de la hauteur.
+% D'ou deux axes separes d'un blanc, les graduations du second sur son bord droit, et des
+% largeurs proportionnelles au nombre de pas pour que le temps reste uniforme. Le virage
+% etant la frontiere, plus de tirete. Pleine largeur, donc 12 pt sans mise a l'echelle.
+if isnan(k_vir)
+    error('figures_campagnes:virage', ...
+          'Pas de virage : la figure des echantillons coupe ses deux axes au premier.');
+end
+ech_h  = 250;
+teinte = interp1([0 0.5 1], [0.45 0.25 0.00; 0.95 0.60 0.00; 1.00 0.82 0.45], ...
                  linspace(0, 1, numel(pas)));
 [~, ~, e_ak] = style_modele('ak');
-fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 fen_w fen_h]);
-hold on; box on; grid on;
-fen_leg = {};
-fen_max = 0;
+fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 textwidth ech_h]);
+axL = axes(fig);  axR = axes(fig);
+kL  = 1:k_vir;    kR  = k_vir:n_it;
+for ax = [axL axR], hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on'); end
+fen_leg  = {};
+fen_max  = 0;
+zoom_max = 0;
 for ip = 1:numel(pas)
     e = find(contains(nomP, 'adaptatif') & abs(balP - pas(ip)) < 1e-9, 1);
     if isempty(e), continue, end
-    plot(kk, pool(e).cout(1, :), '-', 'Color', teinte(ip, :), 'LineWidth', linewidth);
+    n_r = pool(e).cout(1, :);
+    plot(axL, kk(kL), n_r(kL), '-', 'Color', teinte(ip, :), 'LineWidth', linewidth);
+    plot(axR, kk(kR), n_r(kR), '-', 'Color', teinte(ip, :), 'LineWidth', linewidth);
     fen_leg{end + 1} = sprintf('$%.1f$ km', pas(ip));   %#ok<SAGROW>
-    fen_max = max(fen_max, max(pool(e).cout(1, :)));
+    fen_max  = max(fen_max,  max(n_r(kL)));
+    zoom_max = max(zoom_max, max(n_r(kR)));
 end
-% Le plancher en pointille et le premier virage en tirete, comme sur la fenetre du
-% chapitre au cours du vol.
-yline(SE.par.krig.n_min, ':', 'LineWidth', linewidth, 'HandleVisibility', 'off');
-marqueur(premier_virage(S.scen.x_true), fen_fs);
-hold off; set(gca, 'YScale', 'log');
-% De la marge au-dessus du pic de la maille la plus fine : sans elle, MATLAB cale l'axe sur
-% lui et la courbe touche le cadre.
-ylim([10^floor(log10(SE.par.krig.n_min)), 2 * fen_max]);
-xlabel('$k$', 'Interpreter', 'latex', 'FontSize', fen_fs);
-ylabel('$\tilde{N}^r(k)$', 'Interpreter', 'latex', 'FontSize', fen_fs);
-lg = legend(fen_leg, 'Interpreter', 'latex', 'FontSize', fen_fs, 'Location', 'northeast');
-lg.Title.String      = e_ak;
-lg.Title.Interpreter = 'latex';
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fen_fs);
-xlim([1 n_it]);
-exporter(fig, 'Echantillons retenus par maille', fen_w, fen_h, img_dir);
+for ax = [axL axR]
+    yline(ax, SE.par.krig.n_min, ':', 'LineWidth', linewidth, 'HandleVisibility', 'off');
+    hold(ax, 'off');
+    set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
+    xlabel(ax, '$k$', 'Interpreter', 'latex', 'FontSize', fontsize);
+end
+
+% Avant le virage : echelle log, une graduation par decade fixee a la main, et de la marge
+% au-dessus du pic de la maille la plus fine, sans laquelle la courbe touche le cadre. Le
+% plancher n_min est gradue en plus des decades, comme sur l'axe de droite, et les etiquettes
+% sont ecrites a la main pour que les decades gardent leur forme 10^n.
+set(axL, 'YScale', 'log');
+ylim(axL, [10^floor(log10(SE.par.krig.n_min)), 2 * fen_max]);
+ech_dec = 10.^(ceil(log10(axL.YLim(1))):floor(log10(axL.YLim(2))));
+[ech_yt, ech_o] = sort([ech_dec, SE.par.krig.n_min]);
+ech_lab = [arrayfun(@(d) sprintf('$10^{%d}$', round(log10(d))), ech_dec, 'UniformOutput', false), ...
+           {sprintf('$%g$', SE.par.krig.n_min)}];
+set(axL, 'YTick', ech_yt, 'YTickLabel', ech_lab(ech_o));
+set(axL, 'XTick', 10:20:k_vir);          % 10 et 30, sans graduation a 20
+xlim(axL, [1 k_vir]);
+ylabel(axL, '$\tilde{N}_k^r$', 'Interpreter', 'latex', 'FontSize', fontsize);
+
+% Apres : echelle lineaire, partant juste sous le plancher et non de zero. Toutes les
+% courbes y tiennent entre n_min et six points au-dessus, et un axe parti de zero les
+% ecrasait dans son quart superieur. La marge du bas decolle du cadre celles qui sont
+% posees sur le plancher.
+ech_marge = max(0.1 * (zoom_max - SE.par.krig.n_min), 1);
+ylim(axR, [SE.par.krig.n_min - ech_marge, zoom_max + ech_marge]);
+xlim(axR, [k_vir n_it]);
+axR.YAxisLocation = 'right';
+
+% La legende dans l'axe de droite, le seul assez large, en haut a droite : les courbes y
+% sont posees sur le plancher.
+lg = legend(axR, fen_leg, 'Interpreter', 'latex', 'FontSize', fontsize, ...
+            'Location', 'northeast', 'NumColumns', 3);
+lg.ItemTokenSize     = [18 18];          % propriete cachee, que legend() refuse en argument
+% lg.Title.String      = e_ak;
+% lg.Title.Interpreter = 'latex';
+
+% LA MISE EN PAGE A LA MAIN, marges mesurees sur les etiquettes : tiledlayout ne sait pas
+% donner a deux cases des largeurs dans un rapport quelconque. Deux passes, les etiquettes
+% bougeant un peu une fois les axes redimensionnes.
+ech_blanc = 0.025;  ech_marg = 0.015;
+for passe = 1:2
+    drawnow;
+    tL = axL.TightInset;  tR = axR.TightInset;
+    m_bas = max(tL(2), tR(2)) + ech_marg;   m_haut = max(tL(4), tR(4)) + ech_marg;
+    m_gau = tL(1) + ech_marg;               m_dro  = tR(3) + ech_marg;
+    W_ax  = 1 - m_gau - m_dro - ech_blanc;  H_ax   = 1 - m_bas - m_haut;
+    wL_ax = W_ax * (k_vir - 1) / (n_it - 1);
+    axL.Position = [m_gau, m_bas, wL_ax, H_ax];
+    axR.Position = [m_gau + wL_ax + ech_blanc, m_bas, W_ax - wL_ax, H_ax];
+end
+exporter(fig, 'Echantillons retenus par maille', textwidth, ech_h, img_dir);
 
 fprintf('%d comparaisons ecrites : %s\n', size(etapes, 1), strjoin(etapes(:, 2)', ', '));
 for im = 1:n_mod
@@ -834,10 +1007,12 @@ fprintf(fid, ['%% Generated by figures_campagnes.m, do not edit by hand.\n' ...
     parB.mc.n_part, parB.mc.n_steps, parB.krig.pas / 1e3);
 fprintf(fid, ['\\begin{tabular}{lrrrr}\n\t\\hline\n' ...
     '\t& factorisations & queries & clustering & total \\\\\n\t\\hline\n']);
+% La colonne des factorisations somme les deux premiers postes de cout_e, la factorisation
+% et l'ajustement local, comme l'annonce l'en-tete du fichier.
 fprintf(fid, '\t%s & $%.2f$ & $%.2f$ & --- & $%.2f$ \\\\\n', e_ak, ...
-        C_ak(1) / G, C_ak(2) / G, sum(C_ak) / G);
+        (C_ak(1) + C_ak(2)) / G, C_ak(3) / G, sum(C_ak) / G);
 fprintf(fid, '\t%s & $%.2f$ & $%.2f$ & $%.2f$ & $%.2f$ \\\\\n', e_cak, ...
-        C_cak(1) / G, C_cak(2) / G, C_cak(3) / G, sum(C_cak) / G);
+        (C_cak(1) + C_cak(2)) / G, C_cak(3) / G, C_cak(4) / G, sum(C_cak) / G);
 fprintf(fid, '\t\\hline\n\\end{tabular}\n');
 fclose(fid);
 
@@ -855,66 +1030,17 @@ fprintf('Cout par essai : AK %.2f Gflop, CA-OK %.2f, rapport %.1f\n', ...
 end
 
 
-%% Les deux figures au cours du vol, sous Images/
-%
-% Venues de figures_temporelles.m, absorbe le 15 septembre : toutes les figures et tous les
-% tableaux du chapitre sortent de ce seul script, et la palette avec eux.
-%
-%   Modes au cours du vol     ce que trouve le mean-shift, pas par pas
-%   Fenetre au cours du vol   echantillons retenus par requete, avec le plancher n_min
-%
-% Toutes deux relisent la campagne B et sont inserees a 0.7\textwidth, sur la page figee de
-% 348 x 280 pt : une police de 14 y sort a 12 pt, comme pour l'ARMSE.
-if ~isempty(dB)
-vol_w  = 348;  vol_h = 280;
-vol_fs = 12 * vol_w / (0.7 * textwidth);
-k_vol  = (1:n_itB)';
-
-% Le pas ou commence le premier demi-tour, releve sur la trajectoire vraie plutot que
-% recalcule : c'est lui qui leve l'ambiguite, en echantillonnant le champ dans une seconde
-% direction, et les courbes ne se lisent pas sans lui.
-k_vir = premier_virage(SB.scen.x_true);
-fprintf('Premier virage au pas %d sur %d\n', k_vir, n_itB);
-
-j      = find(strcmp(nomB, 'CA-OK'), 1);
-[c, l] = style_modele('cak');
-fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 vol_w vol_h]);
-plot(k_vol, mean(resB(j).n_modes, 2), l, 'Color', c, 'LineWidth', linewidth);
-box on; grid on; hold on; marqueur(k_vir, vol_fs); hold off;
-set(gca, 'YScale', 'log');
-xlabel('$k$', 'Interpreter', 'latex', 'FontSize', vol_fs);
-ylabel('Number of modes', 'Interpreter', 'latex', 'FontSize', vol_fs);
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', vol_fs);
-xlim([1 n_itB]);
-exporter(fig, 'Modes au cours du vol', vol_w, vol_h, img_dir);
-
-fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 vol_w vol_h]);
-hold on; box on; grid on;
-vol_cle   = {'ak', 'cak'};
-vol_motif = {'OK adaptatif', 'CA-OK'};
-vol_leg   = cell(1, 2);
-for m = 1:2
-    j = find(strcmp(nomB, vol_motif{m}), 1);
-    [c, l, vol_leg{m}] = style_modele(vol_cle{m});
-    plot(k_vol, resB(j).cout(1, :), l, 'Color', c, 'LineWidth', linewidth);
-end
-% Le plancher en pointille : c'est ainsi que la legende du manuscrit le designe.
-yline(parB.krig.n_min, ':', 'LineWidth', linewidth, 'HandleVisibility', 'off');
-marqueur(k_vir, vol_fs);
-hold off; set(gca, 'YScale', 'log');
-xlabel('$k$', 'Interpreter', 'latex', 'FontSize', vol_fs);
-ylabel('$\tilde{N}^r(k)$', 'Interpreter', 'latex', 'FontSize', vol_fs);
-legend(vol_leg, 'Interpreter', 'latex', 'FontSize', vol_fs, 'Location', 'northeast');
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', vol_fs);
-xlim([1 n_itB]);
-exporter(fig, 'Fenetre au cours du vol', vol_w, vol_h, img_dir);
-end
-
+% LES DEUX FIGURES AU COURS DU VOL ONT ETE SUPPRIMEES LE 21 SEPTEMBRE, sur demande de
+% Bastien : « Fenetre au cours du vol », les echantillons retenus par requete a la maille de
+% reference, que « Echantillons retenus par maille » donne desormais aux six mailles, et
+% « Modes au cours du vol », le compte de modes du mean-shift pas par pas sur la campagne B.
+% Toutes deux venaient de figures_temporelles.m, absorbe le 15 septembre. Leurs PDF sont
+% effaces ; git les retrouve avec ce bloc si le chapitre en redemande.
 
 %% Le tableau des parametres de fenetre, sous include/
 %
 % Les deux — bientot trois — parametres qui definissent la fenetre du krigeage adaptatif :
-% le facteur de dilatation alpha_W, qui la fait suivre la covariance declaree, le plancher
+% le facteur de dilatation alpha_cov, qui la fait suivre la covariance declaree, le plancher
 % n_min, qui l'empeche de se vider quand la piste est acquise, et le plafond n_max, qui la
 % borne. Le chapitre affirmait leur inertie sans la montrer ; elle se montre ici.
 %
@@ -981,7 +1107,7 @@ for k = 1:size(fen, 1)
 end
 end
 
-fprintf('figures_campagnes : vingt et une figures sous Images/ et neuf tableaux sous include/\n');
+fprintf('figures_campagnes : seize figures sous Images/ et huit tableaux sous include/\n');
 %% ------------------------------------------------------------ fonctions locales
 
 function fig = deal_duo(pas, Y, titres, ylab, logy, etiq, textwidth, fontsize, linewidth)
@@ -1037,10 +1163,34 @@ function t = flops_tex(v)
 end
 
 function exporter(fig, nom, pdf_w, pdf_h, img_dir)
+% LE PDF N'EST REMPLACE QUE SI LE DESSIN A CHANGE. MATLAB inscrit dans chaque export sa date
+% de creation et un identifiant /ID recalcule a chaque fois : deux exports d'une meme figure
+% different d'une soixantaine d'octets, et git signalait les seize figures a chaque
+% passage du script. On exporte dans un fichier temporaire, on le compare a l'existant sans
+% ces champs, et l'on ne remplace que s'il differe.
     if ~exist(img_dir, 'dir'), mkdir(img_dir); end
     set(fig, 'PaperUnits', 'points', 'PaperSize', [pdf_w pdf_h], ...
              'PaperPosition', [0 0 pdf_w pdf_h]);
-    print(fig, fullfile(img_dir, [nom '.pdf']), '-dpdf', '-vector');
+    cible = fullfile(img_dir, [nom '.pdf']);
+    tmp   = [tempname '.pdf'];
+    print(fig, tmp, '-dpdf', '-vector');
+    if isfile(cible) && strcmp(sans_horodatage(tmp), sans_horodatage(cible))
+        delete(tmp);
+    else
+        movefile(tmp, cible, 'f');
+    end
+end
+
+function s = sans_horodatage(f)
+% Les octets d'un PDF sans sa date ni son identifiant, les seuls champs qui changent d'un
+% export a l'autre d'une figure identique. LU EN OCTETS ET NON EN CARACTERES : un decodage
+% remplacerait les sequences invalides des flux compresses par un meme caractere, et deux
+% dessins differents pourraient alors passer pour egaux.
+    fid = fopen(f, 'r');
+    s   = char(fread(fid, Inf, '*uint8')');
+    fclose(fid);
+    s = regexprep(s, '/(CreationDate|ModDate)\s*\([^)]*\)', '');
+    s = regexprep(s, '/ID\s*\[[^\]]*\]', '');
 end
 
 function M = metriques(res, noms, motif, fin, k_acq, seuil)
@@ -1072,15 +1222,18 @@ function C = cout_modele(res, noms, motif, par, n_opt)
 end
 
 function C = cout_e(r, par, n_opt)
-% Les trois postes pour une entree deja trouvee. A part de cout_modele pour que les
-% tableaux de cout par maille chiffrent exactement comme tab:cout_CAK.
+% LES QUATRE POSTES pour une entree deja trouvee : factorisations, ajustements locaux des
+% hyperparametres, requetes, clusterisation. A part de cout_modele pour que les tableaux de
+% cout par maille chiffrent exactement comme tab:cout_CAK, qui somme les deux premiers dans
+% sa colonne des factorisations la ou les tableaux par maille les separent.
     c   = r.cout;
     sn  = c(1, :);  sn3 = c(2, :);  nf = c(3, :);  nd = c(4, :);
     nmk = mean(r.n_modes, 2)';                   % modes par pas, moyennes sur les essais
     if isempty(nmk), nmk = ones(size(sn)); end   % un modele qui n'enregistre pas ses modes
     nmk = max(nmk, 1);
     nc  = sn ./ nmk;                             % taille moyenne d'une fenetre de mode
-    C   = [sum(sn3) / 3 + sum(nf) * n_opt * min(mean(nc), par.krig.n_ml_win)^3 / 3, ...
+    C   = [sum(sn3) / 3, ...
+           sum(nf) * n_opt * min(mean(nc), par.krig.n_ml_win)^3 / 3, ...
            par.mc.n_part * sum(nc.^2), ...
            5 * sum(nd)];
 end
@@ -1215,32 +1368,54 @@ function [c, l, nom] = style_modele(cle)
 % appartient :
 %
 %   pointille  la borne superieure : la carte connue, qu'aucun estimateur ne depasse
-%   plein      les trois estimateurs que le chapitre defend : statique, AK, CA-OK
-%   brise      les alternatives auxquelles il se compare : bilineaire, eclairci, reunion
+%   plein      les estimateurs que le chapitre defend : statique, AK, CAK, NNAK
+%   brise      les alternatives auxquelles il se compare : bilineaire, eclairci
 %
-% La forme porte donc l'argument et la couleur l'identite, ce qui laisse une figure lisible
-% en noir et blanc. LES COULEURS SEPARENT D'ABORD LES PAIRES QU'UNE MEME FIGURE SUPERPOSE :
-% statique et AK, bleu et orange ; AK et CA-OK, orange et vert ; AK et reunion, orange et
-% violet ; statique et eclairci, bleu et magenta. L'AK etait sarcelle, trop proche du bleu
-% statique pour que la figure qui les compare se lise.
+% Le tirete de l'eclairci etait un trait mixte jusqu'au 21 septembre ; Bastien l'a aligne
+% sur celui du bilineaire, les deux etant des alternatives que le chapitre ecarte. La NNAK
+% est passee au trait plein le meme jour : elle est une variante de l'AK, pas un repoussoir.
+%
+% La forme porte donc l'argument et la couleur l'identite. LES COULEURS SEPARENT D'ABORD
+% LES PAIRES QU'UNE MEME FIGURE SUPERPOSE, et la figure qui en superpose le plus est celle
+% du CAK et de la NNAK contre l'AK. LE CAK Y EST LE PLUS DIFFICILE A DISTINGUER, ses
+% courbes suivant celles de l'AK de pres : il prend donc le magenta, a 81 unites de CIELAB
+% de l'ambre de l'AK, et la NNAK, qui s'en ecarte franchement, garde le rouge, a 65. Sur
+% toute la palette, la paire la plus proche est le rose de l'eclairci et le magenta du CAK,
+% a 40, et ces deux-la ne se rencontrent sur aucune figure.
+%
+% L'HISTORIQUE DU 21 SEPTEMBRE, en trois passes : le CAK etait vert, l'AK orange et le
+% bilineaire rouge ; Bastien a demande le CAK en rouge, d'ou l'AK vers l'ambre, plus clair,
+% et le bilineaire vers le vert ; la NNAK violette s'est revelee trop proche du bleu
+% statique, a 44, d'ou le magenta ; puis l'echange du rouge et du magenta entre le CAK et
+% la NNAK, pour que ce soit la courbe la plus proche de l'AK qui porte le plus fort
+% contraste.
 %
 % ON APPARIE SUR UNE CLE COURTE ET EXACTE, jamais sur un nom de modele ni sur une
 % etiquette : 'OK' et 'carte' figurent dans plusieurs noms de modeles, et l'appariement par
 % motif a deja fausse deux figures en silence. Une cle inconnue est une erreur, pas un gris.
 %
-% Les noms sont ceux du manuscrit, arretes le 15 septembre. Celui de la reunion ne l'est
-% pas encore.
+% Les noms sont ceux du manuscrit, arretes le 15 septembre ; celui de la reunion, NNAK, le
+% 16. La cle reste 'reunion' : elle apparie, elle ne s'affiche pas. LES TROIS VARIANTES DU
+% KRIGEAGE ADAPTATIF S'AFFICHENT PAR LEUR ACRONYME, AK, CAK et NNAK (16 septembre) : en
+% toutes lettres, Nearest-neighbour adaptive kriging debordait des legendes et des
+% en-tetes. Le texte les definit, et sa prose garde les noms longs.
     switch cle
         case 'connue',   c = [0.00 0.00 0.00];  l = ':';   nom = 'Known map';
-        case 'bilin',    c = [0.85 0.15 0.15];  l = '--';  nom = 'Bilinear interpolation';
-        case 'statique', c = [0.20 0.30 0.65];  l = '-';   nom = 'Static kriging';
-        case 'eclairci', c = [0.80 0.30 0.60];  l = '-.';  nom = 'Random subsampling';
-        case 'ak',       c = [0.93 0.50 0.05];  l = '-';   nom = 'Adaptive kriging';
-        case 'cak',      c = [0.10 0.62 0.25];  l = '-';   nom = 'Clustered adaptive kriging';
-        case 'reunion',  c = [0.50 0.35 0.70];  l = '--';  nom = 'Neighbour union';  % provisoire
+        case 'bilin',    c = [0.00 0.52 0.28];  l = '--';  nom = 'Bilinear interpolation';
+        case 'statique', c = [0.15 0.35 0.70];  l = '-';   nom = 'Static kriging';
+        case 'eclairci', c = [0.90 0.35 0.62];  l = '--';  nom = 'Random subsampling';
+        case 'ak',       c = [0.95 0.60 0.00];  l = '-';   nom = 'AK';
+        case 'cak',      c = [0.85 0.00 0.75];  l = '-';   nom = 'CAK';
+        case 'reunion',  c = [0.75 0.02 0.15];  l = '-';   nom = 'NNAK';
         otherwise
             error('figures_campagnes:style', 'Cle de methode inconnue : %s.', cle);
     end
+end
+
+function s = nom_prose(nom)
+% Un nom de methode au fil d'une phrase : en minuscules, sauf un acronyme, qui reste tel
+% quel. lower('AK') ecrivait 'ak' dans les commentaires des tableaux.
+    if strcmp(nom, upper(nom)), s = nom; else, s = lower(nom); end
 end
 
 function k = premier_virage(x_true)

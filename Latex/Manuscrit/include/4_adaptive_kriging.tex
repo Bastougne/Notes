@@ -12,41 +12,46 @@ By linearity of the expectation, the number of retained data is, on average:
 \begin{equation}
 	\mathbb{E}\left[\tilde{N}^r\right]=p\times\tilde{N}
 \end{equation}
-and corresponds, on average, to the density of a regular grid whose resolution is degraded by a factor of $1/\sqrt{p}$, \textit{e.g.} $3.5$km instead of $2.5$km for $p=0.5$.
+and corresponds, on average, to the density of a regular grid of resolution $\Delta_g/\sqrt{p}$.
 
-Similarly to the case of bilinear interpolation and static kriging presented above, the simulations described in \Cref{sec:scenario} were run using random subsampling with $p=0.5$. The results are compared here with those obtained with static kriging. \Cref{fig:eclairci_RMSE,fig:eclairci_NEES} respectively compare the RMSE and NEES of the two approaches on each of the six grid resolutions, while \Cref{fig:convergence_eclairci} presents the corresponding convergence rates. Finally, \Cref{tab:cout_eclairci} gives the comparative computational cost of each method across the six resolutions.
+Similarly to the case of bilinear interpolation and static kriging presented above, the simulations described in \Cref{sec:scenario} were run using random subsampling with:
+\begin{equation}
+	p=0.5
+\end{equation}
+
+The results are compared here with those obtained with static kriging. \Cref{fig:eclairci_RMSE,fig:eclairci_NEES} respectively compare the RMSE and NEES of the two approaches on each of the six grid resolutions, while \Cref{fig:convergence_eclairci} presents the corresponding convergence rates. Finally, \Cref{tab:cout_eclairci} gives the comparative computational cost of each method across the six resolutions.
 
 \begin{figure}[!p]
 	\centering
 	\includegraphics[width=\textwidth]{../../Images/RMSE eclairci par maille.pdf}
-	\caption{}\label{fig:eclairci_RMSE}
+	\caption{Comparative RMSE of the navigation algorithms using static kriging or random subsampling across the six grid resolutions. The performance of the filter with access to the true map is given as a reference.}\label{fig:eclairci_RMSE}
 \end{figure}
 
 \begin{figure}[!p]
 	\centering
 	\includegraphics[width=\textwidth]{../../Images/NEES eclairci par maille.pdf}
-	\caption{}\label{fig:eclairci_NEES}
+	\caption{Comparative RMSE of the navigation algorithms using static kriging or random subsampling across the six grid resolutions. The shaded area corresponds to that of the previous NEES figure.}\label{fig:eclairci_NEES}
 \end{figure}
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=\textwidth]{../../Images/Convergence eclairci.pdf}
-	\caption{}\label{fig:convergence_eclairci}
+	\caption{Convergence rates for the navigation algorithms using static kriging and random subsampling as a function of grid resolution.}\label{fig:convergence_eclairci}
 \end{figure}
-
-For the RMSE curves, random subsampling is systematically outperformed by static kriging, especially before the first turn. From $4.5$km onward, random subsampling only reaches its error plateau during this turn, whereas static kriging stabilises before it. This indicates that, although the subsampling is randomised at each time step, and each training point is therefore available to the filter on average $50\%$ of the time, the resulting map is too degraded to provide an accurate navigation solution.
-
-Nevertheless, the similarity between random subsampling at resolutions of $2.5$ and $5.5$km and static kriging at resolutions of $3.5\approx2.5/\sqrt{0.5}$ and $7.5\approx5.5/\sqrt{0.5}$ respectively, is noteworthy. This suggests that random subsampling effectively behaves as a map with a degraded resolution. Although the full training set is likely to have been sampled at least once over the course of the mission, only half of the points are available to the filter at each time step.
-
-Regarding the NEES, the curves are consistently similar between both methods, further highlighting the ability of kriging to accurately quantify its uncertainty. As already established in \Cref{sec:kriging_method}, the kriging covariance increases in regions where less data are available, and thus the predicted uncertainty naturally follows the degradation of the map. Despite this, random subsampling achieves lower convergence rates at every grid resolution, showing that this method is unable to match the navigation performance of static kriging.
 
 \begin{table}[!htb]
 	\centering\input{include/cout_eclairci.tex}
-	\caption{}\label{tab:cout_eclairci}
+	\caption{Total computational cost, in flops, of using static kriging or random subsampling throughout the mission, for each grid resolution.}\label{tab:cout_eclairci}
 \end{table}
 
-Finally, \Cref{tab:cout_eclairci} illustrates the only advantage of random subsampling over static kriging. By reducing the number of available training points by half on average, this method reduces the computational cost by $75\%$ for every grid resolution.
+For the RMSE curves, random subsampling is systematically outperformed by static kriging, especially before the first turn. From $4.5$km onward, random subsampling only reaches its error plateau during this turn, whereas static kriging stabilises before it. This indicates that, although the subsampling is randomised at each time step, and each training point is therefore available to the filter on average $50\%$ of the time, the resulting map is too degraded to provide an accurate navigation solution. The late convergence of the filters with access to the fewest training points is likely a consequence of the additional information provided by the first turn.
 
-\subsection{Adaptive Subsampling Window}
+Nevertheless, the similarity between random subsampling at $\Delta_g=2.5$ and $5.5$km and static kriging at $\Delta_g=3.5\approx2.5/\sqrt{0.5}$ and $7.5\approx5.5/\sqrt{0.5}$ respectively, is noteworthy. This suggests that random subsampling effectively behaves as a map with a degraded resolution. Although the full training set is likely to have been sampled at least once over the course of the mission, only half of the points are available to the filter at each time step.
+
+Regarding the NEES, the curves are consistently similar between both methods, further highlighting the ability of kriging to accurately quantify its uncertainty. As already established in \Cref{sec:kriging_method}, the kriging covariance increases in regions where less data are available, and thus the predicted uncertainty naturally follows the degradation of the map. Despite this, random subsampling achieves lower convergence rates at every grid resolution, showing that this method is unable to match the navigation performance of static kriging.
+
+Finally, \Cref{tab:cout_eclairci} illustrates the only advantage of random subsampling over static kriging. By reducing the number of available training points by half on average, this method reduces the computational cost by approximately $75\%$ at every grid resolution.
+
+\subsection{Adaptive Subsampling Window}\label{sec:AK}
 
 The above results show that, while subsampling does reduce the computational cost of the algorithm, indiscriminately discarding training points is detrimental to the navigation performance. A more suitable strategy should therefore retain only a limited number of training points while selecting those that are most relevant to the current situation.
 
@@ -116,9 +121,14 @@ and:
 
 At each time step, the hyperparameters $\hat{\theta}_k$ of the kernel are then re-estimated by maximum likelihood on the retained training set, as described in \cref{sec:HP_estimation}. In particular, since the navigation estimate varies slowly between two consecutive time steps, the retained training set is likely to remain similar. The hyperparameters estimated at time $k-1$ can thus be used as initial values for the estimation at time $k$, reducing the number of iterations required for convergence of the hyperparameter estimation algorithm.
 
+In particular, the number of retained points is, on average, the $d_{\mathrm{pos}}$-volume of the window divided by that of a grid cell:
+\begin{equation}
+	\mathbb{E}\left[\tilde{N}_k^r\right]=\frac{\pi^{d_{\mathrm{pos}}/2}}{\Gamma\left(\frac{d_{\mathrm{pos}}}{2}+1\right)}\left(\frac{\max\left(r_{\mathrm{cov},k},r_{\min,k}\right)}{\Delta_g}\right)^{d_{\mathrm{pos}}}\label{eq:AK_window_size}
+\end{equation}
+
 The likelihood \eqref{eq:kriged_likelihood} is thus computed on the retained subset alone and using the updated hyperparameters:
 \begin{equation}
-	z_k|x_k,\tilde{\mathbf{z}}_k^r\sim\mathcal{N}\left(\hat{z}_{\mathrm{K}}\left(x_k,\tilde{\mathbf{x}}_k^r,\tilde{\mathbf{z}}_k^r;\hat{\theta}_k\right),R_{\mathrm{K}}\left(x_k,\tilde{\mathbf{x}}_k^r;\hat{\theta}_k\right)\right)\label{eq:AK_likelihood}
+	z_k|x_k,\tilde{\mathbf{z}}_k^r\sim\mathcal{N}\left(\hat{z}_{\mathrm{OK}}\left(x_k,\tilde{\mathbf{x}}_k^r,\tilde{\mathbf{z}}_k^r;\hat{\theta}_k\right),R_{\mathrm{OK}}\left(x_k,\tilde{\mathbf{x}}_k^r;\hat{\theta}_k\right)\right)\label{eq:AK_likelihood}
 \end{equation}
 
 This method, referred to as Adaptive Kriging (AK) and originally proposed in \cite{bib:AK-PF}, can be integrated into any navigation algorithm presented in \cref{sec:Bayesian_estimation}. In this section, we focus on its integration into the RPF of \Cref{alg:RPF} using the transition density as proposal, as described in \eqref{eq:prior_proposal}. The resulting algorithm is the Adaptive Kriging Regularised Particle Filter (AK-RPF) given in \Cref{alg:AK_RPF}.
@@ -145,6 +155,8 @@ This method, referred to as Adaptive Kriging (AK) and originally proposed in \ci
 	\end{algorithmic}\caption{Adaptive Kriging Regularised Particle Filter}\label{alg:AK_RPF}
 \end{algorithm}
 
+Unfortunately, the third and fourth criteria may conflict with the first one in situations where the particle set spans over a large region of space. These two criteria are addressed in \cref{sec:CAK_PF}.
+
 \subsection{Numerical Results}
 
 As for static kriging, this section evaluates the performance of the AK-RPF across the six grid resolutions, with:
@@ -152,28 +164,28 @@ As for static kriging, this section evaluates the performance of the AK-RPF acro
 \alpha_{\mathrm{cov}}=2\quad\text{and}\quad\tilde{N}_{\min}=25
 \end{equation}
 
-The static kriging RPF performance is also given as a reference. Alongside the RMSE and the NEES, another metric is introduced to help explain the variations in computational and memory costs between each configuration. This metric is the number of retained training points, \textit{i.e.} the value of $\tilde{N}^r$, at each time step. Since the 
+The performance of the static kriging RPF is also given as a reference. Alongside the RMSE and the NEES, another metric is introduced to help explain the variations in computational cost between each configuration. This metric is the number of retained training points, \textit{i.e.} the value of $\tilde{N}^r$, at each time step. \Cref{fig:AK_RMSE,fig:AK_NEES} present the comparative RMSE and NEES curves across the six grid resolutions, and \Cref{fig:convergence_AK} gives the associated convergence rates. Finally, \Cref{fig:AK_echantillons} shows the evolution of the average number of retained training points throughout the mission, and \Cref{tab:cout_adaptatif} presents the average total computational cost of static kriging and AK during the entire mission for each of the six grid resolutions.
 
 \begin{figure}[!p]
 	\centering
 	\includegraphics[width=\textwidth]{../../Images/RMSE adaptatif par maille.pdf}
-	\caption{}\label{fig:AK_RMSE}
+	\caption{RMSE curves for the AK-RPF compared with that of an RPF using static kriging acorss the six grid resolutions.}\label{fig:AK_RMSE}
 \end{figure}
 
 \begin{figure}[!p]
 	\centering
 	\includegraphics[width=\textwidth]{../../Images/NEES adaptatif par maille.pdf}
-	\caption{}\label{fig:AK_NEES}
+	\caption{NEES curves for the AK-RPF compared with that of an RPF using static kriging acorss the six grid resolutions.}\label{fig:AK_NEES}
 \end{figure}
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=\textwidth]{../../Images/Convergence adaptatif.pdf}
-	\caption{}\label{fig:convergence_adaptatif}
+	\caption{Convergence rates of the AK-RPF and the RPF using static kriging using the threshold and the Mahalanobis criteria.}\label{fig:convergence_AK}
 \end{figure}
 
 \begin{figure}[!htb]
-	\centering\includegraphics[width=0.7\textwidth]{../../Images/Echantillons retenus par maille.pdf}
-	\caption{}\label{fig:AK_echantillons}
+	\centering\includegraphics[width=\textwidth]{../../Images/Echantillons retenus par maille.pdf}
+	\caption{Evolution of the average number of training points retained by the AK-RPF during the mission for each grid resolution. A logarithmic scale is used before the first turn at $k=33$ to capture the large variations in $\tilde{N}^r_k$, while a linear scale is used afterwards, where these variations are smaller.}\label{fig:AK_echantillons}
 \end{figure}
 
 \begin{table}[!htb]
@@ -181,114 +193,30 @@ The static kriging RPF performance is also given as a reference. Alongside the R
 	\caption{}\label{tab:cout_adaptatif}
 \end{table}
 
-Unfortunately, the third and fourth criteria may conflict with the first one in situations where the particle set spans over a large region of space. This is especially the case before the first turn, when \Cref{fig:AK_echantillons} shows the window retaining up to about $1300$ training points at the finest grid resolution. These two criteria are addressed in \cref{sec:CAK_PF}.
+The first point to note is the strong similarity between the RMSE curves obtained with static kriging and AK for all grid resolutions. Apart from a slight reduction in the AK error between $k=60$ and $k=90$, and a slight increase during the first turn, particularly for the 7.5 km grid resolution, the curves almost completely overlap. The absence of any noticeable accuracy loss despite discarding most of the training set can be attributed to the local nature of the AK window. Since discarded points are far from the particle cloud, they have negligible contributions to the map reconstruction at the particle locations. Their removal thus has little effect on the relative particle likelihoods. While this is only shown numerically here, it is the object of \cref{sec:subsampling_error}.
 
-\subsection{Sensitivity to the Window Parameters}
+On the other hand, the NEES curves of both algorithms are significantly different. Although both remain within the $\chi^2$ confidence bounds throughout the trajectory, the NEES of static kriging rises above $2$ around $k=70$ for every resolution but the finest, before decreasing again around $k=125$. In contrast, the NEES of AK remains below $1$ throughout the mission and for all grid resolutions. This may be explained by the non-stationarity of the field. The global kernel would provide a poor description of this portion of the field, whereas the local estimation of the hyperparameters would allow AK to adapt to it. It must also be noted that the RMSE of AK is lower precisely around $k=70$, which further illustrates this explanation.
 
-\section{Clustered Adaptive Kriging}\label{sec:CAK_PF}
+Regarding convergence, the two filters exhibit the same overall trend, with a drop in convergence for both criteria from $\Delta_g=5.5$km onward. Since its NEES is generally more conservative, AK achieves convergence for $87\%$ of the runs at $7.5$km according to the Mahalanobis criterion, compared with $81\%$ for static kriging. Their convergence rates remain similar for the threshold criterion, with the same drop at grid resolutions greater than $5.5$km.
 
-While it outperforms static kriging, the AK window can still 
+Turning finally to the number of retained data, two regimes emerge from \Cref{fig:AK_echantillons}. The first one, during which the size of the adaptive window is determined by the spatial dispersion of the particles, gives way to the second around $k=25$, after which the number of retained points remains of the same order of magnitude as $\tilde{N}_{\min}=25$. In the first regime, using \eqref{eq:AK_window_size} with $d_{\mathrm{pos}}=2$ establishes that the average number of retained training points is:
+\begin{equation}
+	\tilde{N}_k^r\approx\frac{\pi\:r_{\mathrm{cov},k}^2}{\Delta_g^2}
+\end{equation}
+which explains the difference between the six curves at the beginning of the mission.
 
-\subsection{"Réunion" Results}
+The rapid reduction in the number of retained training points also explains the computational cost of AK. Using the approximation that every filter uses $25$ points after $k=50$, the last hundred steps require approximately $100\times5000\times25^2\approx0.31$Gflop of kriging at every grid resolution. This represents $0.7\%$ of the AK kriging cost at $\Delta_g=2.5$km, up to $20\%$ at $7.5$km. The local hyperparameter estimation only adds between $1$ and $5\%$ to these costs, so most of the computational load is incurred at the beginning of the mission, when the window is at its largest.
 
-\begin{figure}[!p]
-	\centering
-	\includegraphics[width=\textwidth]{../../Images/RMSE reunion par maille.pdf}
-	\caption{}\label{fig:reunion_RMSE}
-\end{figure}
+While AK is between $213$ and $629$ times less costly than static kriging for grid resolutions of $7.5$ and $2.5$km respectively, this gap decreases as $\Delta_g$ increases. This happens because the cost of static kriging scales as $\tilde{N}^2$, decreasing by a factor of $85$ between the finest and coarsest grids, whereas the cost of AK-RPF, bounded below by the minimum window size, decreases by only a factor of $29$.
 
-\begin{figure}[!p]
-	\centering
-	\includegraphics[width=\textwidth]{../../Images/NEES reunion par maille.pdf}
-	\caption{}\label{fig:reunion_NEES}
-\end{figure}
-
-\begin{figure}[!htb]
-	\centering\includegraphics[width=\textwidth]{../../Images/Convergence reunion.pdf}
-	\caption{}\label{fig:convergence_reunion}
-\end{figure}
-
-\begin{table}[!htb]
-	\centering\input{include/cout_reunion.tex}
-	\caption{}\label{tab:cout_reunion}
-\end{table}
-
-\subsection{CAK Results}
-
-\begin{figure}[!p]
-	\centering
-	\includegraphics[width=\textwidth]{../../Images/RMSE clusterise par maille.pdf}
-	\caption{}\label{fig:CAK_RMSE}
-\end{figure}
-
-\begin{figure}[!p]
-	\centering
-	\includegraphics[width=\textwidth]{../../Images/NEES clusterise par maille.pdf}
-	\caption{}\label{fig:CAK_NEES}
-\end{figure}
-
-\begin{figure}[!htb]
-	\centering\includegraphics[width=\textwidth]{../../Images/Convergence clusterise.pdf}
-	\caption{}\label{fig:convergence_clusterise}
-\end{figure}
-
-\begin{table}[!htb]
-	\centering\input{include/cout_clusterise.tex}
-	\caption{}\label{tab:cout_clusterise}
-\end{table}
+Taken together, these results show that AK removes the accuracy/cost compromise observed with static kriging, and that random subsampling failed to alleviate. Despite retaining only a small fraction of the available training set, it achieves comparable or better performance, while substantially reducing the overall cost of the filter. At $\Delta_g=2.5$km, its most expensive configuration, the entire AK mission only needs $46.6$Gflop, less than the $81$Gflop required by static kriging for the initial factorisation alone at the same resolution, and even less than the $343$Gflop of the least expensive static kriging configuration, at $\Delta_g=7.5$km.
 
 \begin{comment}
-\subsection{Numerical Results}
+\subsection{Sensitivity to the Window Parameters}
 
-\textbf{TODO: à vérifier — section entièrement rédigée par Claude. Chiffres à
-$n_\mathrm{MC}=100$, à reprendre après le passage à 1000 essais.}
-
-Adaptive kriging is asked one question. Whether restricting the training set to a window costs
-anything in accuracy, and what it saves.
-
-\begin{table}[htbp]
-	\centering
-	\input{include/ak_vs_ok.tex}
-	\caption{Adaptive against static kriging at a survey pitch of $3.50$ km, regularised filter, $n_\mathrm{MC}=1000$ over one hundred survey draws.}\label{tab:AK}
-\end{table}
-
-It costs nothing. The two are indistinguishable at acquisition and the windowed estimator is
-some thirteen per cent better at the end, which is within the dispersion between survey draws
-and should not be read as an improvement. What matters is the last column. \textbf{The window
-holds fifty-three samples where the static estimator reads three thousand one hundred and
-thirty-six}, and the accuracy is the same.
-
-The saving that follows from \cref{th:kriging_mean_cost} is not linear in that ratio. Per step
-the estimator pays one factorisation in
-$\mathcal{O}\left(\tilde{N}^r^3\right)$ and, for each of the $N$ particles, a
-triangular solve in $\mathcal{O}\left(\tilde{N}^r^2\right)$, the second term dominating
-since $N$ far exceeds the window. Summed over the mission, adaptive kriging spends
-$14.4$ Gflop against $7386$ for the static estimator evaluated exactly, a factor of about five
-hundred.
-
-\begin{remark}[Tabulation]\label{th:tabulation}
-	The static estimator admits a precomputation the adaptive one does not. Its mean and
-	variance being fixed functions of the position once the hyperparameters are fitted, they can
-	be evaluated once on a grid covering the flight corridor and read by interpolation
-	thereafter, which costs $4659$ Gflop once and nothing per step. That is why it appears the
-	faster of the two on a wall clock.
-
-	The precomputation presumes the corridor to be known in advance, which is what map-aided
-	navigation is trying to establish. Where it is not, the tabulation is unavailable and the
-	comparison is the one above.
-\end{remark}
-
-\Cref{fig:fenetre} shows why the window is so small. Its radius follows the covariance the
-filter declares, which collapses once the track is acquired, and from the thirtieth step
-onwards the disc contains fewer samples than the floor $\tilde{N}_{min}$ admits. \textbf{For the whole
-tracking phase it is the floor, and not the radius, that sets the window.} The dilation factor
-$\alpha_{\mathrm{cov}}$ is therefore inert over that phase, which a sweep confirms, and $\tilde{N}_{min}$ is not a
-guard against a degenerate case but the operating point itself.
-
-\begin{figure}[htbp]
-	\centering\includegraphics[width=0.7\textwidth]{../../Images/Fenetre au cours du vol.pdf}
-	\caption{Samples retained per query along the flight. The dotted line is the floor $\tilde{N}_{min}$, and the dashed one marks the first half-turn.}\label{fig:fenetre}
-\end{figure}
+\textbf{TODO: à vérifier — brouillon rédigé par Claude. Le balayage a été relevé sur le CA-OK
+sous le RPF, à un pas de relevé de $3.50$km, et non par maille ; le coût de tabulation de la
+remarque en est également tiré.}
 
 Two parameters define that window, and \cref{tab:fenetrage} reports what each one
 buys. Neither buys accuracy. \textbf{Over a window grown from thirty-four samples to
@@ -301,20 +229,65 @@ in it, and fourteen on the factorisations, cubic.
 	\caption{Window parameters of the adaptive estimator, swept one at a time around the operating point of this chapter. Clustered adaptive kriging under the regularised filter, $n_\mathrm{MC}=1000$ over one hundred survey draws.}\label{tab:fenetrage}
 \end{table}
 
-The dilation factor is the more inert of the two, and \cref{fig:fenetre} says why: over the
-tracking phase the disc it scales holds fewer samples than the floor admits, so it has nothing
-left to act on. The floor is the exception, and only during acquisition — at fifteen samples the
-median error at the thirtieth step rises by a fifth, the window being then too small to
-constrain an estimate whose cloud is still wide, and from twenty-five onwards it is flat.
+The dilation factor is the more inert of the two, and \Cref{fig:AK_echantillons} says why: over
+the tracking phase the disc it scales holds fewer samples than the floor admits, so it has
+nothing left to act on. The floor is the exception, and only during acquisition — at fifteen
+samples the median error at the thirtieth step rises by a fifth, the window being then too small
+to constrain an estimate whose cloud is still wide, and from twenty-five onwards it is flat.
 \textbf{Both are therefore taken at the cheap end of a plateau}, the dilation freely, the floor
 with the acquisition phase in mind.
 
-The ceiling $\tilde{N}_{max}$ and the size of the subsample used for the local hyperparameter fit were
+The ceiling $\tilde{N}_{\max}$ and the size of the subsample used for the local hyperparameter fit were
 swept in the same way and are flat as well, the ceiling never binding above two thousand:
 two thousand and six thousand four hundred return the same figures.
 
+\begin{remark}[Tabulation]\label{th:tabulation}
+	The static estimator admits a precomputation the adaptive one does not. Its mean and
+	variance being fixed functions of the position once the hyperparameters are fitted, they can
+	be evaluated once on a grid covering the flight corridor and read by interpolation
+	thereafter, which costs $4659$ Gflop once and nothing per step. That is why it appears the
+	faster of the two on a wall clock.
 
-\section{Clustered Particle Filtering}\label{sec:CAK_PF}
+	The precomputation presumes the corridor to be known in advance, which is what map-aided
+	navigation is trying to establish. Where it is not, the tabulation is unavailable and the
+	comparison is the one above.
+\end{remark}
+\end{comment}
+
+\section{Clustered Adaptive Kriging}\label{sec:CAK_PF}
+
+While it outperforms static kriging, the AK window can still fail to satisfy the bottom two requirements established at the beginning of \cref{sec:AK}. When a sufficiently large number of particles uniformly covers a wide region of the position subspace, any window that contains the particle set necessarily retains a large number of training points.
+
+In other cases however, the limitation stems from the shape of the subsampling window. In particular, a single spherical window is poorly suited to non-Gaussian particle distributions, especially multimodal PDFs, for which large regions within the window may contain few or no particles. This section introduces two methods to address this issue, either by adapting the shape of a single window to that of the particle distribution, or by using multiple spherical windows around clusters of particles.
+
+\subsection{Numerical Results}
+
+\begin{figure}[!p]
+	\centering
+	\includegraphics[width=\textwidth]{../../Images/RMSE CAK et NNAK par maille.pdf}
+	\caption{}\label{fig:CAK_NNAK_RMSE}
+\end{figure}
+
+\begin{figure}[!p]
+	\centering
+	\includegraphics[width=\textwidth]{../../Images/NEES CAK et NNAK par maille.pdf}
+	\caption{}\label{fig:CAK_NNAK_NEES}
+\end{figure}
+
+\begin{figure}[!htb]
+	\centering\includegraphics[width=\textwidth]{../../Images/Convergence CAK et NNAK.pdf}
+	\caption{}\label{fig:convergence_CAK_NNAK}
+\end{figure}
+
+\begin{table}[!htb]
+	\centering\input{include/cout_CAK_NNAK.tex}
+	\caption{}\label{tab:cout_CAK_NNAK}
+\end{table}
+
+\begin{comment}
+\textbf{TODO: à vérifier — brouillon rédigé par Claude, matière pour la méthode du CAK. Les
+résultats numériques du brouillon ont été retirés : ils dataient de $n_\mathrm{MC}=100$ et de
+fenêtres fragmentées, que les lots à mille essais contredisent.}
 
 \subsection{Clustering Methods}
 
@@ -360,70 +333,4 @@ faster than the count of windows grows. It is unfavourable when the cloud is uni
 mean shift is then paid for a partition of one, and the method degenerates by construction into
 the adaptive kriging of \cref{sec:AK_PF} in that case.
 
-\subsection{Numerical Results}
-
-\textbf{TODO: à vérifier — section entièrement rédigée par Claude. Chiffres à
-$n_\mathrm{MC}=100$, à reprendre après le passage à 1000 essais.}
-
-Clustering is asked the same question as the windowing before it, and answers it differently.
-It buys nothing in accuracy and a great deal in cost, and both halves of that sentence need
-saying.
-
-\begin{table}[htbp]
-	\centering
-	\input{include/cak_vs_ak.tex}
-	\caption{Clustered against plain adaptive kriging at a survey pitch of $3.50$ km, regularised filter, $n_\mathrm{MC}=1000$ over one hundred survey draws.}\label{tab:CAK}
-\end{table}
-
-The two are indistinguishable. Tested further, at five survey pitches and with the initial
-uncertainty raised until the posterior remains multimodal for the whole flight, the two stay
-within five per cent of one another everywhere and the sign of the difference changes without
-pattern. \textbf{Clustering does not make the estimate better.}
-
-\begin{table}[htbp]
-	\centering
-	\input{include/cout_cak.tex}
-	\caption{Analytic cost per run, in Gflop, at a survey pitch of $3.50$ km. The mean shift is counted, including the steps at which it returns a single mode.}\label{tab:cout_CAK}
-\end{table}
-
-What it makes cheaper is the whole of it, by a factor of about thirteen, and the two columns
-say why. Plain adaptive kriging factorises one window of $\tilde{N}^r$ samples and
-solves all $N$ particles against it. Clustered adaptive kriging factorises one window per mode,
-which costs $\sum_c n_c^3$ instead of $\left(\sum_c n_c\right)^3$, and \textbf{each mode solves
-only the particles that belong to it}, so the dominant term is divided twice over. Measured, the
-factor is three on the factorisations and twenty-one on the queries.
-
-\begin{remark}[Where the saving is made]\label{th:cak_acquisition}
-	\Cref{fig:modes} shows the mean shift returning fifty-four modes at the first step and one
-	from the sixteenth onwards, after which clustered adaptive kriging degenerates by
-	construction into the plain windowed estimator. The whole of the saving is therefore made
-	during the acquisition phase, which is also where the single window of \cref{sec:AK_PF}
-	swells to several hundred samples.
-
-	The mean shift is nevertheless paid at every step, including the hundred and thirty-four on
-	which it returns one mode. It accounts for fourteen per cent of the clustered estimator's
-	cost, and that share is counted in \cref{tab:cout_CAK}.
-\end{remark}
-
-\begin{figure}[htbp]
-	\centering\includegraphics[width=0.7\textwidth]{../../Images/Modes au cours du vol.pdf}
-	\caption{Modes returned by the mean shift along the flight. The dashed line marks the first half-turn.}\label{fig:modes}
-\end{figure}
-
-The scenario of \cref{sec:scenario} exercises the clustering over the first tenth of its flight
-alone, its initial uncertainty being modest enough that a single branch resolves the ambiguity.
-\textbf{A less precise survey sustains it much longer.} At a pitch of $5.50$ km and an initial
-deviation of twelve kilometres, seventy-two per cent of the steps carry more than one mode
-against eleven here, at an unchanged convergence rate, and the clustered estimator keeps the
-same advantage in cost and the same absence of one in accuracy. The regime in which clustering
-was conceived is therefore reached by degrading the map, not by changing the filter.
-
-\begin{remark}[Wall clock]\label{th:temps_mur}
-	Clustered adaptive kriging runs some two and a half times slower than the plain windowed
-	estimator on a wall clock while consuming thirteen times less arithmetic. Its mean shift is
-	an interpreted loop over sixty seeds where the kriging descends into optimised linear
-	algebra, and accounts for fourteen per cent of the operations and two hundred and thirty per
-	cent of the time. The measurements of this chapter are therefore reported as operation
-	counts, which are reproducible, and not as durations, which are not.
-\end{remark}
 \end{comment}

@@ -138,17 +138,37 @@ function exporter(fig, nom, pdf_w, pdf_h, img_dir, vectoriel)
 % L'export partagé par les deux figures : page figée, donc même échelle et même police
 % apparente partout. La transparence peut forcer MATLAB à rastériser une partie de la
 % page ; si les surfaces sortent plates ou moirées, passer vectoriel à false.
+%
+% Le PDF n'est remplacé que si le dessin a changé, comme dans figures_campagnes.m. MATLAB
+% inscrit dans chaque export sa date de création et un identifiant /ID recalculé à chaque
+% fois, et git signalait sinon chaque figure à chaque passage, même inchangée.
     if ~exist(img_dir, 'dir')
         mkdir(img_dir);
     end
     set(fig, 'PaperUnits', 'points', 'PaperSize', [pdf_w pdf_h], ...
              'PaperPosition', [0 0 pdf_w pdf_h]);
     cible = fullfile(img_dir, [nom '.pdf']);
+    tmp   = [tempname '.pdf'];
     if vectoriel
-        print(fig, cible, '-dpdf', '-vector');
+        print(fig, tmp, '-dpdf', '-vector');
     else
-        print(fig, cible, '-dpdf', '-image', '-r300');
+        print(fig, tmp, '-dpdf', '-image', '-r300');
     end
+    if isfile(cible) && strcmp(sans_horodatage(tmp), sans_horodatage(cible))
+        delete(tmp);
+    else
+        movefile(tmp, cible, 'f');
+    end
+end
+
+function s = sans_horodatage(f)
+% Les octets d'un PDF sans sa date ni son identifiant. Lu en octets et non en caractères :
+% un décodage confondrait des flux compressés différents.
+    fid = fopen(f, 'r');
+    s   = char(fread(fid, Inf, '*uint8')');
+    fclose(fid);
+    s = regexprep(s, '/(CreationDate|ModDate)\s*\([^)]*\)', '');
+    s = regexprep(s, '/ID\s*\[[^\]]*\]', '');
 end
 
 function K = se_kernel(Xa, Xb, sigma_f, ell)

@@ -460,7 +460,7 @@ end
 %% ------------------------------- fenêtre, clusters, équations du krigeage
 
 function idx = window_select(X, ctx, par)
-% Un disque centré sur la position prédite, de rayon alpha_W fois le demi-grand axe de
+% Un disque centré sur la position prédite, de rayon alpha_cov fois le demi-grand axe de
 % l'ellipse à 3 sigma, contenant entre n_min et n_max échantillons.
 %
 % Le plancher est le minimum_echantillons de 2A : il empêche un filtre devenu

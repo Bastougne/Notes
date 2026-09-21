@@ -459,7 +459,10 @@ function latex_tables(stats, regions, tab_dir, n_mc)
     fid = fopen(fullfile(tab_dir, 'kriging_rmse.tex'), 'w', 'n', 'UTF-8');
     write_header(fid, n, n_mc);
     fprintf(fid, '\\begin{tabular}{|l|%s|}\\hline\n', cols);
-    fprintf(fid, 'Estimator & \\multicolumn{%d}{c|}{ARMSE}\\\\\\hline\n', n);
+    % « Estimator » a cheval sur les deux lignes d'en-tete : sans multirow, la seconde
+    % laissait une case vide sous lui. Le filet ne court donc que sur les colonnes de droite.
+    fprintf(fid, ['\\multirow{2}{*}{Estimator} & \\multicolumn{%d}{c|}{ARMSE}' ...
+                  '\\\\\\cline{2-%d}\n'], n, n + 1);
     write_region_row(fid, regions, 1);
     for i = 1:numel(stats)
         fprintf(fid, '%s', stats(i).name);
@@ -472,8 +475,9 @@ function latex_tables(stats, regions, tab_dir, n_mc)
     fid = fopen(fullfile(tab_dir, 'kriging_covariance.tex'), 'w', 'n', 'UTF-8');
     write_header(fid, n, n_mc);
     fprintf(fid, '\\begin{tabular}{|l|%s|%s|}\\hline\n', cols, cols);
-    fprintf(fid, ['Estimator & \\multicolumn{%d}{c|}{Confidence half-width}' ...
-                  ' & \\multicolumn{%d}{c|}{$R_{\\hat{m}}/R_{\\mathrm{K}}$}\\\\\\hline\n'], n, n);
+    fprintf(fid, ['\\multirow{2}{*}{Estimator} & \\multicolumn{%d}{c|}{Confidence half-width}' ...
+                  ' & \\multicolumn{%d}{c|}{$R_{\\hat{m}}/R_{\\mathrm{K}}$}' ...
+                  '\\\\\\cline{2-%d}\n'], n, n, 2 * n + 1);
     write_region_row(fid, regions, 2);
     for i = 1:numel(stats)
         fprintf(fid, '%s', stats(i).name);
@@ -527,10 +531,20 @@ function latex_cost_table(tab_dir, n_sweep, d_z, deg_poly)
     % L'unite est factorisee dans l'en-tete et seul le prefixe reste en cellule : coller
     % « flop » aux six cellules fait deborder le tableau du bloc de texte de 69 pt, et le
     % prefixe suffit a garder trois chiffres significatifs par valeur.
-    fprintf(fid, ['Estimator & \\multicolumn{%d}{c|}{Setup (flops)}' ...
-                  ' & \\multicolumn{%d}{c|}{Per query (flops)}\\\\\\hline\n'], n, n);
-    fprintf(fid, '$\\tilde{N}$');
-    fprintf(fid, ' & $%d$', [n_sweep, n_sweep]);
+    fprintf(fid, ['\\multirow{2}{*}{Estimator} & \\multicolumn{%d}{c|}{Setup (flops)}' ...
+                  ' & \\multicolumn{%d}{c|}{Per query (flops)}' ...
+                  '\\\\\\cline{2-%d}\n'], n, n, 2 * n + 1);
+    % LE NOM DU BALAYAGE VA SUR LES VALEURS QU'IL DESIGNE, en tete de chaque groupe, et non
+    % dans la colonne des estimateurs, ou il coupait en deux le titre de celle-ci.
+    for g = 1:2
+        for i = 1:n
+            if i == 1
+                fprintf(fid, ' & $\\tilde{N}=%d$', n_sweep(i));
+            else
+                fprintf(fid, ' & $%d$', n_sweep(i));
+            end
+        end
+    end
     fprintf(fid, ' \\\\\\hline\n');
     for i = 1:numel(names)
         fprintf(fid, '%s', names{i});
@@ -643,5 +657,27 @@ function save_kriging(name, x, f_true, z_hat, R_hat, x_train, z_train, ...
     end
     set(fig, 'PaperUnits', 'points', 'PaperSize', [pdf_w pdf_h], ...
              'PaperPosition', [0 0 pdf_w pdf_h]);
-    print(fig, fullfile(img_dir, [name '.pdf']), '-dpdf', '-vector');
+    % Written to a temporary file, and moved over the target only if the drawing
+    % changed. MATLAB stamps every export with its creation date and a fresh /ID, so
+    % two exports of an identical figure differ by some sixty bytes and git flagged
+    % every figure on every run.
+    target = fullfile(img_dir, [name '.pdf']);
+    tmp    = [tempname '.pdf'];
+    print(fig, tmp, '-dpdf', '-vector');
+    if isfile(target) && strcmp(without_timestamps(tmp), without_timestamps(target))
+        delete(tmp);
+    else
+        movefile(tmp, target, 'f');
+    end
+end
+
+function s = without_timestamps(f)
+% The bytes of a PDF without its creation date and document ID, the only fields
+% that change between two exports of an identical figure. Read as bytes rather than
+% characters: decoding would map distinct compressed streams to the same text.
+    fid = fopen(f, 'r');
+    s   = char(fread(fid, Inf, '*uint8')');
+    fclose(fid);
+    s = regexprep(s, '/(CreationDate|ModDate)\s*\([^)]*\)', '');
+    s = regexprep(s, '/ID\s*\[[^\]]*\]', '');
 end

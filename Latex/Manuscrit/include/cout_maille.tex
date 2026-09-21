@@ -7,10 +7,10 @@
 % resolution.
 
 \begin{tabular}{|l|ccc|c|}\hline
- & \multicolumn{3}{c|}{Cost (flops)} & Memory\\
-Observation model & Setup & Queries & Total & (bytes)\\\hline
-Known map & -- & $6$M & $6$M & $323$k\\
-Bilinear interpolation & -- & $6$M & $6$M & $150$k\\\hline
+\multirow{2}{*}{Observation model} & \multicolumn{3}{c|}{Cost (flops)} & \multirow{2}{*}{Memory (bytes)}\\\cline{2-4}
+ & Setup & Queries & Total & \\\hline
+Known map & $0$ & $6$M & $6$M & $323$k\\
+Bilinear interpolation & $0$ & $6$M & $6$M & $150$k\\\hline
 Static kriging, $2.5$km & $81$G & $29.2$T & $29.3$T & $312$M\\
 Static kriging, $3.5$km & $10.3$G & $7.38$T & $7.39$T & $78.8$M\\
 Static kriging, $4.5$km & $2.42$G & $2.81$T & $2.81$T & $30$M\\

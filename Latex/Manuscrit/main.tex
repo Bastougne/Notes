@@ -36,13 +36,15 @@
 
 \makeatletter
 \renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}} % identifiants de lignes uniques pour les algorithmes
+
+\let\ftype@table\ftype@figure % donne aux tableaux la classe des figures pour conserver l'ordre entre les 2 types
 \makeatother
 
 \usepackage[
 	colorlinks=true,
 	linkcolor=blue,
 	citecolor=red
-	]{hyperref} % références interactibles
+	]{hyperref} % références interactives
 
 \usepackage{
 	cleveref, % références avec noms automatiques
@@ -95,7 +97,7 @@
 
 \input{include/4_kriging_navigation.tex}
 \input{include/4_adaptive_kriging.tex}
-\input{include/4_subsampling.tex}
+\input{include/4_subsampling save.tex}
 
 \part{Appendices}
 
