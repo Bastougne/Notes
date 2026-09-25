@@ -1,80 +1,64 @@
-\chapter{Plan global}
+\chapter{Introduction}
 
-\vfill
-\localtableofcontents
-\vfill
-\newpage
+\section{Motivation and Context}
 
-\section{Introduction}
+In order for an unmanned vehicle to move autonomously from one point to another, the integration of several disciplines is required, ranging from motor control to trajectory planning. This work focuses on autonomous navigation, which corresponds to the estimation of the vehicle's state, including its position, angular orientation and velocity, using only the information available to the vehicle at any given time.
 
-\begin{itemize}
-	\item contexte : navigation autonome, pas de GNSS mais des champs physiques
-	\item motivation : limites des méthodes classiques (Kalman, carte embarquée connue)
-	\item objectif : reconstruction de la fonction d'observation par GP, intégration dans le cadre de la navigation bayésienne
-	\item principales contributions
-	\item annonce du plan
-\end{itemize}
+One of the simplest ways to do this is through the use of inertial measurement units or wheel encoders, when applicable, to estimate the odometry of the vehicle over short periods of time. While this solution is acceptable for short missions, the inertial measurements are imperfect due to bias or scale factors. Since inertial navigation integrates these measurements once or twice, the resulting solution drifts over time, and cannot be used for longer missions. In order to keep the inertial solution bounded, data fusion algorithms can use an additional source of information to periodically correct the estimated state of the vehicle.
 
-Ne pas oublier la progession des problèmes:
-\begin{enumerate}
-	\item drift of inertial navigation
-	\item GNSS data blurred or unavailable
-	\item high initial uncertainty
-	\item non-injective, non-linear, multimodal environments
-	\item undersampled, poorly-known environment model
-	\item weight degeneracy, particle impoverishment
-	\item non-stationarity of the field renders distant samples locally irrelevant
-	\item high computational cost of matrix inversion and multiplications
-	\item no preexisting data about the environment
-\end{enumerate}
+In open environments, this is usually achieved by using the Global Navigation Satellite System (GNSS). In many situations however, such as underwater, underground or indoors, GNSS data may be unavailable. Moreover, signal interference, jamming or spoofing may prevent reliable GNSS-based navigation algorithms.
 
-\section{3) Processus gaussiens}
+In GNSS-denied scenarios, navigation can instead be aided by the physical fields through which the vehicle travels, such as sea floor depth, terrain or anomalies in the ambient gravitational or magnetic field. Given a map of such a field, the values measured by an embedded sensor along the trajectory can be compared with the map to estimate the likely position of the vehicle.
 
-\begin{itemize}
-	\item méthodes de réduction de rang
-	\item lien avec les RKHS + Kalman sur RKHS (ailleurs ?)
-\end{itemize}
+Physical field-aided navigation falls under the scope of Bayesian estimation methods, the most famous of which is the Kalman filter. In practice, however, two main issues prevent the use of this algorithm. First, the observed physical field may be strongly non-linear and non-injective, so that a single observation may remain compatible with several, possibly distant, hypotheses about the vehicle state. This can result in highly multimodal state distributions that cannot be adequately represented by a Kalman filter. Second, the initial state of the vehicle may be poorly known at the beginning of the mission, which may prevent localised approximations from converging towards the true state.
 
-\section{4) CAK-PF}
+An alternative to Kalman filtering are particle filters, which use Monte Carlo approximations to represent the probability density of the vehicle state throughout the mission. While these methods are robust to multimodal densities and high initial uncertainty, they suffer from two problems, known as weight degeneracy and particle impoverishment, potentially limiting their ability to operate reliably over long missions. More advanced particle filters, used throughout this work, are thus required.
 
-\begin{itemize}
-	\item fenêtrage, clustering par Mean-Shift
-	\item apprentissage des hyperparamètres
-	\item étude d'ablation
-	\item précision en fonction du nombre de données disponibles
-	\item résultats numériques (RMSE, temps de calcul, comparaisons avec la BCR)
-\end{itemize}
+Although particle filters provide a reliable solution to the navigation problem, they require an embedded map of the environment. When no such map is available, the observation model is itself unknown and must be inferred during the mission. In this work, we examine two scenarios depending on the amount of prior information available about the environment.
 
-sous-échantillonnage:
-\begin{itemize}
-	\item erreurs théoriques
-	\item heuristiques de sous-échantillonnage (fenêtrage, clusterisation,\\sous-échantillonnage aléatoire)
-	\item parler de l'intérêt pour la navigation ? permet de reconstruire la fonction d'observation ?
-	\item résultats numériques sans navigation
-\end{itemize}
+The first one arises when the environment is poorly known, and the vehicle only has access to a degraded map consisting of sparse and noisy measurements of the field.
 
-\section{SLAM}
+\textbf{TODO: Ancienne intro + à finir}
+
+
+A diffuse initial belief and a multimodal likelihood together rule out the linear-Gaussian estimators on which classical navigation is built. In the linear-Gaussian case, the conditional state density remains Gaussian and the optimal estimate is delivered in closed form by the Kalman filter; under strong non-linearities, this density is no longer Gaussian, and the Kalman filter and its linearised variants fail to represent it. Particle filters address this regime by approximating the conditional density with a weighted set of samples, at the cost of two further difficulties: the samples must be numerous enough to cover the state space, and the filter is prone to the degeneracy of its weights and to the impoverishment of its particle set over long missions.
+
+
+
+Reconstructing the observation function from the available field data, rather than relying on a fixed embedded map, is the approach pursued in this thesis, and Gaussian-process regression -- kriging -- is the natural tool for the task. This reconstruction, however, carries its own difficulties. Each evaluation of a kriged field is costly, which is at odds with the real-time budget of an embedded filter that must query the field for every particle at every step.
+
+\begin{challenge}[Computational cost of kriging]
+	Kriging-based reconstructions of the environment may be computationally expensive, making its direct use impractical under real-time constraints.
+\end{challenge}
+
+Kriging also rests, in its standard form, on a stationarity assumption that physical fields seldom satisfy over large areas, so that data gathered far from the vehicle may bias the local reconstruction rather than improve it.
+
+\begin{challenge}[Non-stationary environment]
+	The observed physical field is not necessarily stationary, potentially causing data from distant regions to introduce errors or bias into local reconstructions.
+\end{challenge}
+
+In the most demanding scenario, finally, no prior data are available at all: the field must be discovered and mapped during the mission itself, jointly with the localisation of the vehicle on it.
+
+\begin{challenge}[Unknown environment]
+	In the most challenging scenarios, no prior data are available from the environment, making kriging impossible.
+\end{challenge}
+
+\section{Objective and Contributions}
+
+The objective of this thesis is to navigate autonomously on physical fields by reconstructing the observation function with Gaussian processes and by embedding this reconstruction within the Bayesian navigation framework. The Gaussian-process model turns the raw, possibly sparse and degraded field data into a smooth observation function together with a quantification of its own uncertainty, which the particle filter exploits to correct the inertial drift. The two probabilistic languages -- that of the state and that of the map -- are thereby carried within a single estimator. Around this idea, the contributions of the thesis are the following.
 
 \begin{itemize}
-	\item GP stationnaires ou stationnaires par morceaux
-	\item multi capteurs en mailles impossibles car dimensions trop proches
-	\item RBPF/méthode de Manon
-	\item RKHS/méthode de Karim
+	\item A particle-filtering scheme in which the observation function is reconstructed by kriging rather than read from a fixed map, allowing navigation on a field known only through sparse and noisy data, and naturally propagating the uncertainty of the reconstruction into the state estimate.
+	\item An adaptive kriging scheme that restores the tractability of the reconstruction under real-time constraints and accommodates the non-stationarity of the field, by kriging only from the data relevant to the current region; the error incurred by this subsampling is bounded theoretically.
+	\item A treatment of the map-free case, in which localisation and mapping are performed jointly -- through both a Rao-Blackwellised particle filter and a reproducing-kernel-Hilbert-space reconstruction from a dictionary of basis functions -- together with the identification of the learning bias that this joint estimation introduces.
 \end{itemize}
 
-\section{Ouverture sur la fusion de champs ?}
+\section{Outline}
 
-\begin{itemize}
-	\item à voir mais information de Fisher théorique
-	\item tests sur les 2 cas précédents
-\end{itemize}
+The manuscript is organised in two parts. The first, \emph{Mathematical Foundations}, sets up the two pillars of the approach. \Cref{sec:Bayesian_estimation} recalls the Bayesian formulation of state estimation and the filters that solve it, from the Kalman filter in the linear-Gaussian case to the Monte Carlo and particle filters -- including their regularised and Rao-Blackwellised variants -- that address the non-linear, multimodal regime of navigation. \Cref{sec:Gaussian_processes} develops the Gaussian-process model later used to reconstruct the observation function: kriging and its universal form, the reduced-rank approximations that make it affordable, and the reproducing-kernel-Hilbert-space viewpoint that underpins the map-free case.
 
-\section{Conclusion et perspectives}
+The second part, \emph{Navigating on Gaussian Processes}, brings the two pillars together. \Cref{sec:kriging_navigation} embeds the kriged observation function within the particle filter and introduces adaptive kriging, which reconstructs the field locally from a relevant subset of the data, with a theoretical bound on the resulting subsampling error. \Cref{sec:SLAM} addresses the case of an unknown field, where the map is built online jointly with the navigation, through a Rao-Blackwellised and a reproducing-kernel-Hilbert-space approach, and analyses the learning bias inherent to this joint estimation. A concluding chapter summarises the contributions and opens onto the fusion of several physical fields.
 
-\begin{itemize}
-	\item résumé des contributions : GP + FP
-	\item adaptation du modèle en fonction de l'état (carte dégradée)
-	\item reconstruction à partir d'un dictionnaire de fonctions de base (sans carte)
-	\item limites des méthodes
-	\item perspectives futures (modèles, méthodologie, ...)
-\end{itemize}
+\section{Publications}
+
+\textbf{TODO: lister ici les publications (FUSION, EUSIPCO, etc.) -- je n'ai pas les références exactes sous la main.}

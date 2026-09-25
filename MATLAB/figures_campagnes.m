@@ -291,10 +291,22 @@ ARMSE = nan(numel(pas), 2);      % (:,1) bilineaire, (:,2) krigeage
 for ip = 1:numel(pas)
     f = dir(fullfile(here, 'cache', sprintf('ok_*_p%d_*_matern32_ph_j30.mat', pas(ip) * 1e3)));
     if isempty(f), continue, end
+    % LES PLUS GROS D'ABORD, ET NON LES PREMIERS PAR ORDRE ALPHABETIQUE : une entree sans
+    % tabulation pese le quart des autres, et si elle passait en tete c'est elle qui
+    % fixerait la grille de reference, ecartant les dix tirages complets au lieu d'elle.
+    [~, ordf] = sort([f.bytes], 'descend');
+    f = f(ordf);
     f = f(1:min(n_draw, numel(f)));
-    S2 = 0; S2b = 0; vrai = [];
+    S2 = 0; S2b = 0; vrai = []; n_lus = 0;
     for j = 1:numel(f)
         C  = load(fullfile(here, 'cache', f(j).name));
+        % UNE ENTREE DE CACHE PEUT N'AVOIR PAS DE TABULATION (23 septembre) : une campagne
+        % lancee sans le modele 'ok' ecrit le releve sans l'estimateur tabule, et son
+        % fichier porte le meme nom, a la graine pres. Elle est sautee plutot que de faire
+        % tomber la figure — ce que la difference de taille des fichiers avait signale.
+        if ~isfield(C, 'tab') || ~isfield(C.tab, 'z') || isempty(C.tab.z), continue, end
+        if ~isempty(vrai) && numel(C.tab.z) ~= numel(vrai), continue, end
+        n_lus = n_lus + 1;
         st = C.tab.step;
         ax = st(2, 1) + (0:size(C.tab.z, 2) - 1) * st(1, 1);
         ay = st(2, 2) + (0:size(C.tab.z, 1) - 1) * st(1, 2);
@@ -314,10 +326,11 @@ for ip = 1:numel(pas)
         F  = scatteredInterpolant(sv.X(1, :)', sv.X(2, :)', sv.z, 'linear', 'nearest');
         S2b = S2b + (F(P(1, :)', P(2, :)') - vrai).^2;
     end
-    ARMSE(ip, 2) = mean(sqrt(S2  / numel(f)));
-    ARMSE(ip, 1) = mean(sqrt(S2b / numel(f)));
+    if n_lus == 0, continue, end
+    ARMSE(ip, 2) = mean(sqrt(S2  / n_lus));
+    ARMSE(ip, 1) = mean(sqrt(S2b / n_lus));
     fprintf('  %.1f km : ARMSE krigeage %.1f %s, bilineaire %.1f %s (%d tirages)\n', ...
-            pas(ip), ARMSE(ip, 2), par.unit, ARMSE(ip, 1), par.unit, numel(f));
+            pas(ip), ARMSE(ip, 2), par.unit, ARMSE(ip, 1), par.unit, n_lus);
 end
 
 % UN EQUIVALENT SIMPLE. Sur la plage balayee, l'ARMSE suit une loi LOGARITHMIQUE de la
@@ -507,17 +520,25 @@ exporter(fig, 'Erreur finale par maille', textwidth, 230, img_dir);
 % ON IDENTIFIE LE SECOND LOT PAR SON CONTENU. Le balayage multimodal porte lui aussi
 % krig.pas sur un lot 'libre' a 1000 essais ; seul sigma_0 les separe. Sans ce test, les
 % figures iraient chercher le mauvais des deux des que le multimodal aura fini.
+% TOUS LES LOTS APPARIES SONT RETENUS, ET NON LE SEUL PLUS RECENT (23 septembre) : le
+% premier fournit le vivier, les suivants servent a completer un modele qui lui manquerait.
+% Voir la boucle de complement, apres la table des methodes.
 dE = dir(fullfile(here, 'resultats', '*_reference_libre_*runs.mat'));
 [~, ordE] = sort([dE.datenum], 'descend');
-SE = [];
+apparies = {};  parApp = {};
 for k = ordE(:)'
     f = fullfile(here, 'resultats', dE(k).name);
     p = load(f, 'par');
     if ~isfield(p.par, 'balayage') || ~strcmp(p.par.balayage.champ, 'krig.pas'), continue, end
     if p.par.mc.n_runs ~= par.mc.n_runs || p.par.sigma_0(1) > 10e3, continue, end
-    fprintf('Lot des quatre modeles : %s\n', dE(k).name);
-    SE = load(f);
-    break
+    apparies{end + 1} = f;        %#ok<SAGROW>
+    parApp{end + 1}   = p.par;    %#ok<SAGROW>
+end
+SE = [];
+if ~isempty(apparies)
+    [~, nm, ex] = fileparts(apparies{1});
+    fprintf('Lot des quatre modeles : %s%s\n', nm, ex);
+    SE = load(apparies{1});
 end
 
 if isempty(SE)
@@ -548,8 +569,46 @@ cand = {'connue',   'connue'
         'ak',       'adaptatif'
         'cak',      'CA-OK'
         'eclairci', 'clairci'
-        'reunion',  'union'};
+        'reunion',  'union'
+        'mcak',     'MCAK'};
 n_mod = size(cand, 1);
+
+% UN MODELE AJOUTE APRES COUP N'OBLIGE PAS A REJOUER LE LOT ENTIER (23 septembre). Les
+% releves, les etats initiaux et les bruits sont des fonctions deterministes de
+% par.run.seed, donc deux lots du meme scenario portent LES MEMES ESSAIS : un modele absent
+% du lot principal se prend dans un autre lot apparie, et ses courbes se superposent aux
+% autres sans reserve. C'est ce qui evite de rejouer le krigeage statique, de loin le plus
+% cher, pour ajouter une variante qui ne le touche pas.
+%
+% DEUX GARDE-FOUS, parce qu'un appariement silencieux a deja fausse des figures. On
+% n'ajoute QUE les cles absentes — l'appariement retient la premiere entree qui convient,
+% donc le lot principal garde la priorite sur tout ce qu'il porte deja — et seulement
+% depuis un lot dont les reglages coincident champ par champ. Ce qui est complete est
+% annonce a la console, avec le fichier d'ou il vient.
+for kf = 2:numel(apparies)
+    absentes = find(~cellfun(@(m) any(contains(nomP, m)), cand(:, 2)'));
+    if isempty(absentes), break, end
+    S2 = load(apparies{kf});
+    r2 = reshape(S2.res(strcmp({S2.res.filter}, 'RPF')), 1, []);
+    n2 = cellfun(@char, {r2.model}, 'UniformOutput', false);
+    garde = false(size(r2));  pris = {};
+    for im = absentes
+        hit = contains(n2, cand{im, 2});
+        if ~any(hit), continue, end
+        if ~memes_reglages(parApp{1}, parApp{kf}, cand{im, 1}), continue, end
+        garde = garde | hit;
+        pris{end + 1} = cand{im, 1};   %#ok<SAGROW>
+    end
+    if ~any(garde), continue, end
+    r2 = r2(garde);
+    for ch = setdiff(fieldnames(r2), fieldnames(pool))', [pool.(ch{1})] = deal([]); end
+    for ch = setdiff(fieldnames(pool), fieldnames(r2))', [r2.(ch{1})]   = deal([]); end
+    pool = [orderfields(pool), orderfields(r2)];
+    nomP = cellfun(@char, {pool.model}, 'UniformOutput', false);
+    balP = [pool.balayage] / 1e3;
+    [~, nm2, ex2] = fileparts(apparies{kf});
+    fprintf('  complete par %s%s : %s\n', nm2, ex2, strjoin(pris, ', '));
+end
 
 CRB  = nan(n_it, numel(pas), n_mod);       % RMSE par pas
 CNE  = nan(n_it, numel(pas), n_mod);       % NEES par pas
@@ -630,10 +689,15 @@ end
 % l'une garde la precision de l'AK pour moins cher, l'autre descend plus bas en cout mais
 % perd de la coherence. Les series 'reunion par maille' et 'clusterise par maille' ont ete
 % supprimees le meme jour, PDF et tableaux compris, la serie fusionnee les remplacant.
-etapes = {[1 3 2],   'par maille',           'Convergence par maille', ''
-          [1 3 6],   'eclairci par maille',  'Convergence eclairci',   'cout_eclairci'
-          [1 3 4],   'adaptatif par maille', 'Convergence adaptatif',  'cout_adaptatif'
-          [1 4 5 7], 'CAK et NNAK par maille', 'Convergence CAK et NNAK', 'cout_CAK_NNAK'};
+%
+% ELLE EN PORTE CINQ DEPUIS LE 22 SEPTEMBRE, la variante reunie du CAK ayant rejoint la
+% comparaison, ET L'ORDRE EST CELUI OU LE MANUSCRIT LES ANNONCE : AK, NNAK, MCAK, ICAK.
+% Il va de la partition la plus fine a la plus grossiere pour les trois dernieres, et
+% separe les deux variantes du clustering par ce qu'elles font de leurs fenetres.
+etapes = {[1 3 2],     'par maille',           'Convergence par maille', ''
+          [1 3 6],     'eclairci par maille',  'Convergence eclairci',   'cout_eclairci'
+          [1 3 4],     'adaptatif par maille', 'Convergence adaptatif',  'cout_adaptatif'
+          [1 4 7 8 5], 'fenetres par maille',  'Convergence fenetres',   'cout_fenetres'};
 for s = 1:size(etapes, 1)
     sel  = etapes{s, 1};
     cles = cand(sel, 1)';
@@ -691,46 +755,43 @@ for s = 1:size(etapes, 1)
     % hyperparametres pour les methodes adaptatives, la clusterisation pour le CA-OK. Le
     % krigeage statique n'en paie qu'un, et tient donc en une seule colonne.
     postes = {'Kriging', 'Hyperparameters', 'Clustering'};
-    col    = zeros(0, 2);
-    for im = 1:numel(sel_t)
-        for q = 1:3
-            if q == 1 || any(CGP(:, sel_t(im), q) > 0)
-                col(end + 1, :) = [im, q];   %#ok<AGROW>
-            end
-        end
+    cles_t = cand(sel_t, 1)';
+    % AU-DELA DE HUIT COLONNES CHIFFREES, DEUX TABLEAUX L'UN SOUS L'AUTRE (22 septembre,
+    % decision de Bastien) : la serie des fenetres en demande onze, et huit debordaient deja
+    % de 181 pt avant qu'on abrege les en-tetes. Les methodes sont coupees en deux moities
+    % dans l'ordre ou le manuscrit les annonce — AK et NNAK, puis MCAK et ICAK — chacune
+    % avec sa colonne de maille. LA DECOMPOSITION PAR POSTE EST CONSERVEE : la reduire a un
+    % total par methode a ete explicitement ecarte, c'est elle qui porte l'argument.
+    n_tot = n_colonnes(1:numel(sel_t), sel_t, CGP);
+    if n_tot > 8
+        moitie  = ceil(numel(sel_t) / 2);
+        groupes = {1:moitie, moitie + 1:numel(sel_t)};
+    else
+        groupes = {1:numel(sel_t)};
     end
-    % LE TROISIEME POSTE N'A PAS LE MEME SENS POUR TOUT LE MONDE. Les deux methodes qui le
-    % paient comptent leurs distances dans cout(4), mais ce sont le mean-shift pour le CAK
-    % et la recherche des plus proches voisins pour la NNAK, qui ne clusterise rien. Le
-    % tableau de la NNAK l'intitulait « Clustering » jusqu'au 21 septembre.
-    lib = cell(size(col, 1), 1);
-    for j = 1:size(col, 1)
-        lib{j} = postes{col(j, 2)};
-        if col(j, 2) == 3 && strcmp(cand{sel_t(col(j, 1)), 1}, 'reunion')
-            lib{j} = 'Neighbour search';
-        end
-    end
-    % AU-DELA DE SIX COLONNES CHIFFREES LE TABLEAU DEBORDE DE LA PAGE : celui qui oppose le
-    % CAK et la NNAK a l'AK en demandait huit et depassait de 181 pt, colonnes deja
-    % resserrees a 3 pt. On n'y garde alors qu'un total par methode. La decomposition par
-    % poste ne se perd pas, tab:cout_cak la donnant a la maille de reference.
     % SEPT COLONNES OU PLUS : les deux en-tetes longs s'abregent, HP et NN, Bastien les
     % developpant dans la legende. La decomposition par poste y tient a laquelle il tient,
     % et c'etaient les mots qui debordaient de 181 pt, pas les nombres : ainsi abreges, ils
     % rentrent sans reduire le corps ni resserrer les colonnes au-dela des 3 pt habituels.
-    serre = size(col, 1) > 6;
-    if serre
-        lib = strrep(lib, 'Hyperparameters', 'HP');
-        lib = strrep(lib, 'Neighbour search', 'NN');
+    % DEUX TABLEAUX EMPILES ABREGENT TOUS LES DEUX, meme si l'un des deux tiendrait en
+    % toutes lettres : la moitie MCAK et ICAK depassait de 6 pt avec ses six colonnes,
+    % et n'abreger qu'elle donnerait deux en-tetes differents pour les memes postes.
+    serre_any = numel(groupes) > 1;
+    for g = 1:numel(groupes)
+        serre_any = serre_any || n_colonnes(groupes{g}, sel_t, CGP) > 6;
     end
     explique = ['%% The kriging column gathers the factorisation and the queries, which no\n' ...
                 '%% method pays one without the other; the hyperparameter column is the local\n' ...
                 '%% fits, and the last column, where there is one, the mean-shift of the CAK or\n' ...
                 '%% the neighbour search of the NNAK. A method that does not pay a cost has no\n' ...
                 '%% column for it.\n'];
-    if serre
+    if serre_any
         explique = [explique '%% Two headings are abbreviated here, HP for the hyperparameter fits\n' ...
                              '%% and NN for the neighbour search.\n'];
+    end
+    if numel(groupes) > 1
+        explique = [explique '%% The methods are split over two stacked tables, too many columns for\n' ...
+                             '%% one; both carry the same grid resolutions.\n'];
     end
     fprintf(fid, ['%% Generated by figures_campagnes.m, do not edit by hand.\n' ...
         '%% %s against %s.\n' ...
@@ -738,68 +799,10 @@ for s = 1:size(etapes, 1)
         explique ...
         '%% Where the training set is fixed, n^3/3 for the setup plus N n^2 per query.\n\n'], ...
         leg{2}, contre, par.mc.n_part, par.mc.n_steps);
-    % LES TRAITS SUIVENT tab:kriging_covariance et tab:kriging_cost : un filet vertical entre
-    % les methodes, un \hline apres chaque ligne, et deux lignes d'en-tete SANS \multirow,
-    % qui espacait irregulierement le haut du tableau. Chaque colonne porte donc son poste,
-    % y compris celle du krigeage statique, qui n'en a qu'un.
-    spec = '|c';
-    for im = 1:numel(sel_t)
-        spec = [spec '|' repmat('c', 1, sum(col(:, 1) == im))];   %#ok<AGROW>
+    for g = 1:numel(groupes)
+        if g > 1, fprintf(fid, '\n\\par\\vspace{1ex}\n'); end
+        ecrire_cout_tabular(fid, groupes{g}, sel_t, leg_t, cles_t, CGP, CGF, pas, postes, serre_any);
     end
-    % AU-DELA DE QUATRE COLONNES, l'espacement par defaut fait deborder la page de 30 pt :
-    % six colonnes portent deux fois « Hyperparameters ». On le resserre dans un groupe, pour
-    % que le reste du document garde le sien.
-    large = size(col, 1) > 4;
-    if large, fprintf(fid, '{\\setlength{\\tabcolsep}{3pt}%%\n'); end
-    fprintf(fid, '\\begin{tabular}{%s|}\\hline\n', spec);
-    % LES FILETS SUIVENT tab:cout_maille : un seul \hline, sous l'en-tete, et un filet
-    % vertical entre les methodes. UNE SEULE LIGNE D'EN-TETE quand chaque methode tient en
-    % une colonne ; deux sinon, la methode qui n'a qu'un poste etant alors a cheval sur les
-    % deux plutot que de laisser une case vide. L'unite est dans la legende, pas en bandeau.
-    deux = size(col, 1) > numel(sel_t);
-    if deux
-        fprintf(fid, '\\multirow{2}{*}{$\\Delta_g$}');
-    else
-        fprintf(fid, '$\\Delta_g$');
-    end
-    cl = '';
-    for im = 1:numel(sel_t)
-        n_c = sum(col(:, 1) == im);
-        if n_c > 1
-            j0 = find(col(:, 1) == im, 1) + 1;
-            fprintf(fid, ' & \\multicolumn{%d}{c|}{%s}', n_c, leg_t{im});
-            cl = [cl sprintf('\\cline{%d-%d}', j0, j0 + n_c - 1)];   %#ok<AGROW>
-        elseif deux
-            fprintf(fid, ' & \\multirow{2}{*}{%s}', leg_t{im});
-        else
-            fprintf(fid, ' & %s', leg_t{im});
-        end
-    end
-    if deux
-        fprintf(fid, '\\\\%s\n', cl);
-        for j = 1:size(col, 1)
-            if sum(col(:, 1) == col(j, 1)) == 1
-                fprintf(fid, ' &');
-            else
-                fprintf(fid, ' & %s', lib{j});
-            end
-        end
-    end
-    fprintf(fid, '\\\\\\hline\n');
-    for ip = 1:numel(pas)
-        fprintf(fid, '$%.1f$km', pas(ip));
-        for j = 1:size(col, 1)
-            if col(j, 2) == 0
-                v = CGF(ip, sel_t(col(j, 1)));          % le total, colonnes resserrees
-            else
-                v = CGP(ip, sel_t(col(j, 1)), col(j, 2));
-            end
-            fprintf(fid, ' & %s', flops_tex(v));
-        end
-        fprintf(fid, '\\\\\n');
-    end
-    fprintf(fid, '\\hline\n\\end{tabular}\n');
-    if large, fprintf(fid, '}\n'); end
     fclose(fid);
 end
 
@@ -1322,8 +1325,15 @@ function fig = grille(kk, kd, Y, pas, cles, ylab, logy, bande, k_vir, pdf_w, pdf
         end
         leg = cell(1, numel(cles));
         for im = 1:numel(cles)
-            [c, l, leg{im}] = style_modele(cles{im});
-            plot(ax, kk(kd), Y(kd, ip, im), l, 'Color', c, 'LineWidth', linewidth);
+            [c, l, leg{im}, mk] = style_modele(cles{im});
+            h = plot(ax, kk(kd), Y(kd, ip, im), l, 'Color', c, 'LineWidth', linewidth);
+            % UN MARQUEUR CLAIRSEME quand la methode en demande un : la serie des fenetres
+            % porte cinq courbes pour quatre formes de trait. Un point sur huit de la courbe
+            % tracee, soit un tous les vingt-quatre pas, assez pour identifier sans charger.
+            if ~isempty(mk)
+                set(h, 'Marker', mk, 'MarkerSize', 3, 'MarkerFaceColor', 'none', ...
+                       'MarkerIndices', 1:8:numel(kd));
+            end
         end
         % Le premier virage, etiquete dans la premiere case seulement : six fois la meme
         % etiquette chargerait la grille sans rien apprendre de plus.
@@ -1361,15 +1371,29 @@ function fig = grille(kk, kd, Y, pas, cles, ylab, logy, bande, k_vir, pdf_w, pdf
     exporter(fig, nom_fig, pdf_w, pdf_h, img_dir);
 end
 
-function [c, l, nom] = style_modele(cle)
+function [c, l, nom, mk] = style_modele(cle)
 % COULEUR, TRAIT ET NOM D'UNE METHODE, les memes dans toutes les figures et tous les
 % tableaux du chapitre. Un lecteur qui a appris la couleur du krigeage statique sur une
 % figure la retrouve sur les autres, et la FORME du trait dit a quelle famille la methode
 % appartient :
 %
 %   pointille  la borne superieure : la carte connue, qu'aucun estimateur ne depasse
-%   plein      les estimateurs que le chapitre defend : statique, AK, CAK, NNAK
-%   brise      les alternatives auxquelles il se compare : bilineaire, eclairci
+%   brise      le bilineaire, l'eclairci et l'AK
+%   plein      le statique et la NNAK
+%   mixte      l'ICAK
+%   plein + o  le MCAK
+%
+% LA FORME A CESSE DE PORTER L'ARGUMENT LE 25 SEPTEMBRE. Elle separait jusque-la les
+% estimateurs defendus, en trait plein, des alternatives ecartees, en tirete ; Bastien a
+% demande l'AK en tirete pour desserrer la serie des fenetres, et la regle est devenue
+% celle-ci : la forme separe les courbes QU'UNE MEME FIGURE SUPERPOSE, la couleur garde
+% l'identite. Le pointille reste a la seule carte connue.
+%
+% CINQ COURBES POUR QUATRE FORMES sur cette serie — carte connue, AK, NNAK, MCAK, ICAK — et
+% le pointille etant reserve, il en manquait une. Le MCAK porte donc un marqueur clairseme
+% en plus de son trait plein : c'est lui qui suit l'AK de plus pres en precision, donc lui
+% qui gagne le plus a etre reperable. Le marqueur ne sort que sur les courbes en fonction du
+% pas ; les figures contre la maille en portent deja un sur toutes les methodes.
 %
 % Le tirete de l'eclairci etait un trait mixte jusqu'au 21 septembre ; Bastien l'a aligne
 % sur celui du bilineaire, les deux etant des alternatives que le chapitre ecarte. La NNAK
@@ -1382,6 +1406,12 @@ function [c, l, nom] = style_modele(cle)
 % de l'ambre de l'AK, et la NNAK, qui s'en ecarte franchement, garde le rouge, a 65. Sur
 % toute la palette, la paire la plus proche est le rose de l'eclairci et le magenta du CAK,
 % a 40, et ces deux-la ne se rencontrent sur aucune figure.
+%
+% LE MCAK EST TURQUOISE DEPUIS LE 25 SEPTEMBRE. Il etait brun, ce qui n'etait que l'ambre
+% de l'AK assombri — meme teinte a 36 degres, donc deux courbes fines indiscernables, et
+% Bastien l'a signale des la premiere figure. Le turquoise sort de la famille orange-rouge-
+% magenta que porte cette serie, et il ne rencontre ni le bleu du statique ni le vert du
+% bilineaire, qui n'y figurent pas.
 %
 % L'HISTORIQUE DU 21 SEPTEMBRE, en trois passes : le CAK etait vert, l'AK orange et le
 % bilineaire rouge ; Bastien a demande le CAK en rouge, d'ou l'AK vers l'ambre, plus clair,
@@ -1398,15 +1428,25 @@ function [c, l, nom] = style_modele(cle)
 % 16. La cle reste 'reunion' : elle apparie, elle ne s'affiche pas. LES TROIS VARIANTES DU
 % KRIGEAGE ADAPTATIF S'AFFICHENT PAR LEUR ACRONYME, AK, CAK et NNAK (16 septembre) : en
 % toutes lettres, Nearest-neighbour adaptive kriging debordait des legendes et des
-% en-tetes. Le texte les definit, et sa prose garde les noms longs.
+% en-tetes. Le texte les definit, et sa prose garde les noms longs. Le sous-echantillonnage
+% aleatoire a rejoint cette regle le 22 septembre, sous RS : le manuscrit indexe desormais
+% sa fenetre par ce sigle, comme celles de l'AK et de la NNAK.
+%
+% CAK EST DEVENU ICAK LE 22 SEPTEMBRE, pour independently clustered : une fenetre, un
+% ajustement et une resolution par mode. La variante reunie (par.krig.cak_union) s'appellera
+% MCAK, merged clustered, et il lui faudra sa PROPRE CLE ET SON PROPRE name de modele : les
+% deux variantes sortent aujourd'hui sous « CA-OK », que l'appariement par sous-chaine
+% confondrait en silence.
+    mk = '';        % pas de marqueur, sauf la ou une cinquieme courbe l'exige
     switch cle
         case 'connue',   c = [0.00 0.00 0.00];  l = ':';   nom = 'Known map';
         case 'bilin',    c = [0.00 0.52 0.28];  l = '--';  nom = 'Bilinear interpolation';
         case 'statique', c = [0.15 0.35 0.70];  l = '-';   nom = 'Static kriging';
-        case 'eclairci', c = [0.90 0.35 0.62];  l = '--';  nom = 'Random subsampling';
-        case 'ak',       c = [0.95 0.60 0.00];  l = '-';   nom = 'AK';
-        case 'cak',      c = [0.85 0.00 0.75];  l = '-';   nom = 'CAK';
+        case 'eclairci', c = [0.90 0.35 0.62];  l = '--';  nom = 'RS';
+        case 'ak',       c = [0.95 0.60 0.00];  l = '--';  nom = 'AK';
+        case 'cak',      c = [0.85 0.00 0.75];  l = '-.'; nom = 'ICAK';
         case 'reunion',  c = [0.75 0.02 0.15];  l = '-';   nom = 'NNAK';
+        case 'mcak',     c = [0.00 0.58 0.62];  l = '-';   nom = 'MCAK';  mk = 'o';
         otherwise
             error('figures_campagnes:style', 'Cle de methode inconnue : %s.', cle);
     end
@@ -1444,4 +1484,143 @@ function marqueur(k_vir, fontsize, etiquette, ax)
     % En haut de l'axe : en bas, l'etiquette traversait les courbes posees sur le plancher
     % n_min, qu'elles atteignent toutes avant le premier virage.
     uistack(xl, 'bottom');
+end
+
+
+function n = n_colonnes(idx, sel_t, CGP)
+% Le nombre de colonnes chiffrees qu'un groupe de methodes demande : le krigeage pour
+% toutes, plus les postes qu'elles paient reellement.
+    n = 0;
+    for a = 1:numel(idx)
+        n = n + 1;
+        for q = 2:3
+            if any(CGP(:, sel_t(idx(a)), q) > 0), n = n + 1; end
+        end
+    end
+end
+
+function ecrire_cout_tabular(fid, idx_m, sel_t, leg_t, cles_t, CGP, CGF, pas, postes, serre_force)
+% Un tableau de cout pour les seules methodes idx_m : une colonne de maille, puis une
+% colonne par poste reellement paye. Extrait du bloc des comparaisons le 22 septembre,
+% quand la serie des fenetres a du sortir en deux tableaux empiles.
+    col = zeros(0, 2);
+    for a = 1:numel(idx_m)
+        for q = 1:3
+            if q == 1 || any(CGP(:, sel_t(idx_m(a)), q) > 0)
+                col(end + 1, :) = [a, q];   %#ok<AGROW>
+            end
+        end
+    end
+    % LE TROISIEME POSTE N'A PAS LE MEME SENS POUR TOUT LE MONDE. Les methodes qui le paient
+    % comptent leurs distances dans cout(4), mais ce sont le mean-shift pour le CAK et la
+    % recherche des plus proches voisins pour la NNAK, qui ne clusterise rien. Le tableau de
+    % la NNAK l'intitulait « Clustering » jusqu'au 21 septembre.
+    lib = cell(size(col, 1), 1);
+    for j = 1:size(col, 1)
+        lib{j} = postes{col(j, 2)};
+        if col(j, 2) == 3 && strcmp(cles_t{idx_m(col(j, 1))}, 'reunion')
+            lib{j} = 'Neighbour search';
+        end
+    end
+    serre = serre_force || size(col, 1) > 6;
+    if serre
+        lib = strrep(lib, 'Hyperparameters', 'HP');
+        lib = strrep(lib, 'Neighbour search', 'NN');
+    end
+    % LES TRAITS SUIVENT tab:kriging_covariance et tab:kriging_cost : un filet vertical entre
+    % les methodes, un \hline apres chaque ligne, et deux lignes d'en-tete SANS \multirow,
+    % qui espacait irregulierement le haut du tableau. Chaque colonne porte donc son poste,
+    % y compris celle du krigeage statique, qui n'en a qu'un.
+    spec = '|c';
+    for a = 1:numel(idx_m)
+        spec = [spec '|' repmat('c', 1, sum(col(:, 1) == a))];   %#ok<AGROW>
+    end
+    % AU-DELA DE QUATRE COLONNES, l'espacement par defaut fait deborder la page de 30 pt :
+    % six colonnes portent deux fois « Hyperparameters ». On le resserre dans un groupe, pour
+    % que le reste du document garde le sien.
+    large = size(col, 1) > 4;
+    if large, fprintf(fid, '{\\setlength{\\tabcolsep}{3pt}%%\n'); end
+    fprintf(fid, '\\begin{tabular}{%s|}\\hline\n', spec);
+    % UNE SEULE LIGNE D'EN-TETE quand chaque methode tient en une colonne ; deux sinon, la
+    % methode qui n'a qu'un poste etant alors a cheval sur les deux plutot que de laisser une
+    % case vide. L'unite est dans la legende, pas en bandeau.
+    deux = size(col, 1) > numel(idx_m);
+    if deux
+        fprintf(fid, '\\multirow{2}{*}{$\\Delta_g$}');
+    else
+        fprintf(fid, '$\\Delta_g$');
+    end
+    cl = '';
+    for a = 1:numel(idx_m)
+        n_c = sum(col(:, 1) == a);
+        if n_c > 1
+            j0 = find(col(:, 1) == a, 1) + 1;
+            fprintf(fid, ' & \\multicolumn{%d}{c|}{%s}', n_c, leg_t{idx_m(a)});
+            cl = [cl sprintf('\\cline{%d-%d}', j0, j0 + n_c - 1)];   %#ok<AGROW>
+        elseif deux
+            fprintf(fid, ' & \\multirow{2}{*}{%s}', leg_t{idx_m(a)});
+        else
+            fprintf(fid, ' & %s', leg_t{idx_m(a)});
+        end
+    end
+    if deux
+        fprintf(fid, '\\\\%s\n', cl);
+        for j = 1:size(col, 1)
+            if sum(col(:, 1) == col(j, 1)) == 1
+                fprintf(fid, ' &');
+            else
+                fprintf(fid, ' & %s', lib{j});
+            end
+        end
+    end
+    fprintf(fid, '\\\\\\hline\n');
+    for ip = 1:numel(pas)
+        fprintf(fid, '$%.1f$km', pas(ip));
+        for j = 1:size(col, 1)
+            if col(j, 2) == 0
+                v = CGF(ip, sel_t(idx_m(col(j, 1))));   % le total, colonnes resserrees
+            else
+                v = CGP(ip, sel_t(idx_m(col(j, 1))), col(j, 2));
+            end
+            fprintf(fid, ' & %s', flops_tex(v));
+        end
+        fprintf(fid, '\\\\\n');
+    end
+    fprintf(fid, '\\hline\n\\end{tabular}\n');
+    if large, fprintf(fid, '}\n'); end
+end
+function ok = memes_reglages(pA, pB, cle)
+% Deux lots peuvent-ils partager une figure ? Les reglages listes ici decident de ce que
+% les courbes mesurent ; un seul qui differe et les deux lots ne parlent plus de la meme
+% chose. Un champ absent des deux cotes passe, present d'un seul non : c'est le cas d'une
+% option ajoutee entre les deux campagnes.
+%
+% LA VERIFICATION EST PROPRE A LA METHODE COMPLETEE (25 septembre). Le socle vaut pour
+% tout le monde — le releve, le champ, le vol, le filtre — puis chaque methode ajoute ses
+% propres reglages. Sans cela, changer le nombre de voisins de la NNAK bloquerait la
+% complementation de l'AK, qui ne le lit meme pas, et il faudrait rejouer tout le lot pour
+% un parametre qui ne le touche pas.
+    socle  = {'jitter', 'n_side', 'sigma_map', 'noyau', 'n_surveys', 'ell_init', 'n_ml'};
+    propre = struct('ak',       {{'refit', 'window_factor', 'n_min', 'n_max', 'n_ml_win'}}, ...
+                    'cak',      {{'refit', 'window_factor', 'n_min', 'n_max', 'n_ml_win', 'bandwidth'}}, ...
+                    'mcak',     {{'refit', 'window_factor', 'n_min', 'n_max', 'n_ml_win', 'bandwidth'}}, ...
+                    'reunion',  {{'refit', 'n_ml_win', 'k_voisins', 'rayon_boule'}}, ...
+                    'eclairci', {{'p_alea'}}, ...
+                    'statique', {{'tab_pitch'}}, ...
+                    'bilin',    {{}}, ...
+                    'connue',   {{}});
+    if nargin < 3 || ~isfield(propre, cle)
+        krig = [socle, {'refit', 'window_factor', 'n_min', 'n_max', 'n_ml_win', 'bandwidth'}];
+    else
+        krig = [socle, propre.(cle)];
+    end
+    for c = krig
+        a = isfield(pA.krig, c{1});  b = isfield(pB.krig, c{1});
+        if a ~= b || (a && ~isequal(pA.krig.(c{1}), pB.krig.(c{1})))
+            ok = false;  return
+        end
+    end
+    ok = isequal(pA.mc.n_part, pB.mc.n_part) && isequal(pA.mc.n_steps, pB.mc.n_steps) ...
+         && isequal(pA.run.seed, pB.run.seed) && isequal(pA.dt, pB.dt) ...
+         && isequal(pA.sigma_0, pB.sigma_0) && isequal(pA.sigma_q, pB.sigma_q);
 end

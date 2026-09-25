@@ -25,7 +25,10 @@ function krig = krigeage()
 %   'ak'          les mêmes équations sur les échantillons proches de là où le filtre se
 %                 croit, choisis à chaque pas, hyperparamètres réajustés sur la fenêtre.
 %   'cak'         le même, une fois par mode du nuage. Une postérieure bimodale a sa
-%                 moyenne entre les deux modes, là où l'avion n'est pas.
+%                 moyenne entre les deux modes, là où l'avion n'est pas. Le manuscrit
+%                 l'appelle ICAK, les fenêtres y étant traitées indépendamment.
+%   'mcak'        les mêmes modes, mais leurs fenêtres réunies : un seul ajustement et un
+%                 seul krigeage, donc toutes les particules notées sous la même loi.
 %
 % Krigeage ordinaire et non simple partout : sa covariance porte le terme qui paie
 % l'estimation de la moyenne, celui qui élargit l'intervalle là où les échantillons
@@ -311,6 +314,22 @@ function model = build_model(kind, map, survey, par)
             model = struct('name', 'CA-OK', 'kind', kind, 'n_train', survey.n, ...
                            'query', @(X, ctx) query_cak(survey, X(1:2, :), ctx, par));
 
+        case 'mcak'
+            % La variante reunie de 'cak', en MODELE A PART ENTIERE et non en reglage :
+            % par.krig.cak_union est global, donc il bascule TOUS les 'cak' d'un lot, et
+            % les deux variantes ne peuvent pas y coexister. Ici elle est forcee pour ce
+            % modele seul, ce qui permet de lancer 'cak' et 'mcak' cote a cote sur les
+            % memes essais. Les lots anterieurs, ou la variante passait par le reglage,
+            % restent reproductibles puisque 'cak' continue de le lire.
+            %
+            % LE NOM EST 'MCAK', sans sous-chaine commune avec 'CA-OK' ni avec 'OK par
+            % reunion' : l'appariement du depouillement se fait par sous-chaine, et
+            % « reuni » est contenu dans « reunion ».
+            par_m = par;
+            par_m.krig.cak_union = true;
+            model = struct('name', 'MCAK', 'kind', kind, 'n_train', survey.n, ...
+                           'query', @(X, ctx) query_cak(survey, X(1:2, :), ctx, par_m));
+
         otherwise
             error('krigeage:modele', 'Modèle inconnu %s.', kind);
     end
@@ -441,6 +460,32 @@ function [z, R, n, n_modes, cout] = query_cak(survey, P, ctx, par)
     R = zeros(size(P, 2), 1);
     used = false(1, size(survey.X, 2));
     cout = [0; 0; 0; n_dist];
+
+    % VARIANTE À FENÊTRE UNIQUE (par.krig.cak_union, 2026-09-22). Les modes ne servent plus
+    % qu'à choisir les points : on réunit leurs fenêtres, on ajuste une fois, on krige une
+    % fois. Toutes les particules sont alors notées sous la même loi, là où la version par
+    % cluster en applique une par morceau, discontinue aux frontières — c'est le défaut
+    % soupçonné derrière la queue de distribution du CAK à l'acquisition aux mailles lâches.
+    %
+    % LE COÛT N'A PLUS LA MÊME FORME : cout(1) est l'union et chaque particule est résolue
+    % contre elle, donc les requêtes valent N cout(1)^2 et non N (cout(1)/n_modes)^2. Le
+    % dépouillement doit le savoir ; n_modes reste ce que le mean-shift a trouvé, puisque
+    % c'est lui qui dit quand la variante diffère de l'AK.
+    if isfield(par.krig, 'cak_union') && par.krig.cak_union
+        for c = 1:size(centres, 2)
+            if ~any(label_q == c)
+                continue
+            end
+            ctx_c = cluster_context(ctx, label_p == c, centres(:, c));
+            used(window_select(survey.X, ctx_c, par)) = true;
+        end
+        idx    = find(used);
+        n      = numel(idx);
+        [z, R] = ok_solve(survey.X(:, idx), survey.z(idx), P, ...
+                          window_hyperparameters(survey, idx, par), par);
+        cout   = [n; n^3; 1; n_dist];
+        return
+    end
 
     for c = 1:size(centres, 2)
         rows = label_q == c;

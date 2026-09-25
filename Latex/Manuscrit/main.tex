@@ -35,9 +35,13 @@
 \usepackage{algorithm,algpseudocode} % packages d'info
 
 \makeatletter
+\let\loa@origchapter\@chapter % espace vertical inter-chapitres dans la liste des algorithmes
+\def\@chapter[#1]#2{\addtocontents{loa}{\protect\addvspace{10\p@}}\loa@origchapter[#1]{#2}}
+
 \renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}} % identifiants de lignes uniques pour les algorithmes
 
 \let\ftype@table\ftype@figure % donne aux tableaux la classe des figures pour conserver l'ordre entre les 2 types
+\let\ftype@algorithm\ftype@figure
 \makeatother
 
 \usepackage[
@@ -59,6 +63,7 @@
 \numberwithin{table}{chapter}
 \numberwithin{algorithm}{chapter}
 
+\newtheorem{challenge}{Challenge}
 \newtheorem{definition}{Definition}[chapter]
 \newtheorem{assumption}{Assumption}[chapter]
 \newtheorem{proposition}{Proposition}[chapter]
@@ -97,7 +102,13 @@
 
 \input{include/4_kriging_navigation.tex}
 \input{include/4_adaptive_kriging.tex}
+\begin{comment}
 \input{include/4_subsampling save.tex}
+\end{comment}
+
+\input{include/5_SLAM.tex}
+
+\input{include/6_conclusion.tex}
 
 \part{Appendices}
 

@@ -1,4 +1,4 @@
-\chapter{Kriging-Based Navigation}
+\chapter{Kriging-Based Navigation}\label{sec:kriging_navigation}
 
 \vfill
 \localtableofcontents
@@ -36,9 +36,12 @@ This chapter is organised as follows:
 \begin{itemize}
 	\item \Cref{sec:kriging_PF} combines \cref{sec:Bayesian_estimation,sec:Gaussian_processes} to create a kriging-based framework for autonomous navigation in a poorly-known environment.
 	\item \Cref{sec:AK_PF} discusses non-stationary observation fields, and the necessity of training data selection for kriging.
-	\item \Cref{sec:CAK_PF} improves upon this framework by clustering the particle cloud to better capture the non-stationarities of the field.
-	\item Finally, \cref{sec:subsampling_error} quantifies the estimation error committed by subsampling the training data used for kriging.
+	\item \Cref{sec:window_shape} improves upon this framework by adapting the shape of the subsampling window to that of the particle cloud to better capture the non-stationarities of the field.
 \end{itemize}
+
+\begin{comment}
+	\item Finally, \cref{sec:subsampling_error} quantifies the estimation error committed by subsampling the training data used for kriging.
+\end{comment}
 
 \section{Kriging the Observation Model}\label{sec:kriging_PF}
 

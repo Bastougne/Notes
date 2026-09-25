@@ -253,6 +253,117 @@ La reproduction du 2026-08-25, faite depuis le tableau I de l'article et non dep
 
 **Proposé, non lancé** : statique, AK et CA-OK sur `eusipco` à 100 essais pour retrouver le gain avec le code actuel, puis un facteur à la fois vers la référence (pas de temps, bruits, trajectoire) pour savoir lequel le crée. C'est ce qui dirait dans le manuscrit **quand** la localité paie.
 
+## Pourquoi le CA-OK perd en RMSE à l'acquisition (2026-09-22)
+
+Question de Bastien, en lisant la figure fusionnée : le CA-OK y passe au-dessus de l'AK et de la NNAK avant le premier virage, aux mailles lâches. Lot `20260912_030842`, 1000 essais, RMSE des essais convergés, comme la figure.
+
+| maille | méthode | $k=10$ | $k=20$ | $k=30$ | $k=50$ | $k=150$ |
+|---|---|---|---|---|---|---|
+| 6,5 km | AK | 7199 | 2386 | 1509 | 977 | 1004 |
+| | CA-OK | 10 556 | 2971 | 3207 | 992 | 1037 |
+| | NNAK | 8474 | 3230 | 2127 | 1177 | 997 |
+| 7,5 km | AK | 10 855 | 4052 | 2760 | 1261 | 1090 |
+| | CA-OK | 14 311 | 7747 | 6538 | 1353 | 1100 |
+| | NNAK | 11 551 | 4992 | 3394 | 2020 | 1284 |
+
+**Ce n'est pas la distribution qui se décale, c'est sa queue qui s'épaissit.** À 7,5 km, au pas 20, sur les essais convergés :
+
+| méthode | médiane | $q_{90}$ | $q_{95}$ | RMSE | part au-delà de 5 km |
+|---|---|---|---|---|---|
+| AK | 1199 m | 2748 m | 4130 m | 4052 m | 4 % |
+| NNAK | 1446 m | 4528 m | 11 971 m | 4992 m | 8 % |
+| CA-OK | 1681 m | 11 979 m | 20 350 m | 7747 m | 19 % |
+
+La médiane du CA-OK n'est que 40 % au-dessus de celle de l'AK ; son $q_{90}$ est quatre fois plus haut. Les écarts appariés au pas 30 le confirment : +104 m de médiane contre l'AK à 7,5 km, +29 m à 6,5 km, moins de 10 m aux mailles fines. **Tout se referme au premier virage** : dès le pas 50 les trois méthodes sont à quelques pour cent, et les erreurs finales sont identiques.
+
+**Deux mécanismes, aucun testé.** L'ordre AK, NNAK, CA-OK les oriente : la NNAK krige sur moins de points encore — 17 à 7,5 km contre 27 par fenêtre pour le CA-OK — et reste devant lui, donc ce n'est pas le nombre de points.
+1. **La vraisemblance du CA-OK est une fonction par morceaux de la position**, chaque morceau ayant ses hyperparamètres et ses points, avec des sauts aux frontières entre clusters. Un cluster qui déclare une variance plus grande est moins pénalisé pour un même écart, donc il survit au rééchantillonnage alors qu'il est faux. L'AK et la NNAK notent tout le nuage sous une seule loi.
+2. **Les particules proches d'une frontière sont krigées par une fenêtre centrée ailleurs**, donc au bord de leur domaine d'interpolation. Avec neuf à vingt modes, beaucoup de particules sont dans ce cas.
+
+### La variante à fenêtre unique, et ce qu'elle coûterait
+
+Proposition de Bastien : garder le découpage pour **choisir** les points, réunir les fenêtres des modes, ajuster une fois et kriger une fois. C'est le cas « un seul groupe » des composantes connexes ci-dessus, et la cousine de la NNAK, avec des disques par mode et un plancher au lieu des quatre plus proches voisins par particule. Elle supprime les deux mécanismes d'un coup.
+
+Coût par essai, convention de `tab:cout_cak`, l'union étant lue dans `n_used` :
+
+| maille | AK | CA-OK | NNAK | CA-OK sur l'union |
+|---|---|---|---|---|
+| 2,5 km | 46,5 G | 2,5 G | 2,7 G | 24,9 G |
+| 3,5 km | 14,6 G | 1,1 G | 1,2 G | 7,9 G |
+| 4,5 km | 5,9 G | 0,9 G | 0,7 G | 3,7 G |
+| 5,5 km | 3,2 G | 0,9 G | 0,5 G | 2,4 G |
+| 6,5 km | 2,0 G | 0,9 G | 0,4 G | 1,9 G |
+| 7,5 km | 1,6 G | 0,9 G | 0,3 G | 1,6 G |
+
+**Elle rend l'avantage de coût du CA-OK** — deux à dix fois son prix — parce que chaque particule est résolue contre l'union et non contre sa petite fenêtre. Aux mailles lâches, l'union fait la taille de la fenêtre de l'AK (45 points contre 44 à 7,5 km) et la variante devient l'AK, au même prix, là précisément où le CA-OK perd.
+
+**Variante plus légère** : garder les fenêtres et les résolutions par cluster, mais un seul jeu d'hyperparamètres pour tous les clusters. Les poids redeviennent comparables sans toucher au coût. Réserve : la variance annoncée dépend aussi de la géométrie des points retenus, donc il restera des écarts entre clusters, plus petits.
+
+### Les deux lots lancés le 2026-09-22 à 11h44
+
+Réglages du manuscrit ($\alpha_{\mathrm{cov}} = 2$, $\tilde{N}_{\min} = 25$, bande 1000 m), six mailles, RPF, 100 essais sur 10 tirages, donc appariés aux cent premiers essais de `20260912_030842`.
+1. **AK et CA-OK à hyperparamètres globaux** (`refit='global'`) : si la queue disparaît, elle venait des ajustements par cluster. L'AK tourne aussi, pour séparer ce que les hyperparamètres globaux font à tout le monde de ce qu'ils font au CA-OK.
+2. **CA-OK sur l'union de ses fenêtres** (`par.krig.cak_union`, ajouté à `query_cak` le même jour) : la variante de Bastien.
+
+Pilote et journal dans le scratchpad de la session `408c2db4-…`, `go_cak_union.sh` et `log_cak_union.txt`.
+
+### Résultat du premier lot : ce sont bien les ajustements par cluster
+
+Lot `20260922_120645_reference_libre_100runs.mat`, 22 minutes. Écarts appariés du CA-OK à l'AK, médiane des écarts essai par essai, au pas 20 et au pas 30 :
+
+| maille | locaux, pas 20 | globaux, pas 20 | locaux, pas 30 | globaux, pas 30 |
+|---|---|---|---|---|
+| 2,5 km | +1 m | −5 m | +1 m | −2 m |
+| 3,5 km | **+14 m** ($p$ = 0,03) | +1 m | +3 m | +3 m |
+| 4,5 km | **+34 m** ($p$ = 0,001) | −5 m | −4 m | −3 m |
+| 5,5 km | −9 m | −10 m | −13 m | −12 m |
+| 6,5 km | **+156 m** ($p$ < 0,001) | −2 m | +11 m | +5 m |
+| 7,5 km | **+215 m** ($p$ = 0,004) | +7 m | **+211 m** ($p$ = 0,006) | +9 m |
+
+**Avec un seul jeu d'hyperparamètres, le CA-OK ne se distingue plus de l'AK à aucune maille.** Le premier mécanisme est donc le bon : c'est l'ajustement par cluster, sur vingt-cinq à trente points, qui rend les vraisemblances incomparables d'un cluster à l'autre. La queue s'allège sans disparaître tout à fait — à 7,5 km, au pas 20, le $q_{90}$ du CA-OK passe de 15,2 à 5,6 km et la part d'essais au-delà de 5 km de 30 à 12 %, contre 3,9 km et 7 % pour l'AK global —, donc les frontières entre clusters pèsent peut-être encore un peu. La variante à fenêtre unique le dira.
+
+### Les quatre méthodes, mêmes 100 essais (lot `20260922_124202` pour la fenêtre unique)
+
+Erreur médiane au pas 20 et au pas 30, part d'essais au-delà de 5 km au pas 20, erreur de fin de vol, les deux taux de convergence, et le coût par essai. Écart apparié à l'AK au pas 20 entre parenthèses.
+
+| maille | méthode | pas 20 | $q_{90}$ | > 5 km | pas 30 | fin | seuil | Mahal. | Gflop |
+|---|---|---|---|---|---|---|---|---|---|
+| 2,5 km | AK | 285 | 495 | 0 % | 469 | 186 | 99 % | 99 % | 46,5 |
+| | NNAK | 228 (+3) | 548 | 0 % | 452 | 204 | 98 % | 98 % | 2,7 |
+| | CA-OK distincts | 284 (+1) | 491 | 0 % | 469 | 189 | 99 % | 99 % | 2,5 |
+| | CA-OK réunis | 288 (−0) | 472 | 0 % | 462 | 182 | 99 % | 99 % | 25,8 |
+| 4,5 km | AK | 588 | 1012 | 0 % | 498 | 758 | 99 % | 99 % | 5,9 |
+| | NNAK | 459 (**−106**) | 985 | 0 % | 856 | 894 | 96 % | 95 % | 0,7 |
+| | CA-OK distincts | 634 (**+34**) | 1069 | 0 % | 516 | 772 | 99 % | 99 % | 0,9 |
+| | CA-OK réunis | 572 (−27) | 1065 | 0 % | 477 | 774 | 99 % | 99 % | 4,1 |
+| 6,5 km | AK | 1061 | 1998 | 2 % | 961 | 1639 | 64 % | 84 % | 2,0 |
+| | NNAK | 1088 (+1) | 10 985 | 11 % | 977 | 1244 | 70 % | 80 % | 0,4 |
+| | CA-OK distincts | 1584 (**+156**) | 4150 | 8 % | 1057 | 1712 | 59 % | 79 % | 0,9 |
+| | CA-OK réunis | 1057 (+12) | 2493 | 5 % | 942 | 1624 | 66 % | 87 % | 1,9 |
+| 7,5 km | AK | 1960 | 5507 | 10 % | 1645 | 2028 | 50 % | 88 % | 1,6 |
+| | NNAK | 2221 (**+156**) | 15 279 | 19 % | 1651 | 2249 | 42 % | **58 %** | 0,3 |
+| | CA-OK distincts | 2048 (**+215**) | 15 243 | 30 % | 2018 | 2064 | 47 % | 91 % | 0,9 |
+| | CA-OK réunis | 1955 (−49) | 11 967 | 15 % | 1747 | 2031 | 48 % | 91 % | 1,7 |
+
+- **Aux mailles fines, les quatre sont équivalentes en précision** et ne se départagent que par le coût : le CA-OK par cluster et la NNAK à 2,5 Gflop, la fenêtre unique à 25,8 et l'AK à 46,5.
+- **La fenêtre unique fait bien ce qu'on attendait d'elle** : plus d'écart à l'AK à aucune maille, et la queue de l'acquisition ramenée de 30 à 15 % d'essais au-delà de 5 km à 7,5 km. Elle coûte la moitié de l'AK aux mailles fines et autant que lui aux mailles lâches.
+- **Le CA-OK par cluster garde le meilleur rapport** : dix-neuf fois moins cher que l'AK à 2,5 km, aussi précis jusqu'à 4,5 km, et c'est lui qui déclare la variance la plus juste à 7,5 km (91 %). Son seul défaut est la queue d'acquisition aux mailles lâches.
+- **La NNAK est la moins chère partout**, mais elle perd la cohérence à 7,5 km (58 %) et se comporte de façon erratique : meilleure que l'AK en fin de vol à 5,5 et 6,5 km, moins bonne à 4,5 et 7,5.
+
+**La variante qui reste à essayer** réunit les deux résultats du jour : garder les fenêtres et les résolutions par cluster, donc le coût du CA-OK, mais ajuster les hyperparamètres une seule fois par pas, sur l'union, et les partager. Le lot à hyperparamètres globaux montre que cela suffit à supprimer la queue ; l'ajustement par pas, lui, garde la localité que le réglage global perd.
+
+**Résultat de côté, et il est gros : les hyperparamètres globaux valent mieux que les locaux aux mailles lâches.** Local contre global, sur les mêmes essais :
+
+| maille | AK, pas 30 | AK, fin de vol | convergence AK | Mahalanobis AK |
+|---|---|---|---|---|
+| 2,5 km | −35 m ($p$ = 0,01) | +14 m | 99 → 98 % | 99 → 98 % |
+| 4,5 km | −67 m | **+175 m** ($p$ < 0,001) | 99 → 99 % | 99 → 99 % |
+| 5,5 km | −29 m | **−44 m** ($p$ = 0,02) | 89 → 90 % | 89 → 83 % |
+| 6,5 km | **−242 m** ($p$ < 0,001) | −29 m | **64 → 69 %** | 84 → 85 % |
+| 7,5 km | −17 m | **−146 m** ($p$ = 0,02) | **50 → 72 %** | **88 → 80 %** |
+
+Le réajustement local paie en fin de vol à 4,5 km (+175 m sans lui) et coûte ailleurs. À 7,5 km il fait perdre vingt-deux points de convergence, tout en gagnant huit points de Mahalanobis : **il achète de la cohérence au prix de la précision**, ce qui va dans le sens de H3. Le CA-OK suit le même profil, en plus marqué.
+
 ## Rendre la multimodalité et l'instationnarité visibles
 
 Par ordre de coût, du moins cher au plus démonstratif. Les commandes suivent l'idiome de `notes_campagne_E.md` et **n'ont pas été lancées** ; elles passent après les lots prioritaires de la file.

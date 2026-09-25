@@ -350,6 +350,7 @@ Finally, the bilinear identity \eqref{eq:OK_identity} becomes:
 
 The UK estimator and covariance matrices are derived exactly like for \Cref{th:ordinary_kriging}, using the corrected results.
 
+\begin{comment}
 \section[Proof of Proposition 3.10]{Proof of \Cref{th:kriging_vague_prior}}\label{sec:proof_vague_prior}
 
 \textbf{TODO: à relire}
@@ -400,8 +401,9 @@ so that:
 Both expressions are those of \Cref{th:universal_kriging} with $M_B$ substituted for $M$, which proves the stronger statement that kriging under $k_B$ is universal kriging regularised by the prior. Since $M_B\to M$ as $B^{-1}\to0$, the limit returns \eqref{eq:universal_kriging_equations} and \eqref{eq:kriged_universal_mean}.
 
 The coefficients follow the same course. The Gaussian linear model gives $\beta$ the posterior $\mathcal{N}\left(M_B\:g^\top G^{-1}\tilde{\mathbf{z}},M_B\right)$, whose limit is $\mathcal{N}\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),M\right)$. The estimator of \eqref{eq:kriged_universal_mean} is therefore the posterior mean of the trend, and $M$ its posterior covariance.
+\end{comment}
 
-\section[Proof of Proposition 3.11]{Proof of \Cref{th:covariance_operator}}\label{sec:proof_Mercer_operator}
+\section[Proof of Proposition 3.10]{Proof of \Cref{th:covariance_operator}}\label{sec:proof_Mercer_operator}
 
 As $\mathcal{U}$ is compact and $k$ continuous, $k$ is bounded on $\mathcal{U}\times\mathcal{U}$, and $\mathcal{K}$ is compact.
 
@@ -449,7 +451,7 @@ Finally, recall that the set of continuous functions of $\mathcal{U}$ is dense i
 \end{equation}
 the inequality \eqref{eq:fKf_geq0} extends to all $\phi\in\mathcal{L}^2(\mathcal{U})$.
 
-\section[Proof of Proposition 3.12]{Proof of \Cref{th:Mercer}}\label{sec:proof_Mercer}
+\section[Proof of Proposition 3.11]{Proof of \Cref{th:Mercer}}\label{sec:proof_Mercer}
 
 By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\mathcal{U})$. The spectral theorem \cite{bib:spectral-theorem} thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\mathcal{U})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing.
 
@@ -500,7 +502,7 @@ whose Gram matrices have rank at most $r_0$ and are thus singular at any $n$ dis
 	\lambda_1\geq\lambda_2\geq\cdots>0
 \end{equation}
 
-\section[Proof of Proposition 3.14]{Proof of \Cref{th:reduced_rank_kriging}}\label{sec:proof_reduced_rank_kriging}
+\section[Proof of Proposition 3.13]{Proof of \Cref{th:reduced_rank_kriging}}\label{sec:proof_reduced_rank_kriging}
 
 As \eqref{eq:reduced_rank_Gram} is a rank $r_{\mathrm{KL}}$ perturbation of $A\triangleq I_{\tilde{N}}\otimes\tilde{R}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{N}d_z\times\tilde{N}d_z$ inversion of $G(\tilde{\mathbf{x}})$ to an $r\times r$ one:
 \begin{equation}
@@ -559,7 +561,7 @@ is SPD, as the sum of the SPSD matrix $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{
 \end{equation}
 is thus well-defined and continuous, and extends to $\sigma=0$ when $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})\succ0$, \textit{i.e.} when $\Psi(\tilde{\mathbf{x}})$ has full column rank. As $\hat{z}_{\mathrm{SK}}$ and $R_{\mathrm{SK}}$ depend on $\sigma$ only through this inverse and an explicit factor $\sigma^2$, both expressions remain valid at $\sigma=0$ under this condition.
 
-\section[Proof of Proposition 3.16]{Proof of \Cref{th:native_RKHS}}\label{sec:proof_native_RKHS}
+\section[Proof of Proposition 3.15]{Proof of \Cref{th:native_RKHS}}\label{sec:proof_native_RKHS}
 
 \textbf{TODO: à relire}
 

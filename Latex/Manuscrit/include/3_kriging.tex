@@ -336,6 +336,7 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	Universal kriging is primarily relevant when a coarse model of the field is available, such as a polynomial trend \cite{bib:UK-surrogate} or a simplified reference model \cite{bib:KED-geomagnetic}. In the simplest case, setting $r_{\mathrm{UK}}=1$, and choosing $g_1$ as this model amounts to kriging the discrepancy. The GP the corrects the approximation rather than reconstructing the field from scratch.
 \end{remark}
 
+\begin{comment}
 \Cref{th:simple_kriging_conditional} reads simple kriging as a Gaussian conditioning, which ordinary and universal kriging do not admit as such, their estimators being BLUEs of an unknown mean rather than posterior expectations. This interpretation can nonetheless be recovered by using a Gaussian prior on the trend coefficients, as proven by \Cref{th:kriging_vague_prior}.
 
 \begin{proposition}[Conditioning under a vague trend prior]\label{th:kriging_vague_prior}
@@ -362,6 +363,7 @@ proposition, et son premier paragraphe, qui doublonnait le second, a été suppr
 
 	Estimating the mean is therefore free at the dominant order as long as $r_{\mathrm{UK}}\ll\tilde{N}$, ordinary kriging being the extreme case $r_{\mathrm{UK}}=1$ of one additional right-hand side and a $d_z\times d_z$ inversion. The same ratio governs the conditioning of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, which degrades as $r_{\mathrm{UK}}$ approaches $\tilde{N}$, so the arithmetic cost and the numerical one are bounded together.
 \end{remark}
+\end{comment}
 
 \begin{comment}
 \subsection{Sequential Kriging Estimation}

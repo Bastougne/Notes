@@ -17,7 +17,7 @@ The SIR resamples at every time step, which eliminates weight degeneracy but com
 	\caption{Particle impoverishment after resampling. Discarding non-resampled particles progressively shrinks the support of the particle approximation, degrading the filter's ability to explore the state-space.}\label{fig:impoverishment}
 \end{figure}
 
-To limit both issues, the generic particle filter (PF) \cite{bib:PF-Sarkka} resamples only when the weight distribution has degraded significantly. This degradation is measured by the effective sample size:
+To limit both issues, the generic particle filter (PF) \cite{bib:PF-Sarkka} resamples only when the weight distribution has degraded significantly. This degradation is measured by the effective sample size \cite{bib:sequential-imputations}:
 \begin{equation}
 	N_{\mathrm{eff}}\triangleq\frac{N}{1+\mathbb{V}_{q(\cdot|\mathbf{z}_{1:k})}\left[\dfrac{p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\right]}
 \end{equation}

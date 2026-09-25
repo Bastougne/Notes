@@ -1,0 +1,30 @@
+\chapter{Simultaneous Localisation and Mapping}\label{sec:SLAM}
+
+\vfill
+\localtableofcontents
+\vfill
+\newpage
+
+\section{Introduction}
+
+Throughout \cref{sec:kriging_navigation}, we assumed to have access to at least some prior knowledge of the environment in the form of a collection of sparse and noisy set of training data. Such training points were the base on which we able to reconstruct the observation function using kriging without which no Bayesian correction could be performed.
+
+In this chapter, we attempt to solve the navigation problem described by \eqref{eq:navigation_problem} without such data. This situation is called Simultaneous Localisation and Mapping (SLAM), and is a well-known problem in autonomous navigation. A standard solution is to use artificial vision, wether by using the data from an embedded stereo camera, a lidar, a sonar, or some other sensor able to probe its environment beyond its current location.
+
+In our case however, we focus on local sensors, such as a magnetometer or a gravitometer, that only provide a point measurement of the filed where they are, meaning that no information on the neighbourhood of the field is gained after a sensor reading, and so the likelihood of any reading can only be computed in the true location, which a Bayesian filter is precisely trying to recover.
+
+Similarly to \cref{sec:kriging_navigation}, additional information on the environment must be made in order to be able to do something. In this chapter, we assume the field to be stationary, such that it can be fully represented by the same GP on the whole of $\mathbb{R}^{d_x}$ and across time.
+
+This chapter is structured as follows:
+\begin{itemize}
+	\item \Cref{sec:RBPF_SLAM} presents an existing SLAM method based on an RBPF formulation to estimate the coefficients of the Karhunen-Loeve decomposition associated with the environment.
+	\item \Cref{sec:RKHS_SLAM} uses the AKKF to embed the field into an RKHS, and solve its coefficient in this space.
+\end{itemize}
+
+\section{The RBPF Approach}\label{sec:RBPF_SLAM}
+
+\textbf{TODO: la méthode de Manon Kok, cf "Scalable Magnetic Field SLAM in 3D Using Gaussian Process Maps", "Modeling Magnetic Fields using Gaussian Processes", "Hilbert Space Methods for Reduced-Rank Gaussian Process Regression" et "Modeling and Interpolation of the Ambient Magnetic Field by Gaussian Processes"}
+
+\section{The RKHS Approach}\label{sec:RKHS_SLAM}
+
+\textbf{TODO: notre méthode, cf "Learning Observation Model for SLAM via Random Fourier Features in a Kernel Kalman Filter"}
