@@ -7,24 +7,326 @@
 
 \section{Introduction}
 
-Throughout \cref{sec:kriging_navigation}, we assumed to have access to at least some prior knowledge of the environment in the form of a collection of sparse and noisy set of training data. Such training points were the base on which we able to reconstruct the observation function using kriging without which no Bayesian correction could be performed.
+\textbf{TODO: il faut dire qu'on peut utiliser une base de fonctions quelconques aussi, cf Camille et son polynôme + partir d'une zon krigée ce serait chouette et ça ferait le lien avec ce qui précède}
 
-In this chapter, we attempt to solve the navigation problem described by \eqref{eq:navigation_problem} without such data. This situation is called Simultaneous Localisation and Mapping (SLAM), and is a well-known problem in autonomous navigation. A standard solution is to use artificial vision, wether by using the data from an embedded stereo camera, a lidar, a sonar, or some other sensor able to probe its environment beyond its current location.
+Throughout \cref{sec:kriging_navigation}, we assumed to have access to at least some prior knowledge of the environment in the form of a sparse and noisy set of training data. Such training points were the base on which we were able to reconstruct the observation function using kriging without which no Bayesian correction could be performed.
 
-In our case however, we focus on local sensors, such as a magnetometer or a gravitometer, that only provide a point measurement of the filed where they are, meaning that no information on the neighbourhood of the field is gained after a sensor reading, and so the likelihood of any reading can only be computed in the true location, which a Bayesian filter is precisely trying to recover.
+In this chapter, we attempt to solve the navigation problem described by \eqref{eq:navigation_problem} without such data. This situation is called Simultaneous Localisation and Mapping (SLAM), and is a well-known problem in autonomous navigation. A standard solution is to use artificial vision, whether by using the data from an embedded stereo camera, a lidar, a sonar, or some other sensor able to probe its environment beyond its current location.
 
-Similarly to \cref{sec:kriging_navigation}, additional information on the environment must be made in order to be able to do something. In this chapter, we assume the field to be stationary, such that it can be fully represented by the same GP on the whole of $\mathbb{R}^{d_x}$ and across time.
+In our case however, we focus on local sensors, such as a magnetometer or a gravitometer, that only provide a point measurement of the field where they are, meaning that no information on the neighbourhood of the field is gained after a sensor reading, and so the likelihood of any reading can only be computed at the true location, which a Bayesian filter is precisely trying to recover.
 
-This chapter is structured as follows:
+Similarly to \cref{sec:kriging_navigation}, additional assumptions on the environment must be made in order to be able to do something. In this chapter, we assume the field to be stationary, such that it can be fully represented by the same GP on the whole of $\mathbb{R}^{d_x}$ and across time.
+
+This chapter is organised as follows:
 \begin{itemize}
-	\item \Cref{sec:RBPF_SLAM} presents an existing SLAM method based on an RBPF formulation to estimate the coefficients of the Karhunen-Loeve decomposition associated with the environment.
-	\item \Cref{sec:RKHS_SLAM} uses the AKKF to embed the field into an RKHS, and solve its coefficient in this space.
+	\item \Cref{sec:RBPF_SLAM} presents an existing SLAM method based on an RBPF formulation to estimate the coefficients of the Karhunen-Loève decomposition associated with the environment.
+	\item \Cref{sec:RKHS_SLAM} uses the AKKF to embed the field into an RKHS, and solve for its coefficients in this space.
+	\item \Cref{sec:learning_bias} examines the bias both methods incur by training their map along the very trajectory they are estimating.
 \end{itemize}
 
 \section{The RBPF Approach}\label{sec:RBPF_SLAM}
 
-\textbf{TODO: la méthode de Manon Kok, cf "Scalable Magnetic Field SLAM in 3D Using Gaussian Process Maps", "Modeling Magnetic Fields using Gaussian Processes", "Hilbert Space Methods for Reduced-Rank Gaussian Process Regression" et "Modeling and Interpolation of the Ambient Magnetic Field by Gaussian Processes"}
+Without a prior survey, everything the vehicle knows about the field comes from the observations it has already collected. The map is therefore no longer an input of the filter, as \cref{th:kriging_navigation_assumptions} assumed, but an unknown to be estimated jointly with the state. Carrying it in the state raises two difficulties. A GP is an infinite-dimensional object, whereas a filter propagates a finite state, and the estimators of \cref{sec:kriging} represent the field through their whole training set, which would here grow by one observation at every time step.
+
+\Cref{sec:reduced_rank} answers both at once. Truncating the Mercer decomposition of the kernel at rank $r_{\mathrm{KL}}$ replaces the field by a linear combination of basis functions chosen before the mission, so that the map reduces to the $r_{\mathrm{KL}}$ coefficients of that combination whatever the number of observations gathered. This section follows the construction of \cite{bib:magnetic-SLAM-3D}, which builds such a basis explicitly and exploits the linearity it creates.
+
+\subsection{A Finite-Dimensional Map}\label{sec:SLAM_basis}
+
+\Cref{th:Mercer} requires the input set to be compact, so let the mission be confined to a bounded domain:
+\begin{equation}
+	\mathcal{U}\triangleq\prod_{d=1}^{d_x}\left[a_d,b_d\right],\qquad L_d\triangleq b_d-a_d
+\end{equation}
+
+As noted by \Cref{th:eigenpairs}, Mercer's theorem gives no closed form for the eigenfunctions of the Mercer operator. For a radial kernel over such a domain, they are however well approximated by the eigenfunctions of the Dirichlet Laplacian on $\mathcal{U}$ \cite{bib:reduced-rank}, which are known explicitly. Indexing them by a multi-index $j\in\left(\mathbb{N}^*\right)^{d_x}$ and gathering the associated frequencies as:
+\begin{equation}
+	\omega_j\triangleq\pi\begin{bmatrix}
+	\dfrac{j_1}{L_1}&\cdots&\dfrac{j_{d_x}}{L_{d_x}}
+	\end{bmatrix}^\top\in\mathbb{R}^{d_x}\label{eq:Laplace_frequencies}
+\end{equation}
+the corresponding basis functions read:
+\begin{equation}
+	\psi_j:\left\{\begin{aligned}
+	\mathcal{U}&\to\mathbb{R}\\
+	x&\mapsto\prod_{d=1}^{d_x}\sqrt{\frac{2}{L_d}}\:\sin\left(\omega_{j,d}\left(x_d-a_d\right)\right)
+	\end{aligned}\right.\label{eq:Laplace_basis}
+\end{equation}
+and satisfy $-\Delta\psi_j=\|\omega_j\|_2^2\:\psi_j$, where $\Delta$ is the Laplace operator.
+
+This family is orthonormal on $\mathcal{U}$ and does not depend on the kernel, which only enters through the weight given to each of its members. Writing $S_\nu$ for the spectral density of $k_\nu$, that is, the Fourier transform computed in \cref{sec:proof_Matérn}, the kernel is approximated by:
+\begin{equation}
+	k_\nu(x,x')\approx\sum_jS_\nu\left(\omega_j\right)\:\psi_j(x)\:\psi_j(x')
+\end{equation}
+which is \eqref{eq:Mercer} with $S_\nu(\omega_j)$ in the role of the eigenvalue $\lambda_j$. Retaining the $r_{\mathrm{KL}}$ largest weights and renumbering the multi-indices accordingly, this is exactly the reduced-rank approximation of \Cref{th:reduced_rank}, with:
+\begin{equation}
+	\Psi(x)=\begin{bmatrix}
+	\psi_1(x)&\cdots&\psi_{r_{\mathrm{KL}}}(x)
+	\end{bmatrix},\qquad\Lambda=\begin{bmatrix}
+	S_\nu(\omega_1)&&(0)\\&\ddots&\\(0)&&S_\nu(\omega_{r_{\mathrm{KL}}})
+	\end{bmatrix}
+\end{equation}
+
+Two properties make this basis usable for navigation. It is built from the domain and the kernel alone, so it is entirely known before the first observation and never has to be recomputed. And it carries the field itself rather than only its covariance, since:
+\begin{equation}
+	h(x)=\Psi(x)\:\alpha,\qquad\alpha\sim\mathcal{N}\left(0,\Lambda\right)\label{eq:SLAM_map}
+\end{equation}
+defines a centred GP of covariance $\Psi(x)\:\Lambda\:\Psi(x')^\top$, which is the truncated kernel of \Cref{th:reduced_rank}. The map is thus fully described by the $r_{\mathrm{KL}}$ coefficients $\alpha$, and estimating the field amounts to estimating a vector of fixed size.
+
+\begin{remark}[Boundary conditions]\label{th:SLAM_boundary}
+	Every function of the basis \eqref{eq:Laplace_basis} vanishes on the boundary of $\mathcal{U}$, and so does every field it represents. The domain must therefore be taken larger than the region actually flown over, with a margin of the order of the correlation length, so that the reconstruction is not pulled towards zero where the vehicle navigates.
+
+	This margin is not free. The frequencies \eqref{eq:Laplace_frequencies} are spaced by $\pi/L_d$ along each axis, so enlarging the domain refines the spectrum and more basis functions are needed to reach the same maximal frequency.
+\end{remark}
+
+\begin{remark}[Rank and resolution]\label{th:SLAM_rank}
+	The smallest wavelength the basis can represent along an axis is $2L_d/j_d$, so resolving a field of correlation length $l$ requires indices up to roughly $L_d/l$ along that axis. The rank therefore scales as the product of these bounds:
+	\begin{equation}
+		r_{\mathrm{KL}}\sim\prod_{d=1}^{d_x}\frac{L_d}{l}
+	\end{equation}
+	and grows exponentially with the dimension of the domain. A two-dimensional map covering ten correlation lengths per axis is within reach, whereas the same resolution in three dimensions costs a thousand basis functions. This is the trade-off three-dimensional magnetic SLAM faces, and it is why the domain is there kept small and the map local by construction.
+\end{remark}
+
+\subsection{A Conditionally Linear Model}\label{sec:SLAM_RBPF}
+
+The interest of \eqref{eq:SLAM_map} is that the observation is linear in $\alpha$ once the state is known, which is precisely the structure \eqref{eq:RBPF_model} requires. Let the augmented state gather the vehicle state and the coefficients of its map:
+\begin{equation}
+	x_k^n\triangleq\text{vehicle state},\qquad x_k^l\triangleq\alpha
+\end{equation}
+
+Under \Cref{th:kriging_navigation_assumptions} and \eqref{eq:SLAM_map}, the navigation problem \eqref{eq:navigation_problem} is then the system \eqref{eq:RBPF_model} with:
+\begin{equation}
+	\left\{\begin{array}{llll}
+	F_k^n=0&f_k^n=f_k&Q_k^n=Q_k&Q_k^{nl}=0\\
+	F_k^l=I_{r_{\mathrm{KL}}}&f_k^l=0&Q_k^l=0&\\
+	H_k\left(x_k^n\right)=\Psi\left(x_k^n\right)&h_k=0&&
+	\end{array}\right.\label{eq:SLAM_identification}
+\end{equation}
+provided the evolution noise is additive and Gaussian, as \eqref{eq:RBPF_model} requires. The map is static, since the field does not change over the course of the mission, and it does not drive the vehicle, since $F_k^n$ is null. A known mean function would enter as $h_k=m$, and is null here because \eqref{eq:SLAM_map} defines a centred field. Both the evolution and the observation equations are thus linear and Gaussian in the coefficients conditionally on the trajectory, and the RBPF of \cref{sec:particle_filtering} applies.
+
+The identification \eqref{eq:SLAM_identification} cancels two of the five steps of \Cref{alg:RBPF}. The pre-correction \eqref{eq:RBPF_precorrection_debut} through \eqref{eq:RBPF_precorrection_fin} has a null gain, as the propagation of a vehicle that does not sense the field teaches nothing about it, and the Kalman prediction \eqref{eq:RBPF_prediction_debut} through \eqref{eq:RBPF_prediction_fin} leaves the coefficients and their covariance unchanged. What remains at each time step is a weight update and a correction of the map carried by each particle.
+
+Writing $\Psi_k^{(i)}$ for $\Psi\left(x_k^{n(i)}\right)$, the innovation covariance and the Kalman gain of the $i$-th particle read:
+\begin{equation}
+	\left\{\begin{aligned}
+	S_k^{(i)}&=\Psi_k^{(i)}\:P_{k-1|k-1}^{l(i)}\left(\Psi_k^{(i)}\right)^\top+R_k\\
+	K_k^{(i)}&=P_{k-1|k-1}^{l(i)}\left(\Psi_k^{(i)}\right)^\top\left(S_k^{(i)}\right)^{-1}
+	\end{aligned}\right.\label{eq:SLAM_gain}
+\end{equation}
+and its map is corrected as:
+\begin{equation}
+	\left\{\begin{aligned}
+	\hat{x}_{k|k}^{l(i)}&=\hat{x}_{k-1|k-1}^{l(i)}+K_k^{(i)}\left(z_k-\Psi_k^{(i)}\:\hat{x}_{k-1|k-1}^{l(i)}\right)\\
+	P_{k|k}^{l(i)}&=\left(I_{r_{\mathrm{KL}}}-K_k^{(i)}\:\Psi_k^{(i)}\right)P_{k-1|k-1}^{l(i)}
+	\end{aligned}\right.\label{eq:SLAM_correction}
+\end{equation}
+
+The likelihood entering the weight update \eqref{eq:RBPF_update_debut} is the marginal of the observation under the map of that particle:
+\begin{equation}
+	\tilde{p}\left(z_k|x_k^{n(i)}\right)=\mathcal{N}\left(z_k;\Psi_k^{(i)}\:\hat{x}_{k-1|k-1}^{l(i)},S_k^{(i)}\right)\label{eq:SLAM_likelihood}
+\end{equation}
+and \Cref{alg:SLAM_RBPF} summarises the resulting filter. As noted for \Cref{alg:RBPF}, the map correction \eqref{eq:SLAM_correction} follows the weight update, so that a particle discarded by the resampling never pays for the correction of a map that is about to be deleted. The resampling itself carries the maps along with the particles, each duplicated particle inheriting a copy of the coefficients and of their covariance.
+
+\begin{algorithm}[!htb]
+	\begin{algorithmic}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{n(i)}\sim p\left(\cdot|x_{k-1}^{n(i)}\right)$}\Comment{Particle propagation}
+	\State{$\forall i\in[\![1,N]\!],\:$compute $S_k^{(i)}$ from \eqref{eq:SLAM_gain}}\Comment{\textbf{Innovation covariance}}
+	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\tilde{p}\left(z_k|x_k^{n(i)}\right)$ from \eqref{eq:SLAM_likelihood}}\Comment{Weight update}
+	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
+	\State{$\displaystyle\hat{N}_{\mathrm{eff}}=\left.1\middle/\sum_{i=1}^N\left(w_k^{(i)}\right)^2\right.$}\Comment{Resampling criterion}
+	\If{$\hat{N}_{\mathrm{eff}}<N_{\mathrm{th}}$}
+	\State{$\left\{x_k^{n(j)},w_k^{(j)},i_j\right\}_{j=1}^N\gets\operatorname{Resampling}\left(\left\{x_k^{n(i)},w_k^{(i)}\right\}_{i=1}^N\right)$}\Comment{Resampling}
+	\State{$\forall j\in[\![1,N]\!],\:\left(\hat{x}_{k-1|k-1}^{l(j)},P_{k-1|k-1}^{l(j)}\right)\gets\left(\hat{x}_{k-1|k-1}^{l(i_j)},P_{k-1|k-1}^{l(i_j)}\right)$}\Comment{\textbf{Map duplication}}
+	\EndIf
+	\State{$\forall i\in[\![1,N]\!],\:$compute $K_k^{(i)}$ from \eqref{eq:SLAM_gain}}\Comment{\textbf{Map correction}}
+	\State{$\forall i\in[\![1,N]\!],\:$compute $\hat{x}_{k|k}^{l(i)}$ and $P_{k|k}^{l(i)}$ from \eqref{eq:SLAM_correction}}
+	\end{algorithmic}\caption{Rao-Blackwellised SLAM}\label{alg:SLAM_RBPF}
+\end{algorithm}
+
+\begin{remark}[Kriging in disguise]\label{th:SLAM_kriging}
+	\Cref{eq:SLAM_likelihood} has the form of the kriged likelihood \eqref{eq:kriged_likelihood} of \cref{sec:kriging_PF}, a Gaussian whose mean reconstructs the field at the queried point and whose covariance carries both the reconstruction error and the observation noise. Starting from the prior $\mathcal{N}(0,\Lambda)$ of \eqref{eq:SLAM_map} and conditioning successively on $z_1,\dots,z_{k-1}$, the pair $\left(\hat{x}_{k-1|k-1}^{l(i)},P_{k-1|k-1}^{l(i)}\right)$ is the reduced-rank estimator of \Cref{th:reduced_rank_kriging} applied to the training set $\left(\mathbf{x}_{0:k-1}^{n(i)},\mathbf{z}_{1:k-1}\right)$, the Kalman correction \eqref{eq:SLAM_correction} playing the part of the sequential update of that estimator.
+
+	What changes with respect to \cref{sec:kriging_navigation} is the training set. There, it is the survey, shared by every particle and fixed for the whole mission. Here, it is what the vehicle has measured along the trajectory of that particle, so each particle kriges its own history, and the training inputs are exact under the conditioning that defines them.
+\end{remark}
+
+\begin{remark}[Cost of one map per particle]\label{th:SLAM_cost}
+	Each particle stores its coefficients and their covariance, that is $r_{\mathrm{KL}}\left(r_{\mathrm{KL}}+3\right)/2$ scalars once symmetry is exploited, and \eqref{eq:SLAM_gain} and \eqref{eq:SLAM_correction} cost $\mathcal{O}\left(r_{\mathrm{KL}}^2d_z\right)$ flops. A time step of \Cref{alg:SLAM_RBPF} is thus $\mathcal{O}\left(N\:r_{\mathrm{KL}}^2d_z\right)$ in time and $\mathcal{O}\left(N\:r_{\mathrm{KL}}^2\right)$ in memory.
+
+	Neither grows with the number of observations already assimilated, which is what the truncation bought, but both are paid at every step and for every particle. The memory is the binding constraint in practice, a cloud of $5000$ particles carrying a rank $64$ map already storing more than ten million scalars.
+\end{remark}
+
+\begin{remark}[Vector fields and the magnetic potential]\label{th:SLAM_potential}
+	A magnetometer measures three components rather than one, and those components are not independent. In a current-free region, the magnetic field derives from a scalar potential $u$ through $h=\nabla u$, and $u$ is the natural quantity to model as a GP \cite{bib:magnetic-GP}. The basis of the field is then $\left(\nabla\psi_j\right)_j$ instead of $\left(\psi_j\right)_j$, and \eqref{eq:SLAM_map} becomes $h(x)=\nabla\Psi(x)\:\alpha$ with $\nabla\Psi(x)\in\mathcal{M}_{3,r_{\mathrm{KL}}}(\mathbb{R})$, everything else being unchanged. Differentiating the basis rather than the reconstruction is what enforces the physical constraint exactly, and it also divides by three the number of coefficients a vector measurement has to estimate \cite{bib:magnetic-interpolation}.
+\end{remark}
 
 \section{The RKHS Approach}\label{sec:RKHS_SLAM}
 
-\textbf{TODO: notre méthode, cf "Learning Observation Model for SLAM via Random Fourier Features in a Kernel Kalman Filter"}
+\Cref{alg:SLAM_RBPF} owes its tractability to two choices, a basis fixed before the mission and a map entering the observation linearly. It pays for them with a map per particle, and with a basis tied to a rectangular domain on whose boundary the field is forced to vanish. This section keeps the linear map and abandons the rest, replacing the particle filter by a Kalman recursion cast into an RKHS \cite{bib:RFF-KKF-SLAM}.
+
+\subsection{Embedding the Filter}\label{sec:AKKF}
+
+The kernel mean embedding \eqref{eq:KME} introduced in \Cref{sec:KKF} carries a probability distribution into $\mathcal{H}_k$, where conditioning acts linearly. The adaptive kernel Kalman filter (AKKF) of \Cref{alg:AKKF} runs the Bayesian recursion in that space: it represents the state distribution by the embedding of its particle set, propagates the attached weights $\mathbf{w}_k$ and their covariance $\Sigma_k$ rather than the particles, and recomputes the state and observation Gram matrices at every step, so as to follow a model that is time-varying and neither Gaussian nor the image of a linear one. Its embedded correction is a regularised least-squares problem rather than a Bayesian update, so, as \Cref{th:AKKF_weights} recalls, the weights it returns are of either sign and the filter resamples unconditionally, drawing a fresh particle set from the Gaussian that carries the current estimate.
+
+\subsection{Random Fourier Features}\label{sec:RFF}
+
+The filter above requires sampling from the likelihood, hence evaluating the observation function, which is the very quantity assumed unknown here. Since the state space is already embedded into $\mathcal{H}_k$, it is natural to look for the map inside the same space. By \Cref{th:native_RKHS}, $\mathcal{H}_k$ is the closure of the span of $\left\{\Phi(x),x\in\mathcal{U}\right\}$, so the map admits an arbitrarily good approximation as a finite combination of feature maps, the particles being the natural points at which to take them. This representation carries the same defect as kriging, however, its size being that of the particle set, and it also requires $\Phi$ to be evaluated explicitly, which \Cref{th:feature_map} precisely avoids.
+
+An explicit finite basis is thus needed once more, and Bochner's theorem provides one for a radial kernel. Writing $S_\nu$ for its spectral density as in \cref{sec:SLAM_basis}, and normalising it into the probability density:
+\begin{equation}
+	p_\nu\triangleq\left.S_\nu\middle/\int_{\mathbb{R}^{d_x}}{S_\nu(\omega)\:d\omega}\right.
+\end{equation}
+which is legitimate since $S_\nu>0$, the kernel is the characteristic function of $p_\nu$:
+\begin{equation}
+	k_\nu(x,x')=\sigma_f^2\int_{\mathbb{R}^{d_x}}{\exp\left(\imath\:\omega^\top(x-x')\right)p_\nu(\omega)\:d\omega}=\sigma_f^2\:\mathbb{E}_{p_\nu}\left[\cos\left(\omega^\top(x-x')\right)\right]\label{eq:Bochner}
+\end{equation}
+the imaginary part vanishing by symmetry of $p_\nu$, as $k_\nu$ is real-valued.
+
+\Cref{eq:Bochner} is an expectation, and \Cref{th:MC_estimator} applies. Drawing $r_{\mathrm{RFF}}$ frequencies $\omega_j$ from $p_\nu$ and as many phases $b_j$ from $\mathcal{U}\left([0,2\pi]\right)$, and letting:
+\begin{equation}
+	\psi_j:\left\{\begin{aligned}
+	\mathbb{R}^{d_x}&\to\mathbb{R}\\
+	x&\mapsto\sqrt{\frac{2}{r_{\mathrm{RFF}}}}\:\cos\left(\omega_j^\top x+b_j\right)
+	\end{aligned}\right.\label{eq:RFF_basis}
+\end{equation}
+the product-to-sum identity gives $\mathbb{E}_{b_j}\left[\psi_j(x)\:\psi_j(x')\right]=\cos\left(\omega_j^\top(x-x')\right)/r_{\mathrm{RFF}}$, the term carried by $x+x'$ averaging out over the phase, so that the sum of these $r_{\mathrm{RFF}}$ products estimates \eqref{eq:Bochner}. Gathering them in $\Psi(x)$ as in \cref{sec:SLAM_basis} yields the random Fourier features approximation \cite{bib:RFF,bib:RFF-survey}:
+\begin{equation}
+	k_\nu(x,x')\approx\sigma_f^2\:\Psi(x)\:\Psi(x')^\top
+\end{equation}
+and the map is again of the form \eqref{eq:SLAM_map}, this time with $\Lambda=\sigma_f^2I_{r_{\mathrm{RFF}}}$.
+
+\begin{remark}[Two ways of choosing the frequencies]\label{th:frequency_choice}
+	\Cref{eq:Laplace_basis,eq:RFF_basis} build the same object, a finite family of sinusoids whose amplitudes are weighted by the spectral density of the kernel, and differ only in how the frequencies are chosen. The Laplace basis places them on the deterministic grid \eqref{eq:Laplace_frequencies} imposed by the domain, and weights each of them by $S_\nu(\omega_j)$. The random features draw them from $S_\nu$ itself and weight them uniformly, which is the Monte Carlo approximation of \cref{sec:Monte_Carlo} applied to the spectrum.
+
+	Sampling the frequencies removes the two constraints of \Cref{th:SLAM_boundary}, since nothing forces the reconstruction to vanish anywhere and no domain has to be declared in advance. It also replaces the deterministic truncation error of \Cref{th:reduced_rank} by a Monte Carlo error, which decreases in $\mathcal{O}\left(r_{\mathrm{RFF}}^{-1/2}\right)$ instead of following the decay of the spectrum. The comparison is therefore not uniformly in favour of either, a grid being the better choice when the domain is known and small enough for the spectrum to be covered.
+\end{remark}
+
+\subsection{Recursive Least Squares}\label{sec:RLS}
+
+The basis \eqref{eq:RFF_basis} is fixed once the frequencies are drawn, so learning the map amounts to estimating the coefficients $\alpha\in\mathbb{R}^{r_{\mathrm{RFF}}}$ of \eqref{eq:SLAM_map} from the pairs $\left(\hat{x}_l,z_l\right)$ the filter produces, where $\hat{x}_l$ is its state estimate at time $l$ and $z_l$ the observation it received. The criterion minimised at time $k$ is the regularised and exponentially discounted least-squares cost:
+\begin{equation}
+	J_k:\alpha\mapsto\sum_{l=1}^k\beta^{k-l}\left\|z_l-\Psi\left(\hat{x}_l\right)\alpha\right\|_2^2+\beta^k\lambda_{\mathrm{RLS}}\|\alpha\|_2^2\label{eq:RLS_criterion}
+\end{equation}
+where $\lambda_{\mathrm{RLS}}\in\mathbb{R}_+^*$ is a regularisation coefficient and $\beta\in(0,1]$ a forgetting factor.
+
+Recursive least squares \cite{bib:RFF-RLS} minimise \eqref{eq:RLS_criterion} without storing the past data, by carrying the estimate $\hat{\alpha}_k$ together with the inverse $P_k^\alpha$ of the information matrix of \eqref{eq:RLS_criterion}, and updating both from the current pair alone:
+\begin{equation}
+	\left\{\begin{aligned}
+	K_k^\alpha&=P_{k-1}^\alpha\:\Psi\left(\hat{x}_k\right)^\top\left(\beta+\Psi\left(\hat{x}_k\right)P_{k-1}^\alpha\:\Psi\left(\hat{x}_k\right)^\top\right)^{-1}\\
+	\hat{\alpha}_k&=\hat{\alpha}_{k-1}+K_k^\alpha\left(z_k-\Psi\left(\hat{x}_k\right)\hat{\alpha}_{k-1}\right)\\
+	P_k^\alpha&=\frac{1}{\beta}\left(I_{r_{\mathrm{RFF}}}-K_k^\alpha\:\Psi\left(\hat{x}_k\right)\right)P_{k-1}^\alpha
+	\end{aligned}\right.\label{eq:RLS}
+\end{equation}
+initialised at $\hat{\alpha}_0=0$ and $P_0^\alpha=I_{r_{\mathrm{RFF}}}/\lambda_{\mathrm{RLS}}$.
+
+\begin{remark}[One regression, two training sets]\label{th:RLS_kriging}
+	\Cref{eq:RLS} is the correction \eqref{eq:SLAM_correction} written for a single map, and the two recursions coincide exactly when $\beta=1$ and $\lambda_{\mathrm{RLS}}I_{r_{\mathrm{RFF}}}=R_k\Lambda^{-1}$, which the random features allow since their $\Lambda$ is a multiple of the identity. Their gains are then equal, $P_k^\alpha$ is the coefficient covariance $P_{k|k}^l$ divided by $R_k$, and the minimiser of \eqref{eq:RLS_criterion} is the reduced-rank estimator of \Cref{th:reduced_rank_kriging}. Both sections therefore perform the same regression of the field onto a finite basis, and what distinguishes them is the training set each feeds it, the trajectory of a particle in one case and the sequence of state estimates in the other.
+
+	A forgetting factor $\beta<1$ breaks this correspondence by discounting the past, which no Bayesian update of a static field would do. It buys robustness to the drift of the estimated inputs at the price of discarding information the field has not invalidated, and it makes the reconstruction local in time rather than in space.
+\end{remark}
+
+\subsection{The AKKF-SLAM Algorithm}\label{sec:AKKF_SLAM}
+
+Since \eqref{eq:RLS} consumes one pair per time step, the map can be learnt at the rate of the filtering recursion, and both can be interleaved into a single loop. \Cref{alg:AKKF_SLAM} presents the resulting algorithm, in which $\mathbf{x}_k^+$ denotes the particle set after resampling, $\mathbf{w}_k^+$ and $\Sigma_{k|k}^+$ its weights and their covariance, and:
+\begin{equation}
+	G_k^x\triangleq k_x\left(\mathbf{x}_k^+,\mathbf{x}_k^+\right),\qquad G_k^z\triangleq k_z\left(\mathbf{z}_k,\mathbf{z}_k\right)
+\end{equation}
+the Gram matrices of the state and observation kernels, whose regularisation coefficients are $\lambda_x$ and $\lambda_z$.
+
+Two points deserve attention. The correction step draws its simulated observations from the current map, since the true one is unavailable, whereas the map update uses the actual observation $z_k$ and the estimate produced by the correction. And the state estimate is required by \eqref{eq:RLS}, so it belongs to the recursion rather than to its reading, as the predicted estimate does in \Cref{alg:AK_RPF}.
+
+\begin{algorithm}[!htb]
+	\begin{algorithmic}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{+(i)}\right)$}\Comment{Particle propagation}
+	\State{$D_k=\left(G_{k-1}^x+\lambda_xI_N\right)^{-1}G_{k-1}^x-I_N$}\Comment{\textbf{Embedded prediction}}
+	\State{$\displaystyle\Sigma_{k|k-1}=\Sigma_{k-1|k-1}^++\frac{1}{N}D_k\:D_k^\top$}
+	\State{$\forall i\in[\![1,N]\!],\:n_k^{(i)}\sim p_k^{(o)}$}\Comment{Simulated observations}
+	\State{$\forall i\in[\![1,N]\!],\:z_k^{(i)}=\Psi\left(x_k^{(i)}\right)\hat{\alpha}_{k-1}+n_k^{(i)}$}
+	\State{$K_k=\Sigma_{k|k-1}\left(G_k^z\:\Sigma_{k|k-1}+\lambda_zI_N\right)^{-1}$}\Comment{\textbf{Embedded correction}}
+	\State{$\mathbf{w}_k=\mathbf{w}_{k-1}^++K_k\left(k_z\left(\mathbf{z}_k,z_k\right)-G_k^z\:\mathbf{w}_{k-1}^+\right)$}
+	\State{$\Sigma_{k|k}=\Sigma_{k|k-1}-K_k\:G_k^z\:\Sigma_{k|k-1}$}
+	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}x_k^{(i)}$}\Comment{State estimation}
+	\State{$\displaystyle\hat{P}_k=\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top$}
+	\State{Compute $K_k^\alpha$, $\hat{\alpha}_k$ and $P_k^\alpha$ from \eqref{eq:RLS}}\Comment{\textbf{Map update}}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{+(i)}\sim\mathcal{N}\left(\hat{x}_k,\hat{P}_k\right)$}\Comment{Resampling}
+	\State{$T_k=\left(G_k^x+\lambda_xI_N\right)^{-1}k_x\left(\mathbf{x}_k^+,\mathbf{x}_k\right)$}\Comment{\textbf{Embedded resampling}}
+	\State{$\mathbf{w}_k^+=T_k\mathbf{w}_k$}
+	\State{$\Sigma_{k|k}^+=T_k\:\Sigma_{k|k}\:T_k^\top$}
+	\end{algorithmic}\caption{AKKF-SLAM}\label{alg:AKKF_SLAM}
+\end{algorithm}
+
+\subsection{Numerical Results}\label{sec:SLAM_results}
+
+\Cref{alg:AKKF_SLAM} is evaluated on the two-dimensional scenario of \Cref{tab:SLAM_scenario}, in which a vehicle follows a contracting spiral over an analytic field and observes it through a scalar magnetometer-like sensor. The field is deliberately non-injective, so that a single reading is compatible with several positions, and the initial estimate is offset from the true state.
+
+\begin{table}[!htb]
+	\centering\begin{tabular}{|l|l|}\hline
+		True function&$\displaystyle\begin{aligned}
+		h:x\mapsto\:&\sin\left(0.7p^{(x)}\right)+0.5\cos\left(1.2p^{(y)}\right)+\\
+		&0.3\sin\left(0.4\left(p^{(x)}+p^{(y)}\right)\right)
+		\end{aligned}$\rule[-9mm]{0pt}{20mm}\\\hline
+		State&$x_k=\begin{bmatrix}p_k^{(x)}&p_k^{(y)}\end{bmatrix}^\top$, $d_x=2$, $d_z=1$\rule[-4mm]{0pt}{11mm}\\\hline
+		Trajectory&contracting spiral of $n_{\mathrm{steps}}=100$ steps over $[-5,5]^2$\\\hline
+		Evolution noise&$Q_k=0.01^2\:I_2$\\\hline
+		Observation noise&$R_k=0.01^2$\\\hline
+		Initial covariance&$P_0=0.1^2\:I_2$\\\hline
+		Kernels&$\displaystyle k_x=k_z=k_{\mathrm{SE}}$ with $l=1.5$ and $\sigma_f^2=1$\rule[-4mm]{0pt}{11mm}\\\hline
+		Regularisation&$\lambda_x=\lambda_z=0.1$, $\lambda_{\mathrm{RLS}}=0.01$, $\beta=0.995$\\\hline
+		Features&$r_{\mathrm{RFF}}=500$, frequencies drawn from $\mathcal{N}(0,1.5)$\\\hline
+		Particles&$N=1000$\\\hline
+	\end{tabular}
+	\caption{The SLAM scenario. The observation function is scalar and non-injective, so that the likelihood is multimodal at every time step.}\label{tab:SLAM_scenario}
+\end{table}
+
+Three particle filters serve as a baseline, each given a known but degraded observation function:
+\begin{equation}
+	h_\gamma:x\mapsto\left(1+\varepsilon(x)\right)h(x),\qquad\varepsilon(x)\sim\mathcal{N}(0,\gamma)
+\end{equation}
+with $\gamma\in\{0,0.1,0.5\}$, the first of them navigating on the exact map. All four filters are run over $n_{\mathrm{MC}}=100$ Monte Carlo simulations, and compared through the trajectory error:
+\begin{equation}
+	\mathrm{RMSE}_{\hat{x}}:k\mapsto\sqrt{\frac{1}{n_{\mathrm{MC}}}\sum_{i=1}^{n_{\mathrm{MC}}}\left\|\hat{x}_k^{(i)}-x_k\right\|_2^2}\label{eq:SLAM_RMSE}
+\end{equation}
+where $\hat{x}_k^{(i)}$ is the estimate of the $i$-th run at time $k$, and its average over a set $E$ of time steps:
+\begin{equation}
+	\mathrm{ARMSE}_{\hat{x}}(E)\triangleq\frac{1}{|E|}\sum_{k\in E}\mathrm{RMSE}_{\hat{x}}(k)
+\end{equation}
+which is \eqref{eq:kriging_ARMSE} over a discrete index set. \Cref{tab:SLAM_transient} reports the maximum of \eqref{eq:SLAM_RMSE} over the first ten steps and its average over the last twenty.
+
+\begin{table}[!htb]
+	\centering\begin{tabular}{|l|c|c|c|c|}\hline
+		&AKKF-SLAM&$\gamma=0.5$&$\gamma=0.1$&$\gamma=0$\\\hline
+		$\underset{k\leq10}{\max}\:\mathrm{RMSE}_{\hat{x}}(k)$&$0.56$&$0.18$&$0.15$&$0.13$\\\hline
+		$\mathrm{ARMSE}_{\hat{x}}\left([\![80,100]\!]\right)$&$0.19$&$0.18$&$0.11$&$0.04$\\\hline
+		Ratio&$2.88$&$0.96$&$1.38$&$3.15$\\\hline
+	\end{tabular}
+	\caption{Transient and asymptotic trajectory errors of the four filters. The three rightmost columns are particle filters navigating on a known map degraded at level $\gamma$.}\label{tab:SLAM_transient}
+\end{table}
+
+The baselines behave as expected, their error decreasing with $\gamma$, and the most degraded of them merely maintaining its initial error instead of converging. AKKF-SLAM starts markedly worse, at $0.56$ against $0.13$ for the best-informed filter, which is the price of having no map at all during the first steps. It then divides its error by almost three, ending at the level of the filter navigating on the most degraded map, whereas the ratio of the same two quantities is close to one for that filter. The shape of the decrease, not its level, is what the comparison establishes, and it matches that of the filter given the exact map.
+
+The reconstruction is evaluated through the spatial error defined as in \eqref{eq:kriging_RMSE}, computed between $h$ and the final map $x\mapsto\Psi(x)\:\hat{\alpha}_{n_{\mathrm{steps}}}$ of each run. Its average is $0.21$ over $[-5,5]^2$ and $0.07$ along the true trajectory, the gap between the two being extrapolation, as most of the domain is never approached closer than a correlation length. Three of the four peaks of the spatial error indeed lie outside the spiral. The fourth lies inside it, where the trajectory does pass, and corresponds to a reconstruction shifted with respect to the true field rather than to a loss of amplitude, which \cref{sec:learning_bias} attributes to the way the map is trained.
+
+\section{The Learning Bias}\label{sec:learning_bias}
+
+Both algorithms of this chapter estimate the map from observations attached to positions they do not know. \Cref{alg:SLAM_RBPF} handles this by carrying the joint law of the trajectory and the map, factorised as in \cref{sec:particle_filtering}:
+\begin{equation}
+	p\left(\alpha,\mathbf{x}_{0:k}^n|\mathbf{z}_{1:k}\right)=p\left(\alpha|\mathbf{x}_{0:k}^n,\mathbf{z}_{1:k}\right)p\left(\mathbf{x}_{0:k}^n|\mathbf{z}_{1:k}\right)
+\end{equation}
+so that each map is conditioned on a trajectory which is exact under that conditioning, as \Cref{th:SLAM_kriging} observes. The coupling between the two is represented by the particle set itself, a particle whose trajectory is wrong carrying a map that is wrong in a consistent way, and the weights arbitrating between them.
+
+\Cref{alg:AKKF_SLAM} carries a single map instead, and trains it on the pairs $\left(\hat{x}_l,z_l\right)$. This is the construction \eqref{eq:RLS_criterion} assumes, and it breaks two of the hypotheses under which the regression of \cref{sec:kriging} is unbiased.
+
+The training inputs are no longer exact. Kriging assumes noiseless inputs, and an error on the input is not interchangeable with an error on the output. Writing $\hat{x}_l=x_l+\delta_l$ with $\delta_l$ centred of covariance $\hat{P}_l$, a second-order expansion of a twice-differentiable field gives:
+\begin{equation}
+	\mathbb{E}\left[h\left(\hat{x}_l\right)\right]\approx h(x_l)+\frac{1}{2}\operatorname{tr}\left(\hat{P}_l\:\nabla^2h(x_l)\right)
+\end{equation}
+so the regression sees a field smoothed by the estimation error rather than the field itself. Extrema are attenuated and gradients flattened, which an inflation of $R_k$ would not reproduce, since it widens the confidence band without moving its centre.
+
+More importantly, the two members of the pair are correlated. The estimate $\hat{x}_l$ is produced by a correction step that has already used $z_l$, so the map is taught to agree with the very estimate that observation produced, and confirms it at the following step. The covariance $P_k^\alpha$ then shrinks with no evidence behind it, and the filter grows confident in a map that its own estimates wrote. The interior peak of \cref{sec:SLAM_results} is its signature, a reconstruction displaced along the trajectory rather than degraded in amplitude.
+
+What \Cref{alg:AKKF_SLAM} performs is therefore mapping with known poses, applied to poses that are merely estimated. Genuine simultaneous localisation and mapping carries the joint law of the trajectory and the map, with the cross-covariances between them, which is what the particle set of \Cref{alg:SLAM_RBPF} represents and what an extended Kalman filter holding pose-landmark blocks \cite{bib:magnetic-SLAM-EKF} keeps explicitly. Dropping those terms is what produces the bias, and the cost of keeping them is the one \Cref{th:SLAM_cost} measures.
+
+Three corrections suggest themselves, none of which is implemented here. The correlation is the easiest of the two defects to remove, since training the map on the predicted estimate $\hat{x}_{k|k-1}$ rather than on the corrected one uses an input that does not depend on $z_k$, at the cost of a less accurate position. The input error calls instead for a regression that accepts a distribution over its inputs, integrating the likelihood against $\mathcal{N}\left(\hat{x}_k,\hat{P}_k\right)$ instead of evaluating it at $\hat{x}_k$. Carrying the cross-covariances explicitly is the third, and is what separates the two algorithms of this chapter.
+
+\begin{remark}[Trajectory degeneracy]\label{th:path_degeneracy}
+	\Cref{alg:SLAM_RBPF} is not exempt from a related defect. Every resampling discards trajectories, and after enough steps all surviving particles descend from a single ancestor, so the distant past of the trajectory is represented by one sample whatever the value of $N$. The maps of all particles are then conditioned on a common early history whose uncertainty has disappeared from the particle set, and the confidence they express on the corresponding region of the field is overstated.
+
+	This is the counterpart, for a filter carrying the joint law, of the bias described above, and it bounds the duration over which \Cref{alg:SLAM_RBPF} can be trusted to quantify its own map uncertainty.
+\end{remark}

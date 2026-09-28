@@ -444,7 +444,7 @@ function [z, R, n, n_modes, cout] = query_cak(survey, P, ctx, par)
 % proche plutôt que d'hériter des étiquettes des particules : l'APF interroge des points
 % qui ne sont pas ceux dont le contexte est issu, et un centre est un lieu auquel les deux
 % ensembles peuvent être rattachés.
-    [centres, n_dist] = mean_shift(ctx.X(1:2, :), ctx.w, par.krig.bandwidth);
+    [centres, n_dist] = partition_nuage(ctx.X(1:2, :), ctx.w, par);
     n_modes = size(centres, 2);
     if n_modes == 1
         % Le mean-shift a tourne pour rien, et il faut quand meme le facturer : c'est le
@@ -640,6 +640,69 @@ function ctx_c = cluster_context(ctx, members, centre)
     ctx_c.x_pred = X * w';
     Xc           = X - ctx_c.x_pred;
     ctx_c.P_pred = (Xc .* w) * Xc';
+end
+
+function [centres, n_dist] = partition_nuage(X, w, par)
+% QUI DÉCIDE DES MODES. Deux réponses, sous un seul paramètre `par.krig.partition` :
+%
+%   'meanshift'  les maxima de la densité lissée par une bande fixe. Deux maxima distants
+%                de moins d'une demi-bande n'en font qu'un, mais deux parties d'un même
+%                nuage continu en font deux dès qu'un creux les sépare — d'où les vingt
+%                modes mesurés à l'acquisition, dont les fenêtres se recouvrent.
+%   'dbscan'     les composantes connexes en densité. Deux amas reliés par une chaîne de
+%                particules restent un seul groupe, si éloignés soient leurs sommets, et
+%                c'est la différence qui compte ici : la partition suit les trous du nuage
+%                et non la forme de sa densité.
+%
+% eps N'EST PAS UNE LARGEUR DE NOYAU mais un seuil de voisinage, et il est pris
+% proportionnel à la dispersion du nuage plutôt que fixé en mètres : à huit kilomètres
+% d'écart-type comme à cent cinquante, c'est le même nuage à l'échelle près, et un seuil
+% absolu déclarerait tout connexe dans le second cas. `dbscan_eps` impose une valeur en
+% mètres si on y tient, `dbscan_alpha` donne sinon le rapport à l'écart-type principal.
+    switch par.krig.partition
+        case 'meanshift'
+            [centres, n_dist] = mean_shift(X, w, par.krig.bandwidth);
+        case 'dbscan'
+            [centres, n_dist] = partition_dbscan(X, w, par);
+        otherwise
+            error('krigeage:partition', 'Partition inconnue : %s.', par.krig.partition);
+    end
+end
+
+function [centres, n_dist] = partition_dbscan(X, w, par)
+% MÊME ÉCLAIRCISSAGE QUE LE MEAN SHIFT, et pour la même raison : la partition de cinq mille
+% particules est celle de cinq cents d'entre elles, et toutes sont ensuite rattachées au
+% centre le plus proche. Sans lui, dbscan appellerait rangesearch sur cinq mille points à
+% chaque pas de chaque essai.
+    if size(X, 2) > 500
+        keep = round(linspace(1, size(X, 2), 500));
+        X = X(:, keep);  w = w(keep);
+    end
+    n      = size(X, 2);
+    n_dist = n * log2(max(n, 2));        % la recherche de voisinage, sur un arbre
+
+    eps_c = par.krig.dbscan_eps;
+    if eps_c <= 0
+        sigma = sqrt(max(eig(cov(X'))));
+        eps_c = par.krig.dbscan_alpha * max(sigma, eps(1));
+    end
+    lab = dbscan(X', eps_c, par.krig.dbscan_minpts);
+
+    % LE BRUIT N'EST PAS JETÉ. Un point isolé que dbscan étiquette -1 est une hypothèse de
+    % position comme une autre, et la perdre reviendrait à ne pas kriger là où des
+    % particules se trouvent. Il rejoint le groupe le plus proche ; s'il n'y en a aucun,
+    % tout le nuage n'en fait qu'un.
+    vrais = lab(lab > 0);
+    if isempty(vrais)
+        centres = (X * w(:)) / sum(w);
+        return
+    end
+    cl = unique(vrais)';
+    centres = zeros(2, numel(cl));
+    for j = 1:numel(cl)
+        in = lab' == cl(j);
+        centres(:, j) = (X(:, in) * w(in)') / sum(w(in));
+    end
 end
 
 function [centres, n_dist] = mean_shift(X, w, bandwidth)

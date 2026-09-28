@@ -78,6 +78,10 @@ par.krig.refit        = 'fenetre';   % 'fenetre' ou 'global', voir krigeage
 par.krig.window_factor = 2;          % alpha de l'article, coefficient de dilatation
 par.krig.n_min        = 25;          % plancher sur les points retenus (2A)
 par.krig.bandwidth    = 1200;        % m, celle de 2A ; 'reference' la ramène à 1000
+par.krig.partition    = 'meanshift'; % 'meanshift' ou 'dbscan', voir partition_nuage
+par.krig.dbscan_eps   = 0;           % m ; zéro pour un seuil proportionnel à la dispersion
+par.krig.dbscan_alpha = 0.3;         % le rapport en question, quand dbscan_eps vaut zéro
+par.krig.dbscan_minpts = 5;          % points minimum d'un noyau, 2 fois la dimension plus un
 par.krig.p_alea       = 0.5;         % probabilité de garder chaque point du relevé dans le
                                      % contrôle négatif 'ak_alea'. Éclaircissement de
                                      % Bernoulli, tiré une fois pour la mission : à

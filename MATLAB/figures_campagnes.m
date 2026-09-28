@@ -9,6 +9,8 @@
 %   Erreur finale par maille   RMSE et NEES medianes sur les dix derniers pas
 %   Echantillons retenus par maille  la fenetre de l'AK a chaque pas, une courbe par maille,
 %                              en log avant le premier virage et en lineaire apres
+%   Formes des fenetres        les selections de l'AK, de la NNAK et du MCAK superposees
+%                              sur un meme nuage bimodal : une illustration, pas une mesure
 %
 % puis quatre comparaisons par paires, chacune avec la carte connue en borne, en trois
 % figures : 'RMSE <etape>', grille 3 x 2 d'une maille par case ; 'NEES <etape>', la meme en
@@ -18,7 +20,7 @@
 %   par maille              bilineaire contre statique, sous les noms historiques
 %   eclairci par maille     statique contre releve eclairci
 %   adaptatif par maille    statique contre AK
-%   CAK et NNAK par maille  AK contre CA-OK et contre NNAK, sur une seule serie
+%   fenetres par maille     AK contre NNAK, ICAK et MCAK, sur une seule serie
 %
 % COULEUR, TRAIT ET NOM DE CHAQUE METHODE sortent d'une seule fonction, style_modele, en fin
 % de fichier : figures, legendes et en-tetes de tableaux la consultent tous, et renommer une
@@ -30,8 +32,8 @@
 %   cout_<etape>.tex  le cout de chaque comparaison, sauf la premiere
 %   ak_vs_ok.tex      adaptatif contre statique              campagne B
 %   cak_vs_ak.tex     clusterise contre adaptatif            campagne B
-%   cout_cak.tex      les trois postes de cout du CA-OK      campagne B
-%   fenetrage.tex     les parametres de fenetre, un par ligne  balayages CA-OK
+%   cout_cak.tex      les trois postes de cout de l'ICAK     campagne B
+%   fenetrage.tex     les parametres de fenetre, un par ligne  balayages ICAK
 %
 % Les six mailles tiennent en une grille plutot qu'en six flottants : la degradation se
 % lit d'une case a l'autre, ce qu'une figure isolee par maille ne montre pas. La page est
@@ -376,6 +378,96 @@ ax.Position = [ti(1) + marg, ti(2) + marg, ...
                1 - ti(1) - ti(3) - 2 * marg, 1 - ti(2) - ti(4) - 2 * marg];
 exporter(fig, 'ARMSE de reconstruction', 348, 280, img_dir);
 
+%% Les trois formes de fenetre
+%
+% ILLUSTRATION ET NON MESURE, la seule du chapitre : le nuage de particules est synthetique
+% et bimodal, le releve est tire comme celui du scenario, et aucune campagne n'enregistre
+% les nuages pas par pas. Ce que la figure montre est la FORME de ce que chaque methode
+% retient autour d'un meme nuage, avec les planchers et le facteur de dilatation du
+% chapitre : un disque pour l'AK, une reunion de petits disques par particule pour la NNAK,
+% une reunion d'un disque par mode pour le MCAK.
+%
+% LES REUNIONS SONT DES POLYSHAPE ET NON DES DISQUES SUPERPOSES : dessiner quatre cents
+% disques translucides foncerait la teinte a chaque recouvrement, et l'oeil lirait un
+% degrade la ou il n'y a qu'une reunion. L'ICAK n'y figure pas : sa selection est celle du
+% MCAK, seule la resolution differe, et deux courbes identiques dans une legende se lisent
+% comme une erreur.
+rng(7);
+pas_km  = par.krig.pas / 1e3;
+alpha_c = par.krig.window_factor;
+n_min   = par.krig.n_min;
+k_vois  = 4;                       % voisins par particule de la NNAK, 'k_voisins' de la campagne
+chi2_99 = chi2inv(0.99, 2);        % deux degres de liberte : la position
+
+% Le nuage : deux modes de poids et de formes differents, comme pendant l'acquisition
+mu_p  = [0 0; 18 4];
+Sig_p = cat(3, [2.6 0.6; 0.6 1.6], [1.8 -0.5; -0.5 2.8]);
+n_p   = [260 140];
+P     = [mvnrnd(mu_p(1, :), Sig_p(:, :, 1), n_p(1)); mvnrnd(mu_p(2, :), Sig_p(:, :, 2), n_p(2))];
+lab   = [ones(n_p(1), 1); 2 * ones(n_p(2), 1)];
+
+% LE RELEVE EST TIRE APRES LE NUAGE, sur l'etendue que la fenetre de l'AK reclame : avec le
+% facteur de dilatation du chapitre, un nuage bimodal de vingt kilometres donne un disque
+% de plus de cinquante de rayon, et une grille calee sur le nuage laisserait la moitie de
+% la figure vide. L'etendue est majoree une premiere fois sans le plancher, qui ne peut que
+% la reduire.
+etendue = alpha_c * sqrt(chi2_99) * sqrt(max(eig(cov(P)))) + 3 * pas_km;
+ctr     = mean(P, 1);
+[gx, gy] = meshgrid(ctr(1) + (-etendue:pas_km:etendue), ctr(2) + (-etendue:pas_km:etendue));
+G = [gx(:), gy(:)] + par.krig.jitter * pas_km * (2 * rand(numel(gx), 2) - 1);
+
+th     = linspace(0, 2 * pi, 121);
+disque = @(ctr, r) polyshape(ctr(1) + r * cos(th), ctr(2) + r * sin(th));
+
+% AK : une fenetre sur tout le nuage. MCAK : une par mode. NNAK : une par particule, aux
+% k plus proches echantillons, donc sans rayon de covariance.
+[r_ak, m_ak] = rayon_fenetre(P, G, alpha_c, chi2_99, n_min);
+S_ak = disque(m_ak, r_ak);
+
+S_mcak = repmat(polyshape, 1, max(lab));
+for c = 1:max(lab)
+    [r_c, m_c] = rayon_fenetre(P(lab == c, :), G, alpha_c, chi2_99, n_min);
+    S_mcak(c)  = disque(m_c, r_c);
+end
+S_mcak = union(S_mcak);
+
+D_pg   = pdist2(P, G);
+r_nnak = zeros(size(P, 1), 1);
+S_nnak = repmat(polyshape, 1, size(P, 1));
+for i = 1:size(P, 1)
+    d = sort(D_pg(i, :));
+    r_nnak(i) = d(k_vois);
+    S_nnak(i) = disque(P(i, :), r_nnak(i));
+end
+S_nnak = union(S_nnak);
+
+fprintf(['Formes des fenetres : AK %.1f km de rayon, MCAK %.0f %%%% de l''aire de l''AK, ' ...
+         'NNAK %.0f %%%%\n'], r_ak, 100 * area(S_mcak) / area(S_ak), 100 * area(S_nnak) / area(S_ak));
+
+fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 348 280]);
+hold on; box on;
+[c_ak,   ~, e_ak]   = style_modele('ak');
+[c_nnak, ~, e_nnak] = style_modele('reunion');
+[c_mcak, ~, e_mcak] = style_modele('mcak');
+h_ak   = plot(S_ak,   'FaceColor', c_ak,   'FaceAlpha', 0.20, 'EdgeColor', c_ak,   'LineWidth', linewidth);
+h_mcak = plot(S_mcak, 'FaceColor', c_mcak, 'FaceAlpha', 0.30, 'EdgeColor', c_mcak, 'LineWidth', linewidth);
+h_nnak = plot(S_nnak, 'FaceColor', c_nnak, 'FaceAlpha', 0.45, 'EdgeColor', c_nnak, 'LineWidth', 0.5);
+plot(G(:, 1), G(:, 2), '.', 'Color', [0.58 0.58 0.58], 'MarkerSize', 3);
+plot(P(:, 1), P(:, 2), '.', 'Color', [0.15 0.15 0.15], 'MarkerSize', 3);
+hold off; axis equal;
+[bx, by] = boundingbox(S_ak);
+xlim(bx + [-pas_km pas_km]); ylim(by + [-pas_km pas_km]);
+fs = 12 * 348 / (0.7 * textwidth);   % inseree a 0.7\textwidth
+xlabel('$p^{(x)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
+ylabel('$p^{(y)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
+legend([h_ak, h_nnak, h_mcak], {e_ak, e_nnak, e_mcak}, 'Interpreter', 'latex', ...
+       'FontSize', fs, 'Location', 'northwest');
+set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fs);
+ax = gca; drawnow; ti = ax.TightInset; marg = 0.02;
+ax.Position = [ti(1) + marg, ti(2) + marg, ...
+               1 - ti(1) - ti(3) - 2 * marg, 1 - ti(2) - ti(4) - 2 * marg];
+exporter(fig, 'Formes des fenetres', 348, 280, img_dir);
+
 %% Le cout arithmetique par modele
 %
 % ANALYTIQUE ET NON MESURE. res.cout est nul pour le krigeage ordinaire de cette campagne,
@@ -613,7 +705,8 @@ end
 CRB  = nan(n_it, numel(pas), n_mod);       % RMSE par pas
 CNE  = nan(n_it, numel(pas), n_mod);       % NEES par pas
 CCV  = nan(numel(pas), n_mod, 2);          % convergence, seuil et Mahalanobis
-CNU  = nan(numel(pas), n_mod);             % echantillons retenus
+CNU  = nan(numel(pas), n_mod);             % echantillons retenus, moyenne sur la mission
+CNT  = nan(n_it, numel(pas), n_mod);       % les memes, pas par pas
 CGF  = nan(numel(pas), n_mod);             % cout par essai, en flops
 CGP  = nan(numel(pas), n_mod, 3);          % le meme, par poste : krigeage, hyperparametres,
                                            % clusterisation. Le krigeage reunit la
@@ -636,6 +729,17 @@ for im = 1:n_mod
         CRB(:, ip, im) = sqrt(mean(E(:, ok).^2, 2));
         CNE(:, ip, im) = median(D(:, ok), 2, 'omitnan') / d_x;
         CNU(ip, im)    = mean(pool(e).n_used, 'all');
+        % LES POINTS RETENUS PAS PAR PAS, moyennes sur les essais. C'EST n_used ET NON LA
+        % PREMIERE LIGNE DU COUT : les deux different chez l'ICAK, seul modele a resoudre
+        % plusieurs systemes par pas. Son cout(1) est la SOMME de ses fenetres, doublons
+        % compris, puisque c'est elle qu'il paie ; n_used est l'union, donc ce que le pas a
+        % reellement lu de la carte. Tracer cout(1) donnait a l'ICAK quatre fois plus de
+        % points que le MCAK la ou les deux lisent les memes — 139 contre 36 a 7,5 km,
+        % quand leurs unions valent 35,8 et 34,7. Le rapport des deux mesure le recouvrement
+        % de ses fenetres, pas sa couverture.
+        if isfield(pool, 'n_used') && ~isempty(pool(e).n_used)
+            CNT(:, ip, im) = mean(pool(e).n_used, 2);
+        end
 
         % LE COUT : mesure quand le modele l'enregistre, analytique sinon. L'AK, le CA-OK
         % et la reunion comptent leurs fenetres pas par pas dans res.cout, et cout_e les
@@ -691,13 +795,15 @@ end
 % supprimees le meme jour, PDF et tableaux compris, la serie fusionnee les remplacant.
 %
 % ELLE EN PORTE CINQ DEPUIS LE 22 SEPTEMBRE, la variante reunie du CAK ayant rejoint la
-% comparaison, ET L'ORDRE EST CELUI OU LE MANUSCRIT LES ANNONCE : AK, NNAK, MCAK, ICAK.
-% Il va de la partition la plus fine a la plus grossiere pour les trois dernieres, et
-% separe les deux variantes du clustering par ce qu'elles font de leurs fenetres.
+% comparaison, ET L'ORDRE EST CELUI OU LE MANUSCRIT LES ANNONCE : AK, NNAK, ICAK, MCAK.
+% LES DEUX VARIANTES DU CLUSTERING ONT ETE ECHANGEES LE 25 SEPTEMBRE : la section presente
+% l'ICAK d'abord, qui donne une fenetre et une resolution a chaque mode, puis le MCAK, qui
+% reunit ces fenetres pour retrouver une selection unique comme celle de la NNAK. Les
+% courbes suivent cette annonce, et non plus la finesse de la partition.
 etapes = {[1 3 2],     'par maille',           'Convergence par maille', ''
           [1 3 6],     'eclairci par maille',  'Convergence eclairci',   'cout_eclairci'
           [1 3 4],     'adaptatif par maille', 'Convergence adaptatif',  'cout_adaptatif'
-          [1 4 7 8 5], 'fenetres par maille',  'Convergence fenetres',   'cout_fenetres'};
+          [1 4 7 5 8], 'fenetres par maille',  'Convergence fenetres',   'cout_fenetres'};
 for s = 1:size(etapes, 1)
     sel  = etapes{s, 1};
     cles = cand(sel, 1)';
@@ -708,6 +814,21 @@ for s = 1:size(etapes, 1)
            pdf_w, pdf_h, fontsize, linewidth, img_dir, ['RMSE ' etapes{s, 2}]);
     grille(kk, kd, CNE(:, :, sel), pas, cles, '$\mathrm{NEES}_{\hat{x}}(k)$', true, [bas haut], NaN, ...
            pdf_w, pdf_h, fontsize, linewidth, img_dir, ['NEES ' etapes{s, 2}]);
+    % LES POINTS RETENUS AU COURS DU VOL, une case par maille, pour les seules series ou
+    % plusieurs sous-echantillonnages se comparent : la carte connue et le bilineaire n'en
+    % retiennent aucun, et le statique les prend tous. C'est la version par methode de la
+    % figure des echantillons de l'AK, qui, elle, porte une courbe par maille pour une
+    % seule methode — et elle en reprend les DEUX ECHELLES, pour la meme raison : les
+    % milliers de points de l'acquisition ecrasent la dizaine de la poursuite.
+    % DEUX METHODES AU MOINS : la serie de l'AK contre le statique n'en comparait qu'une, et
+    % sa figure redisait ce que celle des echantillons de la section 4.3 porte deja, maille
+    % par maille et pour cette seule methode.
+    sel_n = sel(ismember(sel, [4 5 7 8]));
+    if numel(sel_n) >= 2
+        grille_deux_echelles(kk, CNT(:, :, sel_n), pas, cand(sel_n, 1)', '$\tilde{N}_k^r$', ...
+               k_vir, SE.par.krig.n_min, pdf_w, pdf_h, fontsize, linewidth, img_dir, ...
+               ['Echantillons ' etapes{s, 2}]);
+    end
 
     f2 = figure('Color', 'w', 'Units', 'points', 'Position', [40 40 textwidth 230]);
     t2 = tiledlayout(f2, 1, 2, 'TileSpacing', 'compact', 'Padding', 'compact');
@@ -782,7 +903,8 @@ for s = 1:size(etapes, 1)
     end
     explique = ['%% The kriging column gathers the factorisation and the queries, which no\n' ...
                 '%% method pays one without the other; the hyperparameter column is the local\n' ...
-                '%% fits, and the last column, where there is one, the mean-shift of the CAK or\n' ...
+                '%% fits, and the last column, where there is one, the mean-shift of the ICAK and\n' ...
+                '%% the MCAK, or\n' ...
                 '%% the neighbour search of the NNAK. A method that does not pay a cost has no\n' ...
                 '%% column for it.\n'];
     if serre_any
@@ -1458,6 +1580,18 @@ function s = nom_prose(nom)
     if strcmp(nom, upper(nom)), s = nom; else, s = lower(nom); end
 end
 
+function [r, m] = rayon_fenetre(P, G, alpha_c, chi2_99, n_min)
+% LE RAYON D'UNE FENETRE ADAPTATIVE, tel que le chapitre le definit : le plus grand des
+% deux, celui que dicte la covariance du nuage et celui qu'impose le plancher de points
+% retenus, rendu avec le centre de la selection. Les moments sont ici non ponderes, le
+% nuage de l'illustration n'ayant pas de poids ; le chapitre, lui, les pondere.
+    m     = mean(P, 1);
+    r_cov = alpha_c * sqrt(chi2_99) * sqrt(max(eig(cov(P))));
+    d     = sort(vecnorm(G - m, 2, 2));
+    r_min = d(min(n_min, numel(d)));
+    r     = max(r_cov, r_min);
+end
+
 function k = premier_virage(x_true)
 % Le premier pas ou le cap change. Mesure sur la vitesse vraie, donc valable quelle que
 % soit la forme du vol : une ligne droite rend simplement un marqueur vide.
@@ -1602,8 +1736,10 @@ function ok = memes_reglages(pA, pB, cle)
 % un parametre qui ne le touche pas.
     socle  = {'jitter', 'n_side', 'sigma_map', 'noyau', 'n_surveys', 'ell_init', 'n_ml'};
     propre = struct('ak',       {{'refit', 'window_factor', 'n_min', 'n_max', 'n_ml_win'}}, ...
-                    'cak',      {{'refit', 'window_factor', 'n_min', 'n_max', 'n_ml_win', 'bandwidth'}}, ...
-                    'mcak',     {{'refit', 'window_factor', 'n_min', 'n_max', 'n_ml_win', 'bandwidth'}}, ...
+                    'cak',      {{'refit', 'window_factor', 'n_min', 'n_max', 'n_ml_win', 'bandwidth', ...
+                                  'partition', 'dbscan_eps', 'dbscan_alpha', 'dbscan_minpts'}}, ...
+                    'mcak',     {{'refit', 'window_factor', 'n_min', 'n_max', 'n_ml_win', 'bandwidth', ...
+                                  'partition', 'dbscan_eps', 'dbscan_alpha', 'dbscan_minpts'}}, ...
                     'reunion',  {{'refit', 'n_ml_win', 'k_voisins', 'rayon_boule'}}, ...
                     'eclairci', {{'p_alea'}}, ...
                     'statique', {{'tab_pitch'}}, ...
@@ -1623,4 +1759,134 @@ function ok = memes_reglages(pA, pB, cle)
     ok = isequal(pA.mc.n_part, pB.mc.n_part) && isequal(pA.mc.n_steps, pB.mc.n_steps) ...
          && isequal(pA.run.seed, pB.run.seed) && isequal(pA.dt, pB.dt) ...
          && isequal(pA.sigma_0, pB.sigma_0) && isequal(pA.sigma_q, pB.sigma_q);
+end
+
+function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w, pdf_h, fontsize, linewidth, img_dir, nom_fig)
+% La grille 3 x 2 de grille(), mais chaque case COUPEE AU PREMIER VIRAGE : a gauche
+% l'acquisition en echelle logarithmique, a droite la poursuite en lineaire, comme la
+% figure des echantillons de l'AK. Sans cette coupure, les milliers de points que
+% l'acquisition retient a la maille fine ecrasent la dizaine de la poursuite ; et une
+% echelle logarithmique sur toute la mission aplatit justement les ecarts de la poursuite,
+% qui sont ce que la figure doit montrer.
+%
+% MISE EN PAGE A LA MAIN, comme la figure de l'AK et pour la meme raison : tiledlayout ne
+% sait pas donner a deux cases des largeurs dans un rapport quelconque, et une jonction en
+% deux moities egales fait mentir l'axe du temps. Les douze axes sont donc places en
+% coordonnees normalisees, les largeurs proportionnelles au nombre de pas, en deux passes
+% puisque les etiquettes bougent une fois les axes redimensionnes.
+%
+% LES BORNES SONT COMMUNES AUX SIX CASES, une par moitie : la degradation se lit d'une
+% maille a l'autre, ce qu'un axe ajuste case par case interdirait. Les graduations ne sont
+% ecrites qu'une fois par colonne — a gauche celles du log, a droite celles du lineaire.
+    n_it = size(Y, 1);
+    kL   = 1:k_vir;
+    kR   = k_vir:n_it;
+    yL   = Y(kL, :, :);  yL = yL(isfinite(yL) & yL > 0);
+    yR   = Y(kR, :, :);  yR = yR(isfinite(yR));
+    limL = [10^floor(log10(min(yL))), 2 * max(yL)];
+    marge_y = 0.08 * (max(yR) - min(yR));
+    limR = [min(yR) - marge_y, max(yR) + marge_y];
+    dec  = ceil(log10(limL(1))):floor(log10(limL(2)));
+
+    fig = figure('Color', 'w', 'Units', 'points', 'Position', [40 40 pdf_w pdf_h]);
+    n_c = 2;  n_l = ceil(numel(pas) / n_c);
+    axL = gobjects(1, numel(pas));  axR = gobjects(1, numel(pas));  ttl = gobjects(1, numel(pas));
+    leg = cell(1, numel(cles));
+    for ip = 1:numel(pas)
+        axL(ip) = axes(fig);  axR(ip) = axes(fig);   %#ok<LAXES>
+        for ax = [axL(ip) axR(ip)], hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on'); end
+        for im = 1:numel(cles)
+            [c, l, leg{im}, mk] = style_modele(cles{im});
+            hL = plot(axL(ip), kk(kL), Y(kL, ip, im), l, 'Color', c, 'LineWidth', linewidth);
+            hR = plot(axR(ip), kk(kR), Y(kR, ip, im), l, 'Color', c, 'LineWidth', linewidth, ...
+                      'HandleVisibility', 'off');
+            if ~isempty(mk)
+                set([hL hR], 'Marker', mk, 'MarkerSize', 3, 'MarkerFaceColor', 'none');
+                set(hL, 'MarkerIndices', 1:5:numel(kL));
+                set(hR, 'MarkerIndices', 1:10:numel(kR));
+            end
+        end
+        col = mod(ip - 1, n_c) + 1;
+        for ax = [axL(ip) axR(ip)]
+            hold(ax, 'off');
+            set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
+        end
+        % LE PLANCHER EST GRADUE EN PLUS DES DECADES, comme sur l'axe de la figure des
+        % echantillons de l'AK : c'est la valeur que les courbes rejoignent, et aucune
+        % decade ne la donne. Les etiquettes sont ecrites a la main pour que les decades
+        % gardent leur forme 10^n.
+        [yt, ordre] = sort([10.^dec, n_min]);
+        yt_lab = [arrayfun(@(d) sprintf('$10^{%d}$', d), dec, 'UniformOutput', false), ...
+                  {sprintf('$%g$', n_min)}];
+        yt_lab = yt_lab(ordre);
+        set(axL(ip), 'YScale', 'log', 'YTick', yt, 'XTick', 10:20:k_vir, ...
+                     'YMinorTick', 'off', 'YMinorGrid', 'off');
+        ylim(axL(ip), limL);  xlim(axL(ip), [1 k_vir]);
+        ylim(axR(ip), limR);  xlim(axR(ip), [k_vir n_it]);
+        set(axR(ip), 'YAxisLocation', 'right');
+        % UN SEUL JEU D'ETIQUETTES, comme dans grille() : le logarithme a gauche de la
+        % premiere colonne, le lineaire a droite de la seconde, les pas sous la derniere
+        % ligne. Les bornes etant communes aux six cases, les repeter n'apprend rien.
+        if col == 1
+            set(axL(ip), 'YTickLabel', yt_lab);
+            set(axR(ip), 'YTickLabel', []);
+        else
+            set(axL(ip), 'YTickLabel', []);
+        end
+        if ip < numel(pas) - 1
+            set([axL(ip) axR(ip)], 'XTickLabel', []);
+        end
+        % LE PLANCHER, gradue comme dans la figure des echantillons de l'AK : c'est lui qui
+        % explique le palier des trois methodes qui le portent, et son absence chez la NNAK.
+        for ax = [axL(ip) axR(ip)]
+            yline(ax, n_min, ':', 'LineWidth', linewidth, 'HandleVisibility', 'off');
+            set(ax, 'XTickLabelRotation', 0, 'YTickLabelRotation', 0);
+        end
+        ttl(ip) = title(axL(ip), sprintf('$%.1f$ km', pas(ip)), 'Interpreter', 'latex', ...
+                        'FontSize', fontsize);
+    end
+    lg = legend(axL(1), leg, 'Interpreter', 'latex', 'FontSize', fontsize, ...
+                'Orientation', 'horizontal');
+    lg.ItemTokenSize = [18 18];
+    % UN SEUL LABEL PAR AXE, centre sur la grille entiere. Les axes etant places a la main,
+    % il n'y a pas de tiledlayout pour les porter, d'ou deux annotations.
+    xl = annotation(fig, 'textbox', [0 0 1 0.03], 'String', 'Time step $k$', ...
+                    'Interpreter', 'latex', 'FontSize', fontsize, 'EdgeColor', 'none', ...
+                    'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+    yl = annotation(fig, 'textbox', [0 0.4 0.04 0.2], 'String', ylab, 'FitBoxToText', 'on', ...
+                    'Interpreter', 'latex', 'FontSize', fontsize, 'EdgeColor', 'none', ...
+                    'HorizontalAlignment', 'left', 'VerticalAlignment', 'middle');
+
+    blanc = 0.012;  gap_x = 0.055;  gap_y = 0.075;  marge = 0.012;
+    for passe = 1:2
+        drawnow;
+        tL = max(cell2mat(arrayfun(@(a) a.TightInset(:)', axL, 'UniformOutput', false)'), [], 1);
+        tR = max(cell2mat(arrayfun(@(a) a.TightInset(:)', axR, 'UniformOutput', false)'), [], 1);
+        m_gau  = tL(1) + marge + yl.Position(3);
+        m_dro  = tR(3) + marge;
+        m_bas  = max(tL(2), tR(2)) + marge + xl.Position(4);
+        % UNE MARGE DE PLUS EN HAUT QUE LE TIGHTINSET : il ne compte pas le titre des cases,
+        % que la legende recouvrait sur la premiere ligne.
+        m_haut = max(tL(4), tR(4)) + 3 * marge + lg.Position(4);
+        W = (1 - m_gau - m_dro - (n_c - 1) * gap_x) / n_c;
+        H = (1 - m_bas - m_haut - (n_l - 1) * gap_y) / n_l;
+        wL = (W - blanc) * (k_vir - 1) / (n_it - 1);
+        for ip = 1:numel(pas)
+            col = mod(ip - 1, n_c) + 1;
+            lig = ceil(ip / n_c);
+            x0  = m_gau + (col - 1) * (W + gap_x);
+            y0  = m_bas + (n_l - lig) * (H + gap_y);
+            axL(ip).Position = [x0, y0, wL, H];
+            axR(ip).Position = [x0 + wL + blanc, y0, W - wL - blanc, H];
+            % Le titre appartient a l'axe de gauche : on le recentre sur la paire, sinon il
+            % se pose au-dessus de la seule acquisition.
+            set(ttl(ip), 'Units', 'normalized');
+            ttl(ip).Position(1) = (W / 2) / wL;
+        end
+        lg.Position = [0.5 - lg.Position(3) / 2, 1 - lg.Position(4) - marge, ...
+                       lg.Position(3), lg.Position(4)];
+        yl.Position(2) = m_bas + (1 - m_bas - m_haut) / 2 - yl.Position(4) / 2;
+        yl.Position(2) = m_bas + (1 - m_bas - m_haut) / 2 - yl.Position(4) / 2;
+    end
+    exporter(fig, nom_fig, pdf_w, pdf_h, img_dir);
 end

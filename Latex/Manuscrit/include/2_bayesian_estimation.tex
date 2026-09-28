@@ -61,14 +61,14 @@ Depending on the considered space and distance, different optimal estimators ari
 	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}(\rho(\psi(Z),\varphi(X)))\label{eq:loss_function}
 \end{equation}
 
-For the remainder of this document, we let, for $d,d',p\in\mathbb{N}^*$:
+For the remainder of this document, we let, for $p\in\mathbb{N}^*$, $E$ a measure space and $F$ a normed vector space:
 \begin{equation}
 	\begin{aligned}
-	\mathcal{L}^0\left(\mathbb{R}^{d'},\mathbb{R}^{d}\right)&\triangleq\left\{f:\mathbb{R}^{d'}\to\mathbb{R}^{d}\:\middle|\:f\text{ measurable}\right\}\\
-	\mathcal{L}^p\left(\mathbb{R}^{d}\right)&\triangleq\left\{A\text{ an }\mathbb{R}^{d}\text{-valued random variable}\:\middle|\:\mathbb{E}\left[\|A\|^p\right]<\infty\right\}
+	\mathcal{L}^0\left(E,F\right)&\triangleq\left\{f:E\to F\:\middle|\:f\text{ measurable}\right\}\\
+	\mathcal{L}^p\left(E,F\right)&\triangleq\left\{f\in\mathcal{L}^0\left(E,F\right)\:\middle|\:\int_E{\|f\|^p}<\infty\right\}
 	\end{aligned}
 \end{equation}
-where almost surely equal random variables are identified.
+where almost everywhere equal functions with respect to the Lebesgue measure on $E$ are identified.
 
 \subsection{Posterior Expectation Estimator}
 
@@ -76,13 +76,13 @@ Let:
 \begin{equation}
 	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)\:\middle|\:\mathbb{E}\left[\|\psi(Z)\|^2\right]<\infty\right\}
 \end{equation}
-To simplify notations, we identify each estimator $\psi\in\mathcal{F}$ with the random variable $\psi(Z)$ it produces. Under this identification, $\mathcal{F}$ is a closed subspace of $\mathcal{L}^2\left(\mathbb{R}^{d_{\varphi}}\right)$, and can be equipped with the inner product:
+To simplify notations, we identify each estimator $\psi\in\mathcal{F}$ with the random variable $\psi(Z)$ it produces. Under this identification, $\mathcal{F}$ is is equal to $\mathcal{L}^2\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)$, and can be equipped with the inner product:
 \begin{equation}
 	(A,B)\in\mathcal{F}^2\mapsto\langle A|B\rangle\triangleq\mathbb{E}\left[A(Z)^\top B(Z)\right]
 \end{equation}
 where $\mathbb{E}[X]$ denotes the expectation of the random variable $X$.
 
-Let $\|\cdot\|$ be the norm associated with $\langle\cdot|\cdot\rangle$. When $\varphi(X)\in\mathcal{L}^2\left(\mathbb{R}^{d_{\varphi}}\right)$, the minimisation problem \eqref{eq:loss_function} is equivalent to:
+Let $\|\cdot\|$ be the norm associated with $\langle\cdot|\cdot\rangle$. When $\varphi(X)$ is square-integrable, that is $\mathbb{E}\left[\|\varphi(X)\|^2\right]<\infty$, the minimisation problem \eqref{eq:loss_function} is equivalent to:
 \begin{equation}
 	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}\left(\mathbb{E}\left[\|\psi(Z)-\varphi(X)\|^2\right]\right)\label{eq:MMSE_problem}
 \end{equation}
@@ -132,11 +132,11 @@ An estimator solving \eqref{eq:MMSE_problem} is called a minimum mean squared er
 \end{proof}
 
 \begin{remark}[Geometric interpretation]
-	The MMSE estimator is the orthogonal projection of $\varphi(X)$ onto $\mathcal{F}$, viewed as a closed subspace of $\mathcal{L}^2\left(\mathbb{R}^{d_{\varphi}}\right)$, \textit{i.e.} the set of all square-integrable random variables that are measurable with respect to $Z$. The disappearance of the cross term in the proof above is precisely the orthogonality condition characterising this projection.
+	The MMSE estimator is the orthogonal projection of $\varphi(X)$ onto $\mathcal{F}$, viewed as the set of square-integrable $\mathbb{R}^{d_{\varphi}}$-valued random variables that are measurable with respect to $Z$. The disappearance of the cross term in the proof above is precisely the orthogonality condition characterising this projection.
 \end{remark}
 
 \begin{remark}[MMSE assumptions]
-	Square-integrability of $\varphi(X)$ is only required for the minimisation \eqref{eq:MMSE_problem} to be well-posed, not the estimator itself. The posterior expectation $\mathbb{E}[\varphi(X)|Z=z]$ remains well-defined for any $\varphi(X)\in\mathcal{L}^1\left(\mathbb{R}^{d_{\varphi}}\right)$, but it only minimises the mean squared error inside of $\mathcal{L}^2\left(\mathbb{R}^{d_{\varphi}}\right)$.
+	Square-integrability of $\varphi(X)$ is only required for the minimisation \eqref{eq:MMSE_problem} to be well-posed, not the estimator itself. The posterior expectation $\mathbb{E}[\varphi(X)|Z=z]$ remains well-defined as soon as $\varphi(X)$ is integrable, that is $\mathbb{E}[\|\varphi(X)\|]<\infty$, but it only minimises the mean squared error when $\varphi(X)$ is square-integrable.
 \end{remark}
 
 \subsection{Posterior Median Estimator}
@@ -198,7 +198,7 @@ While the terminology is less standard than MMSE, an estimator solving \eqref{eq
 \end{remark}
 
 \begin{remark}[Generalised median]
-	The extension to higher dimensions $d_{\varphi}>1$ is non-trivial. The $\mathcal{L}^1\left(\mathbb{R}^{d_{\varphi}}\right)$ median, also called geometric median, is the most common generalisation. In the remainder of this thesis, we focus on the MMSE and MAP estimators (presented below), which extend naturally to any dimension.
+	The extension to higher dimensions $d_{\varphi}>1$ is non-trivial. The geometric median, which minimises the mean absolute error, is the most common generalisation. In the remainder of this thesis, we focus on the MMSE and MAP estimators (presented below), which extend naturally to any dimension.
 \end{remark}
 
 \subsection{Maximum \textit{a Posteriori} Estimator}

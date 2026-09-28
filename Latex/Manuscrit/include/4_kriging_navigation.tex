@@ -199,7 +199,7 @@ That likelihood is available in closed form. \Cref{th:GP_marginals} gives the jo
 \begin{proposition}[Maximum likelihood hyperparameters]
 	A hyperparameter vector $\theta$ maximising \eqref{eq:marginal_likelihood} satisfies, for each component $\theta_i$:
 	\begin{equation}
-		\operatorname{tr}\left[\left((G_\theta^{-1}\tilde{\mathbf{r}})\:(G_\theta^{-1}\tilde{\mathbf{r}})^\top-G_\theta^{-1}\right)\:\frac{\partial G_\theta}{\partial\theta_i}\right]=0\label{eq:GP_MLE}
+		\operatorname{tr}\left(\left((G_\theta^{-1}\tilde{\mathbf{r}})\:(G_\theta^{-1}\tilde{\mathbf{r}})^\top-G_\theta^{-1}\right)\:\frac{\partial G_\theta}{\partial\theta_i}\right)=0\label{eq:GP_MLE}
 	\end{equation}
 \end{proposition}
 
@@ -213,7 +213,7 @@ That likelihood is available in closed form. \Cref{th:GP_marginals} gives the jo
 		\begin{aligned}
 		\frac{\partial\ell}{\partial\theta_i}=0
 		\iff&\:\tilde{\mathbf{r}}^\top G_\theta^{-1}\:\frac{\partial G_\theta}{\partial\theta_i}\:G_\theta^{-1}\tilde{\mathbf{r}}-\operatorname{tr}\left(G_\theta^{-1}\:\frac{\partial G_\theta}{\partial\theta_i}\right)=0\\
-		\iff&\:\operatorname{tr}\left[\left((G_\theta^{-1}\tilde{\mathbf{r}})\:(G_\theta^{-1}\tilde{\mathbf{r}})^\top-G_\theta^{-1}\right)\:\frac{\partial G_\theta}{\partial\theta_i}\right]=0
+		\iff&\:\operatorname{tr}\left(\left((G_\theta^{-1}\tilde{\mathbf{r}})\:(G_\theta^{-1}\tilde{\mathbf{r}})^\top-G_\theta^{-1}\right)\:\frac{\partial G_\theta}{\partial\theta_i}\right)=0
 		\end{aligned}
 	\end{equation}
 	using the cyclic property of the trace to rewrite the scalar quadratic form\\$\tilde{\mathbf{r}}^\top G_\theta^{-1}\frac{\partial G_\theta}{\partial\theta_i}G_\theta^{-1}\tilde{\mathbf{r}}$ as $\operatorname{tr}\left((G_\theta^{-1}\tilde{\mathbf{r}})\:(G_\theta^{-1}\tilde{\mathbf{r}})^\top\frac{\partial G_\theta}{\partial\theta_i}\right)$, since $G_\theta^{-1}$ is symmetric.
