@@ -11,9 +11,9 @@
 
 Throughout \cref{sec:kriging_navigation}, we assumed to have access to at least some prior knowledge of the environment in the form of a sparse and noisy set of training data. Such training points were the base on which we were able to reconstruct the observation function using kriging without which no Bayesian correction could be performed.
 
-In this chapter, we attempt to solve the navigation problem described by \eqref{eq:navigation_problem} without such data. This situation is called Simultaneous Localisation and Mapping (SLAM), and is a well-known problem in autonomous navigation. A standard solution is to use artificial vision, whether by using the data from an embedded stereo camera, a lidar, a sonar, or some other sensor able to probe its environment beyond its current location.
+In this chapter, we attempt to solve the navigation problem described by \eqref{eq:navigation_problem} without any prior data. This situation is called Simultaneous Localisation and Mapping (SLAM), and is a well-known problem in autonomous navigation. A standard solution is to use artificial vision, whether by using the data from an embedded stereo camera, a lidar, a sonar, or some other sensor able to probe its environment beyond its current location.
 
-In our case however, we focus on local sensors, such as a magnetometer or a gravitometer, that only provide a point measurement of the field where they are, meaning that no information on the neighbourhood of the field is gained after a sensor reading, and so the likelihood of any reading can only be computed at the true location, which a Bayesian filter is precisely trying to recover.
+In our case however, we focus on local sensors, such as a magnetometer or a gravitometer, that only provide a point measurement of the surrounding field, meaning that no information on the neighbourhood of the field is gained after a sensor measurement, and so the likelihood of any reading can only be computed at the true location, which a Bayesian filter is precisely trying to recover.
 
 Similarly to \cref{sec:kriging_navigation}, additional assumptions on the environment must be made in order to be able to do something. In this chapter, we assume the field to be stationary, such that it can be fully represented by the same GP on the whole of $\mathbb{R}^{d_x}$ and across time.
 
@@ -37,7 +37,7 @@ Without a prior survey, everything the vehicle knows about the field comes from 
 	\mathcal{U}\triangleq\prod_{d=1}^{d_x}\left[a_d,b_d\right],\qquad L_d\triangleq b_d-a_d
 \end{equation}
 
-As noted by \Cref{th:eigenpairs}, Mercer's theorem gives no closed form for the eigenfunctions of the Mercer operator. For a radial kernel over such a domain, they are however well approximated by the eigenfunctions of the Dirichlet Laplacian on $\mathcal{U}$ \cite{bib:reduced-rank}, which are known explicitly. Indexing them by a multi-index $j\in\left(\mathbb{N}^*\right)^{d_x}$ and gathering the associated frequencies as:
+As noted by \Cref{th:eigenpairs}, the eigenfunctions of the Mercer operator are generally not available in closed form. For a radial kernel over such a domain, they are however well approximated by the eigenfunctions of the Dirichlet Laplacian on $\mathcal{U}$ \cite{bib:reduced-rank}, which are known explicitly. Indexing them by a multi-index $j\in\left(\mathbb{N}^*\right)^{d_x}$ and gathering the associated frequencies as:
 \begin{equation}
 	\omega_j\triangleq\pi\begin{bmatrix}
 	\dfrac{j_1}{L_1}&\cdots&\dfrac{j_{d_x}}{L_{d_x}}
@@ -193,9 +193,9 @@ the product-to-sum identity gives $\mathbb{E}_{b_j}\left[\psi_j(x)\:\psi_j(x')\r
 and the map is again of the form \eqref{eq:SLAM_map}, this time with $\Lambda=\sigma_f^2I_{r_{\mathrm{RFF}}}$.
 
 \begin{remark}[Two ways of choosing the frequencies]\label{th:frequency_choice}
-	\Cref{eq:Laplace_basis,eq:RFF_basis} build the same object, a finite family of sinusoids whose amplitudes are weighted by the spectral density of the kernel, and differ only in how the frequencies are chosen. The Laplace basis places them on the deterministic grid \eqref{eq:Laplace_frequencies} imposed by the domain, and weights each of them by $S_\nu(\omega_j)$. The random features draw them from $S_\nu$ itself and weight them uniformly, which is the Monte Carlo approximation of \cref{sec:Monte_Carlo} applied to the spectrum.
+	\Cref{eq:Laplace_basis,eq:RFF_basis} provide two finite-dimensional approximations of the same stationary kernel, but differ in how their frequencies are selected and weighted. The Laplace basis places them on the deterministic grid \eqref{eq:Laplace_frequencies} imposed by the domain, and weights each of them by $S_\nu(\omega_j)$. The random features draw them from $S_\nu$ itself and weight them uniformly, which is the Monte Carlo approximation of \cref{sec:Monte_Carlo} applied to the spectrum.
 
-	Sampling the frequencies removes the two constraints of \Cref{th:SLAM_boundary}, since nothing forces the reconstruction to vanish anywhere and no domain has to be declared in advance. It also replaces the deterministic truncation error of \Cref{th:reduced_rank} by a Monte Carlo error, which decreases in $\mathcal{O}\left(r_{\mathrm{RFF}}^{-1/2}\right)$ instead of following the decay of the spectrum. The comparison is therefore not uniformly in favour of either, a grid being the better choice when the domain is known and small enough for the spectrum to be covered.
+	Sampling the frequencies removes the two constraints of \Cref{th:SLAM_boundary}, since nothing forces the reconstruction to vanish anywhere and no domain has to be declared in advance. It also replaces the deterministic truncation error of \Cref{th:reduced_rank} by a Monte Carlo approximation error, whose rate is $\mathcal{O}\left(r_{\mathrm{RFF}}^{-1/2}\right)$ instead of following the decay of the spectrum. The comparison is therefore not uniformly in favour of either, a grid being the better choice when the domain is known and small enough for the spectrum to be covered.
 \end{remark}
 
 \subsection{Recursive Least Squares}\label{sec:RLS}

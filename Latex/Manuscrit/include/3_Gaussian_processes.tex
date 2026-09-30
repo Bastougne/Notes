@@ -32,12 +32,12 @@ The rest of this chapter is organised as follows:
 Formally, a stochastic process generalises the notion of random variable to a random function, \textit{i.e.} a family $(f(x))_{x\in\mathcal{U}}$ of random variables indexed by a set $\mathcal{U}$, which may represent time $\mathbb{R}_+$, physical space $\mathbb{R}^2$ or $\mathbb{R}^3$, or any other domain. As shown by \Cref{th:GP_definition}, a GP is a special case of stochastic process \cite{bib:random-fields}.
 
 \begin{definition}[Gaussian process]\label{th:GP_definition}
-	For $d_z\in\mathbb{N}^*$, a stochastic process $(f(x))_{x\in\mathcal{U}}$ taking values in $\mathbb{R}^{d_z}$ is a GP if every finite linear combination of its values follows a Gaussian distribution. Formally, for all $n\in\mathbb{N}^*$, all $x_1,\dots,x_n\in\mathcal{U}$ and all $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, there exist $m\in\mathbb{R}^{d_z}$ and $P\in\mathcal{S}_{d_z}^+(\mathbb{R})$ such that:
+	For $d_z\in\mathbb{N}^*$, a stochastic process $(f(x))_{x\in\mathcal{U}}$ taking values in $\mathbb{R}^{d_z}$ is a GP if every finite linear combination of its values follows a Gaussian distribution. Formally, for all $n\in\mathbb{N}^*$, all $x_1,\dots,x_n\in\mathcal{U}$ and all $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, there exist $\mu\in\mathbb{R}^{d_z}$ and $\Sigma\in\mathcal{S}_{d_z}^+(\mathbb{R})$ such that:
 	\begin{equation}
-		\sum_{i=1}^na_i^\top f(x_i)\sim\mathcal{N}(m,P)
+		\sum_{i=1}^na_i^\top f(x_i)\sim\mathcal{N}(\mu,\Sigma)
 	\end{equation}
 
-	The GP is said to be non-degenerate if $P\succ0$ whenever the $x_1,\dots,x_n$ are pairwise distinct and the coefficients $a_1,\dots,a_n$ are not all zero.
+	The GP is said to be non-degenerate if $\Sigma\succ0$ whenever the $x_1,\dots,x_n$ are pairwise distinct and the coefficients $a_1,\dots,a_n$ are not all zero.
 \end{definition}
 
 A GP is associated with a mean function:

@@ -1,3 +1,416 @@
-\section{Subsampling Error Bounds}
+\section{Subsampling Error Bounds}\label{sec:subsampling_error}
 
-The goal of this section is to provide explicit theoreticl error bounds for subsampled Gaussian process regression in order to 
+\textbf{The setting and the notations are those of \cref{th:universal_kriging}, the covariance of the estimated trend coefficients} $\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)$ \textbf{being written} $M(\tilde{\mathbf{x}})\triangleq\left(g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^{-1}$.
+
+\textbf{This section rests on the bordered form of the kriging equations, which gathers the unbiasedness constraints into the Gram matrix. Let} $\mathcal{G}(\tilde{\mathbf{x}})$ \textbf{be the bordered counterpart of} $G(\tilde{\mathbf{x}})$\textbf{, and} $\bar{k}$ \textbf{and} $\bar{\mathbf{z}}$ \textbf{the covariance and observation matrices bordered accordingly:}
+\begin{equation}
+    \mathcal{G}(\tilde{\mathbf{x}})\triangleq\begin{bmatrix}G(\tilde{\mathbf{x}})&g(\tilde{\mathbf{x}})\\g(\tilde{\mathbf{x}})^\top&0\end{bmatrix},\quad\bar{k}(\tilde{\mathbf{x}},x)\triangleq\begin{bmatrix}k(\tilde{\mathbf{x}},x)\\g(x)^\top\end{bmatrix},\quad\bar{\mathbf{z}}\triangleq\begin{bmatrix}\tilde{\mathbf{z}}\\0\end{bmatrix}
+\end{equation}
+\textbf{with} $\bar{k}(x,\tilde{\mathbf{x}})\triangleq\bar{k}(\tilde{\mathbf{x}},x)^\top$\textbf{. Handling the unbiasedness constraints with Lagrange multipliers rewrites \eqref{eq:universal_kriging_equations} as:}
+\begin{equation}
+    \hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)=\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}\label{eq:kriging_f}
+\end{equation}
+
+The associated error \textbf{covariance} is:
+\begin{equation}
+    R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)\triangleq\mathbb{V}\left[\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-z\right]=k(x,x)+R-\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)\label{eq:kriging_R}
+\end{equation}
+
+A major limitation of this method is the $\mathcal{O}(\tilde{N}^3d_z^3)$ computational cost, stemming from the inversion of the Gram matrix $G(\tilde{\mathbf{x}})$, \textbf{or equivalently of} $\mathcal{G}(\tilde{\mathbf{x}})$, in both \eqref{eq:kriging_f} and \eqref{eq:kriging_R}. One common approach to mitigate this is to omit certain elements of $\tilde{\mathbf{x}}$ to reduce the size of $G(\tilde{\mathbf{x}})$. However, this approximation introduces a loss of accuracy in \textbf{\eqref{eq:kriging_f}}. This section quantifies the error induced by such subsampling approximations. \textbf{It first situates that error among the other approximations the estimator rests on, then defines two metrics for it and rewrites them in terms of the information carried by the discarded data alone, and finally derives bounds that avoid inverting any matrix of the size of that data.}
+
+\subsection{Sources of Error}\label{sec:error_sources}
+
+\textbf{Three distinct approximations separate} $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$ \textbf{from the field it estimates. The process is assumed to be a GP of known kernel, whereas the field is a fixed function of the position; the field is only known through} $\tilde{N}$ \textbf{noisy observations; and only} $\tilde{N}^r$ \textbf{of them are used. Only the last one is the object of this section, and the two others are recalled here to situate it.}
+
+\textbf{The first approximation is a modelling choice, and the only one the estimator does not report. Under the probabilistic reading, it does not exist: if the field is a trajectory of the assumed GP, then} \eqref{eq:kriging_R} \textbf{is exact. That assumption cannot be verified on a single field, and the deterministic reading of the same estimator is the one that quantifies its failure. Whenever the field belongs to the native RKHS} $\mathcal{H}_k$ \textbf{of} \cref{sec:RKHS}\textbf{, the interpolation error at any query point is bounded by:}
+\begin{equation}
+    \left\|f(x)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right\|_2\leq\|f\|_{\mathcal{H}_k}\cdot\sqrt{\left\|R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)\right\|_{\mathrm{op}}}\label{eq:rkhs_bound}
+\end{equation}
+\textbf{so that the model error has the very shape the estimator already reports, up to the single unknown factor} $\|f\|_{\mathcal{H}_k}$\textbf{. Two caveats attach to this reading. The trajectories of a GP almost surely do not belong to} $\mathcal{H}_k$\textbf{, so the deterministic and the probabilistic statements bracket the truth rather than coincide; and} $\|f\|_{\mathcal{H}_k}$ \textbf{is not accessible for a physical field, which makes} \eqref{eq:rkhs_bound} \textbf{a statement about the shape of the error and not about its magnitude. In practice, the binding part of this approximation is not the Gaussian assumption but the stationarity of the kernel, which} \cref{sec:AK} \textbf{addresses by refitting the hyperparameters locally.}
+
+\textbf{The second approximation is reported in full. The covariance} \eqref{eq:kriging_R} \textbf{is exactly the ignorance left by} $\tilde{N}$ \textbf{noisy observations: it grows where the data are sparse, and} $\tilde{R}$ \textbf{keeps it away from zero however dense they become. Deterministically, it is governed by the fill distance of} $\tilde{\mathbf{x}}$\textbf{, the radius of the largest hole left by the training set, to a power set by the smoothness of the kernel. This is what the resolution of a survey buys, and} \cref{sec:static_results} \textbf{measures it directly on the field of this chapter.}
+
+\textbf{The third approximation is reported as well, and this is the observation on which the rest of this section rests:} \cref{rem:variance_difference} \textbf{shows that discarding data inflates the reported covariance by exactly the error it commits. A subsampled estimator is therefore never overconfident, and the question is not whether its covariance covers its error, but by how much it has grown — which is what the following metrics measure.}
+
+\subsection{Subsampling Error Metrics}\label{sec:subsampling_errors}
+
+Formally, subsampling is achieved by splitting $\tilde{\mathbf{x}}$ into $\begin{bmatrix}\tilde{\mathbf{x}}^r&\tilde{\mathbf{x}}^d\end{bmatrix}^\top$, with $\tilde{\mathbf{x}}^r$ being the $\tilde{N}^r$ retained data, usually close to the considered kriging location $x\in\mathcal{U}$, and $\tilde{\mathbf{x}}^d$ being the $\tilde{N}^d$ discarded data, usually far from $x$. A similar operation is performed on $\tilde{\mathbf{z}}$. This decomposition provides the foundation for all subsequent error bounds, as it explicitly isolates the predictive contribution of the discarded points from that of the retained training set.
+
+Two error metrics between $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)$ and $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$ are considered here, each capturing a distinct aspect of the kriging approximation. The first metric corresponds to \textbf{the covariance of their difference, of which \Cref{def:L2_error} also retains the largest standard deviation over the directions of} $\mathbb{R}^{d_z}$. In contrast, since the kriging estimator is a deterministic function conditionally to $\tilde{\mathbf{z}}$, a natural alternative is to measure the \textbf{distance} between the two estimators, as proposed by \Cref{def:L1_error}.
+
+\begin{definition}
+    \textbf{Let} $E_r$ \textbf{denote the covariance of the difference between the full and subsampled estimators, and} $e_r$ \textbf{the largest error it induces in} $\mathcal{L}^2(\mathbb{R})$ \textbf{ over the unit directions} $a$ \textbf{of} $\mathbb{R}^{d_z}$:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        E_r:x\in\mathcal{U}\mapsto&\mathbb{V}\left[\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)\right]\\
+        e_r:x\in\mathcal{U}\mapsto&\underset{\|a\|_2=1}{\max}\left\|a^\top\left(\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)\right)\right\|_{\mathcal{L}^2(\mathbb{R})}=\sqrt{\lambda_{\max}\left(E_r(x)\right)}
+        \end{aligned}\right.
+    \end{equation*}\label{def:L2_error}
+    \vspace{-\baselineskip}
+\end{definition}
+
+\begin{definition}
+    The interpolation error $e_f$ between \textbf{the full and subsampled estimators} is defined as:
+    \begin{equation*}
+        e_f:x\in\mathcal{U}\mapsto\left\|\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)\right\|_2
+    \end{equation*}\label{def:L1_error}
+    \vspace{-\baselineskip}
+\end{definition}
+
+\textbf{Both errors are well defined whatever the value of} $\beta$\textbf{: the two estimators being unbiased, their difference is a linear combination} $V^\top\tilde{\mathbf{z}}$ \textbf{with} $V^\top g(\tilde{\mathbf{x}})=0$\textbf{, whose distribution therefore does not depend on} $\beta$\textbf{. The subsampled estimator exists as long as} $g(\tilde{\mathbf{x}}^r)$ \textbf{has full column rank, which requires} $\tilde{N}^r\geq r_{\mathrm{UK}}$.
+
+\textbf{Since} $\tilde{R}$ \textbf{may be singular,} $k$ \textbf{is assumed SPD in the sense of \cref{th:kernel_SPSD}, which makes} $G(\tilde{\mathbf{x}})$ \textbf{invertible, and} $\mathcal{G}(\tilde{\mathbf{x}})$ \textbf{with it, its Schur complement with respect to} $G(\tilde{\mathbf{x}})$ \textbf{being the negative definite matrix} $-M(\tilde{\mathbf{x}})^{-1}$.
+
+\subsection{Importance of the Gram Matrix}
+
+As stated above, most of the computational cost comes from inverting the Gram matrix. \textbf{Ordering the rows and columns of} $\mathcal{G}(\tilde{\mathbf{x}})$ \textbf{as} $\tilde{\mathbf{x}}^r$\textbf{, the} $r_{\mathrm{UK}}d_z$ \textbf{unbiasedness constraints, then} $\tilde{\mathbf{x}}^d$, the decomposition introduced in \cref{sec:subsampling_errors} leads to the following block partitioning:
+\begin{equation}
+    \mathcal{G}(\tilde{\mathbf{x}})=\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}=\begin{bmatrix}\mathcal{G}(\tilde{\mathbf{x}}^r)&\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)^\top&G(\tilde{\mathbf{x}}^d)\end{bmatrix}\quad\text{with}\quad\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\triangleq\begin{bmatrix}k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\g(\tilde{\mathbf{x}}^d)^\top\end{bmatrix}
+\end{equation}
+\textbf{the bordered vectors being reordered accordingly:}
+\begin{equation}
+    \bar{k}(\tilde{\mathbf{x}},x)=\begin{bmatrix}\bar{k}(\tilde{\mathbf{x}}^r,x)^\top&k(\tilde{\mathbf{x}}^d,x)^\top\end{bmatrix}^\top,\quad\bar{\mathbf{z}}=\begin{bmatrix}\left(\bar{\mathbf{z}}^r\right)^\top&\left(\tilde{\mathbf{z}}^d\right)^\top\end{bmatrix}^\top,\quad\bar{\mathbf{z}}^r\triangleq\begin{bmatrix}\left(\tilde{\mathbf{z}}^r\right)^\top&0\end{bmatrix}^\top
+\end{equation}
+
+Let $\mathcal{G}_h(\tilde{\mathbf{x}}^r)$ be the hollowed-out Gram matrix\textbf{, of the same size} $(\tilde{N}+r_{\mathrm{UK}})d_z$ \textbf{as} $\mathcal{G}(\tilde{\mathbf{x}})$:
+\begin{equation}
+    \mathcal{G}_h(\tilde{\mathbf{x}}^r)\triangleq\begin{bmatrix}\mathcal{G}(\tilde{\mathbf{x}}^r)&0_{(\tilde{N}^r+r_{\mathrm{UK}})d_z,\tilde{N}^dd_z}\\0_{\tilde{N}^dd_z,(\tilde{N}^r+r_{\mathrm{UK}})d_z}&0_{\tilde{N}^dd_z,\tilde{N}^dd_z}\end{bmatrix}
+\end{equation}
+
+\Cref{th:subsampled_kriging} states that $\mathcal{G}_h(\tilde{\mathbf{x}}^r)$ acts as a substitute for $\mathcal{G}(\tilde{\mathbf{x}})$ in the subsampled case with respect to \eqref{eq:kriging_f} and \eqref{eq:kriging_R}.
+
+\begin{proposition}
+    The subsampled kriging estimator verifies:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        \hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)&=\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}_h(\tilde{\mathbf{x}}^r)^\dagger\bar{\mathbf{z}}\\
+        R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)&=k(x,x)+R-\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}_h(\tilde{\mathbf{x}}^r)^\dagger\bar{k}(\tilde{\mathbf{x}},x)
+        \end{aligned}\right.
+    \end{equation*}
+    where $\dagger$ denotes the Moore-Penrose pseudo-inverse symbol \cite{bib:matrix-analysis}.\label{th:subsampled_kriging}
+\end{proposition}
+
+\begin{proof}
+    The result comes from applying \eqref{eq:kriging_f} and \eqref{eq:kriging_R} to $\tilde{\mathbf{x}}^r$, and noting that:
+    \begin{equation*}
+        \mathcal{G}_h(\tilde{\mathbf{x}}^r)^\dagger=\begin{bmatrix}\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}&0\\0&0\end{bmatrix}\vspace{-1.1\baselineskip}
+    \end{equation*}
+\end{proof}
+
+Although it is not directly used in computations, \Cref{th:subsampled_kriging} further highlights the importance of the Gram matrix in the subsampling problem. In particular, \Cref{def:Gram_inverse_difference} serves as the foundation for the key reformulations of the studied errors established by \Cref{th:errors_inverse_Gram}.
+
+\begin{definition}
+    The Gram inverse difference matrix $\mathfrak{D}_G$ is the quantity defined as:
+    \begin{equation*}
+        \mathfrak{D}_G\triangleq\mathcal{G}(\tilde{\mathbf{x}})^{-1}-\mathcal{G}_h(\tilde{\mathbf{x}}^r)^\dagger
+    \end{equation*}\label{def:Gram_inverse_difference}
+    \vspace{-\baselineskip}
+\end{definition}
+
+\begin{proposition}
+    The two subsampling errors can be respectively expressed as:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        E_r(x)&=\bar{k}(x,\tilde{\mathbf{x}})\mathfrak{D}_G\bar{k}(\tilde{\mathbf{x}},x)\\
+        e_f(x)&=\left\|\bar{k}(x,\tilde{\mathbf{x}})\mathfrak{D}_G\bar{\mathbf{z}}\right\|_2
+        \end{aligned}\right.
+    \end{equation*}\label{th:errors_inverse_Gram}
+    \vspace{-\baselineskip}
+\end{proposition}
+
+\begin{proof}
+    See proof in \cref{sec:errors_inverse_Gram}.
+\end{proof}
+
+\begin{remark}
+    An alternative reformulation of $E_r(x)$ is obtained in the demonstration of \Cref{th:errors_inverse_Gram}, and is worth comparing with the original definition of $e_f(x)$ given in \Cref{def:L1_error}.
+    \begin{equation*}
+        E_r(x)=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)
+    \end{equation*}
+    In particular, $R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)\succeq R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)$\textbf{: subsampling can only inflate the covariance reported by the estimator, and by exactly the error it commits.}\label{rem:variance_difference}
+\end{remark}
+
+\subsection{Block Inversion and Residual Quantities}
+
+To isolate the impact of discarding $\tilde{\mathbf{x}}^d$ on the kriging estimator, $\mathfrak{D}_G$ is decomposed using the Woodbury block matrix inversion formula \cite{bib:matrix-cookbook}:
+\begin{equation}
+    \begin{aligned}
+    \mathfrak{D}_G&=\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}^{-1}-\begin{bmatrix}A^{-1}&0\\0&0\end{bmatrix}\\
+    &=\begin{bmatrix}A^{-1}BS_{d|r}^{-1}B^\top A^{-1}&-A^{-1}BS_{d|r}^{-1}\\-S_{d|r}^{-1}B^\top A^{-1}&S_{d|r}^{-1}\end{bmatrix}\\
+    &=\begin{bmatrix}-A^{-1}B\\I_{\tilde{N}^dd_z}\end{bmatrix}S_{d|r}^{-1}\begin{bmatrix}-A^{-1}B\\I_{\tilde{N}^dd_z}\end{bmatrix}^\top
+    \end{aligned}\label{eq:decomposed_gram_inverse_difference}
+\end{equation}
+where $S_{d|r}$ is the Schur complement of $\mathcal{G}(\tilde{\mathbf{x}})$ with respect to $A=\mathcal{G}(\tilde{\mathbf{x}}^r)$\textbf{, invertible since both} $\mathcal{G}(\tilde{\mathbf{x}})$ \textbf{and} $A$ \textbf{are}:
+\begin{equation}
+    S_{d|r}\triangleq D-B^\top A^{-1}B
+\end{equation}
+
+This decomposition, combined with \Cref{th:errors_inverse_Gram}, reveals two residual quantities that contribute to the error introduced by subsampling. The first one, called residual covariance function, quantifies the portion of the covariance between $x$ and the discarded training set $\tilde{\mathbf{x}}^d$ not accounted for by the retained set $\tilde{\mathbf{x}}^r$. It is the object of \Cref{def:residual_covariance_function}. Similarly, the residual observation vector captures the information contained within the discarded observations $\tilde{\mathbf{z}}^d$ and unexplained by the retained observations $\tilde{\mathbf{z}}^r$. Its expression is given by \Cref{def:residual_observation_vector}.
+
+\begin{definition}
+    The residual covariance function $k_{d|r}$ is given by:
+    \begin{equation*}
+        k_{d|r}:x\in\mathcal{U}\mapsto k(\tilde{\mathbf{x}}^d,x)-\bar{k}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}\bar{k}(\tilde{\mathbf{x}}^r,x)
+    \end{equation*}
+    with $\bar{k}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\triangleq\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)^\top$.\label{def:residual_covariance_function}
+\end{definition}
+
+\begin{definition}
+    The residual observation vector $\tilde{\mathbf{z}}_{d|r}$ is defined as:
+    \begin{equation*}
+        \tilde{\mathbf{z}}_{d|r}\triangleq\tilde{\mathbf{z}}^d-\bar{k}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}\bar{\mathbf{z}}^r
+    \end{equation*}\label{def:residual_observation_vector}
+    \vspace{-\baselineskip}
+\end{definition}
+
+\Cref{th:residual_identities} gives relevant identities that link \eqref{eq:decomposed_gram_inverse_difference} with $k_{d|r}$ and $\tilde{\mathbf{z}}_{d|r}$. \Cref{th:errors_residual} and \Cref{th:errors_euclidean} push this further by showing that the studied metrics can be fully expressed as functions of those residual quantities\textbf{, which \Cref{th:explicit_residuals} relates to their simple kriging counterparts}.
+
+\begin{proposition}
+    The following residual identities hold:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        k_{d|r}(x)&=\begin{bmatrix}-A^{-1}B\\I_{\tilde{N}^dd_z}\end{bmatrix}^\top\bar{k}(\tilde{\mathbf{x}},x)\\
+        k_{d|r}(\tilde{\mathbf{x}}^d)&=S_{d|r}-I_{\tilde{N}^d}\otimes\tilde{R}\\
+        \tilde{\mathbf{z}}_{d|r}&=\begin{bmatrix}-A^{-1}B\\I_{\tilde{N}^dd_z}\end{bmatrix}^\top\bar{\mathbf{z}}
+        \end{aligned}\right.
+    \end{equation*}\label{th:residual_identities}
+    \vspace{-\baselineskip}
+\end{proposition}
+
+\begin{proof}
+    Recall that $A=\mathcal{G}(\tilde{\mathbf{x}}^r)$ and $B=\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)$. Direct calculations give the desired results.
+\end{proof}
+
+\begin{proposition}
+    The residual forms of the two errors are given below:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        E_r(x)&=k_{d|r}(x)^\top\left(k_{d|r}(\tilde{\mathbf{x}}^d)+I_{\tilde{N}^d}\otimes\tilde{R}\right)^{-1}k_{d|r}(x)\\
+        e_f(x)&=\left\|k_{d|r}(x)^\top\left(k_{d|r}(\tilde{\mathbf{x}}^d)+I_{\tilde{N}^d}\otimes\tilde{R}\right)^{-1}\tilde{\mathbf{z}}_{d|r}\right\|_2
+        \end{aligned}\right.
+    \end{equation*}\label{th:errors_residual}
+    \vspace{-\baselineskip}
+\end{proposition}
+
+\begin{proof}
+    These expressions are obtained by applying \eqref{eq:decomposed_gram_inverse_difference} and \Cref{th:residual_identities} to \Cref{th:errors_inverse_Gram}.
+\end{proof}
+
+\begin{proposition}
+    \textbf{Let} $k^0_{d|r}$, $S^0_{d|r}$ \textbf{and} $\tilde{\mathbf{z}}^0_{d|r}$ \textbf{be the residual quantities of simple kriging, obtained by replacing the bordered Gram matrix with the Gram matrix:}
+    \begin{equation*}
+        \left\{\begin{aligned}
+        k^0_{d|r}:x\in\mathcal{U}\mapsto&k(\tilde{\mathbf{x}}^d,x)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)G(\tilde{\mathbf{x}}^r)^{-1}k(\tilde{\mathbf{x}}^r,x)\\
+        S^0_{d|r}\triangleq&G(\tilde{\mathbf{x}}^d)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)G(\tilde{\mathbf{x}}^r)^{-1}k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\
+        \tilde{\mathbf{z}}^0_{d|r}\triangleq&\tilde{\mathbf{z}}^d-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)G(\tilde{\mathbf{x}}^r)^{-1}\tilde{\mathbf{z}}^r
+        \end{aligned}\right.
+    \end{equation*}
+    \textbf{and let} $U:x\in\mathcal{U}\mapsto g(x)-k(x,\tilde{\mathbf{x}}^r)G(\tilde{\mathbf{x}}^r)^{-1}g(\tilde{\mathbf{x}}^r)$ \textbf{be the weights given to the estimated trend coefficients by} $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$\textbf{, so that} $U(\tilde{\mathbf{x}}^d)=g(\tilde{\mathbf{x}}^d)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)G(\tilde{\mathbf{x}}^r)^{-1}g(\tilde{\mathbf{x}}^r)$ \textbf{stacks its values on} $\tilde{\mathbf{x}}^d$\textbf{. The residual quantities verify:}
+    \begin{equation*}
+        \left\{\begin{aligned}
+        k_{d|r}(x)&=k^0_{d|r}(x)+U(\tilde{\mathbf{x}}^d)M(\tilde{\mathbf{x}}^r)U(x)^\top\\
+        S_{d|r}&=S^0_{d|r}+U(\tilde{\mathbf{x}}^d)M(\tilde{\mathbf{x}}^r)U(\tilde{\mathbf{x}}^d)^\top\\
+        \tilde{\mathbf{z}}_{d|r}&=\tilde{\mathbf{z}}^0_{d|r}-U(\tilde{\mathbf{x}}^d)\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)
+        \end{aligned}\right.
+    \end{equation*}
+    \textbf{In particular,} $S_{d|r}$ \textbf{is SPD, and} $\tilde{\mathbf{z}}_{d|r}$ \textbf{is unchanged when a trend} $g(\tilde{\mathbf{x}})\gamma$, $\gamma\in\mathbb{R}^{r_{\mathrm{UK}}d_z}$\textbf{, is added to the observations.}\label{th:explicit_residuals}
+\end{proposition}
+
+\begin{proof}
+    See proof in \cref{sec:explicit_residuals}.
+\end{proof}
+
+\begin{proposition}
+    \textbf{Let} $\|\cdot\|_{\mathrm{op}}$ \textbf{denote the operator norm associated with the euclidean norm} $\|\cdot\|_2$\textbf{, and} let $\langle\cdot|\cdot\rangle_{S_{d|r}}$ be the Mahalanobis inner product weighted by the inverse of $S_{d|r}=k_{d|r}(\tilde{\mathbf{x}}^d)+I_{\tilde{N}^d}\otimes\tilde{R}$\textbf{, which is SPD by \Cref{th:explicit_residuals}}:
+    \begin{equation*}
+        \forall n\in\mathbb{N}^*,\:\forall A,B\in\mathcal{M}_{\tilde{N}^dd_z,n}(\mathbb{R}),\:\langle A|B\rangle_{S_{d|r}}\triangleq A^\top S_{d|r}^{-1}B,\qquad\|A\|_{S_{d|r}}\triangleq\left\|S_{d|r}^{-\frac{1}{2}}A\right\|_{\mathrm{op}}
+    \end{equation*}
+    The kriging errors can be interpreted as metrics in the euclidean space $(\mathbb{R}^{\tilde{N}^dd_z},\:\langle\cdot|\cdot\rangle_{S_{d|r}})$\textbf{, to which the columns of} $k_{d|r}(x)$ \textbf{and} $\tilde{\mathbf{z}}_{d|r}$ \textbf{belong}:
+    \begin{equation*}
+        \left\{\begin{aligned}
+        E_r(x)&=\langle k_{d|r}(x)|k_{d|r}(x)\rangle_{S_{d|r}},\qquad e_r(x)=\|k_{d|r}(x)\|_{S_{d|r}}\\
+        e_f(x)&=\left\|\langle k_{d|r}(x)|\tilde{\mathbf{z}}_{d|r}\rangle_{S_{d|r}}\right\|_2
+        \end{aligned}\right.
+    \end{equation*}\label{th:errors_euclidean}
+    \vspace{-\baselineskip}
+\end{proposition}
+
+\begin{remark}
+    \textbf{Contrary to simple kriging, discarding data uncorrelated with both} $\tilde{\mathbf{x}}^r$ \textbf{and} $x$ \textbf{is not free. If} $k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)=0$ \textbf{and} $k(\tilde{\mathbf{x}}^d,x)=0$\textbf{, then} $k^0_{d|r}(x)=0$, $U(\tilde{\mathbf{x}}^d)=g(\tilde{\mathbf{x}}^d)$ \textbf{and} $M(\tilde{\mathbf{x}})^{-1}=M(\tilde{\mathbf{x}}^r)^{-1}+g(\tilde{\mathbf{x}}^d)^\top G(\tilde{\mathbf{x}}^d)^{-1}g(\tilde{\mathbf{x}}^d)$\textbf{. Applying the Woodbury formula \cite{bib:matrix-cookbook} to} $S_{d|r}=G(\tilde{\mathbf{x}}^d)+g(\tilde{\mathbf{x}}^d)M(\tilde{\mathbf{x}}^r)g(\tilde{\mathbf{x}}^d)^\top$ \textbf{in \Cref{th:errors_euclidean} yields:}
+    \begin{equation*}
+        \left\{\begin{aligned}
+        E_r(x)&=U(x)\left(M(\tilde{\mathbf{x}}^r)-M(\tilde{\mathbf{x}})\right)U(x)^\top\\
+        e_f(x)&=\left\|U(x)\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)\right)\right\|_2
+        \end{aligned}\right.
+    \end{equation*}
+    \textbf{The discarded data still reduce the covariance} $M(\tilde{\mathbf{x}})$ \textbf{of the estimated trend coefficients, and both errors measure what is lost from that estimation, seen through the reliance} $U(x)$ \textbf{of the subsampled estimator on the trend. For ordinary kriging,} $E_r(x)$ \textbf{is the increase in covariance of the estimated mean, seen through} $U(x)$.\label{rem:mean_floor}
+\end{remark}
+
+\subsection{Relations Between the Errors}
+
+This section introduces two relations between $e_r(x)$ and $e_f(x)$. The first relation is the concentration inequality described by \Cref{th:concentration_inequality}, while the second comes from algebraic considerations, and is given by \Cref{th:Cauchy-Schwarz_inequality}.
+
+\begin{proposition}
+    \textbf{Let} $\chi^2_{d_z}(1-\delta)$ \textbf{denote the quantile of order} $1-\delta$ \textbf{of the chi-squared distribution with} $d_z$ \textbf{degrees of freedom.} For $\delta\in(0,1]$:
+    \begin{equation*}
+        e_f(x)\leq\sqrt{\chi^2_{d_z}(1-\delta)}\cdot e_r(x)
+    \end{equation*}
+    with a probability of \textbf{at least} $1-\delta$.\label{th:concentration_inequality}
+\end{proposition}
+
+\begin{proof}
+    \textbf{Whatever the value of} $\beta$, $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$ \textbf{follows a centred normal distribution of covariance} $E_r(x)$\textbf{, and can therefore be written} $E_r(x)^{\frac{1}{2}}\xi$ \textbf{with} $\xi\sim\mathcal{N}(0,I_{d_z})$\textbf{. Thus:}
+    \begin{equation*}
+        e_f(x)^2=\xi^\top E_r(x)\xi\leq\lambda_{\max}\left(E_r(x)\right)\|\xi\|_2^2=e_r(x)^2\:\|\xi\|_2^2
+    \end{equation*}
+    \textbf{and} $\|\xi\|_2^2$ \textbf{follows a chi-squared distribution with} $d_z$ \textbf{degrees of freedom, so that} $\|\xi\|_2^2\leq\chi^2_{d_z}(1-\delta)$ \textbf{with a probability of} $1-\delta$.
+\end{proof}
+
+\begin{remark}
+    \textbf{For a scalar field,} $\sqrt{\chi^2_1(1-\delta)}=\Phi^{-1}\left(1-\frac{\delta}{2}\right)$\textbf{, where} $\Phi$ \textbf{is the cumulative distribution function of the standard normal distribution, and} a simpler, albeit more pessimistic, version of \Cref{th:concentration_inequality} can be derived from the inverse form of Mill's inequality \cite{bib:proba-course}:
+    \begin{equation*}
+        \forall\delta\in(0,1],\:\mathbb{P}\left(e_f(x)\leq\sqrt{2\ln\left(\frac{2}{\delta}\right)}\cdot e_r(x)\right)\geq1-\delta
+    \end{equation*}
+\end{remark}
+
+\begin{proposition}
+    $e_r(x)$ and $e_f(x)$ are linked by the following inequality:
+    \begin{equation*}
+        e_f(x)\leq e_r(x)\cdot\|\tilde{\mathbf{z}}_{d|r}\|_{S_{d|r}}
+    \end{equation*}\label{th:Cauchy-Schwarz_inequality}
+    \vspace{-\baselineskip}
+\end{proposition}
+
+\begin{proof}
+    Applying the Cauchy-Schwarz inequality \cite{bib:matrix-analysis} to \Cref{th:errors_euclidean} proves the relation.
+\end{proof}
+
+\textbf{The residual forms of \Cref{th:errors_euclidean} still involve} $S_{d|r}^{-1}$\textbf{, whose size} $\tilde{N}^dd_z$ \textbf{is that of the discarded observations, so that computing} $E_r(x)$ \textbf{exactly is as costly as the full kriging estimator that subsampling aims to avoid. This section derives upper bounds that do not require this inversion, first by separating the contributions of simple kriging and of the trend estimation, then by nesting the retained data into a larger set whose own subsampling error is small, and finally from entrywise bounds on the covariances between the data.}
+
+\subsection{Simple Kriging and Trend Contributions}\label{sec:split_bound}
+
+\textbf{\Cref{th:explicit_residuals} splits the residual covariance function into the residual} $k^0_{d|r}(x)$ \textbf{of simple kriging and a trend contribution. \Cref{th:split_bound} bounds these two parts separately, the latter being handled exactly as in \Cref{rem:mean_floor}.}
+
+\begin{proposition}
+    \textbf{Let} $e_{r,0}(x)\triangleq\|k^0_{d|r}(x)\|_{S^0_{d|r}}$ \textbf{be the error that simple kriging would commit if the trend were known, and} $P\triangleq U(\tilde{\mathbf{x}}^d)^\top \left(S^0_{d|r}\right)^{-1}U(\tilde{\mathbf{x}}^d)$\textbf{. Then:}
+    \begin{equation*}
+        e_r(x)\leq e_{r,0}(x)+\sqrt{\left\|U(x)\left(M(\tilde{\mathbf{x}}^r)-\left(M(\tilde{\mathbf{x}}^r)^{-1}+P\right)^{-1}\right)U(x)^\top\right\|_{\mathrm{op}}}
+    \end{equation*}
+    \textbf{with equality when} $k^0_{d|r}(x)=0$.\label{th:split_bound}
+\end{proposition}
+
+\begin{proof}
+    \textbf{See proof in \cref{sec:split_bound_proof}.}
+\end{proof}
+
+\textbf{The simple kriging term} $e_{r,0}(x)$ \textbf{still requires} $\left(S^0_{d|r}\right)^{-1}$\textbf{. When the observations are noisy, \Cref{th:computable_bound} removes this last inversion.}
+
+\begin{proposition}
+    \textbf{Assume that} $\tilde{R}\succ0$\textbf{, and let} $\tilde{\lambda}\triangleq\lambda_{\min}(\tilde{R})$\textbf{. Then} $S^0_{d|r}\succeq I_{\tilde{N}^d}\otimes\tilde{R}\succeq\tilde{\lambda}I_{\tilde{N}^dd_z}$\textbf{, and:}
+    \begin{equation*}
+        e_r(x)\leq e_r^U(x)\triangleq\frac{\|k^0_{d|r}(x)\|_{\mathrm{op}}}{\sqrt{\tilde{\lambda}}}+\sqrt{\left\|U(x)\left(M(\tilde{\mathbf{x}}^r)-\left(M(\tilde{\mathbf{x}}^r)^{-1}+\frac{U(\tilde{\mathbf{x}}^d)^\top U(\tilde{\mathbf{x}}^d)}{\tilde{\lambda}}\right)^{-1}\right)U(x)^\top\right\|_{\mathrm{op}}}
+    \end{equation*}\label{th:computable_bound}
+    \vspace{-\baselineskip}
+\end{proposition}
+
+\begin{proof}
+    \textbf{See proof in \cref{sec:split_bound_proof}.}
+\end{proof}
+
+\textbf{Unlike the residual forms,} $e_r^U(x)$ \textbf{only involves} $G(\tilde{\mathbf{x}}^r)^{-1}$\textbf{, the cross covariances} $k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)$ \textbf{and} $k(\tilde{\mathbf{x}}^d,x)$\textbf{, and the trend matrices, at a cost of} $\mathcal{O}\left(d_z^3\left(\left(\tilde{N}^r\right)^3+\tilde{N}^r\tilde{N}^d\right)\right)$ \textbf{that grows linearly with the number of discarded data. Through \Cref{th:concentration_inequality}, it also bounds the interpolation error,} $e_f(x)\leq\sqrt{\chi^2_{d_z}(1-\delta)}\cdot e_r^U(x)$ \textbf{holding with a probability of at least} $1-\delta$.
+
+\begin{remark}
+    \textbf{Along a fixed direction} $a\in\mathbb{R}^{d_z}$, $a^\top E_r(x)a$ \textbf{is the scalar quadratic form} $\left(k_{d|r}(x)a\right)^\top S_{d|r}^{-1}\left(k_{d|r}(x)a\right)$\textbf{. The cruder bound} $a^\top E_r(x)a\leq\|k_{d|r}(x)a\|_2^2/\tilde{\lambda}$\textbf{, which follows from} $S_{d|r}\succeq S^0_{d|r}\succeq I_{\tilde{N}^d}\otimes\tilde{R}$\textbf{, is its Gauss-Radau estimate with a single node prescribed at} $\tilde{\lambda}\leq\lambda_{\min}(S_{d|r})$ \textbf{\cite{bib:matrix-moments}. Running} $m$ \textbf{iterations of the Lanczos algorithm on} $S_{d|r}$ \textbf{from} $k_{d|r}(x)a$ \textbf{yields Gauss-Radau upper bounds that converge to} $a^\top E_r(x)a$ \textbf{as} $m$ \textbf{grows, at the cost of} $m$ \textbf{products by} $S_{d|r}$ \textbf{instead of its inversion.}\label{rem:gauss_radau}
+\end{remark}
+
+\begin{remark}
+    \textbf{The two terms of \Cref{th:split_bound} behave differently as the observation noise grows. When the noise is scaled up,} $\tilde{R}=\rho\tilde{R}_0$ \textbf{with} $\rho\rightarrow+\infty$ \textbf{and the other quantities fixed,} $e_{r,0}(x)$ \textbf{vanishes, discarded and retained data becoming equally uninformative about} $f(x)$\textbf{, whereas the trend term does not. Since} $U(x)\rightarrow g(x)$, $M(\tilde{\mathbf{x}}^r)^{-1}\sim g(\tilde{\mathbf{x}}^r)^\top\left(I_{\tilde{N}^r}\otimes\tilde{R}\right)^{-1}g(\tilde{\mathbf{x}}^r)$ \textbf{and} $P\sim g(\tilde{\mathbf{x}}^d)^\top\left(I_{\tilde{N}^d}\otimes\tilde{R}\right)^{-1}g(\tilde{\mathbf{x}}^d)$\textbf{, it comes that, as soon as the right-hand side does not vanish:}
+    \begin{equation*}
+        E_r(x)\sim g(x)\left(\left(g(\tilde{\mathbf{x}}^r)^\top\left(I_{\tilde{N}^r}\otimes\tilde{R}\right)^{-1}g(\tilde{\mathbf{x}}^r)\right)^{-1}-\left(g(\tilde{\mathbf{x}})^\top\left(I_{\tilde{N}}\otimes\tilde{R}\right)^{-1}g(\tilde{\mathbf{x}})\right)^{-1}\right)g(x)^\top
+    \end{equation*}
+    \textbf{For ordinary kriging, this equivalent is} $\left(1/\tilde{N}^r-1/\tilde{N}\right)\tilde{R}$\textbf{: both estimators become averages of the observations, and discarding data increases the covariance of the estimated mean.}\label{rem:noise_regime}
+\end{remark}
+
+\subsection{Nested Subsampling}\label{sec:nested_bound}
+
+\textbf{The bound of \Cref{th:computable_bound} replaces} $\left(S^0_{d|r}\right)^{-1}$ \textbf{by} $\left(I_{\tilde{N}^d}\otimes\tilde{R}\right)^{-1}$\textbf{, which is pessimistic when} $k^0_{d|r}(x)$ \textbf{lies along the dominant eigenvectors of} $S^0_{d|r}$\textbf{. This happens when the discarded data are strongly correlated with the retained ones, typically just outside a spatial window, where the bound of \Cref{th:computable_bound} is at its loosest. \Cref{th:nested_bound} handles these data exactly, and only applies the bound to the remaining ones.}
+
+\begin{proposition}
+    \textbf{Let} $\tilde{\mathbf{x}}^e$ \textbf{be a set of training data such that} $\tilde{\mathbf{x}}^r\subset\tilde{\mathbf{x}}^e\subset\tilde{\mathbf{x}}$\textbf{, and} $E_r^{(e)}(x)$ \textbf{be the error covariance committed by subsampling} $\tilde{\mathbf{x}}$ \textbf{into} $\tilde{\mathbf{x}}^e$\textbf{. Then, writing} $\Delta_e(x)\triangleq R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^e,g)$:
+    \begin{equation*}
+        E_r(x)=\Delta_e(x)+E_r^{(e)}(x)
+    \end{equation*}
+    \textbf{Consequently, if} $\tilde{R}\succ0$ \textbf{and} $e_r^{U,(e)}(x)$ \textbf{denotes the bound of \Cref{th:computable_bound} for the retained set} $\tilde{\mathbf{x}}^e$:
+    \begin{equation*}
+        \left\|\Delta_e(x)\right\|_{\mathrm{op}}\leq e_r(x)^2\leq\left\|\Delta_e(x)\right\|_{\mathrm{op}}+e_r^{U,(e)}(x)^2
+    \end{equation*}\label{th:nested_bound}
+    \vspace{-\baselineskip}
+\end{proposition}
+
+\begin{proof}
+    \textbf{Applying \Cref{rem:variance_difference} to the subsamplings of} $\tilde{\mathbf{x}}$ \textbf{into} $\tilde{\mathbf{x}}^r$ \textbf{and into} $\tilde{\mathbf{x}}^e$ \textbf{gives} $E_r(x)=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)$ \textbf{and} $E_r^{(e)}(x)=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^e,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)$\textbf{, whose difference is the announced identity. Both terms being SPSD,} $e_r(x)^2=\lambda_{\max}(E_r(x))$ \textbf{lies between} $\lambda_{\max}(\Delta_e(x))$ \textbf{and} $\lambda_{\max}(\Delta_e(x))+\lambda_{\max}\left(E_r^{(e)}(x)\right)$\textbf{, and \Cref{th:computable_bound} bounds the latter eigenvalue by} $e_r^{U,(e)}(x)^2$.
+\end{proof}
+
+\textbf{The identity states that the subsampling error accumulates along a nesting, each step adding the covariance it loses to the ones before it. Three properties follow. First,} $\Delta_e(x)$ \textbf{is computed exactly on the} $\tilde{N}^e$ \textbf{data of} $\tilde{\mathbf{x}}^e$\textbf{, at the} $\mathcal{O}\left(\left(\tilde{N}^e\right)^3d_z^3\right)$ \textbf{cost of two kriging covariances, and is a lower bound on the error: it says how much of the loss is already certain, which no upper bound alone provides. Second, only the data outside} $\tilde{\mathbf{x}}^e$ \textbf{are left to \Cref{th:computable_bound}, so the bracket tightens as} $\tilde{\mathbf{x}}^e$ \textbf{grows, and its width is chosen by the user rather than dictated by the configuration. Third, when} $\tilde{\mathbf{x}}^e$ \textbf{gathers} $\tilde{\mathbf{x}}^r$ \textbf{and the discarded data lying within a few correlation lengths of} $x$\textbf{, the remaining data are, for most kernels used in practice, screened by the neighbouring ones \cite{bib:screening-effect}, so that} $e_r^{U,(e)}(x)$ \textbf{becomes small at a cost still far below that of the full estimator,} $\tilde{N}^e$ \textbf{remaining far below} $\tilde{N}$.
+
+\subsection{Entrywise Bounds}\label{sec:entrywise_bounds}
+
+\textbf{The previous bounds are evaluated on the data at hand. Bounds on the residual quantities can also be derived from bounds on the covariance blocks and on the observations, which make explicit how the errors depend on the correlations between the data. Since} $\tilde{\mathbf{z}}_{d|r}$ \textbf{is unchanged when a trend is added to the observations, the latter are measured from an arbitrary reference trend} $g(\tilde{\mathbf{x}})\beta_0$, $\beta_0\in\mathbb{R}^{r_{\mathrm{UK}}d_z}$\textbf{, and the trend functions are assumed to verify} $\|g(x')\|_{\mathrm{op}}\leq g_{\max}$ \textbf{for} $x'=x$ \textbf{and for every entry} $x'$ \textbf{of} $\tilde{\mathbf{x}}$\textbf{. Writing} $\tilde{x}^j_i$ \textbf{and} $\tilde{z}^j_i$ \textbf{for the} $i$\textbf{-th entries of} $\tilde{\mathbf{x}}^j$ \textbf{and} $\tilde{\mathbf{z}}^j$\textbf{, and} $\|K\|_{\max}$ \textbf{for the largest operator norm of the} $d_z\times d_z$ \textbf{blocks of a matrix} $K$\textbf{, which is its largest entry in absolute value when} $d_z=1$\textbf{, we assume the following blockwise bounds, for} $j\in\{r,d\}$ \textbf{and for all the indices involved:}
+\begin{equation}
+    \left\{\begin{aligned}
+    \left\|k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\right\|_{\max}\leq&\alpha,\qquad\left\|k(\tilde{\mathbf{x}}^r,x)\right\|_{\max}\leq\kappa,\qquad\left\|k(\tilde{\mathbf{x}}^d,x)\right\|_{\max}\leq\eta\\
+    \left\|k(\tilde{x}^j_i,\tilde{x}^j_l)\right\|_{\mathrm{op}}\leq&\kappa\:\:\text{for}\:\:i\neq l,\qquad\left\|k(\tilde{x}^j_i,\tilde{x}^j_i)\right\|_{\mathrm{op}}\leq k_{\max}\\
+    \left\|\tilde{\mathbf{z}}^j-g(\tilde{\mathbf{x}}^j)\beta_0\right\|_{\max}\leq&\tilde{z}_{\max}
+    \end{aligned}\right.\label{eq:entrywise_assumptions}
+\end{equation}
+\textbf{Here,} $\kappa$ \textbf{bounds the covariances within} $\tilde{\mathbf{x}}^r$\textbf{, within} $\tilde{\mathbf{x}}^d$\textbf{, and between} $\tilde{\mathbf{x}}^r$ \textbf{and} $x$\textbf{, while} $\alpha$ \textbf{and} $\eta$ \textbf{respectively bound the covariances between} $\tilde{\mathbf{x}}^r$ \textbf{and} $\tilde{\mathbf{x}}^d$\textbf{, and between} $\tilde{\mathbf{x}}^d$ \textbf{and} $x$\textbf{. The constants} $k_{\max}$ \textbf{and} $\tilde{z}_{\max}$ \textbf{respectively bound the prior covariances of the training data and the deviation of the observations from the reference trend, which can be minimised over} $\beta_0$\textbf{, the mid-range of} $\tilde{\mathbf{z}}$ \textbf{being optimal for ordinary kriging on a scalar field. The subsampling strategy described in \cref{sec:subsampling_errors}, which retains the data close to} $x$ \textbf{and discards the farther ones, aims at the regime:}
+\begin{equation}
+    0<\eta,\alpha\ll\kappa\leq k_{\max}
+\end{equation}
+
+\textbf{We further define:}
+\begin{equation}
+    \lambda_j^-\triangleq\lambda_{\min}(G(\tilde{\mathbf{x}}^j)),\qquad\lambda_j^+\triangleq k_{\max}+(\tilde{N}^j-1)\kappa+\lambda_{\max}(\tilde{R}),\qquad j\in\{r,d\}
+\end{equation}
+\textbf{where} $\lambda_j^+$ \textbf{bounds} $\lambda_{\max}(G(\tilde{\mathbf{x}}^j))$ \textbf{by the blockwise Gershgorin circle theorem \cite{bib:matrix-analysis}, recalled in \cref{sec:entrywise_proof}. The conditioning of the trend on the retained data is measured by:}
+\begin{equation}
+    \tau_r\triangleq\frac{\tilde{N}^rg_{\max}^2}{\lambda_{\min}\left(g(\tilde{\mathbf{x}}^r)^\top g(\tilde{\mathbf{x}}^r)\right)}\geq r_{\mathrm{UK}}
+\end{equation}
+\textbf{which is equal to} $1$ \textbf{for ordinary kriging. \Cref{th:entrywise_residual} bounds the residual quantities, from which \Cref{th:entrywise_bounds} deduces bounds on the two errors.}
+
+\begin{proposition}
+    \textbf{Assume that \eqref{eq:entrywise_assumptions} holds and that} $\lambda_r^-\lambda_d^->\alpha^2\tilde{N}^r\tilde{N}^d$\textbf{. Then:}
+    \begin{equation*}
+        \left\{\begin{aligned}
+        \|k_{d|r}(x)\|_{\mathrm{op}}\leq k^{\max}_{d|r}\triangleq&\sqrt{\tilde{N}^d}\left(\frac{\lambda_r^-\eta+\alpha\tilde{N}^r\kappa}{\lambda_r^-}+\frac{\tau_r\lambda_r^+\rho_r(\lambda_r^-+\tilde{N}^r\kappa)}{\tilde{N}^r\lambda_r^-}\right)\\
+        \|S_{d|r}^{-1}\|_{\mathrm{op}}\leq s_{\max}\triangleq&\frac{\lambda_r^-}{\lambda_r^-\lambda_d^--\alpha^2\tilde{N}^r\tilde{N}^d}\\
+        \|\tilde{\mathbf{z}}_{d|r}\|_2\leq\tilde{\mathbf{z}}^{\max}_{d|r}\triangleq&\sqrt{\tilde{N}^d}\rho_r\frac{\lambda_r^-+\tau_r\lambda_r^+}{\lambda_r^-}\tilde{z}_{\max}
+        \end{aligned}\right.
+    \end{equation*}
+    \textbf{where} $\rho_r\triangleq(\lambda_r^-+\alpha\tilde{N}^r)/\lambda_r^-$.\label{th:entrywise_residual}
+\end{proposition}
+
+\begin{proof}
+    \textbf{See proof in \cref{sec:entrywise_proof}.}
+\end{proof}
+
+\begin{proposition}
+    \textbf{Under the assumptions of \Cref{th:entrywise_residual}, the two errors verify:}
+    \begin{equation*}
+        \left\{\begin{aligned}
+        e_r(x)\leq&k^{\max}_{d|r}\sqrt{s_{\max}}\\
+        e_f(x)\leq&k^{\max}_{d|r}\:\tilde{\mathbf{z}}^{\max}_{d|r}\:s_{\max}
+        \end{aligned}\right.
+    \end{equation*}
+    \textbf{and} $\|\tilde{\mathbf{z}}_{d|r}\|_{S_{d|r}}\leq\tilde{\mathbf{z}}^{\max}_{d|r}\sqrt{s_{\max}}$.\label{th:entrywise_bounds}
+\end{proposition}
+
+\begin{proof}
+    \textbf{For} $A$ \textbf{and} $B$ \textbf{with} $\tilde{N}^dd_z$ \textbf{rows,} $\left\|\langle A|B\rangle_{S_{d|r}}\right\|_{\mathrm{op}}\leq\|A\|_{\mathrm{op}}\cdot\|B\|_{\mathrm{op}}\cdot\|S_{d|r}^{-1}\|_{\mathrm{op}}$\textbf{. Applying this inequality and \Cref{th:entrywise_residual} to \Cref{th:errors_euclidean} concludes the proof.}
+\end{proof}
+
+\textbf{As in \Cref{th:Cauchy-Schwarz_inequality}, the bound on} $e_f(x)$ \textbf{is the product of the bounds on} $e_r(x)$ \textbf{and} $\|\tilde{\mathbf{z}}_{d|r}\|_{S_{d|r}}$\textbf{. Unlike their simple kriging counterparts, these bounds do not vanish when} $\alpha$ \textbf{and} $\eta$ \textbf{tend to} $0$\textbf{, their second term accounting for the estimation of the trend described by \Cref{rem:mean_floor}. They also decrease with} $\lambda_r^-$ \textbf{and} $\lambda_d^-$\textbf{, and thus remain valid when these eigenvalues are replaced by lower bounds such as} $\tilde{R}$\textbf{. Moreover, \cite{bib:smallest-eigenvalues} shows that the smallest eigenvalue of a covariance matrix remains bounded away from} $0$ \textbf{as the number of data grows, provided the training inputs are separated by a minimal distance.}
+
+\begin{remark}
+    \textbf{The condition} $\lambda_r^-\lambda_d^->\alpha^2\tilde{N}^r\tilde{N}^d$ \textbf{requires a gap between the retained and the discarded data, wide enough for their cross covariances to be small compared with the eigenvalues of the Gram matrices. When} $\tilde{\mathbf{x}}^r$ \textbf{is a window cut out of a continuous set of training data,} $\alpha$ \textbf{is reached by the closest data on either side of its boundary, and is close to} $\kappa$\textbf{, so that \Cref{th:entrywise_bounds} does not apply and the bounds of \cref{sec:split_bound,sec:nested_bound} are to be used instead. Even when it applies, its successive triangular and Cauchy-Schwarz inequalities make it loose, and its interest lies in the dependence it exhibits on} $\alpha$, $\eta$ \textbf{and} $\kappa$ \textbf{rather than in its numerical value.}\label{rem:entrywise_scope}
+\end{remark}

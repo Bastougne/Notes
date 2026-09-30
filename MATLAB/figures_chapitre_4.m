@@ -582,7 +582,7 @@ function t = flops_tex(v, signed)
     else
         s = '';
     end
-    t = sprintf('$%s%.3g$%s', s, v / 1000^(i - 1), units{i});
+    t = sprintf('$%s%.3g$ %s', s, v / 1000^(i - 1), units{i});
 end
 
 function write_header(fid, n, n_mc)

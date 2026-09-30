@@ -256,13 +256,14 @@ is invertible since $G\succ0$ and $C$ has full column rank. The convention of \C
 	\end{aligned}\right.
 \end{equation}
 
-Let $M\triangleq-S^{-1}=\left(C^\top G^{-1}C\right)^{-1}$. The weight matrix can be derived from the upper blocks of the inverse:
+Let $M\triangleq-S^{-1}=\left(C^\top G^{-1}C\right)^{-1}$ and $U\triangleq I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)$. The weight matrix can be derived from the upper blocks of the inverse:
 \begin{equation}
 	\begin{aligned}
 	W&=\bar{A}\:k(\tilde{\mathbf{x}},x)+\bar{B}\:I_{d_z}\\
 	&=\left(G^{-1}+G^{-1}C\:S^{-1}C^\top G^{-1}\right)k(\tilde{\mathbf{x}},x)-G^{-1}C\:S^{-1}\\
 	&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:S^{-1}\left(C^\top G^{-1}k(\tilde{\mathbf{x}},x)-I_{d_z}\right)\\
-	&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:M\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)
+	&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:M\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\\
+	&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:M\:U
 	\end{aligned}
 \end{equation}
 and $\xi$ from the lower blocks:
@@ -271,7 +272,8 @@ and $\xi$ from the lower blocks:
 	\xi&=\bar{C}\:k(\tilde{\mathbf{x}},x)+\bar{D}\:I_{d_z}\\
 	&=-S^{-1}C^\top G^{-1}k(\tilde{\mathbf{x}},x)+S^{-1}\\
 	&=S^{-1}\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\\
-	&=-M\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)
+	&=-M\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\\
+	&=-M\:U
 	\end{aligned}
 \end{equation}
 
@@ -279,24 +281,20 @@ Since $M$ is symmetric, the OK estimator is:
 \begin{equation}
 	\begin{aligned}
 	\hat{z}_{\mathrm{OK}}&=W^\top\tilde{\mathbf{z}}\\
+	&=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+U^\top M\:C^\top G^{-1}\tilde{\mathbf{z}}\\
 	&=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G^{-1}C\right)M\:C^\top G^{-1}\tilde{\mathbf{z}}\\
 	&=M\:C^\top G^{-1}\tilde{\mathbf{z}}+k(x,\tilde{\mathbf{x}})\:G^{-1}\left(\tilde{\mathbf{z}}-C\:M\:C^\top G^{-1}\tilde{\mathbf{z}}\right)
 	\end{aligned}
 \end{equation}
 which is exactly \eqref{eq:ordinary_kriging_equations}, the estimated mean being $\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})=M\:C^\top G^{-1}\tilde{\mathbf{z}}$.
 
-Since $R_{\mathrm{OK}}$ is a centred moment of the estimation error, it is insensitive to the unknown mean and \eqref{eq:generic_kriging_variance} can be applied. Using \eqref{eq:Lagrangian_minimum} by $W^\top$ and the constraint $W^\top C=I_{d_z}$ gives the identity:
+Since $R_{\mathrm{OK}}$ is a centred moment of the estimation error, it is insensitive to the unknown mean and \eqref{eq:generic_kriging_variance} can be applied. Using \eqref{eq:Lagrangian_minimum} and the constraint $W^\top C=I_{d_z}$ gives the identity:
 \begin{equation}
 	\begin{aligned}
 	W^\top G\:W&=W^\top\left(k(\tilde{\mathbf{x}},x)-C\:\xi\right)\\
 	&=W^\top k(\tilde{\mathbf{x}},x)-W^\top C\:\xi\\
 	&=W^\top k(\tilde{\mathbf{x}},x)-\xi
 	\end{aligned}\label{eq:OK_identity}
-\end{equation}
-
-Let $U\triangleq I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)$ so that the expressions of $W$ and $\xi$ are simplified to:
-\begin{equation}
-	W=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:M\:U\quad\text{and}\quad\xi=-M\:U
 \end{equation}
 
 Combining these results yields:
@@ -328,7 +326,7 @@ and the Lagrange multiplier method of \Cref{th:ordinary_kriging} can be transpos
 	\end{aligned}\right.
 \end{equation}
 
-The full column rank of $g(\tilde{\mathbf{x}})$ ensures that $S$ invertible, and that $M$ is SPD. Writing $G$ for $G(\tilde{\mathbf{x}})$, the shorthands of that proof thus become:
+The full column rank of $g(\tilde{\mathbf{x}})$ ensures that $S$ is invertible, and that $M$ is SPD. Writing $G$ for $G(\tilde{\mathbf{x}})$, the shorthands of that proof thus become:
 \begin{equation}
 	\left\{\begin{aligned}
 	M&\triangleq-S^{-1}=\left(g(\tilde{\mathbf{x}})^\top G^{-1}g(\tilde{\mathbf{x}})\right)^{-1}\\
@@ -348,57 +346,162 @@ Finally, the bilinear identity \eqref{eq:OK_identity} becomes:
 	W^\top G\:W=W^\top k(\tilde{\mathbf{x}},x)-g(x)\:\xi
 \end{equation}
 
-The UK estimator and covariance matrices are derived exactly like for \Cref{th:ordinary_kriging}, using the corrected results.
-
-\begin{comment}
-\section[Proof of Proposition 3.10]{Proof of \Cref{th:kriging_vague_prior}}\label{sec:proof_vague_prior}
-
-\textbf{TODO: à relire}
-Let $B\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})$, and give the unknown coefficients the prior $\beta\sim\mathcal{N}(0,B)$, independent of the centred process $f\sim\mathcal{GP}(0,k)$. Randomising the trend this way makes the field $f_B\triangleq f+g\:\beta$ a centred GP of kernel $k_B$ by \Cref{th:GP_marginals}, so that kriging $f_B$ is \Cref{th:simple_kriging} read with $k_B$ in place of $k$. We write $\hat{z}_B$ and $R_B$ for the estimator and covariance it returns, $G$ for $G(\tilde{\mathbf{x}})$ and $g$ for $g(\tilde{\mathbf{x}})$, and reuse the shorthands $M$ and $U$ of \cref{sec:proof_UK}. The Gram matrix of $f_B$ is:
-\begin{equation}
-	G_B\triangleq k_B(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}=G+g\:B\:g^\top
-\end{equation}
-
-By \Cref{th:Woodbury} and $g^\top G^{-1}g=M^{-1}$, it comes that:
-\begin{equation}
-	G_B^{-1}=G^{-1}-G^{-1}g\:M_B\:g^\top G^{-1},\qquad M_B\triangleq\left(B^{-1}+M^{-1}\right)^{-1}
-\end{equation}
-
-Since $M_B\left(B^{-1}+M^{-1}\right)=I$, we have $M^{-1}M_B=I-B^{-1}M_B$, and thus the two identities:
-\begin{equation}
-	B-B\:M^{-1}M_B=M_B,\qquad M_B\:M^{-1}B=B-M_B\label{eq:vague_prior_identity}
-\end{equation}
-
-Let $A\triangleq k_B(x,\tilde{\mathbf{x}})=k(x,\tilde{\mathbf{x}})+g(x)\:B\:g^\top$. Developing $A\:G_B^{-1}$ and collecting its terms in $B$ through the first identity of \eqref{eq:vague_prior_identity} yields:
-\begin{equation}
-	A\:G_B^{-1}=k(x,\tilde{\mathbf{x}})\:G^{-1}+U^\top M_B\:g^\top G^{-1}\label{eq:vague_prior_weights}
-\end{equation}
-whence the estimator:
-\begin{equation}
-	\hat{z}_B=A\:G_B^{-1}\tilde{\mathbf{z}}=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+U^\top M_B\:g^\top G^{-1}\tilde{\mathbf{z}}
-\end{equation}
-
-For the covariance, \eqref{eq:vague_prior_weights} and the second identity of \eqref{eq:vague_prior_identity} give:
+The UK estimator and covariance matrices are derived exactly like for \Cref{th:ordinary_kriging}, using the corrected results:
 \begin{equation}
 	\begin{aligned}
-	A\:G_B^{-1}A^\top&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)\\
-	&\qquad+k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top+U^\top\left(B-M_B\right)g(x)^\top
+	\hat{z}_{\mathrm{UK}}&=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+U^\top M\:g(\tilde{\mathbf{x}})^\top G^{-1}\tilde{\mathbf{z}}\\
+	&=g(x)\:M\:g(\tilde{\mathbf{x}})^\top G^{-1}\tilde{\mathbf{z}}+k(x,\tilde{\mathbf{x}})\:G^{-1}\left(\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\:M\:g(\tilde{\mathbf{x}})^\top G^{-1}\tilde{\mathbf{z}}\right)
+	\end{aligned}\label{eq:UK_z_proof}
+\end{equation}
+and:
+\begin{equation}
+	R_{\mathrm{UK}}=U^\top M\:U+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)\label{eq:UK_R_proof}
+\end{equation}
+
+\section[Proof of Proposition 3.10]{Proof of \Cref{th:kriging_vague_prior}}\label{sec:proof_vague_prior}
+
+Using \eqref{eq:UK_mean}, it comes that:
+\begin{equation}
+	f\mid\beta\sim\mathcal{GP}(g\:\beta,k)
+\end{equation}
+and thus:
+\begin{equation}
+	f-g\:\beta\mid\beta\sim\mathcal{GP}(0,k)
+\end{equation}
+
+Since this law is free of $\beta$, $f-g\:\beta$ is independent of $\beta$, which gives:
+\begin{equation}
+	f-g\:\beta\sim\mathcal{GP}(0,k)
+\end{equation}
+
+Let $x,x'\in\mathcal{U}$. The mean of $f$ can thus be computed by decomposing:
+\begin{equation}
+	\mathbb{E}[f(x)]=g(x)\:\mathbb{E}[\beta]+\mathbb{E}[f(x)-g(x)\:\beta]=0
+\end{equation}
+
+By independence of $f-g\:\beta$ and $\beta$, it follows that:
+\begin{equation}
+	\begin{aligned}
+	\mathbb{E}\left[f(x)\:f(x')^\top\right]&=\mathbb{E}\left[(f(x)-g(x)\:\beta)(f(x')-g(x')\:\beta)^\top\right]+g(x)^\top\:\mathbb{E}\left[\beta\:\beta^\top\right]g(x')+\\
+	&\qquad\mathbb{E}\left[(f(x)-g(x)\:\beta)\:\beta^\top\right]g(x')^\top+g(x')\:\mathbb{E}\left[\beta\:(f(x)-g(x)\:\beta)^\top\right]\\
+	&=k(x,x')+g(x)\:B\:g(x')^\top+0+0\\
+	&=k_B(x,x')
 	\end{aligned}
 \end{equation}
-and $R_B=k_B(x,x)+R-A\:G_B^{-1}A^\top$ with $k_B(x,x)=k(x,x)+g(x)\:B\:g(x)^\top$. The terms in $B$ cancel, since:
+
+As a linear combiantion of the jointly Gaussian distributions $f-g\:\beta$ and $\beta$, we finally have:
 \begin{equation}
-	g(x)\:B\:g(x)^\top-k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top-U^\top B\:g(x)^\top=U^\top B\:g(x)^\top-U^\top B\:g(x)^\top=0
-\end{equation}
-while the two terms in $M_B$ assemble into the sandwich of \eqref{eq:kriged_universal_mean}:
-\begin{equation}
-	U^\top M_B\:g(x)^\top-U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)=U^\top M_B\:U
-\end{equation}
-so that:
-\begin{equation}
-	R_B=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:U
+	f\sim\mathcal{GP}(0,k_B)
 \end{equation}
 
-Both expressions are those of \Cref{th:universal_kriging} with $M_B$ substituted for $M$, which proves the stronger statement that kriging under $k_B$ is universal kriging regularised by the prior. Since $M_B\to M$ as $B^{-1}\to0$, the limit returns \eqref{eq:universal_kriging_equations} and \eqref{eq:kriged_universal_mean}.
+In this form, the mean function of $f$ is known, and \Cref{th:simple_kriging_conditional} states that simple kriging using $k_B$ gives the conditional distribution of $z\mid\tilde{\mathbf{z}}$:
+\begin{equation}
+	z\mid\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK},B}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0),R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})\right)
+\end{equation}
 
-The coefficients follow the same course. The Gaussian linear model gives $\beta$ the posterior $\mathcal{N}\left(M_B\:g^\top G^{-1}\tilde{\mathbf{z}},M_B\right)$, whose limit is $\mathcal{N}\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),M\right)$. The estimator of \eqref{eq:kriged_universal_mean} is therefore the posterior mean of the trend, and $M$ its posterior covariance.
+The SK estimator and error covariance matrix can be expressed as follows:
+\begin{equation}
+	\left\{\begin{aligned}
+	\hat{z}_{\mathrm{SK},B}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=k_B(x,\tilde{\mathbf{x}})\:G_B(\tilde{\mathbf{x}})^{-1}\:\tilde{\mathbf{z}}\\
+	R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})&=k_B(x,x)+R-k_B(x,\tilde{\mathbf{x}})\:G_B(\tilde{\mathbf{x}})^{-1}k_B\left(\tilde{\mathbf{x}},x\right)
+	\end{aligned}\right.
+\end{equation}
+where:
+\begin{equation}
+	G_B\triangleq k_B(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}=G+g(\tilde{\mathbf{x}})\:B\:g(\tilde{\mathbf{x}})^\top
+\end{equation}
+
+For the sake of clarity, we let $G$ and $g$ respectively denote $G(\tilde{\mathbf{x}})$ and $g(\tilde{\mathbf{x}})$, and we reuse:
+\begin{equation}
+	\left\{\begin{aligned}
+	M&\triangleq\left(g^\top G^{-1}g\right)^{-1}\\
+	U&\triangleq g(x)^\top-g^\top G^{-1}k(\tilde{\mathbf{x}},x)
+	\end{aligned}\right.
+\end{equation}
+from \cref{sec:proof_UK}.
+
+Using \Cref{th:Woodbury}, it comes that:
+\begin{equation}
+	G_B^{-1}=G^{-1}-G^{-1}g\:M_B\:g^\top G^{-1}
+\end{equation}
+with:
+\begin{equation}
+	M_B\triangleq\left(B^{-1}+g^\top G^{-1}g\right)^{-1}=\left(B^{-1}+M^{-1}\right)^{-1}
+\end{equation}
+
+By definition of $M_B$, we have:
+\begin{equation}
+	\begin{aligned}
+	&\left(B^{-1}+M^{-1}\right)M_B=I\\
+	\iff\quad&M^{-1}M_B=I-B^{-1}M_B\\
+	\iff\quad&B\:M^{-1}M_B=B-M_B\\
+	\end{aligned}
+\end{equation}
+
+We also precompute:
+\begin{equation}
+	\begin{aligned}
+	g(x)\:B\:g^\top\:G_B^{-1}&=g(x)\:B\:g^\top\left(G^{-1}-G^{-1}g\:M_B\:g^\top G^{-1}\right)\\
+	&=g(x)\left(B\:g^\top G^{-1}-B\:g^\top G^{-1}g\:M_B\:g^\top G^{-1}\right)\\
+	&=g(x)\left(B\:g^\top G^{-1}-B\:M^{-1}\:M_B\:g^\top G^{-1}\right)\\
+	&=g(x)\left(B\:g^\top G^{-1}-(B-M_B)\:g^\top G^{-1}\right)\\
+	&=g(x)\:M_B\:g^\top G^{-1}
+	\end{aligned}
+\end{equation}
+
+It comes that:
+\begin{equation}
+	\begin{aligned}
+	k_B(x,\tilde{\mathbf{x}})\:G_B^{-1}&=\left(k(x,\tilde{\mathbf{x}})+g(x)\:B\:g^\top\right)G_B^{-1}\\
+	&=k(x,\tilde{\mathbf{x}})\:G_B^{-1}+g(x)\:B\:g^\top G_B^{-1}\\
+	&=k(x,\tilde{\mathbf{x}})\left(G^{-1}-G^{-1}g\:M_B\:g^\top G^{-1}\right)+g(x)\:M_B\:g^\top G^{-1}\\
+	&=k(x,\tilde{\mathbf{x}})\:G^{-1}+\left(-k(x,\tilde{\mathbf{x}})\:G^{-1}g+g(x)\right)M_B\:g^\top G^{-1}\\
+	&=k(x,\tilde{\mathbf{x}})\:G^{-1}+U^\top M_B\:g^\top G^{-1}
+	\end{aligned}
+\end{equation}
+and thus:
+\begin{equation}
+	\hat{z}_{\mathrm{SK},B}=k_B(x,\tilde{\mathbf{x}})\:G_B^{-1}\tilde{\mathbf{z}}=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+U^\top M_B\:g^\top G^{-1}\tilde{\mathbf{z}}
+\end{equation}
+
+For the covariance, we compute:
+\begin{equation}
+	\begin{aligned}
+	k_B(x,\tilde{\mathbf{x}})\:G_B^{-1}k_B(\tilde{\mathbf{x}},x)&=\left(k(x,\tilde{\mathbf{x}})\:G^{-1}+U^\top M_B\:g^\top G^{-1}\right)\left(k(\tilde{\mathbf{x}},x)+g\:B\:g(x)^\top\right)\\
+	&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)+\\
+	&\qquad k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top+U^\top M_B\:g^\top G^{-1}g\:B\:g(x)^\top\\
+	&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)+\\
+	&\qquad k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top+U^\top M_B\:M^{-1}\:B\:g(x)^\top\\
+	&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)+\\
+	&\qquad k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top+U^\top(B-M_B)\:g(x)^\top
+	\end{aligned}
+\end{equation}
+and:
+\begin{equation}
+	\begin{aligned}
+	g(x)\:B\:g(x)^\top-k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top&=U^\top g\:B\:g(x)^\top
+	\end{aligned}
+\end{equation}
+to obtain:
+\begin{equation}
+	\begin{aligned}
+	R_{\mathrm{SK},B}&=k_B(x,x)+R-k_B(x,\tilde{\mathbf{x}})\:G_B(\tilde{\mathbf{x}})^{-1}k_B\left(\tilde{\mathbf{x}},x\right)\\
+	&=k(x,x)+g(x)\:B\:g(x)^\top+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)-U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)-\\
+	&\qquad k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top-U^\top(B-M_B)\:g(x)^\top\\
+	&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)-U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:g(x)^\top\\
+	&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:U
+	\end{aligned}
+\end{equation}
+
+Since $M_B\to M$ as $B^{-1}\to0$, we finally have:
+\begin{equation}
+	\left\{\begin{aligned}
+	\hat{z}_{\mathrm{SK},B}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\underset{B^{-1}\to0}{\longrightarrow}k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+U^\top M\:g^\top G^{-1}\tilde{\mathbf{z}}\\
+	R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})&\underset{B^{-1}\to0}{\longrightarrow}k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M\:U
+	\end{aligned}\right.
+\end{equation}
+the limit of which are exactly \eqref{eq:UK_z_proof} and \eqref{eq:UK_R_proof}.
+
+\begin{comment}
+\textbf{TODO: ça a l'air de mériter sa propre proposition mais jsp si ç'est utile}The coefficients follow the same course. The Gaussian linear model gives $\beta$ the posterior $\mathcal{N}\left(M_B\:g^\top G^{-1}\tilde{\mathbf{z}},M_B\right)$, whose limit is $\mathcal{N}\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),M\right)$. The estimator of \eqref{eq:kriged_universal_mean} is therefore the posterior mean of the trend, and $M$ its posterior covariance.
 \end{comment}

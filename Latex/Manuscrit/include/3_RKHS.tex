@@ -66,7 +66,7 @@ is continuous on $\mathcal{H}$ for every $x\in\mathcal{U}$. Its reproducing kern
 	See \cref{sec:proof_native_RKHS}.
 \end{proof}
 
-\textbf{TODO: courte intro ici}
+The native RKHS is spanned by the functions $k(x,\cdot)$, so every $x\in\mathcal{U}$ is naturally represented in $\mathcal{H}_k$ by the function $k(x,\cdot)$ it generates. This correspondence defines the feature map, introduced by \Cref{th:feature_map}, and provides the representation on which the kernel methods of the following sections operate.
 
 \begin{definition}[Feature map]\label{th:feature_map}
 	Let $k$ be an SPSD kernel on $\mathcal{U}$, and $\mathcal{H}_k$ be its native RKHS. The feature map of $\mathcal{H}_k$ is:
@@ -105,29 +105,68 @@ In this section, we show that the GP viewpoint of kriging is equivalent to a var
 \end{proposition}
 
 \begin{proof}
-	\textbf{TODO: compléter la preuve + changer les notations pour être cohérent avec le krigeage/les estimateurs ? + reprendre ici}
+	By the representer theorem \cite{bib:representer,bib:representer-generalised}, a minimiser lies in the span of $\left\{k(\cdot,\tilde{x}_i)\right\}_{i=1}^{\tilde{N}}$, so $\psi=\sum_{i=1}^{\tilde{N}}\alpha_i\:k(\cdot,\tilde{x}_i)$ for some $\alpha\in\mathbb{R}^{\tilde{N}}$. The reproducing property gives $\psi(\tilde{\mathbf{x}})=k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\alpha$ and $\|\psi\|_{\mathcal{H}_k}^2=\alpha^\top k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\alpha$, so the problem reduces to minimising $\frac{1}{\tilde{N}}\left\|k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\alpha-\tilde{\mathbf{z}}\right\|_2^2+\lambda\:\alpha^\top k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\alpha$ over $\alpha$. Cancelling its gradient and simplifying by the invertible $k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$ gives $\alpha=\left(k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda\tilde{N}I_{\tilde{N}}\right)^{-1}\tilde{\mathbf{z}}$, hence $\psi_{\mathrm{RKHS}}(x)=k(x,\tilde{\mathbf{x}})\:\alpha$.
 \end{proof}
+
+\begin{remark}[Simple kriging in the RKHS]
+	Choosing $\lambda=\tilde{R}/\tilde{N}$ turns $\psi_{\mathrm{RKHS}}$ into the centred SK estimator of \Cref{th:simple_kriging}, so simple kriging is the regularised least-squares reconstruction of the field in $\mathcal{H}_k$ \cite{bib:GP-kernel-methods}. In the noise-free limit $\tilde{R}\to0$, it becomes the minimum-norm interpolant:
+	\begin{equation}
+		\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}\left\{\|\psi\|_{\mathcal{H}_k}\:\middle|\:\forall i\in[\![1,\tilde{N}]\!],\:\psi(\tilde{x}_i)=\tilde{z}_i\right\}
+	\end{equation}
+	a deterministic reading of kriging complementary to the probabilistic one of the GP.
+\end{remark}
+
+\begin{remark}[GP and RKHS correspondence]
+	The two viewpoints are complementary \cite{bib:Rasmussen-relationships}. The GP model gives a probabilistic reading of kriging (posterior mean and variance under a Gaussian prior), while the RKHS gives a deterministic one (minimum-norm interpolant in a function space). Writing the Mercer decomposition of the kernel over its eigenpairs $(\lambda_i,\psi_i)_{i=1}^{\infty}$ as $k(x,x')=\sum_{i=1}^{\infty}\lambda_i\:\psi_i(x)\:\psi_i(x')$, a function $\psi=\sum_{i=1}^{\infty}c_i\:\psi_i$ belongs to $\mathcal{H}_k$ with squared norm $\|\psi\|_{\mathcal{H}_k}^2=\sum_{i=1}^{\infty}c_i^2/\lambda_i$; the norm thus penalises most the components carried by low-eigenvalue, rapidly oscillating eigenfunctions, so the decay of the eigenvalues $\lambda_i$ sets the smoothness enforced by $k$. Choosing a kernel therefore amounts to choosing a regularity class for the unknown field. A smooth kernel such as the SE kernel yields infinitely differentiable interpolants, whereas a rougher Matérn kernel admits functions of limited smoothness.
+\end{remark}
 
 \subsection{Kernel Mean Embedding}
 
-\subsection{Kernel Kalman Filter}
+Just as the feature map represents a function of $\mathcal{H}_k$, it represents a probability distribution through its mean. The kernel mean embedding \cite{bib:kernel-embeddings} of the law of a random variable $X$ on $\mathcal{U}$ is:
+\begin{equation}
+	\mu_X\triangleq\mathbb{E}\left[\Phi(X)\right]\in\mathcal{H}_k\label{eq:KME}
+\end{equation}
+and the reproducing property turns every expectation of an RKHS function into an inner product against it:
+\begin{equation}
+	\forall f\in\mathcal{H}_k,\:\mathbb{E}\left[f(X)\right]=\langle f|\mu_X\rangle_{\mathcal{H}_k}
+\end{equation}
 
-The reproducing property states that point evaluation amounts to applying a continuous linear functional on $\mathcal{H}_k$, which endows the space with a regularity entirely dictated by $k$. This space provides a variational reading of kriging \cite{bib:GP-kernel-methods}.
+When $k$ is characteristic, this embedding is injective, so $\mu_X$ retains the whole law of $X$, and conditioning becomes a linear operation on it. As \eqref{eq:KME} is no more computable than the integrals of \cref{sec:Bayesian_estimation}, it is approximated in the Monte Carlo sense of \cref{sec:Monte_Carlo} by a weighted particle set:
+\begin{equation}
+	\hat{\mu}_X=\sum_{i=1}^Nw^{(i)}\:\Phi\left(x^{(i)}\right)
+\end{equation}
 
-\begin{proposition}[Kriging as minimum-norm interpolation]
-	In the centred case, the SK estimator \eqref{eq:simple_kriging_equations} is the solution of the regularised least-squares problem in $\mathcal{H}_k$:
-	\begin{equation}
-		z_s^*=\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}\left(\frac{1}{\tilde{R}}\sum_{i=1}^{\tilde{N}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\|\psi\|_{\mathcal{H}_k}^2\right)\label{eq:RKHS_regularisation}
-	\end{equation}
-	which, in the noise-free limit $\tilde{R}\to0$, reduces to the minimum-norm interpolant $\operatorname{argmin}\{\|\psi\|_{\mathcal{H}_k}\:|\:\psi(\tilde{x}_i)=\tilde{z}_i\}$.
-\end{proposition}
+\subsection{Kernel Kalman Filter}\label{sec:KKF}
 
-\begin{proof}
-	By the representer theorem \cite{bib:representer,bib:representer-generalised}, a minimiser of \eqref{eq:RKHS_regularisation} lies in the finite-dimensional span of $\{k(\cdot,\tilde{x}_i)\}_{i=1}^{\tilde{N}}$, \textit{i.e.} $\psi=\sum_i\alpha_i\:k(\cdot,\tilde{x}_i)$. The reproducing property gives $\psi(\tilde{x}_j)=\sum_i\alpha_i\:k(\tilde{x}_j,\tilde{x}_i)$ and $\|\psi\|_{\mathcal{H}_k}^2=\alpha^\top k(\tilde{X},\tilde{X})\:\alpha$, so \eqref{eq:RKHS_regularisation} becomes the quadratic problem $\operatorname{argmin}_\alpha\:\tilde{R}^{-1}\|k(\tilde{X},\tilde{X})\alpha-\tilde{Z}\|^2+\alpha^\top k(\tilde{X},\tilde{X})\alpha$. Cancelling its gradient gives $\alpha=G^{-1}\tilde{Z}$, hence $\psi(x)=k(x,\tilde{X})\:G^{-1}\tilde{Z}$, which is \eqref{eq:simple_kriging_equations} for $m=0$.
-\end{proof}
+Since conditioning acts linearly on the embedding, the Bayesian recursion of \cref{sec:Bayesian_estimation} can be run in $\mathcal{H}_k$ as a Kalman filter. This linearity is made concrete by the conditional mean embedding \cite{bib:kernel-embeddings}: from a set of training pairs, one estimates a linear operator that maps the embedding of a conditioning value to the embedding of the corresponding conditional law. Prediction and correction then become linear maps on the embedded state, so that the whole recursion amounts to propagating a finite set of weights together with their covariance.
 
-\begin{remark}[GP and RKHS correspondence]
-	The two viewpoints are complementary \cite{bib:Rasmussen-relationships}. The GP model gives a probabilistic reading of kriging (posterior mean and variance under a Gaussian prior), while the RKHS gives a deterministic one (minimum-norm interpolant in a function space). Writing the Mercer decomposition of the kernel over its eigenpairs $(\lambda_j,\phi_j)_{j\geq1}$ as $k(x,x')=\sum_{j\geq1}\lambda_j\:\phi_j(x)\:\phi_j(x')$, a function $\psi=\sum_{j\geq1}c_j\:\phi_j$ belongs to $\mathcal{H}_k$ with squared norm $\|\psi\|_{\mathcal{H}_k}^2=\sum_{j\geq1}c_j^2/\lambda_j$; the norm thus penalises most the components carried by low-eigenvalue, rapidly oscillating eigenfunctions, so the decay of the eigenvalues $\lambda_j$ sets the smoothness enforced by $k$. Choosing a kernel therefore amounts to choosing a regularity class for the unknown field. A smooth kernel such as the SE kernel yields infinitely differentiable interpolants, whereas a rougher Matérn kernel admits functions of limited smoothness.
+The kernel Kalman filter (KKF) \cite{bib:kernel-Kalman} applies this principle over a dictionary of reference states fixed before the recursion. It embeds the filtering distribution as a weighted combination $\sum_iw_k^{(i)}\:\Phi\left(\tilde{x}_i\right)$ over that dictionary, and attaches to the weights $\mathbf{w}_k$ a covariance $\Sigma_k$. A transition operator and an observation operator, both conditional mean embeddings learnt once from training data, stand for the dynamics and observation models: the prediction step pushes $\mathbf{w}_k$ and $\Sigma_k$ through the transition operator and inflates the covariance, while the correction step applies a kernel Kalman gain built from the observation operator. The dictionary and its Gram matrices are computed once, which ties the filter to a stationary model that the training set must cover.
+
+Its adaptive variant (AKKF) \cite{bib:AKKF} drops the fixed dictionary. In place of a training set it carries a particle set, regenerated at every step by propagating the particles through the dynamics and observation models, and it recomputes the Gram matrices of the state and observation kernels over that current set. The recursion can then follow a model that is time-varying, and neither Gaussian nor the image of a linear one, at the cost of the two models needed to move and score the particles.
+
+At time step $k$, let $\mathbf{x}_k^+$ denote the resampled particle set, $\mathbf{w}_k^+$ and $\Sigma_{k|k}^+$ its weights and their covariance, and:
+\begin{equation}
+	G_k^x\triangleq k_x\left(\mathbf{x}_k^+,\mathbf{x}_k^+\right),\qquad G_k^z\triangleq k_z\left(\mathbf{z}_k,\mathbf{z}_k\right)
+\end{equation}
+the Gram matrices of the state kernel $k_x$ and the observation kernel $k_z$, regularised by $\lambda_x,\lambda_z\in\mathbb{R}_+^*$, where $\mathbf{z}_k$ gathers the observations $\left(z_k^{(i)}\right)_i$ simulated at the propagated particles through the observation model. \Cref{alg:AKKF} gives the recursion. The state estimate belongs to it rather than to its reading, since it feeds the resampling from which the next particle set is drawn.
+
+\begin{algorithm}[!htb]
+	\begin{algorithmic}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{+(i)}\right)$}\Comment{Particle propagation}
+	\State{$D_k=\left(G_{k-1}^x+\lambda_xI_N\right)^{-1}G_{k-1}^x-I_N$}\Comment{Embedded prediction}
+	\State{$\displaystyle\Sigma_{k|k-1}=\Sigma_{k-1|k-1}^++\frac{1}{N}D_k\:D_k^\top$}
+	\State{$\forall i\in[\![1,N]\!],\:z_k^{(i)}=h_k\left(x_k^{(i)},n_k^{(i)}\right),\:n_k^{(i)}\sim p_k^{(o)}$}\Comment{Simulated observations}
+	\State{$K_k=\Sigma_{k|k-1}\left(G_k^z\:\Sigma_{k|k-1}+\lambda_zI_N\right)^{-1}$}\Comment{Embedded correction}
+	\State{$\mathbf{w}_k=\mathbf{w}_{k-1}^++K_k\left(k_z\left(\mathbf{z}_k,z_k\right)-G_k^z\:\mathbf{w}_{k-1}^+\right)$}
+	\State{$\Sigma_{k|k}=\Sigma_{k|k-1}-K_k\:G_k^z\:\Sigma_{k|k-1}$}
+	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)},\quad\hat{P}_k=\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top$}\Comment{State estimation}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{+(i)}\sim\mathcal{N}\left(\hat{x}_k,\hat{P}_k\right)$}\Comment{Resampling}
+	\State{$T_k=\left(G_k^x+\lambda_xI_N\right)^{-1}k_x\left(\mathbf{x}_k^+,\mathbf{x}_k\right)$}\Comment{Embedded resampling}
+	\State{$\mathbf{w}_k^+=T_k\:\mathbf{w}_k$}
+	\State{$\Sigma_{k|k}^+=T_k\:\Sigma_{k|k}\:T_k^\top$}
+	\end{algorithmic}\caption{Adaptive Kernel Kalman Filter}\label{alg:AKKF}
+\end{algorithm}
+
+\begin{remark}[Weights of either sign]\label{th:AKKF_weights}
+	The embedded correction solves a regularised least-squares problem in $\mathcal{H}_k$, not a Bayesian update of a discrete measure, so its weights are not constrained to be positive and $\hat{\mu}_X$ is not in general the embedding of a probability measure. The estimator $\sum_iw_k^{(i)}\:x_k^{(i)}$ remains well defined, but the effective sample size of \cref{sec:particle_filtering} does not, and neither does the resampling it triggers. The AKKF resamples unconditionally instead, drawing a fresh particle set from the Gaussian carrying the current estimate and its dispersion.
 \end{remark}
-
-Espaces natifs : \cite{bib:Wendland} 

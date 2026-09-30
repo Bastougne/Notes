@@ -1,4 +1,4 @@
-\section[Proof of Proposition 3.10]{Proof of \Cref{th:covariance_operator}}\label{sec:proof_Mercer_operator}
+\section[Proof of Proposition 3.11]{Proof of \Cref{th:covariance_operator}}\label{sec:proof_Mercer_operator}
 
 As $\mathcal{U}$ is compact and $k$ continuous, $k$ is bounded on $\mathcal{U}\times\mathcal{U}$, and $\mathcal{K}$ is compact.
 
@@ -46,7 +46,7 @@ Finally, recall that the set of continuous functions of $\mathcal{U}$ is dense i
 \end{equation}
 the inequality \eqref{eq:fKf_geq0} extends to all $\phi\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$.
 
-\section[Proof of Proposition 3.11]{Proof of \Cref{th:Mercer}}\label{sec:proof_Mercer}
+\section[Proof of Proposition 3.12]{Proof of \Cref{th:Mercer}}\label{sec:proof_Mercer}
 
 By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$. The spectral theorem \cite{bib:spectral-theorem} thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing.
 
@@ -97,7 +97,7 @@ whose Gram matrices have rank at most $r_0$ and are thus singular at any $n$ dis
 	\lambda_1\geq\lambda_2\geq\cdots>0
 \end{equation}
 
-\section[Proof of Proposition 3.13]{Proof of \Cref{th:reduced_rank_kriging}}\label{sec:proof_reduced_rank_kriging}
+\section[Proof of Proposition 3.14]{Proof of \Cref{th:reduced_rank_kriging}}\label{sec:proof_reduced_rank_kriging}
 
 As \eqref{eq:reduced_rank_Gram} is a rank $r_{\mathrm{KL}}$ perturbation of $A\triangleq I_{\tilde{N}}\otimes\tilde{R}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{N}d_z\times\tilde{N}d_z$ inversion of $G(\tilde{\mathbf{x}})$ to an $r_{\mathrm{KL}}\times r_{\mathrm{KL}}$ one:
 \begin{equation}
@@ -156,7 +156,7 @@ is SPD, as the sum of the SPSD matrix $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{
 \end{equation}
 is thus well-defined and continuous, and extends to $\sigma=0$ when $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})\succ0$, \textit{i.e.} when $\Psi(\tilde{\mathbf{x}})$ has full column rank. As $\hat{z}_{\mathrm{SK}}$ and $R_{\mathrm{SK}}$ depend on $\sigma$ only through this inverse and an explicit factor $\sigma^2$, both expressions remain valid at $\sigma=0$ under this condition.
 
-\section[Proof of Proposition 3.14]{Proof of \Cref{th:KL}}\label{sec:proof_KL}
+\section[Proof of Proposition 3.15]{Proof of \Cref{th:KL}}\label{sec:proof_KL}
 
 Let $i\in\mathbb{N}^*$. Since $\psi_i$ is bounded on the compact $\mathcal{U}$, Tonelli's theorem \cite{bib:Tonelli} and the continuity of $k$ give:
 \begin{equation}
@@ -216,7 +216,7 @@ By Mercer's theorem, this last sum is the tail of:
 \end{equation}
 and therefore converges to 0. The partial sums thus converge to $f$ in mean square, uniformly over $\mathcal{U}$.
 
-\section[Proof of Proposition 3.15]{Proof of \Cref{th:KL_converse}}\label{sec:proof_KL_converse}
+\section[Proof of Proposition 3.16]{Proof of \Cref{th:KL_converse}}\label{sec:proof_KL_converse}
 
 For $r\in\mathbb{N}^*$, let:
 \begin{equation}
@@ -269,7 +269,7 @@ and its covariance is:
 	\end{aligned}
 \end{equation}
 
-\section[Proof of Proposition 3.15]{Proof of \Cref{th:native_RKHS}}\label{sec:proof_native_RKHS}
+\section[Proof of Proposition 3.18]{Proof of \Cref{th:native_RKHS}}\label{sec:proof_native_RKHS}
 
 \textbf{TODO: à relire}
 
@@ -295,3 +295,129 @@ A function of null norm thus vanishes everywhere, and $\langle\cdot|\cdot\rangle
 whose first term is at most $\varepsilon\sup_n\|\psi_n\|_{\mathcal{H}_k}$, finite since a Cauchy sequence is bounded, and whose second is a finite sum tending to $0$ with $m$. Hence $\|\psi_n\|_{\mathcal{H}_k}\to0$, and only the zero class is sent to the zero function. Passing \eqref{eq:reproducing_generators} to the limit, $\mathcal{H}_k$ is an RKHS of reproducing kernel $k$.
 
 \textbf{Uniqueness.} Let $\mathcal{H}$ be an RKHS of reproducing kernel $k$. It contains every $k(x,\cdot)$, hence $\mathcal{H}_0$, and its inner product agrees with $\langle\cdot|\cdot\rangle_{\mathcal{H}_k}$ on the generators, hence on $\mathcal{H}_0$ by bilinearity. A function of $\mathcal{H}$ orthogonal to $\mathcal{H}_0$ verifies $\psi(x)=\langle\psi|k(x,\cdot)\rangle_{\mathcal{H}}=0$ for every $x\in\mathcal{U}$, so $\mathcal{H}_0$ is dense in $\mathcal{H}$, which is therefore its completion $\mathcal{H}_k$.
+
+\section[Proof of Proposition 4.3]{Proof of \Cref{th:errors_inverse_Gram}}\label{sec:errors_inverse_Gram}
+
+\textbf{The weights of \eqref{eq:kriging_f} and the Lagrange multipliers} $\xi$ \textbf{of the unbiasedness constraints solve} $\mathcal{G}(\tilde{\mathbf{x}})\begin{bmatrix}W\\\xi\end{bmatrix}=\bar{k}(\tilde{\mathbf{x}},x)$\textbf{, whose first block row reads} $G(\tilde{\mathbf{x}})W+g(\tilde{\mathbf{x}})\xi=k(\tilde{\mathbf{x}},x)$\textbf{. The error} $e_{\tilde{\mathbf{x}}}\triangleq z-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)$ \textbf{being centred whatever the value of} $\beta$\textbf{, and} $\varepsilon$ \textbf{being independent of} $\tilde{\mathbf{z}}$\textbf{, it comes that:}
+\begin{equation*}
+    \mathbb{E}\left[\tilde{\mathbf{z}}\:e_{\tilde{\mathbf{x}}}^\top\right]=k(\tilde{\mathbf{x}},x)-G(\tilde{\mathbf{x}})W=g(\tilde{\mathbf{x}})\xi
+\end{equation*}
+\textbf{so that} $e_{\tilde{\mathbf{x}}}$ \textbf{is uncorrelated with every linear combination} $V^\top\tilde{\mathbf{z}}$ \textbf{such that} $V^\top g(\tilde{\mathbf{x}})=0$. The difference between the two interpolators can be decomposed as follows:
+\begin{equation*}
+    \hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)=\underbrace{\left(z-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)\right)}_{e_{\tilde{\mathbf{x}}^r}\triangleq}-\underbrace{\left(z-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right)}_{e_{\tilde{\mathbf{x}}}\triangleq}
+\end{equation*}
+
+Thus:
+\begin{equation*}
+    \begin{aligned}
+    E_r(x)&=\mathbb{E}\left[\left(e_{\tilde{\mathbf{x}}^r}-e_{\tilde{\mathbf{x}}}\right)\left(e_{\tilde{\mathbf{x}}^r}-e_{\tilde{\mathbf{x}}}\right)^\top\right]\\
+    &=\mathbb{E}\left[e_{\tilde{\mathbf{x}}^r}e_{\tilde{\mathbf{x}}^r}^\top\right]+\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}}^\top\right]-\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}^r}^\top\right]-\mathbb{E}\left[e_{\tilde{\mathbf{x}}^r}e_{\tilde{\mathbf{x}}}^\top\right]
+    \end{aligned}
+\end{equation*}
+
+\textbf{The difference of the two interpolators being such a combination,} $\mathbb{E}\left[e_{\tilde{\mathbf{x}}}\left(e_{\tilde{\mathbf{x}}^r}-e_{\tilde{\mathbf{x}}}\right)^\top\right]=0$\textbf{, hence} $\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}^r}^\top\right]=\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}}^\top\right]$\textbf{, and so does its transpose. Moreover, both interpolators being unbiased, the second moments of their errors are their covariances. Therefore:}
+\begin{equation*}
+    E_r(x)=\mathbb{E}\left[e_{\tilde{\mathbf{x}}^r}e_{\tilde{\mathbf{x}}^r}^\top\right]-\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}}^\top\right]=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)
+\end{equation*}
+
+Using \Cref{th:subsampled_kriging} yields:
+\begin{equation*}
+    \begin{aligned}
+    E_r(x)&=k(x,x)+R-\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}_h(\tilde{\mathbf{x}}^r)^\dagger\bar{k}(\tilde{\mathbf{x}},x)-k(x,x)-R+\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)\\
+    &=\bar{k}(x,\tilde{\mathbf{x}})\mathfrak{D}_G\bar{k}(\tilde{\mathbf{x}},x)
+    \end{aligned}
+\end{equation*}
+
+For $e_f(x)$, direct calculations give:
+\begin{equation*}
+    \begin{aligned}
+    e_f(x)&=\left\|\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)\right\|_2\\
+    &=\left\|\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}-\bar{k}(x,\tilde{\mathbf{x}})\mathcal{G}_h(\tilde{\mathbf{x}}^r)^\dagger\bar{\mathbf{z}}\right\|_2\\
+    &=\left\|\bar{k}(x,\tilde{\mathbf{x}})\mathfrak{D}_G\bar{\mathbf{z}}\right\|_2
+    \end{aligned}
+\end{equation*}
+
+\section[Proof of Lemma 4.2]{Proof of \Cref{th:explicit_residuals}}\label{sec:explicit_residuals}
+
+\textbf{Writing} $G_r\triangleq G(\tilde{\mathbf{x}}^r)$, $g_r\triangleq g(\tilde{\mathbf{x}}^r)$ \textbf{and} $M_r\triangleq M(\tilde{\mathbf{x}}^r)$ \textbf{for brevity, the block inversion of} $A=\mathcal{G}(\tilde{\mathbf{x}}^r)$ \textbf{gives:}
+\begin{equation*}
+    \mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}=\begin{bmatrix}G_r^{-1}-G_r^{-1}g_rM_rg_r^\top G_r^{-1}&G_r^{-1}g_rM_r\\M_rg_r^\top G_r^{-1}&-M_r\end{bmatrix}
+\end{equation*}
+
+\textbf{Consequently, for} $x'\in\mathcal{U}$ \textbf{and for any matrices} $y$ \textbf{and} $t$ \textbf{with respectively} $\tilde{N}^rd_z$ \textbf{and} $r_{\mathrm{UK}}d_z$ \textbf{rows:}
+\begin{equation*}
+    \bar{k}(x',\tilde{\mathbf{x}}^r)\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}\begin{bmatrix}y\\t\end{bmatrix}=k(x',\tilde{\mathbf{x}}^r)G_r^{-1}y-U(x')M_r\left(t-g_r^\top G_r^{-1}y\right)
+\end{equation*}
+
+\textbf{Taking} $y=k(\tilde{\mathbf{x}}^r,x)$ \textbf{and} $t=g(x)^\top$ \textbf{for every} $x'\in\tilde{\mathbf{x}}^d$ \textbf{gives the expression of} $k_{d|r}(x)$\textbf{, since} $t-g_r^\top G_r^{-1}y$ \textbf{is then equal to} $U(x)^\top$\textbf{. Taking the columns of} $k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)$ \textbf{and of} $g(\tilde{\mathbf{x}}^d)^\top$ \textbf{for} $y$ \textbf{and} $t$ \textbf{gives the expression of} $S_{d|r}=D-B^\top A^{-1}B$ \textbf{in the same way, and} $y=\tilde{\mathbf{z}}^r$ \textbf{with} $t=0$ \textbf{gives that of} $\tilde{\mathbf{z}}_{d|r}$\textbf{, since} $g_r^\top G_r^{-1}\tilde{\mathbf{z}}^r=M_r^{-1}\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$.
+
+$S^0_{d|r}$ \textbf{is the Schur complement of the SPD matrix} $G(\tilde{\mathbf{x}})$ \textbf{with respect to} $G(\tilde{\mathbf{x}}^r)$\textbf{, and is therefore SPD \cite{bib:matrix-analysis}. Adding the SPSD matrix} $U(\tilde{\mathbf{x}}^d)M_rU(\tilde{\mathbf{x}}^d)^\top$ \textbf{keeps} $S_{d|r}$ \textbf{SPD. Finally, adding} $g(\tilde{\mathbf{x}})\gamma$ \textbf{to the observations adds} $U(\tilde{\mathbf{x}}^d)\gamma$ \textbf{to} $\tilde{\mathbf{z}}^0_{d|r}$ \textbf{and} $\gamma$ \textbf{to} $\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$\textbf{, which leaves} $\tilde{\mathbf{z}}_{d|r}$ \textbf{unchanged.}
+
+\section[Proof of Proposition 4.7 and Corollary 4.2]{Proof of \Cref{th:split_bound} and \Cref{th:computable_bound}}\label{sec:split_bound_proof}
+
+\textbf{By \Cref{th:explicit_residuals},} $k_{d|r}(x)=k^0_{d|r}(x)+U(\tilde{\mathbf{x}}^d)M(\tilde{\mathbf{x}}^r)U(x)^\top$ \textbf{and} $S_{d|r}=S^0_{d|r}+U(\tilde{\mathbf{x}}^d)M(\tilde{\mathbf{x}}^r)U(\tilde{\mathbf{x}}^d)^\top\succeq S^0_{d|r}$\textbf{, so that} $\|\cdot\|_{S_{d|r}}\leq\|\cdot\|_{S^0_{d|r}}$\textbf{. Applying the triangular inequality to the norm} $\|\cdot\|_{S_{d|r}}$ \textbf{in \Cref{th:errors_euclidean} thus gives:}
+\begin{equation*}
+    e_r(x)\leq\|k^0_{d|r}(x)\|_{S^0_{d|r}}+\left\|U(\tilde{\mathbf{x}}^d)M(\tilde{\mathbf{x}}^r)U(x)^\top\right\|_{S_{d|r}}
+\end{equation*}
+\textbf{with equality when} $k^0_{d|r}(x)=0$\textbf{. Writing} $U_d\triangleq U(\tilde{\mathbf{x}}^d)$ \textbf{and} $M_r\triangleq M(\tilde{\mathbf{x}}^r)$ \textbf{for brevity, the Woodbury formula \cite{bib:matrix-cookbook} applied to} $S_{d|r}=S^0_{d|r}+U_dM_rU_d^\top$ \textbf{yields} $U_d^\top S_{d|r}^{-1}U_d=P-P(M_r^{-1}+P)^{-1}P=P(M_r^{-1}+P)^{-1}M_r^{-1}$\textbf{, hence:}
+\begin{equation*}
+	\begin{aligned}
+    \left\|U_dM_rU(x)^\top\right\|_{S_{d|r}}^2&=\left\|U(x)M_rP(M_r^{-1}+P)^{-1}U(x)^\top\right\|_{\mathrm{op}}\\
+	&=\left\|U(x)\left(M_r-(M_r^{-1}+P)^{-1}\right)U(x)^\top\right\|_{\mathrm{op}}
+	\end{aligned}
+\end{equation*}
+\textbf{which proves \Cref{th:split_bound}.}
+
+\textbf{For \Cref{th:computable_bound}, note that} $S^0_{d|r}-I_{\tilde{N}^d}\otimes\tilde{R}$ \textbf{is the Schur complement of} $k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\begin{bmatrix}I_{\tilde{N}^r}&0\\0&0\end{bmatrix}\otimes\tilde{R}$ \textbf{with respect to} $G(\tilde{\mathbf{x}}^r)$\textbf{. This matrix being SPSD, so is its Schur complement \cite{bib:matrix-analysis}, and} $S^0_{d|r}\succeq I_{\tilde{N}^d}\otimes\tilde{R}\succeq\tilde{\lambda}I_{\tilde{N}^dd_z}$\textbf{. Consequently,} $\|k^0_{d|r}(x)\|_{S^0_{d|r}}\leq\|k^0_{d|r}(x)\|_{\mathrm{op}}/\sqrt{\tilde{\lambda}}$ \textbf{and} $P\preceq U_d^\top U_d/\tilde{\lambda}$\textbf{. Since} $P\mapsto M_r-(M_r^{-1}+P)^{-1}$ \textbf{is non-decreasing for the Loewner order, applying these inequalities to \Cref{th:split_bound} concludes the proof.}
+
+\section[Proof of Lemma 4.3]{Proof of \Cref{th:entrywise_residual}}\label{sec:entrywise_proof}
+
+\textbf{Let} $N(K)$ \textbf{gather the operator norms of the} $d_z\times d_z$ \textbf{blocks of a matrix} $K$\textbf{. Since} $\|Kv\|_2\leq\|N(K)u\|_2$\textbf{, where} $u$ \textbf{gathers the euclidean norms of the blocks of} $v$\textbf{, it comes that:}
+\begin{equation*}
+    \|K\|_{\mathrm{op}}\leq\|N(K)\|_{\mathrm{op}}\leq\sqrt{\|N(K)\|_1\:\|N(K)\|_\infty}
+\end{equation*}
+\textbf{the last two norms being the largest column and row sums of} $N(K)$ \textbf{\cite{bib:matrix-analysis}. Applied to the symmetric} $G(\tilde{\mathbf{x}}^j)$\textbf{, this gives the blockwise Gershgorin bound} $\lambda_{\max}(G(\tilde{\mathbf{x}}^j))\leq\lambda_j^+$\textbf{, and applied to \eqref{eq:entrywise_assumptions}, it gives} $\|k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\|_{\mathrm{op}}\leq\sqrt{\tilde{N}^r\tilde{N}^d}\alpha$, $\|k(\tilde{\mathbf{x}}^r,x)\|_{\mathrm{op}}\leq\sqrt{\tilde{N}^r}\kappa$, $\|k(\tilde{\mathbf{x}}^d,x)\|_{\mathrm{op}}\leq\sqrt{\tilde{N}^d}\eta$, $\|g(\tilde{\mathbf{x}}^j)\|_{\mathrm{op}}\leq\sqrt{\tilde{N}^j}g_{\max}$ \textbf{and} $\|\tilde{\mathbf{z}}^j-g(\tilde{\mathbf{x}}^j)\beta_0\|_2\leq\sqrt{\tilde{N}^j}\tilde{z}_{\max}$\textbf{. Since} $G(\tilde{\mathbf{x}}^r)$ \textbf{is SPD, it follows that:}
+\begin{equation*}
+    \begin{aligned}
+    \|k^0_{d|r}(x)\|_{\mathrm{op}}\leq&\|k(\tilde{\mathbf{x}}^d,x)\|_{\mathrm{op}}+\frac{\|k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\|_{\mathrm{op}}\:\|k(\tilde{\mathbf{x}}^r,x)\|_{\mathrm{op}}}{\lambda_r^-}\\
+    \leq&\sqrt{\tilde{N}^d}\eta+\frac{\sqrt{\tilde{N}^r\tilde{N}^d}\alpha\cdot\sqrt{\tilde{N}^r}\kappa}{\lambda_r^-}=\sqrt{\tilde{N}^d}\frac{\lambda_r^-\eta+\alpha\tilde{N}^r\kappa}{\lambda_r^-}
+    \end{aligned}
+\end{equation*}
+
+\textbf{The same steps, applied to} $U(\tilde{\mathbf{x}}^d)$ \textbf{and} $U(x)$\textbf{, give:}
+\begin{equation*}
+    \|U(\tilde{\mathbf{x}}^d)\|_{\mathrm{op}}\leq\sqrt{\tilde{N}^d}g_{\max}\rho_r,\qquad\|U(x)\|_{\mathrm{op}}\leq g_{\max}\frac{\lambda_r^-+\tilde{N}^r\kappa}{\lambda_r^-}
+\end{equation*}
+
+\textbf{Besides, for every unit vector} $v\in\mathbb{R}^{r_{\mathrm{UK}}d_z}$\textbf{, the Rayleigh quotient \cite{bib:matrix-analysis} and the definitions of} $\lambda_r^+$ \textbf{and} $\tau_r$ \textbf{give:}
+\begin{equation*}
+    v^\top M(\tilde{\mathbf{x}}^r)^{-1}v=\left(g(\tilde{\mathbf{x}}^r)v\right)^\top G(\tilde{\mathbf{x}}^r)^{-1}\left(g(\tilde{\mathbf{x}}^r)v\right)\geq\frac{\|g(\tilde{\mathbf{x}}^r)v\|_2^2}{\lambda_r^+}\geq\frac{\tilde{N}^rg_{\max}^2}{\tau_r\lambda_r^+}
+\end{equation*}
+\textbf{hence} $\|M(\tilde{\mathbf{x}}^r)\|_{\mathrm{op}}\leq\tau_r\lambda_r^+/(\tilde{N}^rg_{\max}^2)$\textbf{. Combining these inequalities with} $k_{d|r}(x)=k^0_{d|r}(x)+U(\tilde{\mathbf{x}}^d)M(\tilde{\mathbf{x}}^r)U(x)^\top$ \textbf{from \Cref{th:explicit_residuals} through the triangular inequality gives the bound on} $\|k_{d|r}(x)\|_{\mathrm{op}}$.
+
+\textbf{Since} $S_{d|r}-S^0_{d|r}$ \textbf{is SPSD by \Cref{th:explicit_residuals},} $\lambda_{\min}(S_{d|r})\geq\lambda_{\min}(S^0_{d|r})$\textbf{. For every unit vector} $v\in\mathbb{R}^{\tilde{N}^dd_z}$:
+\begin{equation*}
+    \begin{aligned}
+    v^\top S^0_{d|r}v&=v^\top G(\tilde{\mathbf{x}}^d)v-\left(k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)v\right)^\top G(\tilde{\mathbf{x}}^r)^{-1}\left(k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)v\right)\\
+    \geq&\lambda_d^--\frac{\|k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\|_{\mathrm{op}}^2}{\lambda_r^-}\geq\frac{\lambda_r^-\lambda_d^--\alpha^2\tilde{N}^r\tilde{N}^d}{\lambda_r^-}
+    \end{aligned}
+\end{equation*}
+
+\textbf{This lower bound does not depend on} $v$\textbf{, and thus also bounds} $\lambda_{\min}(S^0_{d|r})$\textbf{, the minimum of} $v^\top S^0_{d|r}v$ \textbf{over the unit vectors. It is positive by assumption, so that} $\|S_{d|r}^{-1}\|_{\mathrm{op}}=\lambda_{\min}(S_{d|r})^{-1}\leq s_{\max}$.
+
+\textbf{Finally, since} $\tilde{\mathbf{z}}_{d|r}$ \textbf{is unchanged when a trend is added to the observations, \Cref{th:explicit_residuals} can be applied to the observations} $\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\beta_0$:
+\begin{equation*}
+    \begin{aligned}
+    \tilde{\mathbf{z}}_{d|r}&=\left(\tilde{\mathbf{z}}^d-g(\tilde{\mathbf{x}}^d)\beta_0\right)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)G(\tilde{\mathbf{x}}^r)^{-1}\left(\tilde{\mathbf{z}}^r-g(\tilde{\mathbf{x}}^r)\beta_0\right)\\
+    &-U(\tilde{\mathbf{x}}^d)\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)-\beta_0\right)
+    \end{aligned}
+\end{equation*}
+
+\textbf{The steps used for} $k^0_{d|r}(x)$ \textbf{bound the norm of the first two terms by} $\sqrt{\tilde{N}^d}\rho_r\tilde{z}_{\max}$\textbf{, while:}
+\begin{equation*}
+    \begin{aligned}
+    \left\|\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)-\beta_0\right\|_2&=\left\|M(\tilde{\mathbf{x}}^r)g(\tilde{\mathbf{x}}^r)^\top G(\tilde{\mathbf{x}}^r)^{-1}\left(\tilde{\mathbf{z}}^r-g(\tilde{\mathbf{x}}^r)\beta_0\right)\right\|_2\\
+    \leq&\frac{\tau_r\lambda_r^+}{\tilde{N}^rg_{\max}^2}\cdot\frac{\sqrt{\tilde{N}^r}g_{\max}\cdot\sqrt{\tilde{N}^r}\tilde{z}_{\max}}{\lambda_r^-}=\frac{\tau_r\lambda_r^+}{g_{\max}\lambda_r^-}\tilde{z}_{\max}
+    \end{aligned}
+\end{equation*}
+\textbf{which concludes with the triangular inequality.}

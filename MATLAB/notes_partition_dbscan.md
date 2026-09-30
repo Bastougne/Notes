@@ -125,7 +125,9 @@ Lots : `20260926_183545` (DBSCAN, ICAK et MCAK), `20260912_030842` (mean shift, 
 `20260925_095327` (mean shift, MCAK). Scripts d'analyse dans le scratchpad de la session
 `ede9527c`, fichiers `cmp_partition.m` et `cmp_queue.m`.
 
-**Attention au dépouillement** : `figures_campagnes` retient le lot le plus récent, donc
-`20260926_183545` fournit désormais l'ICAK et le MCAK des figures du chapitre, en version DBSCAN.
-Pour revenir au mean shift, il suffit de sortir ce lot de `resultats/` — les clés absentes sont
-reprises dans les lots antérieurs, sans rien relancer.
+**Attention au dépouillement** : `figures_campagnes` retenait le lot le plus récent, donc
+`20260926_183545` a fourni l'ICAK et le MCAK des figures du chapitre, en version DBSCAN, du
+26 au 29 septembre. La section ayant tranché pour le mean shift, le script écarte désormais
+lui-même tout lot dont `par.krig.partition` n'est pas `'meanshift'`, au vivier des
+comparaisons comme au choix d'un balayage : le lot reste sous `resultats/` pour cette note
+et pour l'annexe, sans entrer dans les figures.

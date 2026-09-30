@@ -623,6 +623,14 @@ for k = ordE(:)'
     p = load(f, 'par');
     if ~isfield(p.par, 'balayage') || ~strcmp(p.par.balayage.champ, 'krig.pas'), continue, end
     if p.par.mc.n_runs ~= par.mc.n_runs || p.par.sigma_0(1) > 10e3, continue, end
+    % LA PARTITION DU MANUSCRIT EST LE MEAN SHIFT (29 septembre). Le lot du 26 septembre a
+    % rejoue le CAK sous dbscan, le temps que la section se decide ; elle a tranche pour le
+    % mean shift, dont la bande borne l'etendue d'un groupe, et les courbes reviennent avec
+    % elle. Un lot anterieur au parametre n'a connu que le mean shift, d'ou le champ absent
+    % qui passe. LE TEST PORTE SUR LE LOT ENTIER et non sur les seules methodes
+    % clusterisees : celui qui est ecarte ne porte qu'elles, et le premier lot retenu fixe
+    % les reglages de reference de toute la serie.
+    if isfield(p.par.krig, 'partition') && ~strcmp(p.par.krig.partition, 'meanshift'), continue, end
     apparies{end + 1} = f;        %#ok<SAGROW>
     parApp{end + 1}   = p.par;    %#ok<SAGROW>
 end
@@ -1280,11 +1288,11 @@ function fig = deal_duo(pas, Y, titres, ylab, logy, etiq, textwidth, fontsize, l
 end
 
 function t = flops_tex(v)
-% Trois chiffres significatifs et le prefixe decimal, colle a la valeur comme le reste du
-% document ecrit ses unites : $200\text{km}$, $10^2\text{nT}^2$.
+% Trois chiffres significatifs et le prefixe decimal, separe de la valeur par une espace
+% ($333$ k, pas $333$k).
     units = {'', 'k', 'M', 'G', 'T', 'P'};
     i     = max(1, min(numel(units), 1 + floor(log10(v) / 3)));
-    t     = sprintf('$%.3g$%s', v / 1000^(i - 1), units{i});
+    t     = sprintf('$%.3g$ %s', v / 1000^(i - 1), units{i});
 end
 
 function exporter(fig, nom, pdf_w, pdf_h, img_dir)
@@ -1386,6 +1394,9 @@ function S = lot_balaye(here, champ, n_runs)
         f = fullfile(here, 'resultats', d(k).name);
         p = load(f, 'par');
         if ~isfield(p.par, 'balayage') || ~strcmp(p.par.balayage.champ, champ), continue, end
+        % MEME REGLE QU'AU VIVIER DES COMPARAISONS : un balayage joue sous dbscan ne
+        % nourrit pas un tableau dont le manuscrit annonce le mean shift.
+        if isfield(p.par.krig, 'partition') && ~strcmp(p.par.krig.partition, 'meanshift'), continue, end
         if p.par.mc.n_runs ~= n_runs
             if isempty(autre)
                 autre = sprintf('%s (%d essais)', d(k).name, p.par.mc.n_runs);
