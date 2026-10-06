@@ -4,18 +4,18 @@ Beyond regression, the covariance kernel also induces a functional Hilbert space
 
 \subsection{Reproducing Property and Definition}
 
-Let $\mathcal{U}$ be an arbitrary set, and let $(\mathcal{H},\langle\cdot|\cdot\rangle_{\mathcal{H}})$ denote a Hilbert space of functions from $\mathcal{U}$ to $\mathbb{R}$. \Cref{th:RKHS,th:reproducing_kernel} describe the conditions for this space to be an RKHS.
+Let $\mathcal{U}$ be an arbitrary set, and let $(\mathcal{H},\langle\cdot\mid\cdot\rangle_{\mathcal{H}})$ denote a Hilbert space of functions from $\mathcal{U}$ to $\mathbb{R}$. \Cref{th:RKHS,th:reproducing_kernel} describe the conditions for this space to be an RKHS.
 
 \begin{definition}[Reproducing kernel Hilbert space]\label{th:RKHS}
-	A Hilbert space $(\mathcal{H},\langle\cdot|\cdot\rangle_{\mathcal{H}})$ of functions from $\mathcal{U}$ to $\mathbb{R}$ is an RKHS if there exists a function $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}$ such that:
+	A Hilbert space $(\mathcal{H},\langle\cdot\mid\cdot\rangle_{\mathcal{H}})$ of functions from $\mathcal{U}$ to $\mathbb{R}$ is an RKHS if there exists a function $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}$ such that:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\forall x\in\mathcal{U},&\:k(x,\cdot)\in\mathcal{H}\\
-		\forall x\in\mathcal{U},&\:\forall f\in\mathcal{H},\:\langle f|k(x,\cdot)\rangle_{\mathcal{H}}=f(x)
+		\forall x\in\mathcal{U},&\:\forall f\in\mathcal{H},\:\langle f\mid k(x,\cdot)\rangle_{\mathcal{H}}=f(x)
 		\end{aligned}\right.
 	\end{equation}
 
-	This second equation is the reproducing property of $\mathcal{H}$.
+	This second equation is called the reproducing property of $\mathcal{H}$.
 \end{definition}
 
 \begin{proposition}[Reproducing kernel]\label{th:reproducing_kernel}
@@ -27,8 +27,8 @@ Let $\mathcal{U}$ be an arbitrary set, and let $(\mathcal{H},\langle\cdot|\cdot\
 	\begin{equation}
 		\begin{aligned}
 		k_1(x,x')&=(k_1(x,\cdot))(x')\\
-		&=\langle k_1(x,\cdot)|k_1(x',\cdot)\rangle_{\mathcal{H}}\\
-		&=\langle k_1(x',\cdot)|k_1(x,\cdot)\rangle_{\mathcal{H}}\\
+		&=\langle k_1(x,\cdot)\mid k_1(x',\cdot)\rangle_{\mathcal{H}}\\
+		&=\langle k_1(x',\cdot)\mid k_1(x,\cdot)\rangle_{\mathcal{H}}\\
 		&=k_1(x',x)
 		\end{aligned}
 	\end{equation}
@@ -38,8 +38,8 @@ Let $\mathcal{U}$ be an arbitrary set, and let $(\mathcal{H},\langle\cdot|\cdot\
 	\begin{equation}
 		\begin{aligned}
 		k_2(x,x')&=(k_2(x,\cdot))(x')\\
-		&=\langle k_2(x,\cdot)|k_1(x',\cdot)\rangle_{\mathcal{H}}\\
-		&=\langle k_1(x',\cdot)|k_2(x,\cdot)\rangle_{\mathcal{H}}\\
+		&=\langle k_2(x,\cdot)\mid k_1(x',\cdot)\rangle_{\mathcal{H}}\\
+		&=\langle k_1(x',\cdot)\mid k_2(x,\cdot)\rangle_{\mathcal{H}}\\
 		&=k_1(x',x)\\
 		&=k_1(x,x')
 		\end{aligned}
@@ -54,22 +54,22 @@ It can be shown \cite{bib:RKHS-twelve-pages} that $\mathcal{H}$ is an RKHS if, a
 is continuous on $\mathcal{H}$ for every $x\in\mathcal{U}$. Its reproducing kernel is necessarily SPSD. Conversely, every SPSD kernel $k$ admits a unique RKHS $\mathcal{H}_k$ for which $k$ is the reproducing kernel. Such an RKHS admits an explicit construction, as detailed in \Cref{th:native_RKHS}.
 
 \begin{proposition}[Native RKHS]\label{th:native_RKHS}
-	Let $k$ be an SPSD kernel, let $\mathcal{H}_k$ be the completion of the set spanned by $\{k(x,\cdot),\:x\in\mathcal{U}\}$, and let $\langle\cdot|\cdot\rangle_{\mathcal{H}_k}$ be defined on the generators by:
+	Let $k$ be an SPSD kernel, let $\mathcal{H}_k$ be the completion of the set spanned by $\{k(x,\cdot),\:x\in\mathcal{U}\}$, and let $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$ be defined on the generators by:
 	\begin{equation}
-		\forall x,x'\in\mathcal{U},\:\langle k(x,\cdot)|k(x',\cdot)\rangle_{\mathcal{H}_k}\triangleq k(x,x')
+		\forall x,x'\in\mathcal{U},\:\langle k(x,\cdot)\mid k(x',\cdot)\rangle_{\mathcal{H}_k}\triangleq k(x,x')
 	\end{equation}
 
-	Then $(\mathcal{H}_k,\langle\cdot|\cdot\rangle_{\mathcal{H}_k})$ is a Hilbert space and an RKHS. Its reproducing kernel is $k$, and it is the only RKHS for which $k$ is the reproducing kernel. It is called the native RKHS of $k$.
+	Then $(\mathcal{H}_k,\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k})$ is a Hilbert space and an RKHS. Its reproducing kernel is $k$, and it is the only RKHS for which $k$ is the reproducing kernel. It is called the native RKHS of $k$.
 \end{proposition}
 
 \begin{proof}
 	See \cref{sec:proof_native_RKHS}.
 \end{proof}
 
-The native RKHS is spanned by the functions $k(x,\cdot)$, so every $x\in\mathcal{U}$ is naturally represented in $\mathcal{H}_k$ by the function $k(x,\cdot)$ it generates. This correspondence defines the feature map, introduced by \Cref{th:feature_map}, and provides the representation on which the kernel methods of the following sections operate.
+The native RKHS is spanned by the functions $k(x,\cdot)$, so every $x\in\mathcal{U}$ is naturally represented in $\mathcal{H}_k$ by the $k(x,\cdot)$ it generates. This correspondence defines the feature map, introduced by \Cref{th:feature_map}, and provides the representation on which the kernel methods of the following sections operate.
 
 \begin{definition}[Feature map]\label{th:feature_map}
-	Let $k$ be an SPSD kernel on $\mathcal{U}$, and $\mathcal{H}_k$ be its native RKHS. The feature map of $\mathcal{H}_k$ is:
+	Let $k$ be an SPSD kernel on $\mathcal{U}$, and $(\mathcal{H}_k,\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k})$ be its native RKHS. The feature map of $\mathcal{H}_k$ is:
 	\begin{equation}
 		\Phi:\left\{\begin{aligned}
 		\mathcal{U}&\to\mathcal{H}_k\\
@@ -79,94 +79,352 @@ The native RKHS is spanned by the functions $k(x,\cdot)$, so every $x\in\mathcal
 
 	The reproducing property can thus be rewritten as:
 	\begin{equation}
-		\forall x\in\mathcal{U},\:\forall f\in\mathcal{H}_k,\:f(x)=\langle f|\Phi(x)\rangle_{\mathcal{H}_k}
+		\forall x\in\mathcal{U},\:\forall f\in\mathcal{H}_k,\:f(x)=\langle f\mid\Phi(x)\rangle_{\mathcal{H}_k}
 	\end{equation}
 
 	In particular, the kernel trick:
 	\begin{equation}
-		\forall x,x'\in\mathcal{U},\:\langle\Phi(x)|\Phi(x')\rangle_{\mathcal{H}_k}=k(x,x')
+		\forall x,x'\in\mathcal{U},\:\langle\Phi(x)\mid\Phi(x')\rangle_{\mathcal{H}_k}=k(x,x')
 	\end{equation}
-	can be used to compute inner products in $\mathcal{H}_k$ without explicitly constructing the feature map $\Phi$ or evaluating $\langle\cdot|\cdot\rangle_{\mathcal{H}_k}$.
+	can be used to compute inner products in $\mathcal{H}_k$ without explicitly constructing the feature map $\Phi$ or evaluating $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$.
 \end{definition}
 
 \subsection{Link with Gaussian Processes}
 
-In this section, we show that the GP viewpoint of kriging is equivalent to a variational reading in the native RKHS $\mathcal{H}_k$ of its covariance kernel $k$, as shown by \Cref{th:RKHS_regularisation}. We then characterise the form of an RKHS for which the reproducing kernel admits a Mercer decomposition.
+In this section, we let $k$ be an SPD kernel on $\mathcal{U}$, and $(\mathcal{H}_k,\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k})$ be its native RKHS. \Cref{th:RKHS_regularisation} illustrates the relationship between the GP and RKHS viewpoints by showing that kriging using $k$ is equivalent to solving a variational problem in $\mathcal{H}_k$. It is a particular case of the representer theorem \cite{bib:representer,bib:representer-generalised}, presented by \Cref{th:representer}.
 
-\begin{proposition}[Regularised least-squares in RKHS]\label{th:RKHS_regularisation}
-	Let $(\mathcal{H}_k,\langle\cdot|\cdot\rangle_{\mathcal{H}_k},k)$ be an RKHS. Let $\tilde{N}\in\mathbb{N}^*$, and $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\mathcal{U}^{\tilde{N}}$ pairwise distinct. Finally, let $\tilde{\mathbf{z}}\triangleq(\tilde{z}_1,\dots,\tilde{z}_{\tilde{N}})\in\mathbb{R}^{\tilde{N}}$ and $\lambda\geq0$. The regularised least-squares problem:
+\begin{proposition}[Representer theorem]\label{th:representer}
+	Let $\tilde{N}\in\mathbb{N}^*$, $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\mathcal{U}^{\tilde{N}}$, $E:\mathbb{R}^{\tilde{N}}\to\mathbb{R}$ and $g:\mathbb{R}_+\to\mathbb{R}$ strictly increasing.
+
+	If the minimisation problem:
 	\begin{equation}
-		\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}\left(\frac{1}{\tilde{N}}\sum_{i=1}^{\tilde{N}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\lambda\|\psi\|_{\mathcal{H}_k}^2\right)
+		\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}(E(\psi(\tilde{x}_1),\dots,\psi(\tilde{x}_{\tilde{N}}))+g(\|\psi\|_{\mathcal{H}_k}))\label{eq:RKHS_minimisation}
 	\end{equation}
-	admits a unique solution, given by:
+	admits a solution, then it admits a solution in the set spanned by the features of $\tilde{\mathbf{x}}$:
+	\begin{equation}
+		\mathcal{V}_{\tilde{\mathbf{x}}}\triangleq\operatorname{span}\{\Phi(\tilde{x}_1),\dots,\Phi(\tilde{x}_{\tilde{N}})\}\subseteq\mathcal{H}_k
+	\end{equation}
+
+	In particular, this minimiser can be written as:
+	\begin{equation}
+		\psi_{\min}=\sum_{i=1}^{\tilde{N}}a_i\:\Phi(\tilde{x}_i)=a^\top\Phi(\tilde{\mathbf{x}})
+	\end{equation}
+	for some $a\triangleq[a_1,\dots,a_{\tilde{N}}]^\top\in\mathbb{R}^{\tilde{N}}$.
+\end{proposition}
+
+\begin{proof}
+	For $\psi\in\mathcal{H}_k$, we decompose it orthogonally as:
+	\begin{equation}
+		\exists\:\psi_{\mathcal{V}}\in\mathcal{V}_{\tilde{\mathbf{x}}},\:\psi_{\perp}\in\mathcal{V}_{\tilde{\mathbf{x}}}^\perp\mid\psi=\psi_{\mathcal{V}}+\psi_{\perp}
+	\end{equation}
+	where $\mathcal{V}_{\tilde{\mathbf{x}}}^\perp$ denotes the subspace of $\mathcal{H}_k$ orthogonal to $\mathcal{V}_{\tilde{\mathbf{x}}}$.
+
+	Let $i\in[\![1,\tilde{N}]\!]$. Since $\Phi(\tilde{x}_i)\in\mathcal{V}_{\tilde{\mathbf{x}}}$, the reproducing property gives
+	\begin{equation}
+		\psi_{\perp}(\tilde{x}_i)=\langle\psi_{\perp}\mid\Phi(\tilde{x}_i)\rangle_{\mathcal{H}_k}=0
+	\end{equation}
+	and thus:
+	\begin{equation}
+		\psi(\tilde{x}_i)=\psi_{\mathcal{V}}(\tilde{x}_i)
+	\end{equation}
+
+	Moreover, by orthogonality:
+	\begin{equation}
+		\|\psi\|_{\mathcal{H}_k}=\sqrt{\|\psi_{\mathcal{V}}\|_{\mathcal{H}_k}^2+\|\psi_{\perp}\|_{\mathcal{H}_k}^2}\geq\|\psi_{\mathcal{V}}\|_{\mathcal{H}_k}
+	\end{equation}
+	with equality if and only if $\psi\in\mathcal{V}_{\tilde{\mathbf{x}}}$.
+
+	Since $E$ depends only on the values of $\psi$ at
+	$\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}}$ and $g$ is strictly increasing, it comes that:
+	\begin{equation}
+		E(\psi(\tilde{x}_1),\dots,\psi(\tilde{x}_{\tilde{N}}))+g(\|\psi\|_{\mathcal{H}_k})\geq E(\psi_{\mathcal{V}}(\tilde{x}_1),\dots,\psi_{\mathcal{V}}(\tilde{x}_{\tilde{N}}))+g(\|\psi_{\mathcal{V}}\|_{\mathcal{H}_k})
+	\end{equation}
+
+	Therefore, any minimiser of \eqref{eq:RKHS_minimisation} must belong to $\mathcal{V}_{\tilde{\mathbf{x}}}$, provided that such a minimiser exists.
+\end{proof}
+
+\begin{proposition}[Regularised least-squares in an RKHS]\label{th:RKHS_regularisation}
+	Let $\tilde{N}\in\mathbb{N}^*$, $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\mathcal{U}^{\tilde{N}}$ pairwise distinct, $\tilde{\mathbf{z}}\triangleq(\tilde{z}_1,\dots,\tilde{z}_{\tilde{N}})\in\mathbb{R}^{\tilde{N}}$ and $\lambda\geq0$. The regularised least-squares problem:
+	\begin{equation}
+		\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}\left(\frac{1}{\tilde{N}}\sum_{i=1}^{\tilde{N}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\lambda\|\psi\|_{\mathcal{H}_k}^2\right)\label{eq:RKHS_LS}
+	\end{equation}
+	admits a solution, unique for $\lambda>0$, and given by:
 	\begin{equation}
 		\psi_{\mathrm{RKHS}}(x)=k(x,\tilde{\mathbf{x}})\left(k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda\tilde{N}I_{\tilde{N}}\right)^{-1}\tilde{\mathbf{z}}
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	By the representer theorem \cite{bib:representer,bib:representer-generalised}, a minimiser lies in the span of $\left\{k(\cdot,\tilde{x}_i)\right\}_{i=1}^{\tilde{N}}$, so $\psi=\sum_{i=1}^{\tilde{N}}\alpha_i\:k(\cdot,\tilde{x}_i)$ for some $\alpha\in\mathbb{R}^{\tilde{N}}$. The reproducing property gives $\psi(\tilde{\mathbf{x}})=k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\alpha$ and $\|\psi\|_{\mathcal{H}_k}^2=\alpha^\top k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\alpha$, so the problem reduces to minimising $\frac{1}{\tilde{N}}\left\|k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\alpha-\tilde{\mathbf{z}}\right\|_2^2+\lambda\:\alpha^\top k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\alpha$ over $\alpha$. Cancelling its gradient and simplifying by the invertible $k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$ gives $\alpha=\left(k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda\tilde{N}I_{\tilde{N}}\right)^{-1}\tilde{\mathbf{z}}$, hence $\psi_{\mathrm{RKHS}}(x)=k(x,\tilde{\mathbf{x}})\:\alpha$.
+	Let $\psi\in\mathcal{H}_k$, and let $\psi_{\mathcal{V}}$ denote its orthogonal projection onto $\mathcal{V}_{\tilde{\mathbf{x}}}$. As established in the proof of \Cref{th:representer}, replacing $\psi$ with $\psi_{\mathcal{V}}$ does not change the values $\psi(\tilde{x}_1),\dots,\psi(\tilde{x}_{\tilde{N}})$, and does not increase the norm. It is thus sufficient to minimise \eqref{eq:RKHS_LS} over $\mathcal{V}_{\tilde{\mathbf{x}}}$.
+
+	Let $a\in\mathbb{R}^{\tilde{N}}$ such that $\psi=a^\top\Phi(\tilde{\mathbf{x}})$. By the reproducing property and the kernel trick, we have:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\psi(\tilde{\mathbf{x}})&=k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a\\
+		\|\psi\|_{\mathcal{H}_k}^2&=a^\top k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a
+		\end{aligned}\right.
+	\end{equation}
+	and the objective function of \eqref{eq:RKHS_LS} becomes:
+	\begin{equation}
+		J:a\in\mathbb{R}^{\tilde{N}}\mapsto\frac{1}{\tilde{N}}\left\|k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a-\tilde{\mathbf{z}}\right\|_2^2+\lambda\:a^\top k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a
+	\end{equation}
+
+	Since $k$ is SPD and the training points are pairwise distinct, $k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\succ0$. The function $J$ is thus strictly convex, and differentiating it with respect to $a$ yields:
+	\begin{equation}
+		\begin{aligned}
+		&\frac{\partial J}{\partial a}=0\\
+		\iff\quad&\frac{2}{\tilde{N}}\:k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\left(\left(k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda\tilde{N}I_{\tilde{N}}\right)a-\tilde{\mathbf{z}}\right)=0\\
+		\iff\quad&a=\left(k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda\tilde{N}I_{\tilde{N}}\right)^{-1}\tilde{\mathbf{z}}
+		\end{aligned}
+	\end{equation}
+	which gives the expression of $\psi_{\mathrm{RKHS}}$.
+
+	Finally, when $\lambda>0$, the norm of $\psi$ is strictly greater than that of $\psi_{\mathcal{V}}$ for every $\psi\notin\mathcal{V}_{\tilde{\mathbf{x}}}$, and so $\psi_{\mathrm{RKHS}}$ is the unique solution of \eqref{eq:RKHS_LS}. When $\lambda=0$, however, adding any element of $\mathcal{V}_{\tilde{\mathbf{x}}}^\perp$ to $\psi_{\mathrm{RKHS}}$ leaves the objective function unchanged, and the solution is not unique in general.
 \end{proof}
 
 \begin{remark}[Simple kriging in the RKHS]
-	Choosing $\lambda=\tilde{R}/\tilde{N}$ turns $\psi_{\mathrm{RKHS}}$ into the centred SK estimator of \Cref{th:simple_kriging}, so simple kriging is the regularised least-squares reconstruction of the field in $\mathcal{H}_k$ \cite{bib:GP-kernel-methods}. In the noise-free limit $\tilde{R}\to0$, it becomes the minimum-norm interpolant:
+	For:
+	\begin{equation}
+		\lambda=\frac{1}{\tilde{N}}\:\tilde{R}
+	\end{equation}
+	the least-squares estimator $\psi_{\mathrm{RKHS}}$ coincides with the centred SK estimator of \Cref{th:simple_kriging}. Simple kriging can therefore be interpreted as a regularised least-squares regression in $\mathcal{H}_k$ \cite{bib:GP-kernel-methods}. In the noiseless case $\tilde{R}=0$, the SK estimator is also the solution of the minimum-norm interpolation problem:
 	\begin{equation}
 		\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}\left\{\|\psi\|_{\mathcal{H}_k}\:\middle|\:\forall i\in[\![1,\tilde{N}]\!],\:\psi(\tilde{x}_i)=\tilde{z}_i\right\}
 	\end{equation}
-	a deterministic reading of kriging complementary to the probabilistic one of the GP.
 \end{remark}
 
 \begin{remark}[GP and RKHS correspondence]
-	The two viewpoints are complementary \cite{bib:Rasmussen-relationships}. The GP model gives a probabilistic reading of kriging (posterior mean and variance under a Gaussian prior), while the RKHS gives a deterministic one (minimum-norm interpolant in a function space). Writing the Mercer decomposition of the kernel over its eigenpairs $(\lambda_i,\psi_i)_{i=1}^{\infty}$ as $k(x,x')=\sum_{i=1}^{\infty}\lambda_i\:\psi_i(x)\:\psi_i(x')$, a function $\psi=\sum_{i=1}^{\infty}c_i\:\psi_i$ belongs to $\mathcal{H}_k$ with squared norm $\|\psi\|_{\mathcal{H}_k}^2=\sum_{i=1}^{\infty}c_i^2/\lambda_i$; the norm thus penalises most the components carried by low-eigenvalue, rapidly oscillating eigenfunctions, so the decay of the eigenvalues $\lambda_i$ sets the smoothness enforced by $k$. Choosing a kernel therefore amounts to choosing a regularity class for the unknown field. A smooth kernel such as the SE kernel yields infinitely differentiable interpolants, whereas a rougher Matérn kernel admits functions of limited smoothness.
+	The GP and RKHS viewpoints thus give two interpretations of the same estimator. The first one is probabilistic, as the mean of the conditional distribution of \Cref{th:simple_kriging_conditional}, while the second one is deterministic, as the solution of the variational problem \eqref{eq:RKHS_LS}. Moreover, under the assumptions of \Cref{th:Mercer}, it can be shown \cite{bib:Rasmussen-relationships} that $\mathcal{H}_k$ is the set of the functions:
+	\begin{equation}
+		\varphi=\sum_{i=1}^{+\infty}a_i\:\psi_i
+	\end{equation}
+	such that:
+	\begin{equation}
+		\|\varphi\|_{\mathcal{H}_k}^2=\sum_{i=1}^{+\infty}\frac{a_i^2}{\lambda_i}<+\infty
+	\end{equation}
+	where $(\lambda_i,\psi_i)_{i\in\mathbb{N}^*}$ are the Mercer eigenpairs of $k$. Since the eigenvalues converge to $0$, the coefficients $a_i$ must decay fast enough for this norm to be finite, which imposes a regularity condition on the elements of $\mathcal{H}_k$.
+
+	Choosing a kernel thus amounts to choosing a regularity class for the unknown field. In particular, for $\mathcal{U}=\mathbb{R}^{d_x}$, the native RKHS of a Matérn kernel of smoothness $\nu$ is the Sobolev space of order $\nu+d_x/2$, up to an equivalent norm \cite{bib:Wendland}, whereas that of the SE kernel only contains infinitely differentiable functions.
 \end{remark}
+
+\Cref{th:power_function} extends this correspondence to the estimation error, by showing that the error committed on a function of unit norm of $\mathcal{H}_k$ is at most the standard deviation of the same error for a GP of covariance kernel $k$.
+
+\begin{proposition}[Worst-case error interpretation]\label{th:power_function}
+	Let $\tilde{N}\in\mathbb{N}^*$, $\tilde{\mathbf{x}}\in\mathcal{U}^{\tilde{N}}$ pairwise distinct, $x\in\mathcal{U}$ and $W\in\mathbb{R}^{\tilde{N}}$. Let $\psi\in\mathcal{H}_k$ and $f\sim\mathcal{GP}(0,k)$. Then:
+	\begin{equation}
+		\left|W^\top\psi(\tilde{\mathbf{x}})-\psi(x)\right|\leq\|\psi\|_{\mathcal{H}_k}\:\sqrt{\mathbb{V}\left[W^\top f(\tilde{\mathbf{x}})-f(x)\right]}\label{eq:worst_case_error}
+	\end{equation}
+	with equality when:
+	\begin{equation}
+		\psi=W^\top\Phi(\tilde{\mathbf{x}})-\Phi(x)
+	\end{equation}
+
+	Furthermore, the right-hand side of \eqref{eq:worst_case_error} is minimised by the weights of the SK estimator of \Cref{th:simple_kriging} for $R=0$ and $\tilde{R}=0$, which gives:
+	\begin{equation}
+		\left|\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\psi(\tilde{\mathbf{x}}),0)-\psi(x)\right|\leq\|\psi\|_{\mathcal{H}_k}\:\sqrt{R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})}
+	\end{equation}
+	where $\sqrt{R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})}$ is known as the power function \cite{bib:Wendland}.
+\end{proposition}
+
+\begin{proof}
+	Let $w_1,\dots,w_{\tilde{N}}$ denote the components of $W$, and let:
+	\begin{equation}
+		\varphi\triangleq W^\top\Phi(\tilde{\mathbf{x}})-\Phi(x)=\sum_{i=1}^{\tilde{N}}w_i\:\Phi(\tilde{x}_i)-\Phi(x)
+	\end{equation}
+
+	The reproducing property and the Cauchy-Schwarz inequality give:
+	\begin{equation}
+		\begin{aligned}
+		\left|W^\top\psi(\tilde{\mathbf{x}})-\psi(x)\right|&=\left|\sum_{i=1}^{\tilde{N}}w_i\:\langle\psi\mid\Phi(\tilde{x}_i)\rangle_{\mathcal{H}_k}-\langle\psi\mid\Phi(x)\rangle_{\mathcal{H}_k}\right|\\
+		&=\left|\langle\psi\mid\varphi\rangle_{\mathcal{H}_k}\right|\\
+		&\leq\|\psi\|_{\mathcal{H}_k}\:\|\varphi\|_{\mathcal{H}_k}
+		\end{aligned}
+	\end{equation}
+	with equality when $\psi=\varphi$.
+
+	We also have:
+	\begin{equation}
+		\begin{aligned}
+		\|\varphi\|_{\mathcal{H}_k}^2&=\sum_{i=1}^{\tilde{N}}\sum_{j=1}^{\tilde{N}}w_i\:w_j\:\langle\Phi(\tilde{x}_i)\mid\Phi(\tilde{x}_j)\rangle_{\mathcal{H}_k}-2\sum_{i=1}^{\tilde{N}}w_i\:\langle\Phi(\tilde{x}_i)\mid\Phi(x)\rangle_{\mathcal{H}_k}\\
+		&\qquad+\langle\Phi(x)\mid\Phi(x)\rangle_{\mathcal{H}_k}\\
+		&=\sum_{i=1}^{\tilde{N}}\sum_{j=1}^{\tilde{N}}w_i\:w_j\:k(\tilde{x}_i,\tilde{x}_j)-2\sum_{i=1}^{\tilde{N}}w_i\:k(\tilde{x}_i,x)+k(x,x)\\
+		&=W^\top k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:W-2W^\top k(\tilde{\mathbf{x}},x)+k(x,x)
+		\end{aligned}
+	\end{equation}
+	which is exactly \eqref{eq:generic_kriging_variance} for $R=0$ and $\tilde{R}=0$, and thus the variance of $W^\top f(\tilde{\mathbf{x}})-f(x)$. As established in the proof of \Cref{th:simple_kriging}, this variance is minimised by the SK weights, for which it is equal to $R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})$.
+\end{proof}
+
+It must be noted that this interpretation only holds for noiseless observations of a function of $\mathcal{H}_k$, whose norm is unknown in practice. Furthermore, it can be shown \cite{bib:GP-kernel-methods} that the sample paths of a GP of covariance kernel $k$ almost surely do not belong to $\mathcal{H}_k$ when it is infinite-dimensional.
 
 \subsection{Kernel Mean Embedding}
 
-Just as the feature map represents a function of $\mathcal{H}_k$, it represents a probability distribution through its mean. The kernel mean embedding \cite{bib:kernel-embeddings} of the law of a random variable $X$ on $\mathcal{U}$ is:
+Beyond evaluating functions inside $\mathcal{H}_k$, the feature map can also be used to represent the moments of a probability distribution. \Cref{th:KME} introduces the kernel mean embedding (KME) of a random variable \cite{bib:KME}, while \Cref{th:joint_KME} generalises this concept to two random variables.
+
+\begin{definition}[Kernel mean embedding]\label{th:KME}
+	Let $X$ be a random variable on $\mathcal{U}$ with probability density $p$, and $\varphi\in\mathcal{H}_k$. The KME of $X$ is:
+	\begin{equation}
+		\mu_X\triangleq\mathbb{E}_p\left[\Phi(X)\right]=\int_{\mathcal{U}}{\Phi(x)\:p(x)\:dx}\in\mathcal{H}_k\label{eq:KME}
+	\end{equation}
+
+	By the reproducing property, the expectation of $\varphi(X)$ can then be expressed as an inner product in $\mathcal{H}_k$:
+	\begin{equation}
+		\begin{aligned}
+		\mathbb{E}_p\left[\varphi(X)\right]&=\int_{\mathcal{U}}{\varphi(x)\:p(x)\:dx}\\
+		&=\int_{\mathcal{U}}{\langle\varphi\mid\Phi(x)\rangle_{\mathcal{H}_k}\:p(x)\:dx}\\
+		&=\left\langle\varphi\:\middle|\:\int_{\mathcal{U}}{\Phi(x)\:p(x)\:dx}\right\rangle_{\mathcal{H}_k}\\
+		&=\langle\varphi\mid\mu_X\rangle_{\mathcal{H}_k}
+		\end{aligned}\label{eq:KME_expectation}
+	\end{equation}
+\end{definition}
+
+Since \eqref{eq:KME} integrates a function taking its values in $\mathcal{H}_k$, its existence is not granted. \Cref{th:KME_existence} gives a sufficient condition \cite{bib:RKHS-Dumbgen}, which every bounded kernel satisfies.
+
+\begin{proposition}[Existence of the KME]\label{th:KME_existence}
+	If $\mathbb{E}_p\left[\sqrt{k(X,X)}\right]<\infty$, then $\mu_X$ is well defined, as the unique element of $\mathcal{H}_k$ for which \eqref{eq:KME_expectation} holds for all $\varphi\in\mathcal{H}_k$. Moreover:
+	\begin{equation}
+		\forall x\in\mathcal{U},\:\mu_X(x)=\mathbb{E}_p\left[k(X,x)\right]
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	Let $\varphi\in\mathcal{H}_k$. We have:
+	\begin{equation}
+		\begin{aligned}
+		\left|\mathbb{E}_p\left[\varphi(X)\right]\right|&\leq\mathbb{E}_p\left[\left|\varphi(X)\right|\right]\\
+		&=\mathbb{E}_p\left[\left|\langle\varphi\mid\Phi(X)\rangle_{\mathcal{H}_k}\right|\right]\\
+		&\leq\|\varphi\|_{\mathcal{H}_k}\:\mathbb{E}_p\left[\|\Phi(X)\|_{\mathcal{H}_k}\right]\\
+		&=\|\varphi\|_{\mathcal{H}_k}\:\mathbb{E}_p\left[\sqrt{k(X,X)}\right]
+		\end{aligned}
+	\end{equation}
+
+	By linearity of the expectation, $\varphi\mapsto\mathbb{E}_p\left[\varphi(X)\right]$ is thus a continuous linear form on $\mathcal{H}_k$. By the Riesz representation theorem \cite{bib:Riesz}, it is the inner product with a unique element of $\mathcal{H}_k$. This element is the meaning given to the integral of \eqref{eq:KME}, and it satisfies \eqref{eq:KME_expectation} by construction.
+
+	Finally, let $x\in\mathcal{U}$. The reproducing property and \eqref{eq:KME_expectation} applied to $\varphi=\Phi(x)$ give:
+	\begin{equation}
+		\mu_X(x)=\langle\mu_X\mid\Phi(x)\rangle_{\mathcal{H}_k}=\mathbb{E}_p\left[(\Phi(x))(X)\right]=\mathbb{E}_p\left[k(X,x)\right]
+	\end{equation}
+\end{proof}
+
+It must be noted that two different probability densities may have the same KME. A kernel for which the map $p\mapsto\mu_X$ is injective is called a characteristic kernel \cite{bib:characteristic-kernels}. In this case, $\mu_X$ uniquely determines $p$. In particular, the SE and Matérn kernels of \cref{sec:covariance_kernels} are characteristic.
+
+\begin{definition}[Joint KME]\label{th:joint_KME}
+	Let $X$ and $Z$ be random variables on two sets $\mathcal{U}_X$ and $\mathcal{U}_Z$, with joint probability density $p_{XZ}$. Let $k_X$ and $k_Z$ be SPD kernels on $\mathcal{U}_X$ and $\mathcal{U}_Z$, with respective native RKHSs $(\mathcal{H}_{k_X},\langle\cdot\mid\cdot\rangle_{\mathcal{H}_{k_X}})$ and $(\mathcal{H}_{k_Z},\langle\cdot\mid\cdot\rangle_{\mathcal{H}_{k_Z}})$, and feature maps $\Phi_X$ and $\Phi_Z$. The joint KME of $(X,Z)$ is defined as:
+	\begin{equation}
+		\begin{aligned}
+		\mu_{XZ}&\triangleq\mathbb{E}_{p_{XZ}}\left[\Phi_X(X)\otimes\Phi_Z(Z)\right]\\
+		&=\iint_{\mathcal{U}_X\times\mathcal{U}_Z}{\Phi_X(x)\otimes\Phi_Z(z)\:p_{XZ}(x,z)\:dx\:dz}\\
+		&\in\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}
+		\end{aligned}
+	\end{equation}
+	where $\otimes$ denotes the tensor product in the product space.
+\end{definition}
+
+The space $\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}$ is the completion of the set spanned by the tensors $\varphi\otimes\psi$, for $\varphi\in\mathcal{H}_{k_X}$ and $\psi\in\mathcal{H}_{k_Z}$, under the inner product defined on these generators by:
 \begin{equation}
-	\mu_X\triangleq\mathbb{E}\left[\Phi(X)\right]\in\mathcal{H}_k\label{eq:KME}
+	\langle\varphi\otimes\psi\mid\varphi'\otimes\psi'\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}\triangleq\langle\varphi\mid\varphi'\rangle_{\mathcal{H}_{k_X}}\langle\psi\mid\psi'\rangle_{\mathcal{H}_{k_Z}}
 \end{equation}
-and the reproducing property turns every expectation of an RKHS function into an inner product against it:
+
+Each of its elements $T$ also acts as a continuous linear operator from $\mathcal{H}_{k_Z}$ to $\mathcal{H}_{k_X}$, the tensor $\varphi'\otimes\psi'$ mapping $\psi$ to $\langle\psi'\mid\psi\rangle_{\mathcal{H}_{k_Z}}\:\varphi'$, so that:
 \begin{equation}
-	\forall f\in\mathcal{H}_k,\:\mathbb{E}\left[f(X)\right]=\langle f|\mu_X\rangle_{\mathcal{H}_k}
+	\forall\varphi\in\mathcal{H}_{k_X},\:\forall\psi\in\mathcal{H}_{k_Z},\:\langle\varphi\mid T\psi\rangle_{\mathcal{H}_{k_X}}=\langle\varphi\otimes\psi\mid T\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}
 \end{equation}
 
-When $k$ is characteristic, this embedding is injective, so $\mu_X$ retains the whole law of $X$, and conditioning becomes a linear operation on it. As \eqref{eq:KME} is no more computable than the integrals of \cref{sec:Bayesian_estimation}, it is approximated in the Monte Carlo sense of \cref{sec:Monte_Carlo} by a weighted particle set:
-\begin{equation}
-	\hat{\mu}_X=\sum_{i=1}^Nw^{(i)}\:\Phi\left(x^{(i)}\right)
-\end{equation}
+Similarly to \Cref{th:KME_existence}, \Cref{th:cross_covariance} gives a sufficient condition for the existence of $\mu_{XZ}$. It also generalises \eqref{eq:KME_expectation} to expectations involving both $X$ and $Z$ \cite{bib:kernel-embeddings}.
 
-\subsection{Kernel Kalman Filter}\label{sec:KKF}
+\begin{proposition}[Existence of the joint KME]\label{th:cross_covariance}
+	With the notations of \Cref{th:joint_KME}, if $\mathbb{E}_{p_{XZ}}\left[\sqrt{k_X(X,X)\:k_Z(Z,Z)}\right]<\infty$, then $\mu_{XZ}$ is well defined and:
+	\begin{equation}
+		\forall\varphi\in\mathcal{H}_{k_X},\:\forall\psi\in\mathcal{H}_{k_Z},\:\langle\varphi\mid\mu_{XZ}\:\psi\rangle_{\mathcal{H}_{k_X}}=\mathbb{E}_{p_{XZ}}\left[\varphi(X)\:\psi(Z)\right]
+	\end{equation}
+\end{proposition}
 
-Since conditioning acts linearly on the embedding, the Bayesian recursion of \cref{sec:Bayesian_estimation} can be run in $\mathcal{H}_k$ as a Kalman filter. This linearity is made concrete by the conditional mean embedding \cite{bib:kernel-embeddings}: from a set of training pairs, one estimates a linear operator that maps the embedding of a conditioning value to the embedding of the corresponding conditional law. Prediction and correction then become linear maps on the embedded state, so that the whole recursion amounts to propagating a finite set of weights together with their covariance.
+\begin{proof}
+	Let $x\in\mathcal{U}_X$ and $z\in\mathcal{U}_Z$. We have:
+	\begin{equation}
+		\|\Phi_X(x)\otimes\Phi_Z(z)\|_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}^2=k_X(x,x)\:k_Z(z,z)
+	\end{equation}
 
-The kernel Kalman filter (KKF) \cite{bib:kernel-Kalman} applies this principle over a dictionary of reference states fixed before the recursion. It embeds the filtering distribution as a weighted combination $\sum_iw_k^{(i)}\:\Phi\left(\tilde{x}_i\right)$ over that dictionary, and attaches to the weights $\mathbf{w}_k$ a covariance $\Sigma_k$. A transition operator and an observation operator, both conditional mean embeddings learnt once from training data, stand for the dynamics and observation models: the prediction step pushes $\mathbf{w}_k$ and $\Sigma_k$ through the transition operator and inflates the covariance, while the correction step applies a kernel Kalman gain built from the observation operator. The dictionary and its Gram matrices are computed once, which ties the filter to a stationary model that the training set must cover.
+	The same arguments presented in the proof of \Cref{th:KME_existence} can be applied in $\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}$ to define $\mu_{XZ}$ as the unique element of this space such that, for all $T\in\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}$:
+	\begin{equation}
+		\langle T\mid\mu_{XZ}\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}=\mathbb{E}_{p_{XZ}}\left[\langle T\mid\Phi_X(X)\otimes\Phi_Z(Z)\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}\right]
+	\end{equation}
 
-Its adaptive variant (AKKF) \cite{bib:AKKF} drops the fixed dictionary. In place of a training set it carries a particle set, regenerated at every step by propagating the particles through the dynamics and observation models, and it recomputes the Gram matrices of the state and observation kernels over that current set. The recursion can then follow a model that is time-varying, and neither Gaussian nor the image of a linear one, at the cost of the two models needed to move and score the particles.
+	Let $\varphi\in\mathcal{H}_{k_X}$ and $\psi\in\mathcal{H}_{k_Z}$. Applying the previous results with $T=\varphi\otimes\psi$ yields:
+	\begin{equation}
+		\begin{aligned}
+		\langle\varphi\mid\mu_{XZ}\:\psi\rangle_{\mathcal{H}_{k_X}}&=\langle\varphi\otimes\psi\mid\mu_{XZ}\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}\\
+		&=\mathbb{E}_{p_{XZ}}\left[\langle\varphi\otimes\psi\mid\Phi_X(X)\otimes\Phi_Z(Z)\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}\right]\\
+		&=\mathbb{E}_{p_{XZ}}\left[\langle\varphi\mid\Phi_X(X)\rangle_{\mathcal{H}_{k_X}}\langle\psi\mid\Phi_Z(Z)\rangle_{\mathcal{H}_{k_Z}}\right]\\
+		&=\mathbb{E}_{p_{XZ}}\left[\varphi(X)\:\psi(Z)\right]
+		\end{aligned}
+	\end{equation}
+\end{proof}
 
-At time step $k$, let $\mathbf{x}_k^+$ denote the resampled particle set, $\mathbf{w}_k^+$ and $\Sigma_{k|k}^+$ its weights and their covariance, and:
-\begin{equation}
-	G_k^x\triangleq k_x\left(\mathbf{x}_k^+,\mathbf{x}_k^+\right),\qquad G_k^z\triangleq k_z\left(\mathbf{z}_k,\mathbf{z}_k\right)
-\end{equation}
-the Gram matrices of the state kernel $k_x$ and the observation kernel $k_z$, regularised by $\lambda_x,\lambda_z\in\mathbb{R}_+^*$, where $\mathbf{z}_k$ gathers the observations $\left(z_k^{(i)}\right)_i$ simulated at the propagated particles through the observation model. \Cref{alg:AKKF} gives the recursion. The state estimate belongs to it rather than to its reading, since it feeds the resampling from which the next particle set is drawn.
+\Cref{th:conditional_KME} introduces the embedding of a conditional law, and \Cref{th:conditional_operator} shows that it depends linearly on the feature of the value taken by the conditioning variable \cite{bib:conditional-embeddings}. In the following, $\mu_{ZX}$ and $\mu_{XX}$ denote the joint KMEs of $(Z,X)$ and of $(X,X)$, the latter being taken under the kernel $k_X$ alone.
 
-\begin{algorithm}[!htb]
-	\begin{algorithmic}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{+(i)}\right)$}\Comment{Particle propagation}
-	\State{$D_k=\left(G_{k-1}^x+\lambda_xI_N\right)^{-1}G_{k-1}^x-I_N$}\Comment{Embedded prediction}
-	\State{$\displaystyle\Sigma_{k|k-1}=\Sigma_{k-1|k-1}^++\frac{1}{N}D_k\:D_k^\top$}
-	\State{$\forall i\in[\![1,N]\!],\:z_k^{(i)}=h_k\left(x_k^{(i)},n_k^{(i)}\right),\:n_k^{(i)}\sim p_k^{(o)}$}\Comment{Simulated observations}
-	\State{$K_k=\Sigma_{k|k-1}\left(G_k^z\:\Sigma_{k|k-1}+\lambda_zI_N\right)^{-1}$}\Comment{Embedded correction}
-	\State{$\mathbf{w}_k=\mathbf{w}_{k-1}^++K_k\left(k_z\left(\mathbf{z}_k,z_k\right)-G_k^z\:\mathbf{w}_{k-1}^+\right)$}
-	\State{$\Sigma_{k|k}=\Sigma_{k|k-1}-K_k\:G_k^z\:\Sigma_{k|k-1}$}
-	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)},\quad\hat{P}_k=\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top$}\Comment{State estimation}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{+(i)}\sim\mathcal{N}\left(\hat{x}_k,\hat{P}_k\right)$}\Comment{Resampling}
-	\State{$T_k=\left(G_k^x+\lambda_xI_N\right)^{-1}k_x\left(\mathbf{x}_k^+,\mathbf{x}_k\right)$}\Comment{Embedded resampling}
-	\State{$\mathbf{w}_k^+=T_k\:\mathbf{w}_k$}
-	\State{$\Sigma_{k|k}^+=T_k\:\Sigma_{k|k}\:T_k^\top$}
-	\end{algorithmic}\caption{Adaptive Kernel Kalman Filter}\label{alg:AKKF}
-\end{algorithm}
+\begin{definition}[Conditional KME]\label{th:conditional_KME}
+	With the notations of \Cref{th:joint_KME}, let $p_{Z|X}$ be the conditional probability density of $Z$ given $X$, and $x\in\mathcal{U}_X$. The conditional KME of $Z$ given $X=x$ is:
+	\begin{equation}
+		\mu_{Z|x}\triangleq\mathbb{E}\left[\Phi_Z(Z)|X=x\right]=\int_{\mathcal{U}_Z}{\Phi_Z(z)\:p_{Z|X}(z|x)\:dz}\in\mathcal{H}_{k_Z}\label{eq:conditional_KME}
+	\end{equation}
 
-\begin{remark}[Weights of either sign]\label{th:AKKF_weights}
-	The embedded correction solves a regularised least-squares problem in $\mathcal{H}_k$, not a Bayesian update of a discrete measure, so its weights are not constrained to be positive and $\hat{\mu}_X$ is not in general the embedding of a probability measure. The estimator $\sum_iw_k^{(i)}\:x_k^{(i)}$ remains well defined, but the effective sample size of \cref{sec:particle_filtering} does not, and neither does the resampling it triggers. The AKKF resamples unconditionally instead, drawing a fresh particle set from the Gaussian carrying the current estimate and its dispersion.
-\end{remark}
+	As in \Cref{th:KME}, it can be used to express conditional expectations in terms of inner products:
+	\begin{equation}
+		\forall\psi\in\mathcal{H}_{k_Z},\:\mathbb{E}[\psi(Z)|X=x]=\langle\psi\mid\mu_{Z|x}\rangle_{\mathcal{H}_{k_Z}}
+	\end{equation}
+\end{definition}
+
+\begin{proposition}[Conditional embedding operator]\label{th:conditional_operator}
+	With the notations of \Cref{th:conditional_KME}, assume that:
+	\begin{equation}
+		\psi\mapsto\mathbb{E}[\psi(Z)|X=\cdot]
+	\end{equation}
+	is a continuous linear operator from $\mathcal{H}_{k_Z}$ to $\mathcal{H}_{k_X}$.
+
+	We also let $\mu_{Z|X}$ be its adjoint, \textit{i.e.} the continuous linear operator from $\mathcal{H}_{k_X}$ to $\mathcal{H}_{k_Z}$ such that:
+	\begin{equation}
+		\forall\varphi\in\mathcal{H}_{k_X},\:\forall\psi\in\mathcal{H}_{k_Z},\:\langle\psi\mid\mu_{Z|X}\:\varphi\rangle_{\mathcal{H}_{k_Z}}=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\varphi\rangle_{\mathcal{H}_{k_X}}
+	\end{equation}
+
+	The conditional KME is then linear in the feature of the conditioning value:
+	\begin{equation}
+		\forall x\in\mathcal{U}_X,\:\mu_{Z|x}=\mu_{Z|X}\Phi_X(x)
+	\end{equation}
+	and $\mu_{Z|X}$ maps the embeddings of $X$ onto those of $(Z,X)$ and $Z$:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\mu_{Z|X}\:\mu_{XX}&=\mu_{ZX}\\
+		\mu_{Z|X}\:\mu_X&=\mu_Z
+		\end{aligned}\right.
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	Let $\varphi\in\mathcal{H}_{k_X}$, $\psi\in\mathcal{H}_{k_Z}$ and $x\in\mathcal{U}_X$. We have:
+	\begin{equation}
+		\begin{aligned}
+		\langle\psi\mid\mu_{Z|x}\rangle_{\mathcal{H}_{k_Z}}&=\mathbb{E}[\psi(Z)|X=x]\\
+		&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\Phi_X(x)\rangle_{\mathcal{H}_{k_X}}\\
+		&=\langle\psi\mid\mu_{Z|X}\Phi_X(x)\rangle_{\mathcal{H}_{k_Z}}
+		\end{aligned}
+	\end{equation}
+
+	Similarly, the tower property of conditional expectation yields:
+	\begin{equation}
+		\begin{aligned}
+		\langle\psi\mid\mu_{Z|X}\:\mu_{XX}\:\varphi\rangle_{\mathcal{H}_{k_Z}}&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\mu_{XX}\:\varphi\rangle_{\mathcal{H}_{k_X}}\\
+		&=\mathbb{E}\left[\mathbb{E}[\psi(Z)|X]\:\varphi(X)\right]\\
+		&=\mathbb{E}_{p_{XZ}}\left[\psi(Z)\:\varphi(X)\right]\\
+		&=\langle\psi\mid\mu_{ZX}\:\varphi\rangle_{\mathcal{H}_{k_Z}}
+		\end{aligned}
+	\end{equation}
+	while the law of total expectation yields:
+	\begin{equation}
+		\begin{aligned}
+		\langle\psi\mid\mu_{Z|X}\:\mu_X\rangle_{\mathcal{H}_{k_Z}}&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\mu_X\rangle_{\mathcal{H}_{k_X}}\\
+		&=\mathbb{E}\left[\mathbb{E}[\psi(Z)|X]\right]\\
+		&=\mathbb{E}\left[\psi(Z)\right]\\
+		&=\langle\psi\mid\mu_Z\rangle_{\mathcal{H}_{k_Z}}
+		\end{aligned}
+	\end{equation}
+\end{proof}

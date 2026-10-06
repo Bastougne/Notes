@@ -8,7 +8,7 @@ Monte Carlo (MC) methods \cite{bib:Metropolis,bib:SOD333-MC} offer an alternativ
 
 Even though MC methods originally stem from the computation of expectations, they approximate the entire distribution \cite{bib:MC-integration}, from which every estimator of \cref{sec:state_estimation} can be derived. Being itself an expectation, the MMSE estimator is simply the most immediate, and is where we begin.
 
-Let $X$ be a random variable taking values in $\mathbb{R}^{d_x}$ with probability density $p$, and let $\varphi\in\mathcal{L}^0(\mathbb{R}^{d_x},\mathbb{R}^{d_{\varphi}})$ such that $\varphi(X)\in\mathcal{L}^1(\mathbb{R}^{d_{\varphi}})$. We wish to compute the expectation of $\varphi(X)$:
+Let $X$ be a random variable taking values in $\mathbb{R}^{d_x}$ with probability density $p$, and let $\varphi\in\mathcal{L}^0(\mathbb{R}^{d_x},\mathbb{R}^{d_{\varphi}})$ such that $\varphi(X)$ is integrable. We wish to compute the expectation of $\varphi(X)$:
 \begin{equation}
 	\mathbb{E}_p[\varphi(X)]=\int{\varphi(x)\:p(x)\:dx}\label{eq:varphi_expectation_p}
 \end{equation}
@@ -39,7 +39,7 @@ Since $\mu$ is a continuous measure, evaluating \eqref{eq:varphi_expectation_mu}
 		\left\langle S^N(\mu),\varphi\right\rangle&\overset{a.s.}{\longrightarrow}\langle\mu,\varphi\rangle
 	\end{align}
 
-	If moreover $\varphi(X)\in\mathcal{L}^2(\mathbb{R}^{d_{\varphi}})$, its mean squared error is:
+	If moreover $\varphi(X)$ is square-integrable, its mean squared error is:
 	\begin{equation}
 		\mathbb{E}_p\left[\left|\left\langle S^N(\mu)-\mu,\varphi\right\rangle\right|^2\right]=\frac{1}{N}\operatorname{tr}\mathbb{V}_\mu[\varphi]
 	\end{equation}
@@ -147,7 +147,7 @@ converges a.s. to $1$, but each finite sample is not necessarily normalised. Fur
 	\begin{equation}
 		\left\langle\tilde{S}^N(\mu,\nu),\varphi\right\rangle=\sum_{i=1}^Nw^{(i)}\:\varphi\left(X^{(i)}\right)=\frac{\displaystyle\left\langle S^N(\tilde{\mu},\tilde{\nu}),\varphi\right\rangle}{\displaystyle\left\langle S^N(\tilde{\mu},\tilde{\nu}),1\right\rangle}
 	\end{equation}
-	is biased at finite $N$, but consistent as soon as $\varphi(X)\in\mathcal{L}^1(\mathbb{R}^{d_{\varphi}})$ and $\operatorname{supp}(\mu)\subseteq\operatorname{supp}(\nu)$:
+	is biased at finite $N$, but consistent as soon as $\varphi(X)$ is integrable and $\operatorname{supp}(\mu)\subseteq\operatorname{supp}(\nu)$:
 	\begin{equation}
 		\left\langle\tilde{S}^N(\mu,\nu),\varphi\right\rangle\overset{a.s.}{\longrightarrow}\langle\mu,\varphi\rangle
 	\end{equation}
@@ -267,7 +267,7 @@ As for the optimal and Kalman filters, the SIS algorithm follows the prediction/
 	to show that the PDF is a Feynman-Kac distribution \cite{bib:Feynman-Kac,bib:SOD333-FK}, with the transitions $p(x_j|x_{j-1})$ acting as the mutation and the likelihoods $p(z_j|x_j)$ as the selection function. Rather than being an artifice used to cancel the unknown constants, the self-normalisation introduced in \Cref{th:self_normalised_measure} is thus, more fundamentally, the normalisation of this distribution.
 \end{remark}
 
-\subsubsection{Numerical correction of the covariance matrix}
+\subsubsection{Numerical correction of the covariance matrix}\label{sec:covariance_correction}
 
 For numerical reasons, the estimated covariance matrix $\hat{P}_k$ may not satisfy SPD properties in practice. While an analytic reformulation existed for the Kalman filter, the numerical nature of MC methods prevents a similar solution. Formally, we want to find the closest matrix $M_+^*\succ0$ to $\hat{P}_k$ in the sense of the Frobenius norm:
 \begin{equation}
@@ -380,7 +380,7 @@ However, because the particles are propagated without regard to $z_k$, their inc
 
 Weight degeneracy is intrinsic to SIS and worsens with time unless the proposal distribution is chosen extremely close to the optimal proposal density. The sampling importance resampling (SIR) filter \cite{bib:SIR}, also known as the bootstrap filter \cite{bib:bootstrap-filter}, mitigates this by introducing a resampling step after each weight update. Resampling replaces the weighted particle set $\left\{x_k^{(i)},w_k^{(i)}\right\}_{i=1}^N$ by an unweighted set $\left\{{x_k^*}^{(j)},1/N\right\}_{j=1}^N$ drawn according to a chosen resampling algorithm:
 \begin{equation}
-	\left\{{x^*_k}^{(j)}\right\}_{j=1}^N=\operatorname{Resampling}\left(\left\{x_k^{(i)},w_k^{(i)}\right\}_{i=1}^N\right)\label{eq:resampling}
+	\left\{{x^*_k}^{(j)},1/N\right\}_{j=1}^N=\operatorname{Resampling}\left(\left\{x_k^{(i)},w_k^{(i)}\right\}_{i=1}^N\right)\label{eq:resampling}
 \end{equation}
 
 It also uses the transition density as proposal \eqref{eq:prior_proposal}, which further reduces \eqref{eq:weight_update_prior} to:

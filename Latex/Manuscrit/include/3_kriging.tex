@@ -188,7 +188,7 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 
 This result is a special case of the more general result established in \Cref{th:MMSE_estimator}. Since the unbiased hypothesis of the BLUE is automatically verified by the SK estimator, the minimisation criterion \eqref{eq:error_covariance} amounts to finding the MMSE estimator of $z$ given $\tilde{\mathbf{z}}$, which is always the conditional expectation.
 
-\begin{remark}[Simultaneous estimation]
+\begin{remark}[Simultaneous estimation]\label{th:simultaneous_estimation}
 	The simultaneous estimation of $f$ at several query points $\mathbf{x}=(x_1,\dots,x_n)\in\mathcal{U}^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. In particular, the $\mathcal{O}\left(\tilde{N}^3\right)$ cost of inverting $G(\tilde{\mathbf{x}})$ can be shared across the $n$ estimations whether they are performed successively or simultaneously.
 
 	However, computing only the $n$ diagonal blocks of $R_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}})$ costs $\mathcal{O}(\tilde{N}^3+n\tilde{N}^2)$, whereas forming the full matrix before discarding its off-diagonal blocks costs $\mathcal{O}(\tilde{N}^3+n\tilde{N}^2+n^2\tilde{N})$ due to the extra off-diagonal matrix products. The off-diagonal blocks describe the correlation between the estimation errors made at distinct query points, and should only be computed when that correlation is needed.
@@ -245,7 +245,7 @@ The OK weights thus minimise \eqref{eq:error_covariance} under the constraint \e
 		R_{\mathrm{OK}}(x,\tilde{\mathbf{x}})&=R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})+R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})
 		\end{aligned}\right.
 	\end{equation}
-	where, by abuse of notation, $\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$ denotes either the estimated mean vector or its replication for each the training point $\tilde{\mathbf{x}}$, namely:
+	where, by abuse of notation, $\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$ denotes either the estimated mean vector or its replication for each of the training points $\tilde{\mathbf{x}}$, namely:
 	\begin{equation}
 		\underbrace{\begin{bmatrix}
 		\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\\\vdots\\\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
@@ -336,7 +336,7 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	Universal kriging is particularly relevant when a coarse model of the field is available, such as a polynomial trend \cite{bib:UK-surrogate} or a simplified reference model \cite{bib:KED-geomagnetic}. In the simplest case, setting $r_{\mathrm{UK}}=1$, and choosing $g_1$ as this model amounts to kriging the discrepancy between the field and its approximation. Universal kriging can then be viewed as correcting the approximation, rather than reconstructing the field entirely from the observations.
 \end{remark}
 
-\begin{remark}[Cost of estimating the mean]\label{th:kriging_mean_cost}
+\begin{remark}[Cost of estimating the mean]
 	In addition to the $\mathcal{O}(\tilde{N}^3)$ cost of inverting $G(\tilde{\mathbf{x}})$, and the $\mathcal{O}(\tilde{N}^2)$ required to query the simple kriging model, universal kriging incurs an additional cost to estimate the mean. This can be decomposed into an $\mathcal{O}(r_{\mathrm{UK}}\tilde{N}^2+r_{\mathrm{UK}}^2\tilde{N}+r_{\mathrm{UK}}^3)$ computation of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, and an additional $\mathcal{O}(r_{\mathrm{UK}}\tilde{N}+r_{\mathrm{UK}}^2)$ per query to compute the estimated mean and covariance matrix.
 
 	In particular, when $\tilde{N}\gg r_{\mathrm{UK}}$, universal kriging retains the same dominant complexity as simple kriging.
@@ -347,7 +347,7 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 \begin{proposition}[Conditioning under a vague trend prior]\label{th:kriging_vague_prior}
 	Let $B\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}$, and assume that the UK coefficients follow:
 	\begin{equation}
-		\beta\sim\mathcal{N}(0,B)\label{eq:trend_prior}
+		\beta\sim\mathcal{N}(0,B)
 	\end{equation}
 
 	Then:

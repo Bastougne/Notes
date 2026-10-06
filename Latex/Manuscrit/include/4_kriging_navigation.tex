@@ -48,27 +48,9 @@ Using \cref{th:kriging_navigation_assumptions}, the likelihood can be expressed 
 \end{equation}
 where $\hat{z}_{\mathrm{K}}$ denotes any of the three kriging estimators, $R_{\mathrm{K}}$ is the corresponding covariance matrix, and $m$ and $g$ are optional arguments depending on the chosen kriging method. In particular, $R_{\mathrm{K}}$ already carries the query noise $R_k$, so it must not be added a second time.
 
-\begin{comment}
-\textbf{TODO: à reprendre}
-\begin{remark}[Correlated map error]\label{th:correlated_map_error}
-	The filtering recursion does not call for \eqref{eq:kriged_likelihood}, but for $p(z_k|\mathbf{x}_{0:k},\mathbf{z}_{1:k-1},\tilde{\mathbf{z}})$. Marginalising over the field, then using that the observation noise is white once $h$ is given:
-	\begin{equation}
-		\begin{aligned}
-		p(z_k|\mathbf{x}_{0:k},\mathbf{z}_{1:k-1},\tilde{\mathbf{z}})&=\int{p(z_k|\mathbf{x}_{0:k},\mathbf{z}_{1:k-1},\tilde{\mathbf{z}},h)\:p(h|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1},\tilde{\mathbf{z}})\:dh}\\
-		&=\int{p(z_k|x_k,h)\:p(h|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1},\tilde{\mathbf{z}})\:dh}
-		\end{aligned}
-	\end{equation}
-
-	The first factor is the one \eqref{eq:kriged_likelihood} uses as well. The second is not: $\mathbf{z}_{1:k-1}$ are noisy evaluations of $h$ at known inputs, of the same nature as $\tilde{\mathbf{z}}$, and they update its posterior. Integrating against that posterior is kriging over the augmented training set, in the sense of {th:kriging\_update}:
-	\begin{equation}
-		z_k|\mathbf{x}_{0:k},\mathbf{z}_{1:k-1},\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{K}}\left(x_k,[\tilde{\mathbf{x}},\mathbf{x}_{0:k-1}],[\tilde{\mathbf{z}},\mathbf{z}_{1:k-1}];m,g\right),R_{\mathrm{K}}\left(x_k,[\tilde{\mathbf{x}},\mathbf{x}_{0:k-1}];g\right)\right)
-	\end{equation}
-
-	Using \eqref{eq:kriged_likelihood} therefore freezes the training set at $\tilde{\mathbf{x}}$ instead of appending to it what the mission measures. Both laws coincide at the first time step, and again when the survey determines the field. Appending otherwise requires the states at which the observations were acquired, which are precisely the quantities being estimated.
-
-	The filter then counts as independent evidence two observations that carry almost the same reconstruction error, so its covariance shrinks faster than it should and a reconstruction bias reinforces itself instead of averaging out. The severity of the approximation is measured by $\alpha_{\mathrm{corr}}$, the number of consecutive steps spent within one correlation length of that error, that is, the ratio of this length to the distance $v\:\Delta_t$ covered in one time step. It stays close to $1$ as long as a time step covers more than the spacing of the training data. None of the usual guards is applied here, neither inflating $R_k$, nor discarding observations at the rate at which the field decorrelates, nor modelling the error as a Gauss-Markov process along the trajectory and augmenting the state accordingly \cite{bib:correlated-map-error}.
+\begin{remark}[Correlated map error]
+	\Cref{eq:kriged_likelihood} is the likelihood of a single observation. However, all observations are measurements of the same unknown field, and the estimation errors committed by kriging at two distinct states are thus correlated (see \Cref{th:simultaneous_estimation}). \Cref{th:observation_independence} therefore no longer holds, and using \eqref{eq:kriged_likelihood} at each time step amounts to treating this map error as a white noise. This approximation is accurate when the distance covered during a time step exceeds the correlation length of the map error, and leads to an overconfident filter otherwise. In that case, the map error can be modelled as a Gauss-Markov process along the trajectory, and estimated alongside the state \cite{bib:correlated-map-error}.
 \end{remark}
-\end{comment}
 
 \subsection{Choosing the Kriging Method}\label{sec:kriging_method}
 
@@ -115,7 +97,7 @@ and contains $h(x)$ with probability $\operatorname{erf}(3/\sqrt{2})\approx99.73
 
 While it is the computationally simplest estimator, the SK estimator relies heavily on the prior knowledge of the mean function $m$, and poorly represents the true function in regions with a lower density of training points when that knowledge is wrong. This is particularly apparent in the gap within the training points distribution, and outside the sampled region.
 
-As motivated by \cref{sec:kriging}, ordinary kriging tackles this issue by directly estimating a constant mean function instead of relying on a given prior. Its behaviour is similar to that of the SK estimator with the correct mean function, at the cost of a slightly increased confidence interval. This is due to the additional uncertainty associated with estimating the mean, and is quantified latter in this section.
+As motivated by \cref{sec:kriging}, ordinary kriging tackles this issue by directly estimating a constant mean function instead of relying on a given prior. Its behaviour is similar to that of the SK estimator with the correct mean function, at the cost of a slightly increased confidence interval. This is due to the additional uncertainty associated with estimating the mean, and is quantified later in this section.
 
 For universal kriging, we considered polynomial means of degree $1$ and $5$. The affine basis behaves much like ordinary kriging, which it extends by a single coefficient. The affine UK envelope is barely wider than that of OK near the samples but grows faster outside the interpolation domain.
 
@@ -163,7 +145,7 @@ This table confirms the trend observed in the ARMSE results, as the average conf
 
 Furthermore, it must be noted that both SK confidence intervals are the same, showing that simple kriging is unable to account for an incorrectly specified prior mean. Both present a half-width of $9.05$ in the gap, well inside the sampled range, although their ARMSE differ by a factor of three. This issue is particularly relevant in autonomous navigation scenarios, as a poorly informed SK estimator will be overconfident, resulting in skewed likelihood peaks. This, in turn, may lead to relevant particles being discarded while incorrect ones are retained, and so simple kriging is set aside.
 
-Conversely, the degree $5$ UK estimator fails by trying to fit six trend coefficients to only seven training points. Outside the sampled range, the mean becomes highly uncertain, and accounts for an average of $94.5\%$ of the total covariance. Unlike simple kriging, the UK estimator propagates this uncertainty to its confidence interval, whose half-width reaches $320.03$. From a computational point of view, universal kriging requires $\tilde{N}\geq r_{\mathrm{UK}}$, where we recall that $r_{\mathrm{UK}}\in\mathbb{N}^*$ is the number of trend functionsused for kriging. This causes the matrix $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$ to become ill-conditioned when the training set is too small relative to the number of trend functions.
+Conversely, the degree $5$ UK estimator fails by trying to fit six trend coefficients to only seven training points. Outside the sampled range, the mean becomes highly uncertain, and accounts for an average of $94.5\%$ of the total covariance. Unlike simple kriging, the UK estimator propagates this uncertainty to its confidence interval, whose half-width reaches $320.03$. From a computational point of view, universal kriging requires $\tilde{N}\geq r_{\mathrm{UK}}$, where we recall that $r_{\mathrm{UK}}\in\mathbb{N}^*$ is the number of trend functions used for kriging. This causes the matrix $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$ to become ill-conditioned when the training set is too small relative to the number of trend functions.
 
 Furthermore, every estimator requires the $\mathcal{O}(\tilde{N}^3)$ inversion of $G(\tilde{\mathbf{x}})$ once, after which, solving any related system costs $\mathcal{O}(\tilde{N}^2)$. Simple kriging thus requires an additional $\mathcal{O}(\tilde{N}^2)$ at each query point. Estimating the mean amounts to solving $r_{\mathrm{UK}}d_z$ equations, which costs $\mathcal{O}(r_{\mathrm{UK}}\:\tilde{N}^2)$ once and $\mathcal{O}(r_{\mathrm{UK}}\:\tilde{N})$ per query. The inversion of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})$ does not depend on $\tilde{N}$, and is negligible as soon as $r_{\mathrm{UK}}d_z\ll\tilde{N}$. \Cref{tab:kriging_cost} gives the empirical cost of each estimator in floating-point operations (flop), for $\tilde{N}\in\{7,100,1600\}$.
 
@@ -180,68 +162,117 @@ Ordinary kriging is thus retained for the remainder of this chapter. Estimating 
 
 Recall that \cref{sec:covariance_kernels} considered every kernel subsequently used for kriging to be fully known, with both their form and hyperparameters specified. This assumption is relaxed here by considering only the form to be known, while the hyperparameters $\theta$ must be estimated from the available data.
 
-\begin{comment}
-	\textbf{TODO: à vérifier, sous-section rédigée par Claude + renommer l'algo pour que ça colle avec l'AK-RPF}
-\end{comment}
+Unlike the mean, which is estimated in closed form by ordinary kriging, the hyperparameters do not admit an analytical estimator in general. Indeed, while the mean appears linearly in the kriging equations, $\theta$ only appears through the inverse of the Gram matrix. The standard approach \cite{bib:Rasmussen-hyperparameters} is to select the hyperparameters maximising the likelihood of the training observations, a procedure known as maximum likelihood estimation.
 
-\Cref{sec:Gaussian_processes} derives every result conditionally on the kernel, and \cref{sec:kriging_method} compares different estimators with that kernel held fixed. This assumption is discharged here. A kernel is specified by a vector of hyperparameters $\theta$ whose components are of two kinds. Some describe the class of fields the GP is assumed to belong to, such as a regularity or a set of active input directions, and are posited by the modeller alongside the kernel family itself. The others describe the particular field being surveyed, such as the amplitude of its variations or the distance over which they decorrelate, and are read from the training data of \cref{th:kriging_navigation_assumptions}. Only the latter are estimated below.
-
-No closed form is available for them. The mean enters the kriging equations linearly, which is what lets \cref{th:ordinary_kriging} recover it by a generalised least squares regression, whereas $\theta$ acts through the kernel, hence through the inverse of a matrix it parameterises. Estimating it therefore requires solving an optimisation problem, and the criterion retained is the likelihood the model assigns to the observations already collected, a procedure known as evidence maximisation \cite{bib:Rasmussen-hyperparameters}.
-
-That likelihood is available in closed form. \Cref{th:GP_marginals} gives the joint law of any finite collection of field values, and the training observations are such a collection degraded by an independent Gaussian noise, so they are themselves jointly Gaussian. Writing $G_\theta\triangleq k_\theta(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}$ for the noise-augmented Gram matrix, whose argument is dropped to keep the hyperparameters visible, and $\tilde{\mathbf{r}}\triangleq\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}})$ for the residual to the GP mean, their density reads:
+Formally, let $d_\theta\in\mathbb{N}^*$ be the number of hyperparameters, which are assumed to be strictly positive, and let $k_\theta$ denote the kernel of hyperparameters $\theta\in\left(\mathbb{R}_+^*\right)^{d_\theta}$. The Gram matrix associated with $k_\theta$ is written as:
 \begin{equation}
-	p(\tilde{\mathbf{z}}|\tilde{\mathbf{x}},\theta)=\frac{1}{\sqrt{(2\pi)^{\tilde{N}d_z}\:\det(G_\theta)}}\:\exp\left(-\frac{1}{2}\tilde{\mathbf{r}}^\top G_\theta^{-1}\tilde{\mathbf{r}}\right)\label{eq:marginal_likelihood}
+	G_\theta(\tilde{\mathbf{x}})\triangleq k_\theta(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}
 \end{equation}
 
-\begin{proposition}[Maximum likelihood hyperparameters]
-	A hyperparameter vector $\theta$ maximising \eqref{eq:marginal_likelihood} satisfies, for each component $\theta_i$:
+Since ordinary kriging is retained, the mean of the GP is an unknown constant $m\in\mathbb{R}^{d_z}$, which must be estimated alongside $\theta$. By \Cref{th:GP_marginals}, and since the training noises are Gaussian and independent of the field, the training observations follow:
+\begin{equation}
+	\tilde{\mathbf{z}}\sim\mathcal{N}\left(C\:m,G_\theta(\tilde{\mathbf{x}})\right)
+\end{equation}
+where $C$ is defined by \eqref{eq:C_definition}. Let:
+\begin{equation}
+	\begin{aligned}
+	L(m,\theta)\triangleq&-\frac{1}{2}\left(\tilde{\mathbf{z}}-C\:m\right)^\top G_\theta(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-C\:m\right)\\
+	&-\frac{1}{2}\log\det\left(G_\theta(\tilde{\mathbf{x}})\right)-\frac{\tilde{N}d_z}{2}\log(2\pi)
+	\end{aligned}\label{eq:log_likelihood}
+\end{equation}
+be the corresponding log-likelihood. Since the logarithm is increasing, the maximum likelihood estimators of $m$ and $\theta$ are:
+\begin{equation}
+	\left(\hat{m}_{\mathrm{ML}},\hat{\theta}_{\mathrm{ML}}\right)\triangleq\underset{m\in\mathbb{R}^{d_z},\:\theta\in\left(\mathbb{R}_+^*\right)^{d_\theta}}{\operatorname{argmax}}\left(L(m,\theta)\right)\label{eq:MLE_problem}
+\end{equation}
+
+\Cref{th:MLE} gives the derivatives of $L$, and shows that the mean can be eliminated from \eqref{eq:MLE_problem}.
+
+\begin{proposition}[Maximum likelihood hyperparameters]\label{th:MLE}
+	Let $m\in\mathbb{R}^{d_z}$, $\theta\in\left(\mathbb{R}_+^*\right)^{d_\theta}$ and $a\triangleq G_\theta(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-C\:m\right)$. The derivatives of the log-likelihood are:
 	\begin{equation}
-		\operatorname{tr}\left(\left((G_\theta^{-1}\tilde{\mathbf{r}})\:(G_\theta^{-1}\tilde{\mathbf{r}})^\top-G_\theta^{-1}\right)\:\frac{\partial G_\theta}{\partial\theta_i}\right)=0\label{eq:GP_MLE}
+		\left\{\begin{aligned}
+		\frac{\partial L}{\partial m}(m,\theta)&=C^\top a\\
+		\frac{\partial L}{\partial\theta_i}(m,\theta)&=\frac{1}{2}\operatorname{tr}\left(\left(a\:a^\top-G_\theta(\tilde{\mathbf{x}})^{-1}\right)\frac{\partial G_\theta(\tilde{\mathbf{x}})}{\partial\theta_i}\right),\quad i\in[\![1,d_\theta]\!]
+		\end{aligned}\right.\label{eq:MLE_gradient}
+	\end{equation}
+	where $\theta_i$ denotes the $i$-th component of $\theta$.
+
+	Furthermore, for a fixed $\theta$, the log-likelihood is maximised by the OK mean estimator of \Cref{th:ordinary_kriging}, computed with the kernel $k_\theta$:
+	\begin{equation}
+		\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}};\theta)=\left(C^\top G_\theta(\tilde{\mathbf{x}})^{-1}C\right)^{-1}C^\top G_\theta(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\label{eq:profiled_mean}
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	Maximising \eqref{eq:marginal_likelihood} is equivalent to maximising its logarithm:
+	Writing $G_\theta$ for $G_\theta(\tilde{\mathbf{x}})$, differentiating \eqref{eq:log_likelihood} with respect to $m$ yields:
 	\begin{equation}
-		\ell(\theta)\triangleq\log p(\tilde{\mathbf{z}}|\tilde{\mathbf{x}},\theta)=-\frac{1}{2}\left(\tilde{\mathbf{r}}^\top G_\theta^{-1}\tilde{\mathbf{r}}+\log\det(G_\theta)\right)-\frac{\tilde{N}d_z}{2}\log(2\pi)
+		\frac{\partial L}{\partial m}(m,\theta)=C^\top G_\theta^{-1}\left(\tilde{\mathbf{z}}-C\:m\right)=C^\top a
 	\end{equation}
-	A maximiser cancels every partial derivative. Using the differential of the matrix inverse, $\frac{\partial}{\partial\theta_i}G_\theta^{-1}=-G_\theta^{-1}\frac{\partial G_\theta}{\partial\theta_i}G_\theta^{-1}$, and Jacobi's formula, $\frac{\partial}{\partial\theta_i}\log\det(G_\theta)=\operatorname{tr}\left(G_\theta^{-1}\frac{\partial G_\theta}{\partial\theta_i}\right)$, it comes that:
+
+	Let $i\in[\![1,d_\theta]\!]$. The derivatives of the inverse and of the determinant of a matrix \cite{bib:matrix-cookbook} give:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\frac{\partial G_\theta^{-1}}{\partial\theta_i}&=-G_\theta^{-1}\:\frac{\partial G_\theta}{\partial\theta_i}\:G_\theta^{-1}\\
+		\frac{\partial\log\det(G_\theta)}{\partial\theta_i}&=\operatorname{tr}\left(G_\theta^{-1}\:\frac{\partial G_\theta}{\partial\theta_i}\right)
+		\end{aligned}\right.
+	\end{equation}
+	and thus, by the cyclic property of the trace:
 	\begin{equation}
 		\begin{aligned}
-		\frac{\partial\ell}{\partial\theta_i}=0
-		\iff\quad&\tilde{\mathbf{r}}^\top G_\theta^{-1}\:\frac{\partial G_\theta}{\partial\theta_i}\:G_\theta^{-1}\tilde{\mathbf{r}}-\operatorname{tr}\left(G_\theta^{-1}\:\frac{\partial G_\theta}{\partial\theta_i}\right)=0\\
-		\iff\quad&\operatorname{tr}\left(\left((G_\theta^{-1}\tilde{\mathbf{r}})\:(G_\theta^{-1}\tilde{\mathbf{r}})^\top-G_\theta^{-1}\right)\:\frac{\partial G_\theta}{\partial\theta_i}\right)=0
+		\frac{\partial L}{\partial\theta_i}(m,\theta)&=\frac{1}{2}\:a^\top\frac{\partial G_\theta}{\partial\theta_i}\:a-\frac{1}{2}\operatorname{tr}\left(G_\theta^{-1}\:\frac{\partial G_\theta}{\partial\theta_i}\right)\\
+		&=\frac{1}{2}\operatorname{tr}\left(\left(a\:a^\top-G_\theta^{-1}\right)\frac{\partial G_\theta}{\partial\theta_i}\right)
 		\end{aligned}
 	\end{equation}
-	using the cyclic property of the trace to rewrite the scalar quadratic form\\$\tilde{\mathbf{r}}^\top G_\theta^{-1}\frac{\partial G_\theta}{\partial\theta_i}G_\theta^{-1}\tilde{\mathbf{r}}$ as $\operatorname{tr}\left((G_\theta^{-1}\tilde{\mathbf{r}})\:(G_\theta^{-1}\tilde{\mathbf{r}})^\top\frac{\partial G_\theta}{\partial\theta_i}\right)$, since $G_\theta^{-1}$ is symmetric.
+
+	Finally, since $G_\theta\succ0$ and $C$ has full column rank, the function $L(\cdot,\theta)$ is strictly concave. It is therefore maximised where its derivative vanishes:
+	\begin{equation}
+		\begin{aligned}
+		&\frac{\partial L}{\partial m}(m,\theta)=0\\
+		\iff\quad&C^\top G_\theta^{-1}\tilde{\mathbf{z}}-C^\top G_\theta^{-1}C\:m=0\\
+		\iff\quad&m=\left(C^\top G_\theta^{-1}C\right)^{-1}C^\top G_\theta^{-1}\tilde{\mathbf{z}}
+		\end{aligned}
+	\end{equation}
+	which is exactly \eqref{eq:profiled_mean}.
 \end{proof}
 
-\begin{remark}[Profiled mean]
-	The density \eqref{eq:marginal_likelihood} is written for a known mean, whereas the estimator retained in \cref{sec:kriging_method} estimates it instead. Maximising $\ell$ over a constant mean at fixed $\theta$ cancels $C^\top G_\theta^{-1}\tilde{\mathbf{r}}$, where $C$ is defined as \eqref{eq:C_definition}, and thus returns the very estimate $\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$ of \Cref{th:ordinary_kriging}, evaluated under the current $\theta$. The two estimations nest rather than compete, the residual $\tilde{\mathbf{r}}$ being taken to a mean recomputed in closed form at every evaluation of \eqref{eq:marginal_likelihood}.
-\end{remark}
+According to \Cref{th:MLE}, the maximum likelihood estimator of the mean is the OK mean estimator computed with $\hat{\theta}_{\mathrm{ML}}$:
+\begin{equation}
+	\hat{m}_{\mathrm{ML}}=\hat{m}_{\mathrm{OK}}\left(\tilde{\mathbf{x}},\tilde{\mathbf{z}};\hat{\theta}_{\mathrm{ML}}\right)
+\end{equation}
+and \eqref{eq:MLE_problem} reduces to a maximisation over $\theta$ alone. However, the derivatives of $L$ with respect to the hyperparameters cannot be cancelled analytically in general, and so $\hat{\theta}_{\mathrm{ML}}$ is computed by a gradient ascent.
 
-The two terms of $\ell$ pull in opposite directions, which is what makes its maximum informative rather than degenerate. The quadratic form rewards a covariance ample enough to explain the observed residual, and keeps improving as the field is allowed to vary more freely, while the log-determinant penalises exactly that freedom, measuring the volume of observation space over which the model spreads its mass. Maximising their sum thus retains the least flexible field that remains consistent with the survey.
-
-\begin{remark}[Non-convexity]
-	The log-marginal-likelihood is generally non-concave in $\theta$, so \eqref{eq:GP_MLE} is solved numerically by gradient-based optimisation \cite{bib:evidence}, and may admit several local maxima corresponding to different interpretations of the data, \textit{e.g.} a low-noise rapidly-varying field versus a high-noise slowly-varying one.
-\end{remark}
-
-The hyperparameters are thus obtained by ascending $\ell$ numerically, one step of which is given by \Cref{alg:GP_MLE}. Two implementation choices are worth stating. First, $G_\theta$ is never inverted, its Cholesky factor $L$ such that $G_\theta=LL^\top$ yielding both the quadratic form and the log-determinant. This $\mathcal{O}(\tilde{N}^3)$ factorisation is the one \cref{tab:kriging_cost} already charges to the reconstruction of the field, except that the ascent pays it once per step instead of once per mission, after which each component of the gradient costs $\mathcal{O}(\tilde{N}^2)$. Second, the ascent is carried out on $\eta\triangleq\log\theta$ rather than on $\theta$ itself, which enforces the positivity of the hyperparameters and turns each step into a multiplicative update, matching the scale invariance of quantities carrying a physical unit. The chain rule then gives $\frac{\partial G_\theta}{\partial\eta_i}=\theta_i\:\frac{\partial G_\theta}{\partial\theta_i}$, so that the kernel family enters the ascent through the single quantity $\frac{\partial G_\theta}{\partial\theta_i}$, and nowhere else.
+To ensure that the hyperparameters remain strictly positive, this ascent is performed on their logarithm, with a step size $\tau>0$. Since the derivative of $L$ with respect to $\log\theta_i$ is $\theta_i$ times its derivative with respect to $\theta_i$, each hyperparameter is multiplied by a positive factor at each iteration. One iteration of the resulting algorithm is presented by \Cref{alg:MLE}.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
-	\State{$G_{\theta}=k_{\exp\left(\eta^{(t-1)}\right)}(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}$}\Comment{Noise-augmented Gram matrix}
-	\State{$L\text{ s.t. }G_{\theta}=LL^\top$}\Comment{Cholesky factorisation}
-	\State{$\alpha=L^{-\top}\left(L^{-1}\tilde{\mathbf{r}}\right)$}\Comment{Two triangular solves}
-	\State{$\displaystyle\ell=-\frac{1}{2}\tilde{\mathbf{r}}^\top\alpha-\sum_{j=1}^{\tilde{N}d_z}\log L_{jj}-\frac{\tilde{N}d_z}{2}\log(2\pi)$}\Comment{Log-evidence}
-	\State{$W=\alpha\alpha^\top-L^{-\top}L^{-1}$}
-	\State{$\displaystyle\forall i,\:\nabla_i=\frac{1}{2}\operatorname{tr}\left(W\:\frac{\partial G_{\theta}}{\partial\eta_i}\right)$}\Comment{Gradient of $\ell$}
-	\State{$\Delta\eta=\operatorname{Direction}(\nabla)$}\Comment{Gradient, conjugate gradient or quasi-Newton}
-	\State{$\eta^{(t)}=\eta^{(t-1)}+\rho\:\Delta\eta$}\Comment{Line search on the step length $\rho$}
-	\end{algorithmic}\caption{Hyperparameter estimation by evidence maximisation}\label{alg:GP_MLE}
+	\State{Compute $\hat{m}=\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}};\theta)$ with \eqref{eq:profiled_mean}}\Comment{Mean estimation}
+	\State{$\forall i\in[\![1,d_\theta]\!],\:$compute $\dfrac{\partial L}{\partial\theta_i}\left(\hat{m},\theta\right)$ with \eqref{eq:MLE_gradient}}\Comment{Log-likelihood gradient}
+	\State{$\forall i\in[\![1,d_\theta]\!],\:\theta_i\gets\theta_i\exp\left(\tau\:\theta_i\:\dfrac{\partial L}{\partial\theta_i}\left(\hat{m},\theta\right)\right)$}\Comment{Gradient ascent}
+	\end{algorithmic}\caption{Maximum Likelihood Estimation}\label{alg:MLE}
 \end{algorithm}
 
-The step is iterated from $\eta^{(0)}=\log\theta^{(0)}$ until the gradient falls below a chosen tolerance, the estimate being $\hat{\theta}=\exp\left(\eta^{(t)}\right)$ at the last iterate. Its starting point $\theta^{(0)}$ is a free input, and the non-convexity of $\ell$ makes it a meaningful one, since the ascent only reaches the maximum of the basin it is started in. It is therefore read from the survey rather than fixed arbitrarily, each hyperparameter being initialised by the empirical quantity it describes, an amplitude by the sample variance of $\tilde{\mathbf{z}}$ less the known noise variance, a correlation length by the mean distance between neighbouring training inputs, which is the shortest length the survey can resolve. Should several starting points be drawn around these values, the one reaching the highest $\ell$ is retained.
+This iteration is repeated from an initial value $\theta_{\mathrm{init}}$ until the norm of the gradient falls below a given threshold, or a maximum number of iterations is reached. The resulting estimate is written as:
+\begin{equation}
+	\hat{\theta}=\operatorname{MLE}\left(\tilde{\mathbf{x}},\tilde{\mathbf{z}},\theta_{\mathrm{init}}\right)
+\end{equation}
+
+In practice, the gradient ascent can be replaced with any other gradient-based method, such as a quasi-Newton method, in order to reduce the number of iterations.
+
+\begin{remark}[Initialisation]
+	The log-likelihood is not concave in $\theta$ in general, and may admit several local maxima \cite{bib:evidence}. The estimate returned by \Cref{alg:MLE} therefore depends on $\theta_{\mathrm{init}}$. In the absence of a previous estimate, the initial value can be chosen from the empirical statistics of the training observations, such as their variance.
+\end{remark}
+
+\begin{remark}[Model complexity]
+	The first two terms of \eqref{eq:log_likelihood} have opposite effects. The first one measures the fit to the training observations, and increases as the field is allowed to vary more freely, while the second one decreases. Maximising the log-likelihood therefore retains the least flexible field that remains consistent with the training data.
+\end{remark}
+
+\begin{remark}[Uncertainty of the hyperparameters]
+	The kriging estimators of \cref{sec:kriging} are then computed with $\hat{\theta}$ in place of the true hyperparameters. While the uncertainty associated with the estimation of the mean is captured by $R_{\hat{m}_{\mathrm{OK}}}$ (see \Cref{th:ordinary_simple_kriging_link}), that of the hyperparameters is not included in the OK covariance, which thus tends to underestimate the covariance of the estimation error \cite{bib:kriging-estimated-covariance}. However, this effect decreases as the number of training points increases \cite{bib:Stein-estimated-parameters}, and is therefore mostly noticeable when few training points are available.
+\end{remark}
+
+\begin{remark}[Cost of the hyperparameter estimation]
+	Each iteration of \Cref{alg:MLE} requires the inversion of $G_\theta(\tilde{\mathbf{x}})$, which costs $\mathcal{O}\left(\tilde{N}^3\right)$, followed by $\mathcal{O}\left(\tilde{N}^2\right)$ operations for each component of the gradient. This inversion is the one required by kriging itself, and corresponds to the setup cost of \Cref{tab:kriging_cost}. However, it is repeated at each iteration, whereas kriging with fixed hyperparameters only requires it once.
+\end{remark}
 
 \subsection{Simulation Scenario}\label{sec:scenario}
 
@@ -322,7 +353,7 @@ Each configuration is run over $n_\mathrm{MC}=1000$ Monte Carlo realisations, re
 \begin{itemize}
 	\item The estimation RMSE, defined as:
 	\begin{equation}
-		\mathrm{RMSE}_{\hat{x}}:k\mapsto\sqrt{\frac{1}{n_\mathrm{MC}}\sum_{i=1}^{n_\mathrm{MC}}\left\|\Pi_{\mathrm{pos}}\:\hat{x}_k^{(i)}-\Pi_{\mathrm{pos}}\:x_k\right\|_2^2}
+		\mathrm{RMSE}_{\hat{x}}:k\mapsto\sqrt{\frac{1}{n_\mathrm{MC}}\sum_{i=1}^{n_\mathrm{MC}}\left\|\Pi_{\mathrm{pos}}\:\hat{x}_k^{(i)}-\Pi_{\mathrm{pos}}\:x_k\right\|_2^2}\label{eq:estimation_RMSE}
 	\end{equation}
 	where $\hat{x}_k^{(i)}$ is the state estimated by the $i$-th filter at time $k$, $x_k$ is the corresponding true state, and $\Pi_{\mathrm{pos}}$ is the projection matrix onto the position subspace:
 	\begin{equation}
@@ -369,7 +400,7 @@ Before analysing the filters themselves, it is important to assess the quality o
 \end{figure}
 
 \begin{comment}
-	\textbf{TODO: parler de rugosité locale du champ le long de la trajectoire. Mesurée dans MATLAB/notes\_rugosite\_nees.md : écart-type du champ dans un carré de $\pm10$km autour de la position, médiane $125$nT sur le vol, maximum $281$nT au pas $47$, et mêmes valeurs sur les cinq segments du vol ($112$ à $132$nT), donc indépendante du découpage droite/virage. C'est elle qui justifie l'explication de la NEES de \cref{sec:AK_PF} par la non-stationnarité : l'incertitude déclarée du krigeage statique y est anticorrélée ($-0{,}51$ au sens de Spearman), celle de l'AK non ($-0{,}01$). À déplacer avec la figure de la carte, la rugosité étant une propriété du scénario.}
+	\textbf{TODO: parler de rugosité locale du champ le long de la trajectoire. Mesurée dans MATLAB/notes\_rugosite\_nees.md : écart-type du champ dans un carré de $\pm10$ km autour de la position, médiane $125$ nT sur le vol, maximum $281$ nT au pas $47$, et mêmes valeurs sur les cinq segments du vol ($112$ à $132$ nT), donc indépendante du découpage droite/virage. C'est elle qui justifie l'explication de la NEES de \cref{sec:AK_PF} par la non-stationnarité : l'incertitude déclarée du krigeage statique y est anticorrélée ($-0{,}51$ au sens de Spearman), celle de l'AK non ($-0{,}01$). À déplacer avec la figure de la carte, la rugosité étant une propriété du scénario.}
 \end{comment}
 
 As one could have expected, denser grids lead to better reconstructions, the ARMSE evolving as the logarithm of $\Delta_g$. However, kriging and bilinear interpolation exhibit similar errors, within $1$ nT of each other at every resolution but the finest. Thus, the advantage of kriging cannot be primarily attributed to the reconstruction accuracy alone.
@@ -392,7 +423,7 @@ Three main results can be drawn from the RMSE curves. First, filters with access
 
 The NEES curves further highlight the superiority of kriging methods by taking the estimated error covariance matrix into account. Kriging-based filters stay within the consistency band at every resolution, whereas bilinear interpolation lies above it even on the densest map. This shows that kriging not only leads to more accurate state estimates than bilinear interpolation, but also provides a better characterisation of their associated uncertainty.
 
-In terms of convergence rates, \Cref{fig:erreur_maille} starts by extracting the relevant the median errors from the previous curves, and \Cref{fig:convergence_maille} computes the associated convergence rates using the two metrics introduced at the beginning of this section.
+In terms of convergence rates, \Cref{fig:erreur_maille} starts by extracting the relevant median errors from the previous curves, and \Cref{fig:convergence_maille} computes the associated convergence rates using the two metrics introduced at the beginning of this section.
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=\textwidth]{../../Images/Erreur finale par maille.pdf}

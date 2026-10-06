@@ -50,10 +50,11 @@
 	\end{tabular}}
 \end{center}
 
-\vfill\vfill
+\vspace{1.1cm}
 
 {\large Thèse soutenue le 8 décembre 2026}
-\vfill
+
+\vspace{0.55cm}
 
 \hspace{1cm}Membres du jury :
 \begin{center}
@@ -62,6 +63,7 @@
 		Carl MILNER&Professeur associé&ENAC&Rapporteur\\
 		Vincent FRÉMONT&Professeur&Centrale Nantes&Examinateur\\
 		Pierre MINVIELLE&Ingénieur de recherche&CEA&Examinateur\\
+		Guillaume BOURMAUD&Professeur associé&Bordeaux INP&Examinateur\\
 		Audrey GIREMUS&Professeure&Université de Bordeaux&Directrice\\
 		Karim DAHIA&Ingénieur de Recherche&ONERA&Co-directeur\\
 		Nicolas MERLINGE&Ingénieur de Recherche&ONERA&Encadrant\\
@@ -93,7 +95,7 @@
 
 % Remerciements
 
-\begin{section_titre}{Acknowledgements}
+\begin{section_titre}{Remerciements}
 \end{section_titre}
 
 % Abstracts
@@ -131,6 +133,7 @@
 
 % Énoncés
 
+\begin{comment}
 \begin{section_titre}{Statements}
 	\begingroup
 	\let\chapter\section % rétrograde les en-têtes de \listoftheorems en sections
@@ -143,6 +146,7 @@
 
 	\endgroup
 \end{section_titre}
+\end{comment}
 
 % Notations
 
@@ -207,12 +211,13 @@
 	\lignetoc{$\cdot\succ0$}{Symmetric positive definite}
 	\lignetoc{$\langle\cdot|\cdot\rangle,\langle\cdot|\cdot\rangle_{\mathcal{E}}$}{Inner product, subscript: of the space $\mathcal{E}$}
 	\lignetoc{$\langle\cdot,\cdot\rangle$}{Measure/function duality pairing, $\langle\mu,\varphi\rangle=\int{\varphi\:d\mu}$}
-	\lignetoc{$\|\cdot\|,\|\cdot\|_2,\|\cdot\|_F$}{Generic, Euclidean and Frobenius norms}
+	\lignetoc{$\|\cdot\|,\|\cdot\|_2,\|\cdot\|_F,\|\cdot\|_{\mathrm{op}}$}{Generic, Euclidean, Frobenius and operator norms}
 	\lignetoc{$\cdot^\top$}{Transpose of a matrix}
 	\lignetoc{$\cdot^{-1}$}{Inverse of a matrix}
+	\lignetoc{$\cdot^\dagger$}{Moore-Penrose pseudo-inverse of a matrix}
 	\lignetoc{$*$}{Convolution operator}
 	\lignetoc{$\circ$}{Function composition operator}
-	\lignetoc{$\otimes$}{Kronecker product}
+	\lignetoc{$\otimes$}{Kronecker product, tensor product of Hilbert spaces}
 	\lignetoc{$\mathbbm{1}$}{Indicator function}
 	\lignetoc{$[\![\cdot,\cdot]\!]$}{Discrete interval}
 	\lignetoc{$\cdot_{m|n}$}{"at time $m$ conditioned on the observations from $1$ to $n$"}
@@ -228,7 +233,9 @@
 	\lignetoc{$\lambda_x,\lambda_z,\lambda_{\mathrm{RLS}}$}{Regularisation coefficients}
 	\lignetoc{$\mu$}{Target probability measure, of density $p$}
 	\lignetoc{$\mu_k^{(i)}$}{Auxiliary particle}
-	\lignetoc{$\mu_X$}{Kernel mean embedding of a random variable $X$}
+	\lignetoc{$\mu_X,\mu_{XZ},\mu_{Z|x}$}{KME, joint KME and conditional KME}
+	\lignetoc{$\mu_{Z|X}$}{Conditional embedding operator}
+	\lignetoc{$\mu_{k|k-1},\mu_{k|k}$}{Embeddings of the predicted and filtering densities}
 	\lignetoc{$\nu$}{Proposal (importance) measure, of density $q$}
 	\lignetoc{$\pi_k$}{Projection of a trajectory onto its last component}
 	\lignetoc{$\Pi_{\mathrm{pos}}$}{Projection matrix onto the position subspace}
@@ -246,7 +253,10 @@
 	\lignetoc{$d_x,d_z,d_{\varphi}$}{Dimensions of the state, observation, and mapping}
 	\lignetoc{$d_w,d_n$}{Dimensions of the evolution and observation noises}
 	\lignetoc{$d_{\mathrm{pos}}$}{Dimension of the position subspace}
+	\lignetoc{$D,D_k$}{Residual weights of the embedded transition}
+	\lignetoc{$\mathfrak{D}_G$}{Gram inverse difference matrix}
 	\lignetoc{$\det$}{Determinant of a matrix}
+	\lignetoc{$e_r,e_f,E_r$}{Subsampling errors and error covariance}
 	\lignetoc{$\mathbb{E}[\cdot]$, $\mathbb{E}_p[\cdot]$}{Expectation, subscript: under the law $p$}
 	\lignetoc{$\exp$}{Exponential function}
 	\lignetoc{$f_k,f_k^l,f_k^n,\overline{f}_k^l$}{Evolution functions}
@@ -254,6 +264,7 @@
 	\lignetoc{$g,g_l$}{Trend functions}
 	\lignetoc{$\mathcal{GP}(m,k)$}{Gaussian process}
 	\lignetoc{$G,G_\theta$}{Gram matrix}
+	\lignetoc{$\mathcal{G},\mathcal{G}_h$}{Bordered and hollowed-out Gram matrices}
 	\lignetoc{$h_k$}{Observation function}
 	\lignetoc{$H_k$}{Observation matrix}
 	\lignetoc{$I,I_n$}{Identity matrix, subscript: of size $n$}
@@ -262,11 +273,13 @@
 	\lignetoc{$k(\cdot,\cdot),k_{\mathrm{SE}},k_\nu,k_{\mathrm{sep}},k_{\mathrm{MS}},k_B,k_{r_{\mathrm{KL}}}$}{Covariance kernels}
 	\lignetoc{$K,K_h,K_{\mathrm{Epa}},K_{\mathrm{Gauss}}$}{Regularisation kernels}
 	\lignetoc{$K_\nu$}{Modified Bessel function of the second kind}
+	\lignetoc{$k_{d|r},\tilde{\mathbf{z}}_{d|r},S_{d|r}$}{Residual covariance function, observation vector and Schur complement}
 	\lignetoc{$K_k$}{Kalman gain}
 	\lignetoc{$\mathcal{K},\mathcal{K}_{r_{\mathrm{KL}}}$}{Mercer operator and its reduced-rank truncation}
 	\lignetoc{$\mathcal{L}^0(E,F),\mathcal{L}^p(E,F)$}{Sets of measurable and $p$-integrable functions from $E$ to $F$}
 	\lignetoc{$m$}{Mean function of a Gaussian process}
 	\lignetoc{$\hat{m}_{\mathrm{OK}},\hat{m}_{\mathrm{UK}}$}{Estimated ordinary and universal-kriging means}
+	\lignetoc{$M$}{Covariance of the estimated trend coefficients}
 	\lignetoc{$\mathcal{M}_{m,n}(\mathbb{R})$}{Set of real $m\times n$ matrices}
 	\lignetoc{$n_k$}{Observation noise}
 	\lignetoc{$N,\tilde{N}$}{Number of particles, of training points}
@@ -276,6 +289,7 @@
 	\lignetoc{$\mathbb{N},\mathbb{N}^*$}{Sets of natural and strictly positive natural integers}
 	\lignetoc{$\mathcal{N}(m,P)$}{Gaussian distribution}
 	\lignetoc{$o(\cdot)$}{Landau symbol for asymptotic negligibility}
+	\lignetoc{$O$}{Observation matrix of the embedded weights}
 	\lignetoc{$\mathcal{O}(\cdot)$}{Landau symbol for asymptotic boundedness}
 	\lignetoc{$p$}{Target probability density}
 	\lignetoc{$p_0$}{Probability density of the initial state}
@@ -298,14 +312,21 @@
 	\lignetoc{$\mathcal{S}_d^+,\mathcal{S}_d^{++}$}{Sets of SPSD and SPD matrices}
 	\lignetoc{$\operatorname{supp}$}{Support of a measure or function}
 	\lignetoc{$\operatorname{tr}$}{Trace of a matrix}
+	\lignetoc{$T,T_k$}{Transition matrices of the embedded weights}
+	\lignetoc{$U$}{Weights of the estimated trend coefficients}
 	\lignetoc{$\mathcal{U}$}{Input set of a stochastic process}
+	\lignetoc{$\mathcal{U}_X,\mathcal{U}_Z$}{Sets of values of the random variables $X$ and $Z$}
 	\lignetoc{$\mathcal{U}([a,b])$}{Uniform distribution}
+	\lignetoc{$V$}{Residual covariance of the embedded transition}
 	\lignetoc{$\mathbb{V}[\cdot]$, $\mathbb{V}_\mu[\cdot]$}{Variance, subscript: under the measure $\mu$}
 	\lignetoc{$w_k,w_k^l,w_k^n,\overline{w}_k^l$}{Evolution noises}
 	\lignetoc{$w_k^{(i)},\tilde{w}_k^{(i)}$}{Normalised and unnormalised particle weights}
+	\lignetoc{$\mathbf{w}_{k|k-1},\mathbf{w}_{k|k},\mathbf{w}_k^+$}{Predicted, corrected and resampled embedded weights}
 	\lignetoc{$x_k,x_k^n,x_k^l,\mathbf{x}_{0:k}$}{System states and trajectory}
 	\lignetoc{$\mathbf{x},\mathbf{x}',\tilde{\mathbf{x}},\tilde{\mathbf{x}}_k^r$}{Input tuples, training inputs and their retained subset}
+	\lignetoc{$\tilde{\mathbf{x}}^-$}{Training states preceding $\tilde{\mathbf{x}}$}
 	\lignetoc{$x_k^{(i)}$}{Particle}
+	\lignetoc{$\mathbf{x}_k,\mathbf{x}_k^+,\mathbf{z}_k$}{Propagated and resampled particle sets, simulated observations}
 	\lignetoc{$x_{k|k-1},x_{k|k},\hat{x}_k$}{Predicted, corrected and estimated state}
 	\lignetoc{$y_k$}{Innovation vector}
 	\lignetoc{$z_k,\mathbf{z}_{1:k}$}{Observation vector and sequence}

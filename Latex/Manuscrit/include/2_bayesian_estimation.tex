@@ -76,7 +76,7 @@ Let:
 \begin{equation}
 	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)\:\middle|\:\mathbb{E}\left[\|\psi(Z)\|^2\right]<\infty\right\}
 \end{equation}
-To simplify notations, we identify each estimator $\psi\in\mathcal{F}$ with the random variable $\psi(Z)$ it produces. Under this identification, $\mathcal{F}$ is is equal to $\mathcal{L}^2\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)$, and can be equipped with the inner product:
+To simplify notations, we identify each estimator $\psi\in\mathcal{F}$ with the random variable $\psi(Z)$ it produces. Under this identification, $\mathcal{F}$ is equal to $\mathcal{L}^2\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)$, and can be equipped with the inner product:
 \begin{equation}
 	(A,B)\in\mathcal{F}^2\mapsto\langle A|B\rangle\triangleq\mathbb{E}\left[A(Z)^\top B(Z)\right]
 \end{equation}
@@ -146,7 +146,7 @@ Because the MMSE estimator minimises a quadratic loss, it is highly sensitive to
 	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}\right)\:\middle|\:\mathbb{E}[|\psi(Z)|]<\infty\right\}
 \end{equation}
 
-As previously, $\mathcal{F}$ is identified as a subspace of $\mathcal{L}^1(\mathbb{R})$, and is equipped with the following non-Euclidean distance:
+As previously, $\mathcal{F}$ is identified as a subspace of $\mathcal{L}^1\left(\mathbb{R}^{d_z},\mathbb{R}\right)$, and is equipped with the following non-Euclidean distance:
 \begin{equation}
 	(A,B)\in\mathcal{F}^2\mapsto\rho(A,B)\triangleq\mathbb{E}[|A(Z)-B(Z)|]
 \end{equation}

@@ -533,7 +533,7 @@ fprintf(fid, '%s & $0$ & %s & %s & %s\\\\\n', e_connue, flops_tex(cout_bil), ...
 fprintf(fid, '%s & $0$ & %s & %s & %s\\\\\\hline\n', e_bilin, flops_tex(cout_bil), ...
         flops_tex(cout_bil), flops_tex(mem_bil(1)));
 for ip = 1:numel(pas)
-    fprintf(fid, '%s, $%.1f$km & %s & %s & %s & %s\\\\\n', e_stat, ...
+    fprintf(fid, '%s, $%.1f$ km & %s & %s & %s & %s\\\\\n', e_stat, ...
             pas(ip), flops_tex(cout_setup(ip)), flops_tex(cout_req(ip)), ...
             flops_tex(cout_setup(ip) + cout_req(ip)), flops_tex(mem_krig(ip)));
 end
@@ -1720,7 +1720,7 @@ function ecrire_cout_tabular(fid, idx_m, sel_t, leg_t, cles_t, CGP, CGF, pas, po
     end
     fprintf(fid, '\\\\\\hline\n');
     for ip = 1:numel(pas)
-        fprintf(fid, '$%.1f$km', pas(ip));
+        fprintf(fid, '$%.1f$ km', pas(ip));
         for j = 1:size(col, 1)
             if col(j, 2) == 0
                 v = CGF(ip, sel_t(idx_m(col(j, 1))));   % le total, colonnes resserrees
