@@ -28,7 +28,12 @@
 
 \usepackage{etoc} % sommaire par chapitre
 
-\usepackage[style=numeric,sorting=none,maxnames=10]{biblatex} % bibliographie
+\usepackage[
+	style=numeric,
+	sorting=none,
+	maxnames=10
+	]{biblatex} % bibliographie
+
 \addbibresource{include/biblio.bib}
 
 \usepackage{amsmath,amsthm,amsfonts,amssymb,bbm,thmtools} % packages de maths
@@ -118,7 +123,6 @@
 \input{include/9_proofs_1.tex}
 \input{include/9_proofs_2.tex}
 
-\printbibliography
-\addcontentsline{toc}{chapter}{\bibname}
+\printbibliography[heading=bibintoc]
 
 \end{document}

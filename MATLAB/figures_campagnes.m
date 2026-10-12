@@ -396,7 +396,7 @@ rng(7);
 pas_km  = par.krig.pas / 1e3;
 alpha_c = par.krig.window_factor;
 n_min   = par.krig.n_min;
-k_vois  = 4;                       % voisins par particule de la NNAK, 'k_voisins' de la campagne
+k_vois  = 10;                       % voisins par particule de la NNAK, 'k_voisins' de la campagne
 chi2_99 = chi2inv(0.99, 2);        % deux degres de liberte : la position
 
 % Le nuage : deux modes de poids et de formes differents, comme pendant l'acquisition

@@ -39,7 +39,7 @@
 
 	{\Large Cartographie et Navigation Autonome sur Champs Physiques\\par Filtrage Particulaire à Processus Gaussiens}\\[0.55cm]
 
-	{\large Autonomous Navigation and Mapping on Physical Fields\\by Gaussian Process-based Particle Filtering}\\[0.55cm]
+	{\large Autonomous Navigation and Mapping over Physical Fields\\by Gaussian Process-based Particle Filtering}\\[0.55cm]
 
 	\singlespacing
 	{\renewcommand{\arraystretch}{1}
@@ -74,25 +74,6 @@
 \cleardoublepage
 \frontmatter % numéros de pages en chiffres latins
 
-% Épigraphe
-
-\mbox{}\vfill
-
-\begin{flushright}\itshape
-\begin{tabular}{clc}
-	\makebox(25,-5){\scalebox{3}{``}}&Throw yourself into the unknown&\\
-	&With pace and a fury defiant&\\
-	&Clothe yourself in beauty untold&\\
-	&And see life as means to a triumph&\makebox(25,-5){\scalebox{3}{''}}
-\end{tabular}\\[0.5cm]
-\textup{Gang of Youths, }Achilles Come Down
-\end{flushright}
-
-\vfill\vfill\vfill
-
-\cleardoublepage
-\pagestyle{plain}
-
 % Remerciements
 
 \begin{section_titre}{Remerciements}
@@ -101,6 +82,25 @@
 % Abstracts
 
 \begin{section_titre}{Abstracts}
+	\section*{Français}
+
+	La navigation autonome d'un véhicule repose généralement sur la fusion de mesures inertielles avec des données de recalage externes. Lorsque le positionnement par satellite est impossible ou peu fiable, les champs physiques environnants peuvent constituer une source d'information complémentaire pour estimer la position du véhicule. Leur exploitation est toutefois difficile en raison des non-linéarités et ambiguïtés de la fonction d'observation, ainsi que d'une connaissance imparfaite du champ considéré.
+
+	Cette thèse étudie la navigation autonome sur champs physiques dans ce contexte. L'approche proposée combine la robustesse du filtrage particulaire bayésien face aux distributions multimodales avec la capacité des processus gaussiens à modéliser le champ observé tout en quantifiant l'incertitude associée à sa reconstruction.
+
+	Deux cas sont distingués selon la connaissance a priori du champ. Lorsque celui-ci n'est accessible qu'au travers de données éparses et bruitées, le krigeage permet de reconstruire la fonction d'observation. Des stratégies de sous-échantillonnage sont développées afin d'adapter la reconstruction au champ local tout en réduisant son coût de calcul. D'autre part, en l'absence de donnée préalable, le champ est reconstruit conjointement à la localisation du véhicule.
+
+	Ces travaux présentent ainsi de nouvelles méthodes pour la navigation autonome sur champs physiques, prenant en compte à la fois les ambiguïtés et la méconnaissance du modèle de champ, depuis l'exploitation de données dégradées jusqu'à la reconstruction du champ au cours de la navigation.
+
+	\section*{English}
+
+	Autonomous vehicle navigation generally relies on the fusion of inertial measurements with external positioning data. When satellite-based positioning is unavailable or unreliable, surrounding physical fields can provide a complementary source of information for estimating the vehicle's position. However, exploiting such fields is challenging due to the non-linearities and ambiguities of the observation function, as well as imperfect knowledge of the field itself.
+
+	This thesis focuses on autonomous navigation over physical fields in this context. The proposed approach combines the robustness of Bayesian particle filtering to multimodal distributions with the ability of Gaussian processes to model the observed field while quantifying the uncertainty associated with its reconstruction.
+
+	Two cases are considered depending on the availability of prior knowledge of the field. When it is only accessible through sparse and noisy data, kriging can be used to reconstruct the observation function. Subsampling strategies are developed to adapt the reconstruction to the local field while reducing its computational cost. Conversely, in the absence of prior data, the field is reconstructed jointly with the vehicle's localisation.
+
+	These contributions introduce new methods for autonomous navigation over physical fields that account for both ambiguities and incomplete knowledge of the field model, ranging from the exploitation of degraded data to field reconstruction during navigation.
 \end{section_titre}
 
 % Résumé étendu en français
@@ -110,26 +110,34 @@
 
 % Table des matières
 
-\tableofcontents
+\cleardoublepage
+\phantomsection
 \addcontentsline{toc}{chapter}{\contentsname}
+\tableofcontents
 
 % Figures
 
 \renewcommand{\listfigurename}{Figures}
-\listoffigures
+\cleardoublepage
+\phantomsection
 \addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
 
 % Tables
 
 \renewcommand{\listtablename}{Tables}
-\listoftables
+\cleardoublepage
+\phantomsection
 \addcontentsline{toc}{chapter}{\listtablename}
+\listoftables
 
 % Algorithmes
 
 \renewcommand{\listalgorithmname}{Algorithms}
-\listofalgorithms
+\cleardoublepage
+\phantomsection
 \addcontentsline{toc}{chapter}{\listalgorithmname}
+\listofalgorithms
 
 % Énoncés
 

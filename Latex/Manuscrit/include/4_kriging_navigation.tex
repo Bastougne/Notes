@@ -34,7 +34,7 @@ In our scenarios, the observation function describes the measurement of a physic
 
 This chapter is organised as follows:
 \begin{itemize}
-	\item \Cref{sec:kriging_PF} combines \cref{sec:Bayesian_estimation,sec:Gaussian_processes} to create a kriging-based framework for autonomous navigation in a poorly-known environment.
+	\item \Cref{sec:kriging_PF} combines \cref{sec:Bayesian_estimation,sec:Gaussian_processes} to create a kriging-based framework for autonomous navigation in a poorly known environment.
 	\item \Cref{sec:AK_PF} discusses non-stationary observation fields, and the necessity of training data selection for kriging.
 	\item \Cref{sec:window_shape} improves upon this framework by adapting the shape of the subsampling window to that of the particle cloud to better capture the non-stationarities of the field.
 	\item Finally, \cref{sec:subsampling_error} quantifies the estimation error committed by subsampling the training data used for kriging.
@@ -49,7 +49,7 @@ Using \cref{th:kriging_navigation_assumptions}, the likelihood can be expressed 
 where $\hat{z}_{\mathrm{K}}$ denotes any of the three kriging estimators, $R_{\mathrm{K}}$ is the corresponding covariance matrix, and $m$ and $g$ are optional arguments depending on the chosen kriging method. In particular, $R_{\mathrm{K}}$ already carries the query noise $R_k$, so it must not be added a second time.
 
 \begin{remark}[Correlated map error]
-	\Cref{eq:kriged_likelihood} is the likelihood of a single observation. However, all observations are measurements of the same unknown field, and the estimation errors committed by kriging at two distinct states are thus correlated (see \Cref{th:simultaneous_estimation}). \Cref{th:observation_independence} therefore no longer holds, and using \eqref{eq:kriged_likelihood} at each time step amounts to treating this map error as a white noise. This approximation is accurate when the distance covered during a time step exceeds the correlation length of the map error, and leads to an overconfident filter otherwise. In that case, the map error can be modelled as a Gauss-Markov process along the trajectory, and estimated alongside the state \cite{bib:correlated-map-error}.
+	\Cref{eq:kriged_likelihood} is the likelihood of a single observation. However, all observations are measurements of the same unknown field, and the estimation errors committed by kriging at two distinct states are thus correlated. \Cref{th:observation_independence} therefore no longer holds, and using \eqref{eq:kriged_likelihood} at each time step amounts to treating this map error as a white noise. This approximation is accurate when the distance covered during a time step exceeds the correlation length of the map error, and leads to an overconfident filter otherwise. In that case, the map error can be modelled as a Gauss-Markov process along the trajectory, and estimated alongside the state \cite{bib:correlated-map-error}.
 \end{remark}
 
 \subsection{Choosing the Kriging Method}\label{sec:kriging_method}
@@ -164,7 +164,7 @@ Recall that \cref{sec:covariance_kernels} considered every kernel subsequently u
 
 Unlike the mean, which is estimated in closed form by ordinary kriging, the hyperparameters do not admit an analytical estimator in general. Indeed, while the mean appears linearly in the kriging equations, $\theta$ only appears through the inverse of the Gram matrix. The standard approach \cite{bib:Rasmussen-hyperparameters} is to select the hyperparameters maximising the likelihood of the training observations, a procedure known as maximum likelihood estimation.
 
-Formally, let $d_\theta\in\mathbb{N}^*$ be the number of hyperparameters, which are assumed to be strictly positive, and let $k_\theta$ denote the kernel of hyperparameters $\theta\in\left(\mathbb{R}_+^*\right)^{d_\theta}$. The Gram matrix associated with $k_\theta$ is written as:
+Formally, let $d_\theta\in\mathbb{N}^*$ be the number of hyperparameters, let $k_\theta$ denote the kernel of hyperparameters $\theta$, and let $\Theta\subseteq\mathbb{R}^{d_\theta}$ be the set of hyperparameters for which $k_\theta$ is SPD and $\theta\mapsto k_\theta$ is differentiable. The Gram matrix associated with $k_\theta$ is written as:
 \begin{equation}
 	G_\theta(\tilde{\mathbf{x}})\triangleq k_\theta(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}
 \end{equation}
@@ -180,22 +180,32 @@ where $C$ is defined by \eqref{eq:C_definition}. Let:
 	&-\frac{1}{2}\log\det\left(G_\theta(\tilde{\mathbf{x}})\right)-\frac{\tilde{N}d_z}{2}\log(2\pi)
 	\end{aligned}\label{eq:log_likelihood}
 \end{equation}
-be the corresponding log-likelihood. Since the logarithm is increasing, the maximum likelihood estimators of $m$ and $\theta$ are:
+be the corresponding log-likelihood.
+
+\begin{remark}[Model complexity]
+	The first two terms of \eqref{eq:log_likelihood} have opposite effects. The first one measures the fit to the training observations, and increases as the field is allowed to vary more freely, while the second one decreases. Maximising the log-likelihood therefore retains the least flexible field that remains consistent with the training data \cite{bib:evidence}.
+\end{remark}
+
+Since the logarithm is increasing, the maximum likelihood estimators of $m$ and $\theta$ are:
 \begin{equation}
-	\left(\hat{m}_{\mathrm{ML}},\hat{\theta}_{\mathrm{ML}}\right)\triangleq\underset{m\in\mathbb{R}^{d_z},\:\theta\in\left(\mathbb{R}_+^*\right)^{d_\theta}}{\operatorname{argmax}}\left(L(m,\theta)\right)\label{eq:MLE_problem}
+	\left(\hat{m}_{\mathrm{ML}},\hat{\theta}_{\mathrm{ML}}\right)\triangleq\underset{m\in\mathbb{R}^{d_z},\:\theta\in\Theta}{\operatorname{argmax}}\left(L(m,\theta)\right)\label{eq:MLE_problem}
 \end{equation}
 
 \Cref{th:MLE} gives the derivatives of $L$, and shows that the mean can be eliminated from \eqref{eq:MLE_problem}.
 
 \begin{proposition}[Maximum likelihood hyperparameters]\label{th:MLE}
-	Let $m\in\mathbb{R}^{d_z}$, $\theta\in\left(\mathbb{R}_+^*\right)^{d_\theta}$ and $a\triangleq G_\theta(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-C\:m\right)$. The derivatives of the log-likelihood are:
+	Let $m\in\mathbb{R}^{d_z}$ and $\theta\in\Theta$. The derivatives of the log-likelihood are:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\frac{\partial L}{\partial m}(m,\theta)&=C^\top a\\
 		\frac{\partial L}{\partial\theta_i}(m,\theta)&=\frac{1}{2}\operatorname{tr}\left(\left(a\:a^\top-G_\theta(\tilde{\mathbf{x}})^{-1}\right)\frac{\partial G_\theta(\tilde{\mathbf{x}})}{\partial\theta_i}\right),\quad i\in[\![1,d_\theta]\!]
 		\end{aligned}\right.\label{eq:MLE_gradient}
 	\end{equation}
-	where $\theta_i$ denotes the $i$-th component of $\theta$.
+	where:
+	\begin{equation}
+		a\triangleq G_\theta(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-C\:m\right)
+	\end{equation}
+	and $\theta_i$ denotes the $i$-th component of $\theta$.
 
 	Furthermore, for a fixed $\theta$, the log-likelihood is maximised by the OK mean estimator of \Cref{th:ordinary_kriging}, computed with the kernel $k_\theta$:
 	\begin{equation}
@@ -241,7 +251,7 @@ According to \Cref{th:MLE}, the maximum likelihood estimator of the mean is the 
 \end{equation}
 and \eqref{eq:MLE_problem} reduces to a maximisation over $\theta$ alone. However, the derivatives of $L$ with respect to the hyperparameters cannot be cancelled analytically in general, and so $\hat{\theta}_{\mathrm{ML}}$ is computed by a gradient ascent.
 
-To ensure that the hyperparameters remain strictly positive, this ascent is performed on their logarithm, with a step size $\tau>0$. Since the derivative of $L$ with respect to $\log\theta_i$ is $\theta_i$ times its derivative with respect to $\theta_i$, each hyperparameter is multiplied by a positive factor at each iteration. One iteration of the resulting algorithm is presented by \Cref{alg:MLE}.
+To ensure that the hyperparameters remain strictly positive, as the Matérn kernels of \cref{th:Matérn} require, this ascent is performed on their logarithm, with a step size $\tau>0$. Since the derivative of $L$ with respect to $\log\theta_i$ is $\theta_i$ times its derivative with respect to $\theta_i$, each hyperparameter is multiplied by a positive factor at each iteration. One iteration of the resulting algorithm is presented by \Cref{alg:MLE}.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
@@ -256,14 +266,10 @@ This iteration is repeated from an initial value $\theta_{\mathrm{init}}$ until 
 	\hat{\theta}=\operatorname{MLE}\left(\tilde{\mathbf{x}},\tilde{\mathbf{z}},\theta_{\mathrm{init}}\right)
 \end{equation}
 
-In practice, the gradient ascent can be replaced with any other gradient-based method, such as a quasi-Newton method, in order to reduce the number of iterations.
+In practice, the gradient ascent can be replaced with any other gradient-based method, such as a quasi-Newton method \cite{bib:quasi-Newton}, in order to reduce the number of iterations.
 
 \begin{remark}[Initialisation]
 	The log-likelihood is not concave in $\theta$ in general, and may admit several local maxima \cite{bib:evidence}. The estimate returned by \Cref{alg:MLE} therefore depends on $\theta_{\mathrm{init}}$. In the absence of a previous estimate, the initial value can be chosen from the empirical statistics of the training observations, such as their variance.
-\end{remark}
-
-\begin{remark}[Model complexity]
-	The first two terms of \eqref{eq:log_likelihood} have opposite effects. The first one measures the fit to the training observations, and increases as the field is allowed to vary more freely, while the second one decreases. Maximising the log-likelihood therefore retains the least flexible field that remains consistent with the training data.
 \end{remark}
 
 \begin{remark}[Uncertainty of the hyperparameters]

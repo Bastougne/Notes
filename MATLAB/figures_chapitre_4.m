@@ -245,6 +245,54 @@ save_kriging('Exemple de krigeage universel 2D', x_star, f_star, z_uk(:, 1), R_u
 save_kriging('Exemple de krigeage universel à mauvaise base 2D', x_star, f_star, z_pol(:, 1), R_pol, ...
              x_train, z_train, linewidth, fontsize, alpha_band, pdf_w, pdf_h, y_lim, img_dir);
 
+%% Dendrogram of the hierarchical clustering, sec:clustering
+% A particle set with four visible groups. The merges the cut keeps are drawn in
+% blue and those it discards in grey, which is the whole content of the figure:
+% the hierarchy is built once, and the cut only reads a partition off it. The
+% groups are loose enough that the within-cluster merges occupy a readable share
+% of the height, a tighter set crushing them all onto the baseline.
+rng(7);
+centres_hca = [0 0; 2.6 0.3; 1.3 2.2; 4.0 2.0];
+n_per_hca   = [4 3 3 2];
+X_hca       = [];
+for c = 1:numel(n_per_hca)
+    X_hca = [X_hca; centres_hca(c, :) + 0.70 * randn(n_per_hca(c), 2)]; %#ok<AGROW>
+end
+
+Z_hca = linkage(X_hca, 'ward');
+% Strictly between the tallest within-cluster merge and the first one the cut
+% discards, close enough to the former that the two read as adjacent levels.
+cut_hca = Z_hca(end-3, 3) + 0.30 * (Z_hca(end-2, 3) - Z_hca(end-3, 3));
+
+w_hca  = (348 / 298) * 0.7 * textwidth;   % included at 0.7\textwidth, hence 347 pt
+h_hca  = 0.575 * w_hca;
+fs_hca = 12 * w_hca / (0.7 * textwidth);  % 14.0, the body size once scaled down
+blue   = [0.20 0.30 0.65];                % the palette of the chapter 2 schematics
+grey   = [0.55 0.55 0.55];
+red    = [0.85 0.15 0.15];
+
+fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 w_hca h_hca]);
+axes('Units', 'normalized', 'Position', [0.135 0.075 0.845 0.905]);
+hd = dendrogram(Z_hca, 0); hold on;
+for h = hd'
+    if max(h.YData) <= cut_hca
+        set(h, 'Color', blue, 'LineWidth', linewidth);
+    else
+        set(h, 'Color', grey, 'LineWidth', linewidth);
+    end
+end
+x_hca = xlim;
+plot(x_hca, [cut_hca cut_hca], '--', 'Color', red, 'LineWidth', linewidth);
+
+% No tick on either axis: the abscissa of a dendrogram carries no quantity, and
+% the ordinate is read against the cut rather than in absolute value.
+hold off; box on;
+xlim(x_hca); ylim([-0.045, 1.08] * max(Z_hca(:, 3)));
+set(gca, 'XTick', [], 'YTick', [], 'TickLabelInterpreter', 'latex', 'FontSize', fs_hca);
+ylabel('dissimilarity', 'Interpreter', 'latex', 'FontSize', fs_hca);
+
+save_pdf(fig, 'Dendrogramme HCA', w_hca, h_hca, img_dir);
+
 %% Local functions
 function z_hat = simple_kriging(m, x_train, x_star, L, K_star, Z)
 % Simple kriging under a known mean function, eq:simple_kriging_equations. The
@@ -648,10 +696,14 @@ function save_kriging(name, x, f_true, z_hat, R_hat, x_train, z_train, ...
     set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
     % No legend: the LaTeX caption already names every element by colour.
 
-    % print rather than exportgraphics: the latter crops to the content, so the
-    % page would vary from one panel to the next. Here every page is exactly
-    % pdf_w x pdf_h, which keeps one scale, one apparent font size, and panels
-    % that align when assembled.
+    save_pdf(fig, name, pdf_w, pdf_h, img_dir);
+end
+
+function save_pdf(fig, name, pdf_w, pdf_h, img_dir)
+% print rather than exportgraphics: the latter crops to the content, so the page
+% would vary from one panel to the next. Here every page is exactly pdf_w x
+% pdf_h, which keeps one scale, one apparent font size, and panels that align
+% when assembled.
     if ~exist(img_dir, 'dir')
         mkdir(img_dir);
     end

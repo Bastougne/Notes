@@ -195,7 +195,7 @@ The performance of the static kriging RPF is also given as a reference. Alongsid
 
 \begin{table}[!htb]
 	\centering\input{include/cout_adaptatif.tex}
-	\caption{}\label{tab:cout_adaptatif}
+	\caption{Total computational cost, in flops, of using static kriging or AK throughout the mission, for each grid resolution. The cost of AK is split between the kriging itself and the local estimation of the hyperparameters, which static kriging only performs once before the mission.}\label{tab:cout_adaptatif}
 \end{table}
 
 The first point to note is the strong similarity between the RMSE curves obtained with static kriging and AK for all grid resolutions. Apart from a slight reduction in the AK error between $k=60$ and $k=90$, and a slight increase during the first turn, particularly for the $7.5$ km grid resolution, the curves almost completely overlap. The absence of any noticeable accuracy loss despite discarding most of the training set can be attributed to the local nature of the AK window.
@@ -281,47 +281,52 @@ The main difference between AK and NNAK lies in the scale at which the particle 
 Since this partition is recomputed at each time step, and determines the subsampling windows, the clustering method must satisfy four criteria:
 \begin{itemize}
 	\item The number of clusters is unknown prior to the mission, and may vary from one time step to the next. It therefore cannot be an input of the method.
-	\item The particles and their weights approximate the PDF. Therefore, clustering should account for particle weights, so that modes represented by few high-weight particles are properly identified.
+	\item The particles and their weights approximate the PDF. Clustering should thus account for particle weights, so that modes represented by few high-weight particles are properly identified.
 	\item Every particle must belong to a cluster. Otherwise, its likelihood could not be computed by kriging.
 	\item Finally, the computational cost of clustering must remain small compared with that of kriging.
 \end{itemize}
 
 For the sake of simplicity, the time index is dropped throughout this section, and we write:
 \begin{equation}
-	\forall i\in[\![1,N]\!],\:y^{(i)}\triangleq\Pi_{\mathrm{pos}}\:x_k^{(i)}\quad\text{and}\quad w^{(i)}\triangleq w_{k-1}^{(i)}
+	\forall i\in[\![1,N]\!],\:x_{\mathrm{pos}}^{(i)}\triangleq\Pi_{\mathrm{pos}}\:x_k^{(i)}\quad\text{and}\quad w^{(i)}\triangleq w_{k-1}^{(i)}
 \end{equation}
 for the position and the weight of the $i$-th particle. A clustering method partitions the particle set into $C\in\mathbb{N}^*$ clusters:
 \begin{equation}
-	\left\{\mathcal{C}^{(c)}\right\}_{c=1}^C=\operatorname{Clustering}\left(\left\{y^{(i)},w^{(i)}\right\}_{i=1}^N\right)\label{eq:clustering}
+	\left\{\mathcal{C}^{(c)}\right\}_{c=1}^C=\operatorname{Clustering}\left(\left\{x_{\mathrm{pos}}^{(i)},w^{(i)}\right\}_{i=1}^N\right)\label{eq:clustering}
 \end{equation}
 where $\mathcal{C}^{(c)}$ denotes the indices of the particles belonging to the $c$-th cluster.
 
-Several clustering methods can be used in \eqref{eq:clustering}. We present four of them, from those exploring multiple possible partitions of the particle set to those directly producing a single partition at a computational cost compatible with the mission constraints.
+Several clustering methods can be used in \eqref{eq:clustering}. In this section, we present four classical methods.
 
 \subsubsection{Hierarchical Clustering Analysis}
 
 Hierarchical clustering analysis (HCA) \cite{bib:HCA,bib:lance-williams} does not compute a single partition, but a hierarchy of nested partitions. Starting from the partition in which each particle forms its own cluster, it repeatedly merges the two closest clusters, in the sense of a given dissimilarity, until a single cluster remains. For instance, Ward's criterion merges the two clusters whose union least increases the weighted dispersion of the particles around the barycentre of their cluster. The $N-1$ successive merges, and the dissimilarities, or heights, at which they occur, form the dendrogram of the particle set.
 
-A partition is then read from the dendrogram in one of two ways. Stopping after $N-C$ merges imposes a partition into exactly $C$ clusters, whereas cutting the dendrogram at a given height determines the number of clusters according to a prescribed dissimilarity threshold.
+A partition is then read from the dendrogram in one of two ways. Stopping after $N-C$ merges imposes a partition into exactly $C$ clusters, whereas cutting the dendrogram at a given height determines the number of clusters according to a prescribed dissimilarity threshold. This method is illustrated by \Cref{fig:dendrogram}.
+
+\begin{figure}[!htb]
+	\centering\includegraphics[width=0.7\textwidth]{../../Images/Dendrogramme HCA.pdf}
+	\caption{Dendrogram of a particle set, cut at a certain dissimilarity threshold. The particles connected below the cut, highlighted in blue, delimit four distinct clusters.}\label{fig:dendrogram}
+\end{figure}
 
 However, HCA requires the dissimilarities between all pairs of clusters. This represents $N(N-1)/2$ values at the first merge, \textit{i.e.} more than $12$ million for the $N=5000$ particles considered in \cref{sec:scenario}, and updating them over the $N-1$ merges costs $\mathcal{O}\left(N^2\log N\right)$ operations at each time step.
 
 \subsubsection{\texorpdfstring{$k$-means}{k-means}}
 
-Instead of building a hierarchy, the $k$-means algorithm \cite{bib:k-means} searches for a partition into a given number $C$ of clusters. Each cluster is represented by a centre $\hat{y}^{(c)}\in\mathbb{R}^{d_{\mathrm{pos}}}$, and both the partition and the centres are chosen to minimise the weighted dispersion of the particles around the centre of their cluster:
+Instead of building a hierarchy, the $k$-means algorithm \cite{bib:k-means} searches for a partition into a given number $C$ of clusters. Each cluster is represented by a centre $\breve{x}_{\mathrm{pos}}^{(c)}\in\mathbb{R}^{d_{\mathrm{pos}}}$, and both the partition and the centres are chosen to minimise the weighted dispersion of the particles around the centre of their cluster:
 \begin{equation}
-	\underset{\mathcal{C}^{(1)},\dots,\mathcal{C}^{(C)},\:\hat{y}^{(1)},\dots,\hat{y}^{(C)}}{\operatorname{argmin}}\left(\sum_{c=1}^C\sum_{i\in\mathcal{C}^{(c)}}w^{(i)}\left\|y^{(i)}-\hat{y}^{(c)}\right\|_2^2\right)\label{eq:kmeans}
+	\underset{\mathcal{C}^{(1)},\dots,\mathcal{C}^{(C)},\:\breve{x}_{\mathrm{pos}}^{(1)},\dots,\breve{x}_{\mathrm{pos}}^{(C)}}{\operatorname{argmin}}\left(\sum_{c=1}^C\sum_{i\in\mathcal{C}^{(c)}}w^{(i)}\left\|x_{\mathrm{pos}}^{(i)}-\breve{x}_{\mathrm{pos}}^{(c)}\right\|_2^2\right)\label{eq:kmeans}
 \end{equation}
 
 In practice, this problem is addressed by Lloyd's algorithm \cite{bib:lloyd}, which starts from $C$ initial centres, and alternates between two steps:
 \begin{itemize}
 	\item\textbf{Assignment.} Each particle is assigned to the cluster of the closest centre:
 	\begin{equation}
-		\forall c\in[\![1,C]\!],\:\mathcal{C}^{(c)}=\left\{i\in[\![1,N]\!]\:\middle|\:c=\underset{c'\in[\![1,C]\!]}{\operatorname{argmin}}\left\|y^{(i)}-\hat{y}^{(c')}\right\|_2\right\}\label{eq:kmeans_assign}
+		\forall c\in[\![1,C]\!],\:\mathcal{C}^{(c)}=\left\{i\in[\![1,N]\!]\:\middle|\:c=\underset{c'\in[\![1,C]\!]}{\operatorname{argmin}}\left\|x_{\mathrm{pos}}^{(i)}-\breve{x}_{\mathrm{pos}}^{(c')}\right\|_2\right\}\label{eq:kmeans_assign}
 	\end{equation}
 	\item\textbf{Update.} Each centre is replaced by the weighted barycentre of its cluster:
 	\begin{equation}
-		\forall c\in[\![1,C]\!],\:\hat{y}^{(c)}=\left.\sum_{i\in\mathcal{C}^{(c)}}w^{(i)}\:y^{(i)}\middle/\sum_{i\in\mathcal{C}^{(c)}}w^{(i)}\right.
+		\forall c\in[\![1,C]\!],\:\breve{x}_{\mathrm{pos}}^{(c)}=\left.\sum_{i\in\mathcal{C}^{(c)}}w^{(i)}\:x_{\mathrm{pos}}^{(i)}\middle/\sum_{i\in\mathcal{C}^{(c)}}w^{(i)}\right.
 	\end{equation}
 \end{itemize}
 
@@ -329,41 +334,41 @@ Each of these steps does not increase the criterion \eqref{eq:kmeans}. Since the
 
 \subsubsection{Mean Shift}
 
-Rather than minimising a distance criterion, mean shift \cite{bib:mean-shift} defines the clusters from the modes of the PDF. Since the particle set is a weighted sample of this density, the latter can be estimated by regularising the particle set, similarly to the RPF. For a regularisation kernel $K$ on $\mathbb{R}^{d_{\mathrm{pos}}}$, in the sense of \Cref{th:regularisation_kernel}, and a bandwidth $h_{\mathrm{ms}}>0$, the estimated density is:
+Rather than minimising a distance criterion, mean shift \cite{bib:mean-shift,bib:mean-shift-clustering} defines the clusters from the modes of the PDF. Since the particle set is a weighted sample of this density, the latter can be estimated by regularising the particle set similarly to the RPF. For a regularisation kernel $K$ on $\mathbb{R}^{d_{\mathrm{pos}}}$, in the sense of \Cref{th:regularisation_kernel}, and a bandwidth $h_{\mathrm{MS}}>0$, the estimated density is:
 \begin{equation}
-	\hat{p}:y\in\mathbb{R}^{d_{\mathrm{pos}}}\mapsto\sum_{i=1}^Nw^{(i)}\:K_{h_{\mathrm{ms}}}\left(y-y^{(i)}\right)
+	p_{\mathrm{pos}}:x_{\mathrm{pos}}\in\mathbb{R}^{d_{\mathrm{pos}}}\mapsto\sum_{i=1}^Nw^{(i)}\:K_{h_{\mathrm{MS}}}\left(x_{\mathrm{pos}}-x_{\mathrm{pos}}^{(i)}\right)
 \end{equation}
 
-When $K$ is the Epanechnikov kernel $K_{\mathrm{Epa}}$ of \cref{sec:particle_filtering}, taken in dimension $d_{\mathrm{pos}}$, the gradient of this density is given, wherever it is defined, by:
+When $K$ is the Epanechnikov kernel $K_{\mathrm{Epa}}$ of \cref{sec:particle_filtering} taken in dimension $d_{\mathrm{pos}}$, the gradient of this density is given, wherever it is defined, by:
 \begin{equation}
-	\frac{\partial\hat{p}}{\partial y}(y)=\frac{d_{\mathrm{pos}}+2}{c_{d_{\mathrm{pos}}}\:h_{\mathrm{ms}}^{d_{\mathrm{pos}}+2}}\left(\sum_{i\in\mathcal{B}(y,h_{\mathrm{ms}})}w^{(i)}\right)\left(\frac{\displaystyle\sum_{i\in\mathcal{B}(y,h_{\mathrm{ms}})}w^{(i)}\:y^{(i)}}{\displaystyle\sum_{i\in\mathcal{B}(y,h_{\mathrm{ms}})}w^{(i)}}-y\right)\label{eq:mean_shift_gradient}
+	\frac{\partial p_{\mathrm{pos}}}{\partial x_{\mathrm{pos}}}(x_{\mathrm{pos}})=\frac{d_{\mathrm{pos}}+2}{c_{d_{\mathrm{pos}}}\:h_{\mathrm{MS}}^{d_{\mathrm{pos}}+2}}\left(\sum_{i\in\mathcal{B}(x_{\mathrm{pos}},h_{\mathrm{MS}})}w^{(i)}\right)\left(\frac{\displaystyle\sum_{i\in\mathcal{B}(x_{\mathrm{pos}},h_{\mathrm{MS}})}w^{(i)}\:x_{\mathrm{pos}}^{(i)}}{\displaystyle\sum_{i\in\mathcal{B}(x_{\mathrm{pos}},h_{\mathrm{MS}})}w^{(i)}}-x_{\mathrm{pos}}\right)\label{eq:mean_shift_gradient}
 \end{equation}
 where $c_{d_{\mathrm{pos}}}$ is the volume of the unit ball of $\mathbb{R}^{d_{\mathrm{pos}}}$ and, for $r>0$:
 \begin{equation}
-	\mathcal{B}(y,r)\triangleq\left\{i\in[\![1,N]\!]\:\middle|\:\left\|y^{(i)}-y\right\|_2\leq r\right\}
+	\mathcal{B}(x_{\mathrm{pos}},r)\triangleq\left\{i\in[\![1,N]\!]\:\middle|\:\left\|x_{\mathrm{pos}}^{(i)}-x_{\mathrm{pos}}\right\|_2\leq r\right\}
 \end{equation}
-contains the indices of the particles lying within a distance $r$ of $y$. This set is assumed to be non-empty in \eqref{eq:mean_shift_gradient}.
+contains the indices of the particles within a distance $r$ of $x_{\mathrm{pos}}$. This set is assumed to be non-empty in \eqref{eq:mean_shift_gradient}.
 
-The second factor of \eqref{eq:mean_shift_gradient} points from $y$ towards the weighted barycentre of its neighbourhood, and the first one is a non-negative scalar. The mean-shift vector therefore points in the direction of the density gradient, leading to the following fixed-point iteration:
+The second factor of \eqref{eq:mean_shift_gradient} points from $x_{\mathrm{pos}}$ towards the weighted barycentre of its neighbourhood, and the first one is a non-negative scalar. The mean-shift vector therefore points in the direction of the density gradient, leading to the following fixed-point iteration:
 \begin{equation}
-	\forall n\in\mathbb{N},\:y_{n+1}\triangleq\left.\sum_{i\in\mathcal{B}(y_n,h_{\mathrm{ms}})}w^{(i)}\:y^{(i)}\middle/\sum_{i\in\mathcal{B}(y_n,h_{\mathrm{ms}})}w^{(i)}\right.
+	\forall n\in\mathbb{N},\:x_{\mathrm{pos},n+1}\triangleq\left.\sum_{i\in\mathcal{B}(x_{\mathrm{pos},n},h_{\mathrm{MS}})}w^{(i)}\:x_{\mathrm{pos}}^{(i)}\middle/\sum_{i\in\mathcal{B}(x_{\mathrm{pos},n},h_{\mathrm{MS}})}w^{(i)}\right.\label{eq:MS_fixed_point}
 \end{equation}
-where $y_0\in\mathbb{R}^{d_{\mathrm{pos}}}$ is a given starting point.
+where $x_{\mathrm{pos},0}\in\mathbb{R}^{d_{\mathrm{pos}}}$ is a given starting point.
 
-Each iterate is thus the weighted barycentre of the particles lying within a ball of radius $h_{\mathrm{ms}}$ around the previous one. The iteration seeks a mode of the estimated density, and particles converging to the same mode can be associated with the same cluster \cite{bib:mean-shift-clustering}. In practice, it is started from a subset of the particles, and the resulting modes that are closer than $h_{\mathrm{ms}}/2$ to each other are merged. Each particle is then assigned to the closest mode, as in \eqref{eq:kmeans_assign}.
+This iteration is repeated until convergence of the barycentres, at which point each particle \textbf{TODO: il faudrait mettre des indices sur les barycentres ? + on répète jusqu'à ce que les barycentres ne bougent plus, et on met dans un même cluster toutes les particules de même barycentre. j'aimais bien ma formulation classes d'équivalences de l'article d'EUSIPCO}
 
-Unlike $k$-means, mean shift does not require the number of clusters, which is determined by the bandwidth $h_{\mathrm{ms}}$ instead. Moreover, each iteration costs $\mathcal{O}(N)$ operations per starting point.
+Unlike $k$-means, mean shift does not require the number of clusters, which is determined by the bandwidth $h_{\mathrm{MS}}$ instead. Its computational cost is $\mathcal{O}(N^2T)$, where $T$ is the number of iterations required for \eqref{eq:MS_fixed_point} to converge.
 
 \subsubsection{DBSCAN}
 
-Density-based spatial clustering of applications with noise (DBSCAN) \cite{bib:DBSCAN} also relies on the density of the particle set, but compares it with a threshold instead of searching for its modes. Formally, let $r_{\mathrm{db}}>0$ and $w_{\min}\in[0,1]$. The $i$-th particle is a core particle if the total weight of the particles lying within a distance $r_{\mathrm{db}}$ of it reaches $w_{\min}$:
+Density-based spatial clustering of applications with noise (DBSCAN) \cite{bib:DBSCAN} also relies on the density of the particle set, but compares it with a threshold instead of searching for its modes. Formally, let $r_{\mathrm{DB}}>0$ and $w_{\min}\in[0,1]$. The $i$-th particle is a core particle if the total weight of the particles lying within a distance $r_{\mathrm{DB}}$ of it reaches $w_{\min}$:
 \begin{equation}
-	\sum_{j\in\mathcal{B}\left(y^{(i)},r_{\mathrm{db}}\right)}w^{(j)}\geq w_{\min}
+	\sum_{j\in\mathcal{B}\left(x_{\mathrm{pos}}^{(i)},r_{\mathrm{DB}}\right)}w^{(j)}\geq w_{\min}
 \end{equation}
 
-Two core particles are connected if they can be joined by a chain of core particles, each lying within a distance $r_{\mathrm{db}}$ of the next. This defines an equivalence relation over the core particles, whose classes are the clusters. Every remaining particle lying within a distance $r_{\mathrm{db}}$ of a core particle then joins the cluster of the latter, while the others are labelled as noise and do not belong to any cluster.
+Two core particles are connected if they can be joined by a chain of core particles, each lying within a distance $r_{\mathrm{DB}}$ of the next. This defines an equivalence relation over the core particles, whose classes are the clusters. Every remaining particle lying within a distance $r_{\mathrm{DB}}$ of a core particle then joins the cluster of the latter, while the others are labelled as noise and do not belong to any cluster.
 
-Similarly to mean shift, DBSCAN does not require the number of clusters. Furthermore, its clusters are the connected components of the dense regions of the particle set, and can therefore have an arbitrary shape and extent. Its cost is $\mathcal{O}(N\log N)$ when the neighbourhoods are computed using a spatial index.
+Similarly to mean shift, DBSCAN does not require the number of clusters. Its clusters are the connected components of the dense regions of the particle set, and can therefore have an arbitrary shape and extent. Its cost is $\mathcal{O}(N\log N)$ when the neighbourhoods are computed using a spatial index.
 
 \subsection{Clustered Adaptive Kriging}\label{sec:CAK_PF}
 
@@ -407,7 +412,7 @@ and:
 	\tilde{\mathbf{z}}_{\mathrm{ICAK},k}^{r,(c)}\triangleq\left\{\tilde{z}_i\mid\tilde{x}_i\in\tilde{\mathbf{x}}_{\mathrm{ICAK},k}^{r,(c)}\right\}\label{eq:ICAK_window_z}
 \end{equation}
 
-The $C_k$ windows can be handled in two ways. The first one, called Independent Clustering Adaptive Kriging (ICAK), keeps them separate in order to preserve the locality induced by the clustering step. Every cluster estimates its hyperparameters $\hat{\theta}_k^{(c)}$ on its own window, and the likelihood of a particle of $\mathcal{C}_k^{(c)}$ is computed using that window alone:
+The $C_k$ windows can be handled in two ways. The first one, called Independent Clustering Adaptive Kriging (ICAK) and originally presented in \cite{bib:AK-PF-clustered}, keeps them separate in order to preserve the locality induced by the clustering step. Every cluster estimates its hyperparameters $\hat{\theta}_k^{(c)}$ on its own window, and the likelihood of a particle of $\mathcal{C}_k^{(c)}$ is computed using that window alone:
 \begin{equation}
 	z_k|x_k,\tilde{\mathbf{z}}_{\mathrm{ICAK},k}^{r,(c)}\sim\mathcal{N}\left(\hat{z}_{\mathrm{OK}}\left(x_k,\tilde{\mathbf{x}}_{\mathrm{ICAK},k}^{r,(c)},\tilde{\mathbf{z}}_{\mathrm{ICAK},k}^{r,(c)};\hat{\theta}_k^{(c)}\right),R_{\mathrm{OK}}\left(x_k,\tilde{\mathbf{x}}_{\mathrm{ICAK},k}^{r,(c)};\hat{\theta}_k^{(c)}\right)\right)\label{eq:ICAK_likelihood}
 \end{equation}\textbf{TODO: du coup la vraisemblance dépend du nuage de particules ??? en fait c'était déjà un problème depuis AK, et je pense même entre "hey on a un GP" et "hey en fait on n'a que qqs points"}
@@ -494,27 +499,27 @@ Since the particles of a filter are compared with one another through their weig
 \begin{figure}[!htb]
 	\centering
 	\includegraphics[width=0.7\textwidth]{../../Images/Formes des fenetres.pdf}
-	\caption{}\label{fig:subsampling_windows}
+	\caption{Subsampling windows retained by AK, NNAK and MCAK for the same particle set, drawn in black over the training grid, in grey. The shape of the window for ICAK is identical to that of MCAK, up to union.}\label{fig:subsampling_windows}
 \end{figure}
 
 \begin{figure}[!p]
 	\centering
 	\includegraphics[width=\textwidth]{../../Images/RMSE fenetres par maille.pdf}
-	\caption{}\label{fig:fenetres_RMSE}
+	\caption{Comparative RMSE of the navigation algorithms using AK, NNAK, MCAK and ICAK across the six grid resolutions. The performance of the filter with access to the true map is given as a reference.}\label{fig:fenetres_RMSE}
 \end{figure}
 
 \begin{figure}[!p]
 	\centering
 	\includegraphics[width=\textwidth]{../../Images/NEES fenetres par maille.pdf}
-	\caption{}\label{fig:fenetres_NEES}
+	\caption{Comparative NEES of the navigation algorithms using AK, NNAK, MCAK and ICAK across the six grid resolutions. The shaded area corresponds to that of the previous NEES figures.}\label{fig:fenetres_NEES}
 \end{figure}
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=\textwidth]{../../Images/Convergence fenetres.pdf}
-	\caption{}\label{fig:convergence_fenetres}
+	\caption{Convergence rates of the AK-RPF, NNAK-RPF, MCAK-RPF and ICAK-RPF as a function of grid resolution, using the threshold and the Mahalanobis criteria.}\label{fig:convergence_fenetres}
 \end{figure}
 
 \begin{table}[!htb]
 	\centering\input{include/cout_fenetres.tex}
-	\caption{}\label{tab:cout_fenetres}
+	\caption{Total computational cost, in flops, of the four windowing strategies throughout the mission, for each grid resolution. Each cost is split between kriging, hyperparameters estimation, and clustering step when applicable}\label{tab:cout_fenetres}
 \end{table}

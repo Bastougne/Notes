@@ -97,7 +97,7 @@ which suggests replacing $\mu_{ZX}$ and $\mu_{XX}$ with their empirical counterp
 	\end{equation}
 	which is the solution given by \Cref{th:RKHS_regularisation} for the training points $\mathbf{x}$ and the observations $\psi(\mathbf{z})$. The empirical conditional KME can thus be interpreted as a centred SK estimator, in which $\lambda N$ plays the role of the training noise covariance \cite{bib:conditional-regression}. This interpretation does not require the assumption of \Cref{th:conditional_operator}, which is why the regularised estimator is used when it is not satisfied.
 
-	It must also be noted that, unlike the uniform weights of \Cref{th:KME_MC}, the weights $\mathbf{w}(x)$ depend on $x$, do not necessarily sum to one, and may be negative. In particular, $\hat{\mu}_{Z|x}$ is not the KME of a probability distribution in general.
+	It must also be noted that, unlike the uniform weights of \Cref{th:KME_MC}, the weights $\mathbf{w}(x)$ depend on $x$, do not necessarily sum to one, and may be negative, so that $\hat{\mu}_{Z|x}$ is not the KME of a probability distribution in general.
 \end{remark}
 
 \subsection{Kernel Kalman Filter}
@@ -144,9 +144,9 @@ According to \Cref{th:embedded_model}, the features of the state and of the obse
 
 The kernel Kalman rule circumvents this issue by treating the embedded model as the linear model \eqref{eq:navigation_Kalman} of a Kalman filter, in which $\Phi_x(x_k)$ plays the role of the state, and $\Phi_z(z_k)$ that of the observation. The predicted KME is then corrected by a linear function of the innovation:
 \begin{equation}
-	\Phi_z(z_k)-\mu_{z_k|x_k}\:\mu_{k|k-1}
+	\hat{\mu}_{k|k}=\mu_{k|k-1}+\mathcal{Q}_k\left(\Phi_z(z_k)-\mu_{z_k|x_k}\:\mu_{k|k-1}\right)
 \end{equation}
-whose gain minimises the mean squared norm of the estimation error. Since the differences between the features and their conditional expectations are centred but not Gaussian, the corrected KME is the best linear estimator of $\Phi_x(x_k)$, but does not coincide with $\mu_{k|k}$ in general.
+where the gain $\mathcal{Q}_k$ is the continuous linear operator from $\mathcal{H}_{k_z}$ to $\mathcal{H}_{k_x}$ that minimises the mean squared norm of the estimation error $\Phi_x(x_k)-\hat{\mu}_{k|k}$. Since the differences between the features and their conditional expectations are centred but not Gaussian, the corrected KME $\hat{\mu}_{k|k}$ is the best linear estimator of $\Phi_x(x_k)$, but does not coincide with $\mu_{k|k}$ in general.
 
 In practice, neither $\mu_{x_k|x_{k-1}}$ nor $\mu_{z_k|x_k}$ is known. The KKF estimates them once from a training set of $\tilde{N}\in\mathbb{N}^*$ triples:
 \begin{equation}
@@ -155,6 +155,13 @@ In practice, neither $\mu_{x_k|x_{k-1}}$ nor $\mu_{z_k|x_k}$ is known. The KKF e
 where $\tilde{x}_i$ is the successor of the state $\tilde{x}_i^-$, and $\tilde{z}_i$ is the observation of $\tilde{x}_i$. We let $\tilde{\mathbf{x}}^-$, $\tilde{\mathbf{x}}$ and $\tilde{\mathbf{z}}$ denote the corresponding tuples. The model \eqref{eq:navigation_problem} is thus assumed to be stationary, but does not need to be known.
 
 The two operators are estimated by applying \Cref{th:conditional_KME_MC} to the pairs $\left(\tilde{x}_i^-,\tilde{x}_i\right)$ and $\left(\tilde{x}_i,\tilde{z}_i\right)$ respectively, with $\lambda_x\triangleq\lambda\tilde{N}$. For $\mathbf{w}\in\mathbb{R}^{\tilde{N}}$, the function $\mathbf{w}^\top\Phi_x(\tilde{\mathbf{x}})$ takes the values $k_x\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}\right)\mathbf{w}$ at $\tilde{\mathbf{x}}^-$ and $k_x(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\mathbf{w}$ at $\tilde{\mathbf{x}}$, which gives:
+\begin{equation}
+	\left\{\begin{aligned}
+	\hat{\mu}_{x_k|x_{k-1}}\left(\mathbf{w}^\top\Phi_x(\tilde{\mathbf{x}})\right)&=\left(k_x\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}\right)\mathbf{w}\right)^\top\left(k_x\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)+\lambda_xI_{\tilde{N}}\right)^{-1}\Phi_x(\tilde{\mathbf{x}})\\
+	\hat{\mu}_{z_k|x_k}\left(\mathbf{w}^\top\Phi_x(\tilde{\mathbf{x}})\right)&=\left(k_x(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\mathbf{w}\right)^\top\left(k_x(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda_xI_{\tilde{N}}\right)^{-1}\Phi_z(\tilde{\mathbf{z}})
+	\end{aligned}\right.
+\end{equation}
+which can be rewritten as:
 \begin{equation}
 	\left\{\begin{aligned}
 	\hat{\mu}_{x_k|x_{k-1}}\left(\mathbf{w}^\top\Phi_x(\tilde{\mathbf{x}})\right)&=(T\mathbf{w})^\top\Phi_x(\tilde{\mathbf{x}})\\
@@ -173,19 +180,31 @@ In particular, the set spanned by the features $\Phi_x(\tilde{\mathbf{x}})$, cal
 
 The remaining quantities of the model are obtained as follows:
 \begin{itemize}
-	\item\textbf{Transition residual.} The same computation applied to $\Phi_x\left(\tilde{x}_i^-\right)$ shows that the residual $\Phi_x(\tilde{x}_i)-\hat{\mu}_{x_k|x_{k-1}}\Phi_x\left(\tilde{x}_i^-\right)$ of the $i$-th training triple has for weights the $i$-th column of $-D$, where:
+	\item\textbf{Transition residual.} The values of $\Phi_x\left(\tilde{x}_i^-\right)$ at $\tilde{\mathbf{x}}^-$ form the $i$-th column of $k_x\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)$. According to \Cref{th:conditional_KME_MC}, the image of this feature by the estimated transition operator thus has for weights the $i$-th column of $D+I_{\tilde{N}}$, where:
 	\begin{equation}
 		D\triangleq\left(k_x\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)+\lambda_xI_{\tilde{N}}\right)^{-1}k_x\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)-I_{\tilde{N}}
 	\end{equation}
-	The covariance of the transition residual is then estimated by the empirical second-order moment of these weights:
+	Since $\Phi_x(\tilde{x}_i)$ has for weights the $i$-th column of $I_{\tilde{N}}$, the residual $\Phi_x(\tilde{x}_i)-\hat{\mu}_{x_k|x_{k-1}}\Phi_x\left(\tilde{x}_i^-\right)$ of the $i$-th training triple has for weights the $i$-th column of $-D$. The covariance of the transition residual is then estimated by the empirical second-order moment of these weights:
 	\begin{equation}
 		V\triangleq\frac{1}{\tilde{N}}D\:D^\top
 	\end{equation}
 	\item\textbf{Observation residual.} The covariance of the observation residual is chosen as $\lambda_zI$, where $\lambda_z\in\mathbb{R}_+^*$ and $I$ denotes the identity of $\mathcal{H}_{k_z}$.
-	\item\textbf{Observation.} The feature $\Phi_z(z_k)$ is only used through its inner products with the features $\Phi_z(\tilde{\mathbf{z}})$, \textit{i.e.} through the vector $k_z(\tilde{\mathbf{z}},z_k)$. In these coordinates, the predicted observation $(O\mathbf{w})^\top\Phi_z(\tilde{\mathbf{z}})$ becomes $G^zO\mathbf{w}$, and the covariance of the observation residual becomes $\lambda_zG^z$, where:
+	\item\textbf{Observation.} According to the reproducing property, the inner products of $\psi\in\mathcal{H}_{k_z}$ with the features $\Phi_z(\tilde{\mathbf{z}})$ are its values $\psi(\tilde{\mathbf{z}})$. The predicted observation $(O\mathbf{w})^\top\Phi_z(\tilde{\mathbf{z}})$ belongs to the set spanned by these features, and the covariance of the observation residual is proportional to the identity. The component of $\Phi_z(z_k)$ that is orthogonal to this set is therefore uncorrelated with the other one, and $\Phi_z(z_k)$ is only used through its values at $\tilde{\mathbf{z}}$. By the kernel trick, the observation and its prediction become:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\left(\Phi_z(z_k)\right)(\tilde{\mathbf{z}})&=k_z(\tilde{\mathbf{z}},z_k)\\
+		\left((O\mathbf{w})^\top\Phi_z(\tilde{\mathbf{z}})\right)(\tilde{\mathbf{z}})&=G^zO\mathbf{w}
+		\end{aligned}\right.
+	\end{equation}
+	where:
 	\begin{equation}
 		G^z\triangleq k_z(\tilde{\mathbf{z}},\tilde{\mathbf{z}})
 	\end{equation}
+	Similarly, a residual $r$ of covariance $\lambda_zI$ verifies, for $i,j\in[\![1,\tilde{N}]\!]$:
+	\begin{equation}
+		\mathbb{E}\left[r(\tilde{z}_i)\:r(\tilde{z}_j)\right]=\lambda_z\langle\Phi_z(\tilde{z}_i)\mid\Phi_z(\tilde{z}_j)\rangle_{\mathcal{H}_{k_z}}=\lambda_zk_z(\tilde{z}_i,\tilde{z}_j)
+	\end{equation}
+	and the covariance of the observation residual becomes $\lambda_zG^z$.
 \end{itemize}
 
 The KKF is then the Kalman filter of \Cref{alg:Kalman_filter} applied to the weights, under the substitutions:
@@ -198,7 +217,7 @@ The KKF is then the Kalman filter of \Cref{alg:Kalman_filter} applied to the wei
 \end{equation}
 where $\mathbf{w}_{k|k}\in\mathbb{R}^{\tilde{N}}$ denotes the weights of the corrected KME:
 \begin{equation}
-	\hat{\mu}_{k|k}\triangleq\mathbf{w}_{k|k}^\top\Phi_x(\tilde{\mathbf{x}})
+	\hat{\mu}_{k|k}=\mathbf{w}_{k|k}^\top\Phi_x(\tilde{\mathbf{x}})
 \end{equation}
 and $\Sigma_{k|k}\in\mathcal{S}_{\tilde{N}}^+(\mathbb{R})$ is the covariance of their estimation error. The resulting recursion is given by \Cref{th:KKF}.
 
@@ -217,6 +236,8 @@ and $\Sigma_{k|k}\in\mathcal{S}_{\tilde{N}}^+(\mathbb{R})$ is the covariance of 
 	\end{equation}
 \end{proof}
 
+The KKF is initialised using samples of the initial density $p_0$. By \Cref{th:conditional_KME_MC} applied to the pairs $\left(\tilde{x}_i,\tilde{x}_i\right)$, a sample $x\in\mathbb{R}^{d_x}$ is represented in the dictionary by the weights $\left(k_x(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda_xI_{\tilde{N}}\right)^{-1}k_x(\tilde{\mathbf{x}},x)$, and $\mathbf{w}_{0|0}$ and $\Sigma_{0|0}$ are the empirical mean and covariance of these weights over the samples.
+
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
 	\State{$\mathbf{w}_{k|k-1}=T\:\mathbf{w}_{k-1|k-1}$}\Comment{Weight prediction}
@@ -227,20 +248,24 @@ and $\Sigma_{k|k}\in\mathcal{S}_{\tilde{N}}^+(\mathbb{R})$ is the covariance of 
 	\end{algorithmic}\caption{Kernel Kalman Filter}\label{alg:KKF}
 \end{algorithm}
 
-\begin{remark}[Initialisation of the KKF]
-	The KKF is initialised using samples of the initial density $p_0$. By \Cref{th:conditional_KME_MC} applied to the pairs $\left(\tilde{x}_i,\tilde{x}_i\right)$, the feature of a sample $x\in\mathbb{R}^{d_x}$ is represented in the dictionary by the weights:
-	\begin{equation}
-		\left(k_x(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda_xI_{\tilde{N}}\right)^{-1}k_x(\tilde{\mathbf{x}},x)
-	\end{equation}
-	The initial weights $\mathbf{w}_{0|0}$ and covariance $\Sigma_{0|0}$ are then chosen as the empirical mean and covariance of these weights over the samples.
-\end{remark}
+In particular, the weight correction of \Cref{alg:KKF} shows that the gain $\mathcal{Q}_k$ of the kernel Kalman rule is estimated by the operator:
+\begin{equation}
+	\psi\in\mathcal{H}_{k_z}\mapsto\left(K_k\:\psi(\tilde{\mathbf{z}})\right)^\top\Phi_x(\tilde{\mathbf{x}})
+\end{equation}
 
-\begin{remark}[KKF state estimation]
-	The state is estimated from the corrected KME using \eqref{eq:KME_expectation}. Since the coordinate functions of the state do not belong to $\mathcal{H}_{k_x}$ in general, they are replaced by their regularised least-squares approximations in the dictionary, given by \Cref{th:RKHS_regularisation}. Taking their inner products with $\hat{\mu}_{k|k}$ yields:
-	\begin{equation}
-		\hat{x}_k=\sum_{i=1}^{\tilde{N}}\left[O\:\mathbf{w}_{k|k}\right]_i\:\tilde{x}_i\label{eq:KKF_estimate}
-	\end{equation}
-\end{remark}
+The state is estimated from the corrected KME using \eqref{eq:KME_expectation}. Since the coordinate functions of the state do not belong to $\mathcal{H}_{k_x}$ in general, they are replaced by their regularised least-squares approximations in the dictionary. \Cref{th:RKHS_regularisation} applied to the training points $\tilde{\mathbf{x}}$ and to the $j$-th coordinates $[\tilde{\mathbf{x}}]_j\in\mathbb{R}^{\tilde{N}}$ of the training states, with the same $\lambda$, approximates the $j$-th coordinate function by $a^\top\Phi_x(\tilde{\mathbf{x}})$, with:
+\begin{equation}
+	a\triangleq\left(k_x(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda_xI_{\tilde{N}}\right)^{-1}[\tilde{\mathbf{x}}]_j
+\end{equation}
+
+By the kernel trick, its inner product with $\hat{\mu}_{k|k}$ is:
+\begin{equation}
+	a^\top k_x(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\mathbf{w}_{k|k}=[\tilde{\mathbf{x}}]_j^\top O\:\mathbf{w}_{k|k}
+\end{equation}
+which is the $j$-th coordinate of:
+\begin{equation}
+	\hat{x}_k=\sum_{i=1}^{\tilde{N}}\left[O\:\mathbf{w}_{k|k}\right]_i\:\tilde{x}_i\label{eq:KKF_estimate}
+\end{equation}
 
 \begin{remark}[Cost of the KKF]
 	As for the Kalman filter, the covariances and gains of \Cref{alg:KKF} do not depend on the observations, and can be computed beforehand. Otherwise, the inversion required by the gain costs $\mathcal{O}\left(\tilde{N}^3\right)$ operations per time step.
@@ -293,17 +318,56 @@ The dictionary thus changes at every time step. In particular, the corrected KME
 
 Each iteration of the AKKF is then computed in four steps:
 \begin{itemize}
-	\item\textbf{Embedded prediction.} According to \Cref{th:AKKF_prediction}, the prediction step of \Cref{alg:KKF} is performed with $T_{k-1}$ instead of $T$, and $\frac{1}{N}D_k\:D_k^\top$ instead of $V$. The predicted weights are then associated with the propagated particles $\mathbf{x}_k$. Since $T_{k-1}$ only depends on the particles of time $k-1$, it is applied as soon as $\mathbf{x}_{k-1}^+$ is drawn. This operation is called embedded resampling, and its outputs are denoted by $\mathbf{w}_{k-1}^+$ and $\Sigma_{k-1|k-1}^+$. The particle propagation then leaves the weights unchanged, and only adds the covariance of the residuals.
+	\item\textbf{Embedded prediction.} According to \Cref{th:AKKF_prediction}, the prediction step of \Cref{alg:KKF} is performed with $T_{k-1}$ instead of $T$, and $\frac{1}{N}D_k\:D_k^\top$ instead of $V$. Since $T_{k-1}$ only depends on the particles of time $k-1$, it is applied as soon as $\mathbf{x}_{k-1}^+$ is drawn. This operation is called embedded resampling, and gives:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\mathbf{w}_{k-1}^+&\triangleq T_{k-1}\:\mathbf{w}_{k-1}\\
+		\Sigma_{k-1|k-1}^+&\triangleq T_{k-1}\:\Sigma_{k-1|k-1}\:T_{k-1}^\top
+		\end{aligned}\right.
+	\end{equation}
+
+	The particle propagation then leaves the weights unchanged, and only adds the covariance of the residuals:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\mathbf{w}_{k|k-1}&=\mathbf{w}_{k-1}^+\\
+		\Sigma_{k|k-1}&=\Sigma_{k-1|k-1}^++\frac{1}{N}D_k\:D_k^\top
+		\end{aligned}\right.
+	\end{equation}
+
+	The predicted weights are associated with the propagated particles $\mathbf{x}_k$.
 	\item\textbf{Embedded correction.} The correction step is that of \Cref{alg:KKF}, where the observation operator is estimated from the pairs $\left(x_k^{(i)},z_k^{(i)}\right)$, with the Gram matrix:
 	\begin{equation}
 		G_k^z\triangleq k_z(\mathbf{z}_k,\mathbf{z}_k)
 	\end{equation}
-	Moreover, the matrix $O$ is replaced by the identity. This corresponds to an observation operator estimated without regularisation, which maps the feature of each particle to the feature of its simulated observation.
-	\item\textbf{State estimation.} The estimator \eqref{eq:KKF_estimate} then reduces to the weighted mean $\hat{x}_k$ of the particles, and their weighted covariance $\hat{P}_k$ is obtained similarly. Both are exact when the coordinate functions and their products belong to $\mathcal{H}_{k_x}$, which is the case for a polynomial kernel, and are approximations otherwise.
+
+	Moreover, the matrix $O$ is replaced by the identity. This corresponds to an observation operator estimated without regularisation, which maps the feature of each particle to the feature of its simulated observation. The correction thus becomes:
+	\begin{equation}
+		\left\{\begin{aligned}
+		K_k&=\Sigma_{k|k-1}\left(G_k^z\:\Sigma_{k|k-1}+\lambda_zI_N\right)^{-1}\\
+		\mathbf{w}_k&=\mathbf{w}_{k|k-1}+K_k\left(k_z\left(\mathbf{z}_k,z_k\right)-G_k^z\:\mathbf{w}_{k|k-1}\right)\\
+		\Sigma_{k|k}&=\Sigma_{k|k-1}-K_k\:G_k^z\:\Sigma_{k|k-1}
+		\end{aligned}\right.
+	\end{equation}
+	\item\textbf{State estimation.} The estimator \eqref{eq:KKF_estimate} then reduces to the weighted mean of the particles:
+	\begin{equation}
+		\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}
+	\end{equation}
+
+	Since this estimator is linear in the weights, the covariance $\Sigma_{k|k}$ of their estimation error gives that of the state \cite{bib:kernel-Kalman}:
+	\begin{equation}
+		\hat{P}_k=\sum_{i=1}^N\sum_{j=1}^N\left[\Sigma_{k|k}\right]_{ij}\:x_k^{(i)}\left(x_k^{(j)}\right)^\top
+	\end{equation}
+
+	Both are exact when the coordinate functions belong to $\mathcal{H}_{k_x}$, which is the case for a polynomial kernel, and are approximations otherwise.
 	\item\textbf{Resampling.} The new particles $\mathbf{x}_k^+$ are drawn from $\mathcal{N}\left(\hat{x}_k,\hat{P}_k\right)$.
 \end{itemize}
 
-The AKKF is initialised with particles $\mathbf{x}_0^+$ drawn independently from $p_0$, with $\mathbf{w}_0^+=\frac{1}{N}\mathbf{1}_N$ and $\Sigma_{0|0}^+=\frac{1}{N}I_N$. It is presented by \Cref{alg:AKKF}, where $\mathbf{w}_k$ denotes the corrected weights $\mathbf{w}_{k|k}$. Its pseudo-code includes the state estimation step, since the resampling step depends on it.
+The AKKF is initialised with particles $\mathbf{x}_0^+$ drawn independently from $p_0$, with:
+\begin{equation}
+	\mathbf{w}_0^+=\frac{1}{N}\mathbf{1}_N\quad\text{and}\quad\Sigma_{0|0}^+=\frac{1}{N}I_N
+\end{equation}
+
+It is presented by \Cref{alg:AKKF}, where $\mathbf{w}_k$ denotes the corrected weights $\mathbf{w}_{k|k}$. Its pseudo-code includes the state estimation step, since the resampling step depends on it.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
@@ -314,7 +378,8 @@ The AKKF is initialised with particles $\mathbf{x}_0^+$ drawn independently from
 	\State{$K_k=\Sigma_{k|k-1}\left(G_k^z\:\Sigma_{k|k-1}+\lambda_zI_N\right)^{-1}$}\Comment{Embedded correction}
 	\State{$\mathbf{w}_k=\mathbf{w}_{k-1}^++K_k\left(k_z\left(\mathbf{z}_k,z_k\right)-G_k^z\:\mathbf{w}_{k-1}^+\right)$}
 	\State{$\Sigma_{k|k}=\Sigma_{k|k-1}-K_k\:G_k^z\:\Sigma_{k|k-1}$}
-	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)},\quad\hat{P}_k=\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top$}\Comment{State estimation}
+	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}$}\Comment{State estimation}
+	\State{$\displaystyle\hat{P}_k=\sum_{i=1}^N\sum_{j=1}^N\left[\Sigma_{k|k}\right]_{ij}\:x_k^{(i)}\left(x_k^{(j)}\right)^\top$}
 	\State{$\forall i\in[\![1,N]\!],\:x_k^{+(i)}\sim\mathcal{N}\left(\hat{x}_k,\hat{P}_k\right)$}\Comment{Resampling}
 	\State{$T_k=\left(G_k^x+\lambda_xI_N\right)^{-1}k_x\left(\mathbf{x}_k^+,\mathbf{x}_k\right)$}\Comment{Embedded resampling}
 	\State{$\mathbf{w}_k^+=T_k\:\mathbf{w}_k$}
@@ -324,10 +389,10 @@ The AKKF is initialised with particles $\mathbf{x}_0^+$ drawn independently from
 
 It must be noted that the AKKF only requires samples of the likelihood $p(z_k|x_k)$, and never evaluates it.
 
-\begin{remark}[Weights of either sign]
+\begin{remark}[Sign of the weights]
 	The embedded correction solves a regularised least-squares problem in the feature space, rather than a Bayesian update of a discrete measure. Its weights are thus not constrained to be positive, and the KME they represent is not that of a probability measure in general. While the estimator $\hat{x}_k$ remains well defined, the effective sample size of \cref{sec:particle_filtering} does not, and neither does the resampling criterion based on it. This is why the AKKF resamples at every time step, by drawing a new particle set from a Gaussian distribution.
 
-	Furthermore, $\hat{P}_k$ is not necessarily SPSD when some weights are negative. In this case, it must be corrected before the resampling step, for instance as in \cref{sec:covariance_correction}.
+	Nonetheless, $\hat{P}_k$ is SPSD as soon as $\Sigma_{k|k}$ is, up to the numerical errors addressed in \cref{sec:covariance_correction}.
 \end{remark}
 
 \begin{remark}[Cost of the AKKF]

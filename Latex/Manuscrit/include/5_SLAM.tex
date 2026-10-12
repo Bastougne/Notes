@@ -9,7 +9,7 @@
 
 Throughout \cref{sec:kriging_navigation}, we assumed to have access to at least some prior knowledge of the environment in the form of a sparse and noisy set of training data. Such training points formed the basis on which we were able to reconstruct the observation function using kriging, without which no Bayesian correction could be performed.
 
-In this chapter, we address the navigation problem described by \eqref{eq:navigation_problem} without any prior training data. This situation corresponds to Simultaneous Localisation and Mapping (SLAM), where the environment must be learned while simultaneously estimating the vehicle's position and kinematic state. SLAM is a well-established problem in autonomous navigation. A standard solution is to use exteroceptive sensors, such as a stereo camera, LiDAR, or sonar, which provide information about the surrounding environment beyond the vehicle's immediate vicinity.
+In this chapter, we address the navigation problem described by \eqref{eq:navigation_problem} without any prior training data. This situation corresponds to Simultaneous Localisation and Mapping (SLAM), where the environment must be learnt while simultaneously estimating the vehicle's position and kinematic state. SLAM is a well-established problem in autonomous navigation. A standard solution is to use exteroceptive sensors, such as a stereo camera, LiDAR, or sonar, which provide information about the surrounding environment beyond the vehicle's immediate vicinity.
 
 In our case however, we focus on local sensors, such as a magnetometers or a gravimeters, whose measurements are restricted to the field at the vehicle's current location. They consequently provide no direct information about the neighbouring environment, preventing the evaluation of \textbf{TODO: à finir + il faut dire qu'on peut utiliser une base de fonctions quelconques aussi, cf Camille et son polynôme + partir d'une zon krigée ce serait chouette et ça ferait le lien avec ce qui précède (en ouverture plutôt)}
 
@@ -233,7 +233,8 @@ Two points deserve attention. The correction step draws its simulated observatio
 	\State{$K_k=\Sigma_{k|k-1}\left(G_k^z\:\Sigma_{k|k-1}+\lambda_zI_N\right)^{-1}$}\Comment{Embedded correction}
 	\State{$\mathbf{w}_k=\mathbf{w}_{k-1}^++K_k\left(k_z\left(\mathbf{z}_k,z_k\right)-G_k^z\:\mathbf{w}_{k-1}^+\right)$}
 	\State{$\Sigma_{k|k}=\Sigma_{k|k-1}-K_k\:G_k^z\:\Sigma_{k|k-1}$}
-	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)},\quad\hat{P}_k=\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top$}\Comment{State estimation}
+	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}$}\Comment{State estimation}
+	\State{$\displaystyle\hat{P}_k=\sum_{i=1}^N\sum_{j=1}^N\left[\Sigma_{k|k}\right]_{ij}\:x_k^{(i)}\left(x_k^{(j)}\right)^\top$}
 	\State{Compute $K_k^\alpha$, $\hat{\alpha}_k$ and $P_k^\alpha$ from \eqref{eq:RLS}}\Comment{\textbf{Map update}}
 	\State{$\forall i\in[\![1,N]\!],\:x_k^{+(i)}\sim\mathcal{N}\left(\hat{x}_k,\hat{P}_k\right)$}\Comment{Resampling}
 	\State{$T_k=\left(G_k^x+\lambda_xI_N\right)^{-1}k_x\left(\mathbf{x}_k^+,\mathbf{x}_k\right)$}\Comment{Embedded resampling}
