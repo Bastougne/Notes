@@ -34,9 +34,9 @@ In our scenarios, the observation function describes the measurement of a physic
 
 This chapter is organised as follows:
 \begin{itemize}
-	\item \Cref{sec:kriging_PF} combines \cref{sec:Bayesian_estimation,sec:Gaussian_processes} to create a kriging-based framework for autonomous navigation in a poorly known environment.
-	\item \Cref{sec:AK_PF} discusses non-stationary observation fields, and the necessity of training data selection for kriging.
-	\item \Cref{sec:window_shape} improves upon this framework by adapting the shape of the subsampling window to that of the particle cloud to better capture the non-stationarities of the field.
+	\item\Cref{sec:kriging_PF} combines \cref{sec:Bayesian_estimation,sec:Gaussian_processes} to create a kriging-based framework for autonomous navigation in a poorly known environment.
+	\item\Cref{sec:AK_PF} discusses non-stationary observation fields, and the necessity of training data selection for kriging.
+	\item\Cref{sec:window_shape} improves upon this framework by adapting the shape of the subsampling window to that of the particle cloud to better capture the non-stationarities of the field.
 	\item Finally, \cref{sec:subsampling_error} quantifies the estimation error committed by subsampling the training data used for kriging.
 \end{itemize}
 
@@ -48,9 +48,38 @@ Using \cref{th:kriging_navigation_assumptions}, the likelihood can be expressed 
 \end{equation}
 where $\hat{z}_{\mathrm{K}}$ denotes any of the three kriging estimators, $R_{\mathrm{K}}$ is the corresponding covariance matrix, and $m$ and $g$ are optional arguments depending on the chosen kriging method. In particular, $R_{\mathrm{K}}$ already carries the query noise $R_k$, so it must not be added a second time.
 
-\begin{remark}[Correlated map error]
-	\Cref{eq:kriged_likelihood} is the likelihood of a single observation. However, all observations are measurements of the same unknown field, and the estimation errors committed by kriging at two distinct states are thus correlated. \Cref{th:observation_independence} therefore no longer holds, and using \eqref{eq:kriged_likelihood} at each time step amounts to treating this map error as a white noise. This approximation is accurate when the distance covered during a time step exceeds the correlation length of the map error, and leads to an overconfident filter otherwise. In that case, the map error can be modelled as a Gauss-Markov process along the trajectory, and estimated alongside the state \cite{bib:correlated-map-error}.
-\end{remark}
+The innovation associated with \eqref{eq:kriged_likelihood} combines three contributions:
+\begin{equation}
+	\begin{aligned}
+	z_k-\hat{z}_{\mathrm{K}}(x_k,\tilde{\mathbf{x}},\tilde{\mathbf{z}};m,g)&=h(x_k)-\hat{z}_{\mathrm{K}}(x_k,\tilde{\mathbf{x}},\tilde{\mathbf{z}};m,g)+n_k\\
+	&=\zeta_h(x_k)+\zeta_\varepsilon(x_k)+n_k
+	\end{aligned}
+\end{equation}
+where $\zeta_h(x_k)$ is the error that the kriging estimator would commit from a noise-free training set:
+\begin{equation}
+	\zeta_h:x\in\mathbb{R}^{d_x}\mapsto h(x)-\hat{z}_{\mathrm{K}}\left(x,\tilde{\mathbf{x}},h(\tilde{\mathbf{x}});m,g\right)
+\end{equation}
+and $\zeta_\varepsilon(x_k)$ corresponds to the impact of the training noise:
+\begin{equation}
+	\zeta_\varepsilon:x\in\mathbb{R}^{d_x}\mapsto\hat{z}_{\mathrm{K}}\left(x,\tilde{\mathbf{x}},h(\tilde{\mathbf{x}});m,g\right)-\hat{z}_{\mathrm{K}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}};m,g)
+\end{equation}
+which is linear in $\tilde{\mathbf{z}}-h(\tilde{\mathbf{x}})$, every kriging estimator being affine in its training observations.
+
+While $n_k$ is drawn at each time step, $\zeta_h$ and $\zeta_\varepsilon$ are functions of the position, drawn once with the training data and the field, and fixed throughout the mission.
+
+Given the trajectory, the observations are jointly Gaussian:
+\begin{equation}
+	\mathbf{z}_{1:k}|\mathbf{x}_{1:k},\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{K}}(\mathbf{x}_{1:k},\tilde{\mathbf{x}},\tilde{\mathbf{z}};m,g),\mathbb{V}\left[\zeta_h(\mathbf{x}_{1:k})+\zeta_\varepsilon(\mathbf{x}_{1:k})\right]+\mathbb{V}\left[\mathbf{n}_{1:k}\right]\right)
+\end{equation}
+where $\mathbf{n}_{1:k}\triangleq(n_1,\dots,n_k)$. Since the observation noises are white, $\mathbb{V}\left[\mathbf{n}_{1:k}\right]$ is block diagonal.
+
+However, the off-diagonal blocks of $\mathbb{V}\left[\zeta_h(\mathbf{x}_{1:k})+\zeta_\varepsilon(\mathbf{x}_{1:k})\right]$ correspond to the cross-covariances of the map error between the states at different time steps. Since they are not zero in general, the observations remain dependent even when the states are known, and \Cref{th:observation_independence} no longer holds.
+
+In a particle filter, evaluating \eqref{eq:kriged_likelihood} separately for each particle introduces no approximation, but Applying it independently at each time step, only keeps the diagonal blocks $R_{\mathrm{K}}(x_1,\tilde{\mathbf{x}};g),\dots,R_{\mathrm{K}}(x_k,\tilde{\mathbf{x}};g)$ of the joint covariance along the path of each particle, which amounts to drawing a new map error at every step.
+
+This approximation is accurate when the distance travelled during a single time step exceeds the correlation length of the map error. Otherwise, the same error is counted at several successive steps, which can introduce a systematic bias in the state estimation and make the filter overconfident.
+
+To account for these correlations, the map error can either be modelled as a Gauss-Markov process along the trajectory and appended to the state \cite{bib:correlated-map-error}, or the map reconstruction itself can be updated using observations collected in flight. Both approaches yield conditionally linear-Gaussian models given the trajectory, and can thus be estimated by a Rao-Blackwellised filter, as in \Cref{alg:RBPF}.
 
 \subsection{Choosing the Kriging Method}\label{sec:kriging_method}
 
@@ -123,7 +152,7 @@ is then computed over three subsets:
 \end{equation}
 of the prediction domain, as presented in \Cref{tab:kriging_rmse}.
 
-\begin{table}[!htb]
+\begin{table}[H]
 	\centering\input{include/kriging_rmse.tex}
 	\caption{ARMSE of the five estimators over the three subsets $E_\mathrm{in}$, $E_\mathrm{gap}$, and $E_\mathrm{out}$ of the prediction domain.}\label{tab:kriging_rmse}
 \end{table}
@@ -318,7 +347,7 @@ The filter is an RPF, initialised on a cloud of $N=5000$ particles, drawn around
 \end{equation}
 in the same units, to prevent the particle cloud from being centred on the true initial state. The resampling threshold is fixed to $N_\mathrm{th}=0.5\:N$, and the regularisation coefficient is $\alpha_\mathrm{reg}=0.3$. This scenario is illustrated by \Cref{fig:magnetic_anomaly_map} and summarised by \Cref{tab:scenario}.
 
-\begin{figure}[!htb]
+\begin{figure}[H]
 	\centering\includegraphics[width=\textwidth]{../../Images/Carte anomalie magnetique.pdf}
 	\caption{The magnetic field anomaly used throughout this chapter. The black line represents the overflown trajectory, and the red crosses correspond to the training points on a $7.5$ km-resolution grid. The black dot signals the beginning of the trajectory.}\label{fig:magnetic_anomaly_map}
 \end{figure}

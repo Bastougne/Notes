@@ -153,7 +153,7 @@ and then:
 
 \subsection{Karhunen-Loève Decomposition}
 
-While \Cref{sec:Mercer} uses the eigenpairs of the Mercer operator associated with $k$ to decompose the kernel, they can also be used to represent the process itself. This representation is known as the Karhunen-Loève (KL) decomposition \cite{bib:Karhunen-Loeve} and is presented by \Cref{th:KL}.
+While \cref{sec:Mercer} uses the eigenpairs of the Mercer operator associated with $k$ to decompose the kernel, they can also be used to represent the process itself. This representation is known as the Karhunen-Loève (KL) decomposition \cite{bib:Karhunen-Loeve} and is presented by \Cref{th:KL}.
 
 \begin{proposition}[Karhunen-Loève decomposition]\label{th:KL}
 	Let $f\sim\mathcal{GP}(m,k)$, where $k:\mathcal{U}\times\mathcal{U}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is a continuous SPD kernel, and $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$. Let $(\lambda_i,\psi_i)_{i\in\mathbb{N}^*}$ be the Mercer eigenpairs of \Cref{th:Mercer}. Then, for all $x\in\mathcal{U}$, we have:
@@ -193,7 +193,7 @@ Conversely, the KL decomposition can be used to generate, from a family $(\xi_i)
 	See \cref{sec:proof_KL_converse}.
 \end{proof}
 
-\begin{remark}[Finite-dimensional parametrisation]
+\begin{remark}[Finite-dimensional parametrisation]\label{th:KL_parametrisation}
 	As for \cref{sec:efficient_kriging}, Mercer's theorem can be used to represent the field by a finite approximation. Indeed, for $r_{\mathrm{KL}}\in\mathbb{N}^*$, $\Psi$ defined as in \eqref{eq:reduced_rank_Gram} and:
 	\begin{equation}
 		\alpha\triangleq\begin{bmatrix}\sqrt{\lambda_1}\xi_1&\cdots&\sqrt{\lambda_{r_{\mathrm{KL}}}}\xi_{r_{\mathrm{KL}}}\end{bmatrix}^\top

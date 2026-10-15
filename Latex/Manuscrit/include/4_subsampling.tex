@@ -1,26 +1,76 @@
 \section{Subsampling Error Bounds}\label{sec:subsampling_error}
 
-In this section, we use the setting and notations of \Cref{th:universal_kriging}, of which the ordinary kriging retained in this chapter is the special case $r_{\mathrm{UK}}=1$ and $g_1\equiv1$. In particular, we write:
+In this section, we use the setting and notations of \Cref{th:universal_kriging}, and we recall that ordinary kriging retained in this chapter corresponds to the special case $r_{\mathrm{UK}}=1$ and $g_1\equiv1$. In particular, we write:
 \begin{equation}
 	M(\tilde{\mathbf{x}})\triangleq\left(g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^{-1}
 \end{equation}
 for the covariance of the estimated trend coefficients $\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)$.
 
-The kriging equations can be written in a bordered form, in which the unbiasedness constraints are gathered into the Gram matrix. Formally, let:
+The kriging equations can be written in a block form, in which the unbiasedness constraints are gathered into the Gram matrix. Formally, let:
 \begin{equation}
-	\mathcal{G}(\tilde{\mathbf{x}})\triangleq\begin{bmatrix}G(\tilde{\mathbf{x}})&g(\tilde{\mathbf{x}})\\g(\tilde{\mathbf{x}})^\top&0\end{bmatrix},\qquad\bar{k}(\tilde{\mathbf{x}},x)\triangleq\begin{bmatrix}k(\tilde{\mathbf{x}},x)\\g(x)^\top\end{bmatrix},\qquad\bar{\mathbf{z}}\triangleq\begin{bmatrix}\tilde{\mathbf{z}}\\0\end{bmatrix}
+	\mathcal{G}(\tilde{\mathbf{x}})\triangleq\begin{bmatrix}G(\tilde{\mathbf{x}})&g(\tilde{\mathbf{x}})\\g(\tilde{\mathbf{x}})^\top&0\end{bmatrix},
+	\qquad\bar{k}(\tilde{\mathbf{x}},x)\triangleq\begin{bmatrix}k(\tilde{\mathbf{x}},x)\\g(x)^\top\end{bmatrix},
+	\qquad\bar{\mathbf{z}}\triangleq\begin{bmatrix}\tilde{\mathbf{z}}\\0\end{bmatrix}
 \end{equation}
-be the bordered counterparts of $G(\tilde{\mathbf{x}})$, $k(\tilde{\mathbf{x}},x)$ and $\tilde{\mathbf{z}}$, with $\bar{k}(x,\tilde{\mathbf{x}})\triangleq\bar{k}(\tilde{\mathbf{x}},x)^\top$. The Schur complement of $\mathcal{G}(\tilde{\mathbf{x}})$ with respect to $G(\tilde{\mathbf{x}})$ is $-M(\tilde{\mathbf{x}})^{-1}$, and so $\mathcal{G}(\tilde{\mathbf{x}})$ is invertible by \Cref{th:Schur}. Using the Lagrange multiplier method of \cref{sec:proof_UK}, \eqref{eq:universal_kriging_equations} can then be rewritten as:
+be obtained by appending the trend to $G(\tilde{\mathbf{x}})$, $k(\tilde{\mathbf{x}},x)$ and $\tilde{\mathbf{z}}$, with:
 \begin{equation}
-	\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)=\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}\label{eq:kriging_f}
-\end{equation}
-
-The associated error covariance is:
-\begin{equation}
-	R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)=k(x,x)+R-\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)\label{eq:kriging_R}
+	\bar{k}(x,\tilde{\mathbf{x}})=\bar{k}(\tilde{\mathbf{x}},x)^\top
 \end{equation}
 
-A major limitation of this method is the $\mathcal{O}(\tilde{N}^3d_z^3)$ computational cost, stemming from the inversion of the Gram matrix $G(\tilde{\mathbf{x}})$, or equivalently of $\mathcal{G}(\tilde{\mathbf{x}})$, in both \eqref{eq:kriging_f} and \eqref{eq:kriging_R}. One common approach to mitigate this is to omit certain elements of $\tilde{\mathbf{x}}$ to reduce the size of $G(\tilde{\mathbf{x}})$. This is the principle of the methods presented in \cref{sec:AK_PF,sec:window_shape}. However, this approximation introduces a loss of accuracy in \eqref{eq:kriging_f}. This section quantifies the error induced by such subsampling approximations. We first define two metrics for this error, and express them as functions of residual quantities that describe the information carried by the discarded data alone. We then derive bounds that do not require inverting any matrix of the size of these data.
+\Cref{th:block_kriging} shows that these blocks give universal kriging a form similar to that of simple kriging.
+
+\begin{proposition}[Block form of universal kriging]\label{th:block_kriging}
+	The matrix $\mathcal{G}(\tilde{\mathbf{x}})$ is invertible, the UK estimator and covariance matrix verify:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}\\
+		R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=k(x,x)+R-\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)
+		\end{aligned}\right.
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	For the sake of brevity, the arguments of $G$, $g$ and $M$ are omitted here, all three being taken at $\tilde{\mathbf{x}}$. The Schur complement of $\mathcal{G}(\tilde{\mathbf{x}})$ with respect to $G$ is:
+	\begin{equation}
+		0-g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})=-M^{-1}
+	\end{equation}
+	which is invertible. \Cref{th:Schur} thus applies, and gives:
+	\begin{equation}
+		\mathcal{G}(\tilde{\mathbf{x}})^{-1}=\begin{bmatrix}G^{-1}-G^{-1}g\:M\:g^\top G^{-1}&G^{-1}g\:M\\M\:g^\top G^{-1}&-M\end{bmatrix}
+	\end{equation}
+
+	Using:
+	\begin{equation}
+		\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)=M\:g^\top G^{-1}\tilde{\mathbf{z}}
+	\end{equation}
+	it comes that:
+	\begin{equation}
+		\begin{aligned}
+		\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}&=\begin{bmatrix}k(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}G^{-1}-G^{-1}g\:M\:g^\top G^{-1}&G^{-1}g\:M\\M\:g^\top G^{-1}&-M\end{bmatrix}\begin{bmatrix}\tilde{\mathbf{z}}\\0\end{bmatrix}\\
+		&=\begin{bmatrix}k(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}G^{-1}\left(\tilde{\mathbf{z}}-g\:M\:g^\top G^{-1}\tilde{\mathbf{z}}\right)\\M\:g^\top G^{-1}\tilde{\mathbf{z}}\end{bmatrix}\\
+		&=\begin{bmatrix}k(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}G^{-1}(\tilde{\mathbf{z}}-g\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g))\\\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\end{bmatrix}\\
+		&=k(x,\tilde{\mathbf{x}})\:G^{-1}(\tilde{\mathbf{z}}-g\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g))+g(x)\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\\
+		&=\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)
+		\end{aligned}
+	\end{equation}
+
+	Similarly, writing:\textbf{TODO: reprendre ici}
+	\begin{equation}
+		V(x)\triangleq g(x)-k(x,\tilde{\mathbf{x}})\:G^{-1}g
+	\end{equation}
+	for the weights given to the estimated trend coefficients gives:
+	\begin{equation}
+		\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)=\begin{bmatrix}G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}g\:M\:V(x)^\top\\-M\:V(x)^\top\end{bmatrix}
+	\end{equation}
+	and therefore:
+	\begin{equation}
+		\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)-V(x)\:M\:V(x)^\top
+	\end{equation}
+
+	The subtracted term is $R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)$, as given by \eqref{eq:kriged_universal_mean}, which gives the second line of \eqref{eq:universal_kriging_equations}.
+\end{proof}
+
+A major limitation of this method is the $\mathcal{O}(\tilde{N}^3)$ computational cost, stemming from the inversion of the Gram matrix $G(\tilde{\mathbf{x}})$, or equivalently of $\mathcal{G}(\tilde{\mathbf{x}})$, in \Cref{th:block_kriging}. One common approach to mitigate this is to omit certain elements of $\tilde{\mathbf{x}}$ to reduce the size of $G(\tilde{\mathbf{x}})$. This is the principle of the methods presented in \cref{sec:AK_PF,sec:window_shape}. However, this approximation introduces a loss of accuracy in \eqref{eq:kriging_f}. This section quantifies the error induced by such subsampling approximations. We first define two metrics for this error, and express them as functions of residual quantities that describe the information carried by the discarded data alone. We then derive bounds that do not require inverting any matrix of the size of these data.
 
 \subsection{Subsampling Error Metrics}\label{sec:subsampling_errors}
 
@@ -56,7 +106,7 @@ As stated above, most of the computational cost comes from inverting the Gram ma
 	\mathcal{G}(\tilde{\mathbf{x}})=\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}=\begin{bmatrix}\mathcal{G}(\tilde{\mathbf{x}}^r)&\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)^\top&G(\tilde{\mathbf{x}}^d)\end{bmatrix}\:\:\text{with}\:\:\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\triangleq\begin{bmatrix}k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\g(\tilde{\mathbf{x}}^d)^\top\end{bmatrix}
 \end{equation}
 
-The bordered vectors are reordered accordingly:
+The vectors of \Cref{th:block_kriging} are reordered accordingly:
 \begin{equation}
 	\bar{k}(\tilde{\mathbf{x}},x)=\begin{bmatrix}\bar{k}(\tilde{\mathbf{x}}^r,x)\\k(\tilde{\mathbf{x}}^d,x)\end{bmatrix},\qquad\bar{\mathbf{z}}=\begin{bmatrix}\bar{\mathbf{z}}^r\\\tilde{\mathbf{z}}^d\end{bmatrix},\qquad\bar{\mathbf{z}}^r\triangleq\begin{bmatrix}\tilde{\mathbf{z}}^r\\0\end{bmatrix}
 \end{equation}
@@ -66,7 +116,7 @@ Let $\mathcal{G}_h(\tilde{\mathbf{x}}^r)$ be the hollowed-out Gram matrix, of th
 	\mathcal{G}_h(\tilde{\mathbf{x}}^r)\triangleq\begin{bmatrix}\mathcal{G}(\tilde{\mathbf{x}}^r)&0_{(\tilde{N}^r+r_{\mathrm{UK}})d_z,\tilde{N}^dd_z}\\0_{\tilde{N}^dd_z,(\tilde{N}^r+r_{\mathrm{UK}})d_z}&0_{\tilde{N}^dd_z,\tilde{N}^dd_z}\end{bmatrix}
 \end{equation}
 
-\Cref{th:subsampled_kriging} states that $\mathcal{G}_h(\tilde{\mathbf{x}}^r)$ acts as a substitute for $\mathcal{G}(\tilde{\mathbf{x}})$ in the subsampled case with respect to \eqref{eq:kriging_f} and \eqref{eq:kriging_R}.
+\Cref{th:subsampled_kriging} states that $\mathcal{G}_h(\tilde{\mathbf{x}}^r)$ acts as a substitute for $\mathcal{G}(\tilde{\mathbf{x}})$ in the subsampled case with respect to \Cref{th:block_kriging}.
 
 \begin{proposition}[Subsampled kriging estimator]\label{th:subsampled_kriging}
 	The subsampled kriging estimator verifies:
@@ -80,7 +130,7 @@ Let $\mathcal{G}_h(\tilde{\mathbf{x}}^r)$ be the hollowed-out Gram matrix, of th
 \end{proposition}
 
 \begin{proof}
-	The result comes from applying \eqref{eq:kriging_f} and \eqref{eq:kriging_R} to $\tilde{\mathbf{x}}^r$, and noting that:
+	The result comes from applying \Cref{th:block_kriging} to $\tilde{\mathbf{x}}^r$, and noting that:
 	\begin{equation}
 		\mathcal{G}_h(\tilde{\mathbf{x}}^r)^\dagger=\begin{bmatrix}\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}&0\\0&0\end{bmatrix}
 	\end{equation}
@@ -115,7 +165,7 @@ Although it is not directly used in computations, \Cref{th:subsampled_kriging} f
 		E_r(x)=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)
 	\end{equation}
 
-	In particular, $R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)\succeq R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)$. Subsampling thus increases the covariance reported by the estimator by exactly the covariance of the error it introduces, and so the subsampled estimator is not overconfident.
+	In particular, $R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)\succeq R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)$. Subsampling thus increases the covariance reported by the estimator by exactly the covariance of the error it introduces, and so the subsampled estimator is not overconfident.\textbf{alors oui mais surtout on en déduit que l'erreur du sous échantillonnage est bornée par la covariance du krigeage sur tout le jeu de données}
 \end{remark}
 
 \subsection{Block Inversion and Residual Quantities}
@@ -182,7 +232,7 @@ This decomposition, combined with \Cref{th:errors_inverse_Gram}, reveals two res
 \end{proof}
 
 \begin{proposition}[Link with simple kriging]\label{th:explicit_residuals}
-	Let $k^0_{d|r}$, $S^0_{d|r}$ and $\tilde{\mathbf{z}}^0_{d|r}$ be the residual quantities of simple kriging, obtained by replacing the bordered Gram matrix with the Gram matrix:
+	Let $k^0_{d|r}$, $S^0_{d|r}$ and $\tilde{\mathbf{z}}^0_{d|r}$ be the residual quantities of simple kriging, obtained by replacing $\mathcal{G}(\tilde{\mathbf{x}}^r)$ with the Gram matrix alone:
 	\begin{equation}
 		\left\{\begin{aligned}
 		k^0_{d|r}&:x\in\mathcal{U}\mapsto k(\tilde{\mathbf{x}}^d,x)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G(\tilde{\mathbf{x}}^r)^{-1}k(\tilde{\mathbf{x}}^r,x)\\

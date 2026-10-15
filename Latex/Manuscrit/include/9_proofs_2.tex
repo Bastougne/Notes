@@ -271,30 +271,103 @@ and its covariance is:
 
 \section[Proof of Proposition 3.18]{Proof of \Cref{th:native_RKHS}}\label{sec:proof_native_RKHS}
 
-\textbf{TODO: à relire}
-
-\textbf{The form is well defined.} Let $\mathcal{H}_0$ denote the span of $\{k(x,\cdot),\:x\in\mathcal{U}\}$, and extend $\langle\cdot|\cdot\rangle_{\mathcal{H}_k}$ to it by bilinearity. For $\psi=\sum_{i=1}^na_i\:k(x_i,\cdot)$ and $\varphi=\sum_{j=1}^pb_j\:k(x'_j,\cdot)$ in $\mathcal{H}_0$, it comes that:
+\textbf{Hilbert space.} Let:
 \begin{equation}
-	\langle\psi|\varphi\rangle_{\mathcal{H}_k}=\sum_{i=1}^n\sum_{j=1}^pa_i\:b_j\:k(x_i,x'_j)=\sum_{j=1}^pb_j\:\psi(x'_j)=\sum_{i=1}^na_i\:\varphi(x_i)\label{eq:RKHS_bilinear}
+	\mathcal{E}\triangleq\operatorname{span}\{k(x,\cdot),\:x\in\mathcal{U}\}
 \end{equation}
-The last two expressions involve one of the two functions through its values alone, so neither representation matters and the form is well defined. It is symmetric and bilinear by construction, and positive since $k$ is SPSD. Taking $\varphi=k(x,\cdot)$ gives the reproducing property on $\mathcal{H}_0$:
+and let $\psi,\varphi\in\mathcal{E}$. There exist $n,n'\in\mathbb{N}^*$, $x_1,\dots,x_n,x'_1,\dots,x'_{n'}\in\mathcal{U}$ and $a_1,\dots,a_n,a'_1,\dots,a'_{n'}\in\mathbb{R}$ such that:
 \begin{equation}
-	\forall\psi\in\mathcal{H}_0,\:\forall x\in\mathcal{U},\:\langle\psi|k(x,\cdot)\rangle_{\mathcal{H}_k}=\psi(x)\label{eq:reproducing_generators}
+	\psi=\sum_{i=1}^na_i\:k(x_i,\cdot)\quad\text{and}\quad\varphi=\sum_{j=1}^{n'}a'_j\:k(x'_j,\cdot)
 \end{equation}
 
-\textbf{It is definite.} The Cauchy-Schwarz inequality holds for any positive semi-definite bilinear form, so \eqref{eq:reproducing_generators} bounds every evaluation:
+Since $k$ is symmetric, extending $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$ to $\mathcal{E}$ by bilinearity gives:
 \begin{equation}
-	\forall\psi\in\mathcal{H}_0,\:\forall x\in\mathcal{U},\:|\psi(x)|^2\leq\langle\psi|\psi\rangle_{\mathcal{H}_k}\:k(x,x)\label{eq:RKHS_evaluation_bound}
+	\begin{aligned}
+	\langle\psi\mid\varphi\rangle_{\mathcal{H}_k}&=\sum_{i=1}^n\sum_{j=1}^{n'}a_i\:a'_j\:k(x_i,x'_j)\\
+	&=\sum_{j=1}^{n'}a'_j\:\psi(x'_j)\\
+	&=\sum_{i=1}^na_i\:\varphi(x_i)
+	\end{aligned}
 \end{equation}
-A function of null norm thus vanishes everywhere, and $\langle\cdot|\cdot\rangle_{\mathcal{H}_k}$ is an inner product on $\mathcal{H}_0$.
 
-\textbf{The completion is a space of functions.} \Cref{eq:RKHS_evaluation_bound} makes every Cauchy sequence of $\mathcal{H}_0$ pointwise Cauchy, hence pointwise convergent, which sends each class of the abstract completion to a function on $\mathcal{U}$. That map is injective. Indeed, let $(\psi_n)_n$ be a Cauchy sequence converging pointwise to $0$, let $\varepsilon>0$, and let $N$ be such that $\|\psi_n-\psi_m\|_{\mathcal{H}_k}\leq\varepsilon$ for $n,m\geq N$. Fixing $n\geq N$ and writing $\psi_n=\sum_{i=1}^{n'}a_i\:k(x_i,\cdot)$, \eqref{eq:RKHS_bilinear} gives:
+The second expression only depends on $\psi$ through its values, and the third one only depends on $\varphi$ through its values. The result thus does not depend on the decompositions of $\psi$ and $\varphi$, which are not unique in general, and $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$ is well-defined on $\mathcal{E}$. It is symmetric and bilinear by construction. Since $k$ is SPSD, it is also positive semi-definite:
 \begin{equation}
-	\|\psi_n\|_{\mathcal{H}_k}^2=\langle\psi_n|\psi_n-\psi_m\rangle_{\mathcal{H}_k}+\sum_{i=1}^{n'}a_i\:\psi_m(x_i)
+	\langle\psi\mid\psi\rangle_{\mathcal{H}_k}=\sum_{i=1}^n\sum_{j=1}^na_i\:a_j\:k(x_i,x_j)\geq0
 \end{equation}
-whose first term is at most $\varepsilon\sup_n\|\psi_n\|_{\mathcal{H}_k}$, finite since a Cauchy sequence is bounded, and whose second is a finite sum tending to $0$ with $m$. Hence $\|\psi_n\|_{\mathcal{H}_k}\to0$, and only the zero class is sent to the zero function. Passing \eqref{eq:reproducing_generators} to the limit, $\mathcal{H}_k$ is an RKHS of reproducing kernel $k$.
 
-\textbf{Uniqueness.} Let $\mathcal{H}$ be an RKHS of reproducing kernel $k$. It contains every $k(x,\cdot)$, hence $\mathcal{H}_0$, and its inner product agrees with $\langle\cdot|\cdot\rangle_{\mathcal{H}_k}$ on the generators, hence on $\mathcal{H}_0$ by bilinearity. A function of $\mathcal{H}$ orthogonal to $\mathcal{H}_0$ verifies $\psi(x)=\langle\psi|k(x,\cdot)\rangle_{\mathcal{H}}=0$ for every $x\in\mathcal{U}$, so $\mathcal{H}_0$ is dense in $\mathcal{H}$, which is therefore its completion $\mathcal{H}_k$.
+Let $x\in\mathcal{U}$. In particular, for $\varphi=k(x,\cdot)$, it comes that:
+\begin{equation}
+	\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}_k}=\psi(x)
+\end{equation}
+
+The Cauchy-Schwarz inequality, which holds for any symmetric positive semi-definite bilinear form, thus gives:
+\begin{equation}
+	\begin{aligned}
+	\psi(x)^2&=\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}_k}^2\\
+	&\leq\langle\psi\mid\psi\rangle_{\mathcal{H}_k}\:\langle k(x,\cdot)\mid k(x,\cdot)\rangle_{\mathcal{H}_k}\\
+	&=\langle\psi\mid\psi\rangle_{\mathcal{H}_k}\:k(x,x)
+	\end{aligned}
+\end{equation}
+
+Consequently, $\langle\psi\mid\psi\rangle_{\mathcal{H}_k}=0$ implies $\psi=0$, and $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$ is thus an inner product on $\mathcal{E}$.
+
+The completion $\mathcal{H}_k$ of $\mathcal{E}$ is a Hilbert space in which $\mathcal{E}$ is dense by construction, and its inner product is the extension of $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$ by continuity.
+
+\textbf{Reproducing kernel.} We first identify the elements of $\mathcal{H}_k$ with functions from $\mathcal{U}$ to $\mathbb{R}$. Let $x\in\mathcal{U}$ and $\psi\in\mathcal{H}_k$, and let $(\psi_r)_{r\in\mathbb{N}^*}$ be a sequence of $\mathcal{E}$ that converges to $\psi$ in $\mathcal{H}_k$. By continuity of the inner product, it comes that:
+\begin{equation}
+	\lim_{r\to+\infty}\psi_r(x)=\lim_{r\to+\infty}\langle\psi_r\mid k(x,\cdot)\rangle_{\mathcal{H}_k}=\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}_k}
+\end{equation}
+
+The sequence $(\psi_r)_{r\in\mathbb{N}^*}$ thus converges pointwise to the function:
+\begin{equation}
+	x\in\mathcal{U}\mapsto\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}_k}
+\end{equation}
+which only depends on $\psi$, and coincides with it when $\psi\in\mathcal{E}$. Assume that this function is null. Then $\psi$ is orthogonal to $\mathcal{E}$, and thus:
+\begin{equation}
+	\langle\psi\mid\psi\rangle_{\mathcal{H}_k}=\lim_{r\to+\infty}\langle\psi\mid\psi_r\rangle_{\mathcal{H}_k}=0
+\end{equation}
+so $\psi=0$. By linearity, two elements of $\mathcal{H}_k$ associated with the same function are therefore equal.
+
+Each element of $\mathcal{H}_k$ can thus be identified with its associated function, and $\mathcal{H}_k$ is a Hilbert space of functions from $\mathcal{U}$ to $\mathbb{R}$ which verifies:
+\begin{equation}
+	\forall x\in\mathcal{U},\:\forall\psi\in\mathcal{H}_k,\:\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}_k}=\psi(x)
+\end{equation}
+
+Since $k(x,\cdot)\in\mathcal{H}_k$ for every $x\in\mathcal{U}$, \Cref{th:RKHS} is satisfied, and $\mathcal{H}_k$ is an RKHS whose reproducing kernel is $k$.
+
+\textbf{Uniqueness.} Let $(\mathcal{H},\langle\cdot\mid\cdot\rangle_{\mathcal{H}})$ be an RKHS whose reproducing kernel is $k$. By \Cref{th:RKHS}, it contains $k(x,\cdot)$ for every $x\in\mathcal{U}$, and thus:
+\begin{equation}
+	\mathcal{E}\subseteq\mathcal{H}
+\end{equation}
+
+Let $x,x'\in\mathcal{U}$. The reproducing property of $\mathcal{H}$ gives:
+\begin{equation}
+	\langle k(x,\cdot)\mid k(x',\cdot)\rangle_{\mathcal{H}}=k(x,x')=\langle k(x,\cdot)\mid k(x',\cdot)\rangle_{\mathcal{H}_k}
+\end{equation}
+and the two inner products thus coincide on $\mathcal{E}$.
+
+Let $\psi\in\mathcal{H}$ be orthogonal to $\mathcal{E}$. Then:
+\begin{equation}
+	\psi(x)=\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}}=0
+\end{equation}
+so $\psi=0$, and $\mathcal{E}$ is dense in $\mathcal{H}$.
+
+Let $\psi\in\mathcal{H}$, and let $(\psi_r)_{r\in\mathbb{N}^*}$ be a sequence of $\mathcal{E}$ that converges to $\psi$ in $\mathcal{H}$. Since the two norms coincide on $\mathcal{E}$, $(\psi_r)_{r\in\mathbb{N}^*}$ is a Cauchy sequence of $\mathcal{E}$, which converges to some $\psi'\in\mathcal{H}_k$. By continuity of the two inner products, it comes that:
+\begin{equation}
+	\begin{aligned}
+	\psi(x)&=\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}}\\
+	&=\lim_{r\to+\infty}\langle\psi_r\mid k(x,\cdot)\rangle_{\mathcal{H}}\\
+	&=\lim_{r\to+\infty}\psi_r(x)\\
+	&=\lim_{r\to+\infty}\langle\psi_r\mid k(x,\cdot)\rangle_{\mathcal{H}_k}\\
+	&=\langle\psi'\mid k(x,\cdot)\rangle_{\mathcal{H}_k}\\
+	&=\psi'(x)
+	\end{aligned}
+\end{equation}
+and:
+\begin{equation}
+	\|\psi\|_{\mathcal{H}}=\lim_{r\to+\infty}\|\psi_r\|_{\mathcal{H}}=\lim_{r\to+\infty}\|\psi_r\|_{\mathcal{H}_k}=\|\psi'\|_{\mathcal{H}_k}
+\end{equation}
+
+Therefore, $\psi=\psi'\in\mathcal{H}_k$, and its norm is the same in both spaces. Since $\mathcal{H}$ is complete, exchanging the roles of $\mathcal{H}$ and $\mathcal{H}_k$ gives the converse inclusion. Consequently, $\mathcal{H}=\mathcal{H}_k$, and the two inner products are equal.
 
 \section[Proof of Proposition 4.3]{Proof of \Cref{th:errors_inverse_Gram}}\label{sec:proof_errors_inverse_Gram}
 
@@ -364,10 +437,10 @@ For the sake of brevity, we write $G_r$, $g_r$ and $M_r$ for $G(\tilde{\mathbf{x
 
 Let $x'\in\mathcal{U}$, and let $y$ and $t$ be two matrices with respectively $\tilde{N}^rd_z$ and $r_{\mathrm{UK}}d_z$ rows. It comes that:
 \begin{equation}
-	\bar{k}(x',\tilde{\mathbf{x}}^r)\:\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}\begin{bmatrix}y\\t\end{bmatrix}=k(x',\tilde{\mathbf{x}}^r)\:G_r^{-1}y-U(x')\:M_r\left(t-g_r^\top G_r^{-1}y\right)\label{eq:bordered_product}
+	\bar{k}(x',\tilde{\mathbf{x}}^r)\:\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}\begin{bmatrix}y\\t\end{bmatrix}=k(x',\tilde{\mathbf{x}}^r)\:G_r^{-1}y-U(x')\:M_r\left(t-g_r^\top G_r^{-1}y\right)\label{eq:block_product}
 \end{equation}
 
-The three expressions of \eqref{eq:explicit_residuals} are obtained by applying \eqref{eq:bordered_product} to every element $x'$ of $\tilde{\mathbf{x}}^d$:
+The three expressions of \eqref{eq:explicit_residuals} are obtained by applying \eqref{eq:block_product} to every element $x'$ of $\tilde{\mathbf{x}}^d$:
 \begin{itemize}
 	\item Taking $y=k(\tilde{\mathbf{x}}^r,x)$ and $t=g(x)^\top$ gives the expression of $k_{d|r}(x)$, since $t-g_r^\top G_r^{-1}y$ is then equal to $U(x)^\top$.
 	\item Taking the columns of $k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)$ and of $g(\tilde{\mathbf{x}}^d)^\top$ for $y$ and $t$ gives the expression of $S_{d|r}=D-B^\top A^{-1}B$ in the same way.

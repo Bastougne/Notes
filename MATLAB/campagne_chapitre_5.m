@@ -111,6 +111,10 @@ par.slam.r_kl    = 225;          % rang de la base de Laplace du RBPF. Mesuré :
                                  % la résolution de la carte près, donc presque la même
                                  % covariance. Ce ne serait plus le RBPF exact.
 par.slam.r_rff   = 500;          % features du RFF de l'AKKF, celui de l'article
+par.slam.rff_par_essai = true;   % les fréquences du RFF sont retirées à chaque essai, pour
+                                 % qu'un résultat ne tienne pas à la chance d'un tirage —
+                                 % un balayage de r_rff en dépendrait directement. À false,
+                                 % une seule base par lot, comme la campagne A du 27/09.
 par.slam.marge   = 25e3;         % m, marge entre le vol et le bord du domaine de Dirichlet,
                                  % où toute la base s'annule. Trois longueurs de
                                  % corrélation : en deçà le champ reconstruit est tiré vers
@@ -134,6 +138,16 @@ par.akkf.lambda_x  = 0.1;            % régularisations du code de référence
 par.akkf.lambda_z  = 0.1;
 par.akkf.oubli     = 0.995;          % facteur d'oubli du RLS
 par.akkf.echelle_p = 1e2;            % covariance initiale des coefficients de carte
+
+% LES VARIANTES À L'ESSAI (2026-10-14), contre la sur-confiance de l'AKKF (NEES de 30 à 40
+% sur la boucle) et contre une carte apprise comme si la position était exacte. Les valeurs
+% ci-dessous sont neutres et rendent l'algorithme du chapitre.
+par.akkf.gonflement   = 1;           % facteur appliqué à P_hat avant le rééchantillonnage
+par.akkf.cov_etat     = 0;           % 0 : (X - xb) C (X - xb)' ; 1 : dispersion pondérée
+par.akkf.entree_carte = 0;           % entrée du RLS. 0 : l'estimée ; 1 : les features
+                                     % moyennées sous N(x_hat, P_hat) ; 2 : leur moyenne
+                                     % pondérée sur le nuage ; 3 : l'estimée prédite, qui n'a
+                                     % pas encore lu l'observation
 
 % Le relevé n'est lu que par la borne 'ok'. Les valeurs sont celles du chapitre 4.
 par.krig.jitter       = 0.30;
@@ -386,10 +400,11 @@ for m = 1:nM
     kind = par.compare.methodes{m};
     t0   = tic;
 
-    % La base est tirée une fois par méthode et non par essai : les fréquences du RFF sont
-    % un choix d'algorithme, pas un aléa de mission, et les refaire à chaque essai
-    % mélangerait leur variance à celle du filtre. La campagne B, qui balaie le rang, est
-    % l'endroit où cette variance se mesure.
+    % La base de Laplace est déterministe et se construit une fois. Celle du RFF est un
+    % tirage : elle est refaite à chaque essai (par.slam.rff_par_essai), après le bruit
+    % d'observation pour que z_obs reste le même d'une méthode à l'autre, et sa variance
+    % entre alors dans celle des essais. Celle tirée ici ne sert plus qu'à l'affichage, et
+    % aux lots qui demandent une base unique.
     switch kind
         case 'rbpf',     base = sl.base('laplace', par, domaine);
         case 'akkf',     base = sl.base('rff', par, domaine);
@@ -403,6 +418,9 @@ for m = 1:nM
     for r = 1:par.mc.n_runs
         rng(par.run.seed + r);
         z_obs = z_true - par.slam.moyenne + par.sigma_obs * randn(n_iter, 1);
+        if strcmp(kind, 'akkf') && par.slam.rff_par_essai
+            base = sl.base('rff', par, domaine);
+        end
 
         if isempty(base)
             % Les bornes du chapitre 4 lisent le champ non centré : leur modèle porte la

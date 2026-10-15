@@ -38,6 +38,9 @@
 
 \usepackage{amsmath,amsthm,amsfonts,amssymb,bbm,thmtools} % packages de maths
 \usepackage{algorithm,algpseudocode} % packages d'info
+\usepackage[section]{placeins} % un flottant ne depasse pas le titre suivant
+\let\soussection\subsection % meme barriere au niveau des sous-sections
+\renewcommand{\subsection}{\FloatBarrier\soussection}
 
 \makeatletter
 \let\loa@origchapter\@chapter % espace vertical inter-chapitres dans la liste des algorithmes

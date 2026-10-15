@@ -409,6 +409,14 @@ function out = run_akkf(base, z_obs, scen, opt)
     lam_x = opt.akkf.lambda_x;
     lam_z = opt.akkf.lambda_z;
 
+    % LES VARIANTES À L'ESSAI (2026-10-14), toutes neutres par défaut : un facteur sur P_hat
+    % avant le rééchantillonnage, la dispersion pondérée des particules à la place de
+    % (X - xb) C (X - xb)', et trois autres entrées pour le RLS de la carte. Voir
+    % campagne_chapitre_5 pour leur sens.
+    gonfl  = valeur_option(opt.akkf, 'gonflement', 1);
+    cov_et = valeur_option(opt.akkf, 'cov_etat', 0);
+    entree = valeur_option(opt.akkf, 'entree_carte', 0);
+
     X  = scen.x_true(:, 1) + Lp * randn(d_x, 1) + Lp * randn(d_x, n);
     Xp = X;                                                  % le nuage de proposition
     Gp = gram(Xp ./ ech_x, Xp ./ ech_x, opt.akkf.gamma_x);
@@ -436,25 +444,49 @@ function out = run_akkf(base, z_obs, scen, opt)
         gz    = gram(z_sim, z_obs(k), ech_z);
 
         K = C / (Gz * C + lam_z * eye(n));
+        w_pred = w;                              % les poids prédits, pour l'entrée 3 de la carte
         w = w + K * (gz - Gz * w);
         C = C - K * Gz * C;
 
-        x_hat = X * w;
+        % LES DEUX MOMENTS SONT LUS PAR RAPPORT À LA MOYENNE DU NUAGE, ce que le code de
+        % référence ne fait pas — il écrit X w et X C X'. Les poids sortent d'un problème de
+        % moindres carrés régularisés : rien ne les fait sommer à un, pas plus que les
+        % colonnes de C, initialisée à I/N, ne somment à zéro. X w porte donc une erreur
+        % égale à (1 - sum(w)) fois la distance à l'origine, et X C X' le moment d'ordre
+        % deux NON centré. Sur un champ où les coordonnées valent quelques unités cela
+        % passe inaperçu ; sur une carte où elles valent cent kilomètres pour une échelle
+        % de noyau d'un kilomètre, l'estimée est tirée vers l'origine et la covariance
+        % déclarée au premier pas vaut (100 km)^2. Centrer la covariance seule, sur X w,
+        % ne suffit pas : la campagne A du 27 septembre a perdu ses cent essais ainsi.
+        % Lus par rapport à la moyenne du nuage, les deux moments ne dépendent plus de
+        % l'origine du repère, et P_hat rend la dispersion que le NEES du chapitre 4 mesure.
+        xb    = mean(X, 2);
+        Xc    = X - xb;
+        x_hat = xb + Xc * w;
+        if cov_et == 1
+            Dx    = X - x_hat;                   % la dispersion pondérée, poids signés
+            P_hat = symetriser((Dx .* w') * Dx');
+        else
+            P_hat = symetriser(Xc * C * Xc');
+        end
+        P_hat = gonfl * P_hat;
 
-        % LE NUAGE EST CENTRÉ AVANT DE FORMER LA COVARIANCE, ce que le code de référence
-        % ne fait pas — il écrit X C X'. Les deux coïncident tant que les colonnes de C
-        % somment à zéro, ce qu'impose la contrainte sur les poids, mais C est initialisée
-        % à I/N qui ne la vérifie pas : X C X' vaut alors le moment d'ordre deux NON
-        % centré, soit la position quadratique moyenne. Sur un champ où les coordonnées
-        % valent quelques unités cela passe inaperçu ; sur une carte où elles valent cent
-        % kilomètres, la covariance déclarée au premier pas vaut (100 km)^2 et le nuage
-        % retiré à partir d'elle couvre la carte entière. Centrer rend à P_hat la
-        % dispersion du nuage, qui est aussi ce que le NEES du chapitre 4 mesure.
-        Xc    = X - x_hat;
-        P_hat = symetriser(Xc * C * Xc');
-
-        % La carte, par moindres carrés récursifs sur (estimée, observation réelle).
-        phi = base.eval(x_hat(1:2));
+        % La carte, par moindres carrés récursifs sur (entrée, observation réelle). L'entrée
+        % est l'estimée par défaut ; les variantes la rendent incertaine, ou la prennent
+        % avant que la correction ait lu z_k.
+        switch entree
+            case 1      % espérance des features sous N(x_hat, P_hat), forme close du RFF
+                Pp  = P_hat(1:2, 1:2);
+                phi = base.eval(x_hat(1:2)) .* exp(-0.5 * sum(base.W .* (Pp * base.W), 1))';
+            case 2      % moyenne pondérée des features sur le nuage, lue autour de leur moyenne
+                Psi = base.eval(X(1:2, :));
+                pb  = mean(Psi, 2);
+                phi = pb + (Psi - pb) * w;
+            case 3      % l'estimée prédite, qui ne dépend pas de z_k
+                phi = base.eval(xb(1:2) + Xc(1:2, :) * w_pred);
+            otherwise
+                phi = base.eval(x_hat(1:2));
+        end
         g   = Pa * phi / (opt.akkf.oubli + phi' * Pa * phi);
         alpha = alpha + g * (z_obs(k) - phi' * alpha);
         Pa    = (Pa - g * phi' * Pa) / opt.akkf.oubli;
@@ -478,6 +510,15 @@ function out = run_akkf(base, z_obs, scen, opt)
     out.alpha  = alpha;
     out.h_eval = base.eval(opt.P_eval)' * alpha;
     out.n_eff  = NaN;                        % sans objet : les poids ne sont pas des masses
+end
+
+function v = valeur_option(s, champ, defaut)
+% Un champ de structure, ou sa valeur par défaut s'il est absent.
+    if isfield(s, champ)
+        v = s.(champ);
+    else
+        v = defaut;
+    end
 end
 
 function G = gram(A, B, ech)
