@@ -1,4 +1,4 @@
-\section[Proof of Proposition 3.11]{Proof of \Cref{th:covariance_operator}}\label{sec:proof_Mercer_operator}
+\section[Proof of Proposition 3.15]{Proof of \Cref{th:covariance_operator}}\label{sec:proof_Mercer_operator}
 
 As $\mathcal{U}$ is compact and $k$ continuous, $k$ is bounded on $\mathcal{U}\times\mathcal{U}$, and $\mathcal{K}$ is compact.
 
@@ -46,7 +46,7 @@ Finally, recall that the set of continuous functions of $\mathcal{U}$ is dense i
 \end{equation}
 the inequality \eqref{eq:fKf_geq0} extends to all $\phi\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$.
 
-\section[Proof of Proposition 3.12]{Proof of \Cref{th:Mercer}}\label{sec:proof_Mercer}
+\section[Proof of Proposition 3.16]{Proof of \Cref{th:Mercer}}\label{sec:proof_Mercer}
 
 By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$. The spectral theorem \cite{bib:spectral-theorem} thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing.
 
@@ -97,7 +97,7 @@ whose Gram matrices have rank at most $r_0$ and are thus singular at any $n$ dis
 	\lambda_1\geq\lambda_2\geq\cdots>0
 \end{equation}
 
-\section[Proof of Proposition 3.14]{Proof of \Cref{th:reduced_rank_kriging}}\label{sec:proof_reduced_rank_kriging}
+\section[Proof of Proposition 3.18]{Proof of \Cref{th:reduced_rank_kriging}}\label{sec:proof_reduced_rank_kriging}
 
 As \eqref{eq:reduced_rank_Gram} is a rank $r_{\mathrm{KL}}$ perturbation of $A\triangleq I_{\tilde{N}}\otimes\tilde{R}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{N}d_z\times\tilde{N}d_z$ inversion of $G(\tilde{\mathbf{x}})$ to an $r_{\mathrm{KL}}\times r_{\mathrm{KL}}$ one:
 \begin{equation}
@@ -156,7 +156,7 @@ is SPD, as the sum of the SPSD matrix $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{
 \end{equation}
 is thus well-defined and continuous, and extends to $\sigma=0$ when $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})\succ0$, \textit{i.e.} when $\Psi(\tilde{\mathbf{x}})$ has full column rank. As $\hat{z}_{\mathrm{SK}}$ and $R_{\mathrm{SK}}$ depend on $\sigma$ only through this inverse and an explicit factor $\sigma^2$, both expressions remain valid at $\sigma=0$ under this condition.
 
-\section[Proof of Proposition 3.15]{Proof of \Cref{th:KL}}\label{sec:proof_KL}
+\section[Proof of Proposition 3.19]{Proof of \Cref{th:KL}}\label{sec:proof_KL}
 
 Let $i\in\mathbb{N}^*$. Since $\psi_i$ is bounded on the compact $\mathcal{U}$, Tonelli's theorem \cite{bib:Tonelli} and the continuity of $k$ give:
 \begin{equation}
@@ -216,7 +216,7 @@ By Mercer's theorem, this last sum is the tail of:
 \end{equation}
 and therefore converges to 0. The partial sums thus converge to $f$ in mean square, uniformly over $\mathcal{U}$.
 
-\section[Proof of Proposition 3.16]{Proof of \Cref{th:KL_converse}}\label{sec:proof_KL_converse}
+\section[Proof of Proposition 3.20]{Proof of \Cref{th:KL_converse}}\label{sec:proof_KL_converse}
 
 For $r\in\mathbb{N}^*$, let:
 \begin{equation}
@@ -269,7 +269,7 @@ and its covariance is:
 	\end{aligned}
 \end{equation}
 
-\section[Proof of Proposition 3.18]{Proof of \Cref{th:native_RKHS}}\label{sec:proof_native_RKHS}
+\section[Proof of Proposition 3.22]{Proof of \Cref{th:native_RKHS}}\label{sec:proof_native_RKHS}
 
 \textbf{Hilbert space.} Let:
 \begin{equation}
@@ -369,9 +369,10 @@ and:
 
 Therefore, $\psi=\psi'\in\mathcal{H}_k$, and its norm is the same in both spaces. Since $\mathcal{H}$ is complete, exchanging the roles of $\mathcal{H}$ and $\mathcal{H}_k$ gives the converse inclusion. Consequently, $\mathcal{H}=\mathcal{H}_k$, and the two inner products are equal.
 
-\section[Proof of Proposition 4.3]{Proof of \Cref{th:errors_inverse_Gram}}\label{sec:proof_errors_inverse_Gram}
+\begin{comment}
+\section[Proof of Proposition 4.4]{Proof of \Cref{th:errors_inverse_Gram}}\label{sec:proof_errors_inverse_Gram}
 
-As established in \cref{sec:proof_UK}, the weight matrix $W$ of \eqref{eq:kriging_f} and the Lagrange multiplier $\xi$ of the unbiasedness constraints verify:
+As established in \cref{sec:proof_UK}, the weight matrix $W$ of the UK estimator and the Lagrange multiplier $\xi$ of the unbiasedness constraints verify:
 \begin{equation}
 	\mathcal{G}(\tilde{\mathbf{x}})\begin{bmatrix}W\\\xi\end{bmatrix}=\bar{k}(\tilde{\mathbf{x}},x)
 \end{equation}
@@ -396,7 +397,7 @@ Therefore, $e_{\tilde{\mathbf{x}}}$ is uncorrelated with every linear combinatio
 Thus:
 \begin{equation}
 	\begin{aligned}
-	E_r(x)&=\mathbb{E}\left[\left(e_{\tilde{\mathbf{x}}^r}-e_{\tilde{\mathbf{x}}}\right)\left(e_{\tilde{\mathbf{x}}^r}-e_{\tilde{\mathbf{x}}}\right)^\top\right]\\
+	e_r(x)&=\mathbb{E}\left[\left(e_{\tilde{\mathbf{x}}^r}-e_{\tilde{\mathbf{x}}}\right)\left(e_{\tilde{\mathbf{x}}^r}-e_{\tilde{\mathbf{x}}}\right)^\top\right]\\
 	&=\mathbb{E}\left[e_{\tilde{\mathbf{x}}^r}e_{\tilde{\mathbf{x}}^r}^\top\right]+\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}}^\top\right]-\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}^r}^\top\right]-\mathbb{E}\left[e_{\tilde{\mathbf{x}}^r}e_{\tilde{\mathbf{x}}}^\top\right]
 	\end{aligned}
 \end{equation}
@@ -408,13 +409,13 @@ Since both interpolators are unbiased, their difference is such a linear combina
 
 The last two terms are thus both equal to $\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}}^\top\right]$. Moreover, the second moments of the errors of unbiased interpolators are their covariances. Therefore:
 \begin{equation}
-	E_r(x)=\mathbb{E}\left[e_{\tilde{\mathbf{x}}^r}e_{\tilde{\mathbf{x}}^r}^\top\right]-\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}}^\top\right]=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)
+	e_r(x)=\mathbb{E}\left[e_{\tilde{\mathbf{x}}^r}e_{\tilde{\mathbf{x}}^r}^\top\right]-\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}}^\top\right]=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)
 \end{equation}
 
 Using \Cref{th:subsampled_kriging} yields:
 \begin{equation}
 	\begin{aligned}
-	E_r(x)&=\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)-\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}_h(\tilde{\mathbf{x}}^r)^\dagger\:\bar{k}(\tilde{\mathbf{x}},x)\\
+	e_r(x)&=\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)-\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}_h(\tilde{\mathbf{x}}^r)^\dagger\:\bar{k}(\tilde{\mathbf{x}},x)\\
 	&=\bar{k}(x,\tilde{\mathbf{x}})\:\mathfrak{D}_G\bar{k}(\tilde{\mathbf{x}},x)
 	\end{aligned}
 \end{equation}
@@ -428,39 +429,71 @@ For $e_f(x)$, direct calculations give:
 	\end{aligned}
 \end{equation}
 
-\section[Proof of Proposition 4.6]{Proof of \Cref{th:explicit_residuals}}\label{sec:proof_explicit_residuals}
+\end{comment}
 
-For the sake of brevity, we write $G_r$, $g_r$ and $M_r$ for $G(\tilde{\mathbf{x}}^r)$, $g(\tilde{\mathbf{x}}^r)$ and $M(\tilde{\mathbf{x}}^r)$. By \Cref{th:Schur}, the inverse of $A=\mathcal{G}(\tilde{\mathbf{x}}^r)$ is:
+\section[Proof of Proposition 4.5]{Proof of \Cref{th:explicit_residuals}}\label{sec:proof_explicit_residuals}
+
+For the sake of brevity, we write $G_r$, $g_r$, $M_r$ and $\hat{m}_r$ for $G(\tilde{\mathbf{x}}^r)$, $g(\tilde{\mathbf{x}}^r)$, $M(\tilde{\mathbf{x}}^r)$ and $\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$. As in the proof of \Cref{th:block_kriging}, applied to $\tilde{\mathbf{x}}^r$, we have:
 \begin{equation}
-	\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}=\begin{bmatrix}G_r^{-1}-G_r^{-1}g_r\:M_r\:g_r^\top G_r^{-1}&G_r^{-1}g_r\:M_r\\M_r\:g_r^\top G_r^{-1}&-M_r\end{bmatrix}
+	\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}\bar{k}(\tilde{\mathbf{x}}^r,x)=\begin{bmatrix}G_r^{-1}k(\tilde{\mathbf{x}}^r,x)+G_r^{-1}g_r\:M_r\:U(x)^\top\\-M_r\:U(x)^\top\end{bmatrix}
+\end{equation}
+and thus, by \Cref{th:residual_covariance_function}:
+\begin{equation}
+	\begin{aligned}
+	k_{d|r}(x)&=k(\tilde{\mathbf{x}}^d,x)-\bar{k}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\begin{bmatrix}G_r^{-1}k(\tilde{\mathbf{x}}^r,x)+G_r^{-1}g_r\:M_r\:U(x)^\top\\-M_r\:U(x)^\top\end{bmatrix}\\
+	&=k(\tilde{\mathbf{x}}^d,x)-\begin{bmatrix}k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)&g(\tilde{\mathbf{x}}^d)\end{bmatrix}\begin{bmatrix}G_r^{-1}k(\tilde{\mathbf{x}}^r,x)+G_r^{-1}g_r\:M_r\:U(x)^\top\\-M_r\:U(x)^\top\end{bmatrix}\\
+	&=k(\tilde{\mathbf{x}}^d,x)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}k(\tilde{\mathbf{x}}^r,x)+\left(g(\tilde{\mathbf{x}}^d)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}g_r\right)M_r\:U(x)^\top\\
+	&=k^0_{d|r}(x)+U(\tilde{\mathbf{x}}^d)\:M_r\:U(x)^\top
+	\end{aligned}
 \end{equation}
 
-Let $x'\in\mathcal{U}$, and let $y$ and $t$ be two matrices with respectively $\tilde{N}^rd_z$ and $r_{\mathrm{UK}}d_z$ rows. It comes that:
+Applying the same computation to the columns of $\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)$ yields:
 \begin{equation}
-	\bar{k}(x',\tilde{\mathbf{x}}^r)\:\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}\begin{bmatrix}y\\t\end{bmatrix}=k(x',\tilde{\mathbf{x}}^r)\:G_r^{-1}y-U(x')\:M_r\left(t-g_r^\top G_r^{-1}y\right)\label{eq:block_product}
+	\begin{aligned}
+	S_{d|r}&=G(\tilde{\mathbf{x}}^d)-\bar{k}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\
+	&=G(\tilde{\mathbf{x}}^d)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)+U(\tilde{\mathbf{x}}^d)\:M_r\:U(\tilde{\mathbf{x}}^d)^\top\\
+	&=S^0_{d|r}+U(\tilde{\mathbf{x}}^d)\:M_r\:U(\tilde{\mathbf{x}}^d)^\top
+	\end{aligned}
 \end{equation}
 
-The three expressions of \eqref{eq:explicit_residuals} are obtained by applying \eqref{eq:block_product} to every element $x'$ of $\tilde{\mathbf{x}}^d$:
-\begin{itemize}
-	\item Taking $y=k(\tilde{\mathbf{x}}^r,x)$ and $t=g(x)^\top$ gives the expression of $k_{d|r}(x)$, since $t-g_r^\top G_r^{-1}y$ is then equal to $U(x)^\top$.
-	\item Taking the columns of $k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)$ and of $g(\tilde{\mathbf{x}}^d)^\top$ for $y$ and $t$ gives the expression of $S_{d|r}=D-B^\top A^{-1}B$ in the same way.
-	\item Taking $y=\tilde{\mathbf{z}}^r$ and $t=0$ gives the expression of $\tilde{\mathbf{z}}_{d|r}$, since $g_r^\top G_r^{-1}\tilde{\mathbf{z}}^r=M_r^{-1}\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$.
-\end{itemize}
+Moreover, \Cref{th:residual_observation_vector} and \Cref{th:universal_kriging} give:
+\begin{equation}
+	\begin{aligned}
+	\tilde{\mathbf{z}}_{d|r}&=\tilde{\mathbf{z}}^d-\hat{z}_{\mathrm{UK}}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)\\
+	&=\tilde{\mathbf{z}}^d-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}\left(\tilde{\mathbf{z}}^r-g_r\:\hat{m}_r\right)-g(\tilde{\mathbf{x}}^d)\:\hat{m}_r\\
+	&=\tilde{\mathbf{z}}^d-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}\tilde{\mathbf{z}}^r-\left(g(\tilde{\mathbf{x}}^d)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}g_r\right)\hat{m}_r\\
+	&=\tilde{\mathbf{z}}^0_{d|r}-U(\tilde{\mathbf{x}}^d)\:\hat{m}_r
+	\end{aligned}
+\end{equation}
 
-Similarly, $S^0_{d|r}$ is the Schur complement of $G(\tilde{\mathbf{x}})$ with respect to $G_r$, and \Cref{th:Schur} gives:
+Since $S^0_{d|r}$ is SPD, it is invertible, and \Cref{th:Schur} gives:
 \begin{equation}
 	G(\tilde{\mathbf{x}})^{-1}=\begin{bmatrix}G_r^{-1}&0\\0&0\end{bmatrix}+\begin{bmatrix}-G_r^{-1}k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\I_{\tilde{N}^dd_z}\end{bmatrix}\left(S^0_{d|r}\right)^{-1}\begin{bmatrix}-G_r^{-1}k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\I_{\tilde{N}^dd_z}\end{bmatrix}^\top
 \end{equation}
 
-Multiplying this expression by $g(\tilde{\mathbf{x}})^\top$ on the left and by $g(\tilde{\mathbf{x}})$ on the right yields:
+Splitting $g(\tilde{\mathbf{x}})$ in the same way gives:
 \begin{equation}
-	g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})=g_r^\top G_r^{-1}g_r+U(\tilde{\mathbf{x}}^d)^\top\left(S^0_{d|r}\right)^{-1}U(\tilde{\mathbf{x}}^d)
+	\begin{bmatrix}-G_r^{-1}k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\I_{\tilde{N}^dd_z}\end{bmatrix}^\top g(\tilde{\mathbf{x}})=\begin{bmatrix}-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}&I_{\tilde{N}^dd_z}\end{bmatrix}\begin{bmatrix}g_r\\g(\tilde{\mathbf{x}}^d)\end{bmatrix}=U(\tilde{\mathbf{x}}^d)
 \end{equation}
-which is exactly \eqref{eq:trend_information}.
+and so:
+\begin{equation}
+	\begin{aligned}
+	M(\tilde{\mathbf{x}})^{-1}&=g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\\
+	&=g_r^\top G_r^{-1}g_r+U(\tilde{\mathbf{x}}^d)^\top\left(S^0_{d|r}\right)^{-1}U(\tilde{\mathbf{x}}^d)\\
+	&=M_r^{-1}+U(\tilde{\mathbf{x}}^d)^\top\left(S^0_{d|r}\right)^{-1}U(\tilde{\mathbf{x}}^d)
+	\end{aligned}
+\end{equation}
 
-Finally, $S^0_{d|r}$ is SPD as the Schur complement of the SPD matrix $G(\tilde{\mathbf{x}})$ with respect to $G_r$ \cite{bib:matrix-analysis}. Since $U(\tilde{\mathbf{x}}^d)\:M_r\:U(\tilde{\mathbf{x}}^d)^\top\succeq0$, $S_{d|r}$ is thus SPD as well. Moreover, adding $g(\tilde{\mathbf{x}})\:\beta_0$ to the observations adds $U(\tilde{\mathbf{x}}^d)\:\beta_0$ to $\tilde{\mathbf{z}}^0_{d|r}$ and $\beta_0$ to $\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$, which leaves $\tilde{\mathbf{z}}_{d|r}$ unchanged.
+Finally, adding $g(\tilde{\mathbf{x}})\:\beta_0$ to the observations replaces $\tilde{\mathbf{z}}^r$ and $\tilde{\mathbf{z}}^d$ with $\tilde{\mathbf{z}}^r+g_r\:\beta_0$ and $\tilde{\mathbf{z}}^d+g(\tilde{\mathbf{x}}^d)\:\beta_0$ respectively. Since $M_r^{-1}=g_r^\top G_r^{-1}g_r$, the estimated trend coefficients $\hat{m}_r=M_r\:g_r^\top G_r^{-1}\tilde{\mathbf{z}}^r$ become $\hat{m}_r+\beta_0$, and the third identity gives the new residual observation vector:
+\begin{equation}
+	\begin{aligned}
+	&\tilde{\mathbf{z}}^d+g(\tilde{\mathbf{x}}^d)\:\beta_0-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}\left(\tilde{\mathbf{z}}^r+g_r\:\beta_0\right)-U(\tilde{\mathbf{x}}^d)\left(\hat{m}_r+\beta_0\right)\\
+	&\qquad=\tilde{\mathbf{z}}^0_{d|r}+U(\tilde{\mathbf{x}}^d)\:\beta_0-U(\tilde{\mathbf{x}}^d)\:\hat{m}_r-U(\tilde{\mathbf{x}}^d)\:\beta_0\\
+	&\qquad=\tilde{\mathbf{z}}_{d|r}
+	\end{aligned}
+\end{equation}
 
-\section[Proof of Propositions 4.10 and 4.11]{Proof of \Cref{th:split_bound,th:computable_bound}}\label{sec:proof_split_bound}
+\section[Proof of Propositions 4.8 and 4.9]{Proof of \Cref{th:split_bound,th:computable_bound}}\label{sec:proof_split_bound}
 
 For the sake of brevity, we write $M$, $M_r$ and $U_d$ for $M(\tilde{\mathbf{x}})$, $M(\tilde{\mathbf{x}}^r)$ and $U(\tilde{\mathbf{x}}^d)$. By \Cref{th:explicit_residuals}, we have:
 \begin{equation}
@@ -471,7 +504,7 @@ For the sake of brevity, we write $M$, $M_r$ and $U_d$ for $M(\tilde{\mathbf{x}}
 \end{equation}
 and thus $\|\cdot\|_{S_{d|r}}\leq\|\cdot\|_{S^0_{d|r}}$. Applying the triangle inequality to \Cref{th:errors_euclidean} gives:
 \begin{equation}
-	e_r(x)\leq\|k^0_{d|r}(x)\|_{S^0_{d|r}}+\left\|U_d\:M_r\:U(x)^\top\right\|_{S_{d|r}}\label{eq:split_triangle}
+	\sigma_r(x)\leq\|k^0_{d|r}(x)\|_{S^0_{d|r}}+\left\|U_d\:M_r\:U(x)^\top\right\|_{S_{d|r}}\label{eq:split_triangle}
 \end{equation}
 with equality when $k^0_{d|r}(x)=0$.
 
@@ -515,7 +548,7 @@ Consequently, we have:
 \end{equation}
 where the second inequality follows from \eqref{eq:trend_information}. Since the inversion reverses the order of SPD matrices, applying these inequalities to \Cref{th:split_bound} concludes the proof.
 
-\section[Proof of Proposition 4.13]{Proof of \Cref{th:entrywise_residual}}\label{sec:proof_entrywise}
+\section[Proof of Proposition 4.11]{Proof of \Cref{th:entrywise_residual}}\label{sec:proof_entrywise}
 
 Let $N(K)$ denote the matrix of the operator norms of the blocks of a matrix $K$, and let $v$ be a vector whose blocks have Euclidean norms gathered in $u$. Since $\|Kv\|_2\leq\|N(K)\:u\|_2$, it comes that:
 \begin{equation}

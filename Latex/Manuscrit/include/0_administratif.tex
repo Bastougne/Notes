@@ -265,7 +265,7 @@
 	\lignetoc{$D,D_k$}{Residual weights of the embedded transition}
 	\lignetoc{$\mathfrak{D}_G$}{Gram inverse difference matrix}
 	\lignetoc{$\det$}{Determinant of a matrix}
-	\lignetoc{$e_r,e_f,E_r$}{Subsampling errors and error covariance}
+	\lignetoc{$e_r,e_f,\sigma_r$}{Subsampling errors and largest standard deviation}
 	\lignetoc{$\mathbb{E}[\cdot]$, $\mathbb{E}_p[\cdot]$}{Expectation, subscript: under the law $p$}
 	\lignetoc{$\exp$}{Exponential function}
 	\lignetoc{$f_k,f_k^l,f_k^n,\overline{f}_k^l$}{Evolution functions}
@@ -273,16 +273,16 @@
 	\lignetoc{$g,g_l$}{Trend functions}
 	\lignetoc{$\mathcal{GP}(m,k)$}{Gaussian process}
 	\lignetoc{$G,G_\theta$}{Gram matrix}
-	\lignetoc{$\mathcal{G},\mathcal{G}_h$}{Bordered and hollowed-out Gram matrices}
+	\lignetoc{$\mathcal{G},\bar{k},\bar{\mathbf{z}}$}{Gram matrix, covariances and observations in block form}
 	\lignetoc{$h_k$}{Observation function}
 	\lignetoc{$H_k$}{Observation matrix}
 	\lignetoc{$I,I_n$}{Identity matrix, subscript: of size $n$}
 	\lignetoc{$\mathbf{1}_n$}{Vector of ones of size $n$}
 	\lignetoc{$J_f$}{Jacobian matrix of a function $f$}
-	\lignetoc{$k(\cdot,\cdot),k_{\mathrm{SE}},k_\nu,k_{\mathrm{sep}},k_{\mathrm{MS}},k_B,k_{r_{\mathrm{KL}}}$}{Covariance kernels}
+	\lignetoc{$k(\cdot,\cdot),k_{\mathrm{SE}},k_\nu,k_{\mathrm{sep}},k_{\mathrm{MS}},k_B,k_{|\mathrm{old}},k_{\mathrm{UK}|\mathrm{old}},k_{|r},k_{r_{\mathrm{KL}}}$}{Covariance kernels}
 	\lignetoc{$K,K_h,K_{\mathrm{Epa}},K_{\mathrm{Gauss}}$}{Regularisation kernels}
 	\lignetoc{$K_\nu$}{Modified Bessel function of the second kind}
-	\lignetoc{$k_{d|r},\tilde{\mathbf{z}}_{d|r},S_{d|r}$}{Residual covariance function, observation vector and Schur complement}
+	\lignetoc{$k_{d|r},\tilde{\mathbf{z}}_{d|r},S_{d|r}$}{Residual covariance function, observation vector and its covariance}
 	\lignetoc{$K_k$}{Kalman gain}
 	\lignetoc{$\mathcal{K},\mathcal{K}_{r_{\mathrm{KL}}}$}{Mercer operator and its reduced-rank truncation}
 	\lignetoc{$\mathcal{L}^0(E,F),\mathcal{L}^p(E,F)$}{Sets of measurable and $p$-integrable functions from $E$ to $F$}
@@ -334,12 +334,14 @@
 	\lignetoc{$x_k,x_k^n,x_k^l,\mathbf{x}_{0:k}$}{System states and trajectory}
 	\lignetoc{$\mathbf{x},\mathbf{x}',\tilde{\mathbf{x}},\tilde{\mathbf{x}}_k^r$}{Input tuples, training inputs and their retained subset}
 	\lignetoc{$\tilde{\mathbf{x}}^-$}{Training states preceding $\tilde{\mathbf{x}}$}
+	\lignetoc{$\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{x}}_{\mathrm{new}}$}{Previous and new batches of training inputs}
 	\lignetoc{$x_k^{(i)}$}{Particle}
 	\lignetoc{$\mathbf{x}_k,\mathbf{x}_k^+,\mathbf{z}_k$}{Propagated and resampled particle sets, simulated observations}
 	\lignetoc{$x_{k|k-1},x_{k|k},\hat{x}_k$}{Predicted, corrected and estimated state}
 	\lignetoc{$y_k$}{Innovation vector}
 	\lignetoc{$z_k,\mathbf{z}_{1:k}$}{Observation vector and sequence}
 	\lignetoc{$z,\tilde{\mathbf{z}}$}{Query and training observations}
+	\lignetoc{$\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}},S_{\mathrm{new}|\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}},S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$}{Innovation of a new batch of observations and its covariance, superscript: for universal kriging}
 	\lignetoc{$\hat{z},\hat{z}_{\mathrm{SK}},\hat{z}_{\mathrm{OK}},\hat{z}_{\mathrm{UK}},\hat{z}_{\mathrm{K}}$}{Kriging estimators}
 \end{section_titre}
 

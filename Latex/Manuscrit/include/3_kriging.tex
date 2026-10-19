@@ -332,10 +332,6 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	\Cref{th:ordinary_simple_kriging_link} is the special case $r_{\mathrm{UK}}=1$, $g_1\equiv1$ of this reading, where the estimated mean function is constant.
 \end{remark}
 
-\begin{remark}[Kriging with a coarse model]
-	Universal kriging is particularly relevant when a coarse model of the field is available, such as a polynomial trend \cite{bib:UK-surrogate} or a simplified reference model \cite{bib:KED-geomagnetic}. In the simplest case, setting $r_{\mathrm{UK}}=1$, and choosing $g_1$ as this model amounts to kriging the discrepancy between the field and its approximation. Universal kriging can then be viewed as correcting the approximation, rather than reconstructing the field entirely from the observations.
-\end{remark}
-
 \begin{remark}[Cost of estimating the mean]
 	In addition to the $\mathcal{O}(\tilde{N}^3)$ cost of inverting $G(\tilde{\mathbf{x}})$, and the $\mathcal{O}(\tilde{N}^2)$ required to query the simple kriging model, universal kriging incurs an additional cost to estimate the mean. This can be decomposed into an $\mathcal{O}(r_{\mathrm{UK}}\tilde{N}^2+r_{\mathrm{UK}}^2\tilde{N}+r_{\mathrm{UK}}^3)$ computation of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, and an additional $\mathcal{O}(r_{\mathrm{UK}}\tilde{N}+r_{\mathrm{UK}}^2)$ per query to compute the estimated mean and covariance matrix.
 
@@ -370,37 +366,164 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	See \cref{sec:proof_vague_prior}.
 \end{proof}
 
-\begin{comment}
-\subsection{Sequential Kriging Estimation}
+The kriging equations can be written in a block form, in which the unbiasedness constraints are gathered into the Gram matrix. Formally, let:
+\begin{equation}
+	\mathcal{G}(\tilde{\mathbf{x}})\triangleq\begin{bmatrix}G(\tilde{\mathbf{x}})&g(\tilde{\mathbf{x}})\\g(\tilde{\mathbf{x}})^\top&0\end{bmatrix},
+	\qquad\bar{k}(\tilde{\mathbf{x}},x)\triangleq\begin{bmatrix}k(\tilde{\mathbf{x}},x)\\g(x)^\top\end{bmatrix},
+	\qquad\bar{\mathbf{z}}\triangleq\begin{bmatrix}\tilde{\mathbf{z}}\\0\end{bmatrix}
+\end{equation}
+be obtained by appending the trend to $G(\tilde{\mathbf{x}})$, $k(\tilde{\mathbf{x}},x)$ and $\tilde{\mathbf{z}}$, with:
+\begin{equation}
+	\bar{k}(x,\tilde{\mathbf{x}})=\bar{k}(\tilde{\mathbf{x}},x)^\top
+\end{equation}
 
-\textbf{TODO: à reprendre}
+Finally, \Cref{th:block_kriging} shows that these blocks give universal kriging a form similar to that of simple kriging \cite{bib:dual-kriging}.
 
-So far, we have assumed that the training points were all available simultaneously, but that may not be the case in real-time navigation scenarios. For example, we might only be given training data by batch at each time step. In this section, we present a sequential formulation of kriging, and we derive ...
-
-Kriging so far assumes the training set to be given once and for all. When observations arrive by batches, as they do along a trajectory, refactorising $G(\tilde{\mathbf{x}})$ at every batch is wasteful, since the previous estimate already summarises the data it was built from. \Cref{th:kriging_update} gives the corresponding update, and \Cref{th:universal_kriging_update} shows that the same formula serves the three estimators.
-
-\begin{proposition}[Sequential kriging update]\label{th:kriging_update}
-	Let $\tilde{\mathbf{x}}_{\mathrm{new}}\in\mathcal{U}^{\tilde{N}_{\mathrm{new}}}$ be a batch of new training points, disjoint from $\tilde{\mathbf{x}}$, and $\tilde{\mathbf{z}}_{\mathrm{new}}$ their observations. Writing $\hat{z}$ and $R$ for the SK estimator and covariance built on $\tilde{\mathbf{x}}$ alone, their updates read:
+\begin{proposition}[Block form of universal kriging]\label{th:block_kriging}
+	Assume that $g(\tilde{\mathbf{x}})$ has full column rank. The matrix $\mathcal{G}(\tilde{\mathbf{x}})$ is invertible, and the UK estimator and covariance matrix verify:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{new}}(x)&=\hat{z}(x)+R(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:R(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
-		R_{\mathrm{new}}(x)&=R(x)-R(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:R(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}R(\tilde{\mathbf{x}}_{\mathrm{new}},x)
-		\end{aligned}\right.\label{eq:kriging_update}
+		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}\\
+		R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=k(x,x)+R-\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)
+		\end{aligned}\right.
 	\end{equation}
-	where $R(\cdot,\cdot)$ denotes the error cross-covariance of the current estimator between two points.
 \end{proposition}
 
-\begin{remark}[A Kalman correction in disguise]
-	\Cref{eq:kriging_update} is the correction step of \Cref{alg:Kalman_filter}, with $R(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{new}})$ in the role of the innovation covariance and $\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}(\tilde{\mathbf{x}}_{\mathrm{new}})$ in that of the innovation. This is expected, since \Cref{th:simple_kriging_conditional} reads kriging as a Gaussian conditioning, and conditioning on a batch at once or on the union of two batches must agree.
+\begin{proof}
+	See \cref{sec:proof_block_kriging}.
+\end{proof}
 
-	The cross-covariance term is what makes the update correct, and it is precisely what an earlier formulation omitted \cite{bib:kriging-update-incorrect}. Dropping it amounts to assuming $R(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{new}})$ diagonal, that is, new observations conditionally independent given the old ones. Measurements collected a few metres apart along a trajectory are the opposite of that \cite{bib:kriging-update}.
+\subsection{Sequential Kriging Estimation}
+
+So far, we have assumed that the training points were all available simultaneously, but that may not be the case in real-time navigation scenarios. For example, we might only be given training data by batch at each time step. In this section, we present a sequential formulation of kriging, and we derive the update of the estimator and of its error covariance when a new batch of training data becomes available.
+
+Formally, let the training data be split into the previous ones and a new batch of $\tilde{N}_{\mathrm{new}}\in\mathbb{N}^*$ points:
+\begin{equation}
+	\tilde{\mathbf{x}}=\left(\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{x}}_{\mathrm{new}}\right),\qquad\tilde{\mathbf{z}}=\begin{bmatrix}\tilde{\mathbf{z}}_{\mathrm{old}}\\\tilde{\mathbf{z}}_{\mathrm{new}}\end{bmatrix}
+\end{equation}
+
+\Cref{th:conditional_GP} extends \Cref{th:simple_kriging_conditional} to the whole process, by showing that $f$ conditioned on $\tilde{\mathbf{z}}_{\mathrm{old}}$ is still a GP, whose mean is the SK estimator built on $\tilde{\mathbf{x}}_{\mathrm{old}}$.
+
+\begin{proposition}[Conditional Gaussian process]\label{th:conditional_GP}
+	Let $k_{|\mathrm{old}}$ be the conditional kernel:
+	\begin{equation}
+		k_{|\mathrm{old}}:x,x'\mapsto k(x,x')-k(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:G(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}k(\tilde{\mathbf{x}}_{\mathrm{old}},x')\label{eq:conditional_kernel}
+	\end{equation}
+
+	Then:
+	\begin{equation}
+		f\mid\tilde{\mathbf{z}}_{\mathrm{old}}\sim\mathcal{GP}\left(\hat{z}_{\mathrm{SK}}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m),k_{|\mathrm{old}}\right)
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	Let $n\in\mathbb{N}^*$ and $\mathbf{x}\in\mathcal{U}^n$. \Cref{th:simple_kriging_conditional} applied with $R=0$ gives:
+	\begin{equation}
+		f(\mathbf{x})\mid\tilde{\mathbf{z}}_{\mathrm{old}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m),R_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}})\right)
+	\end{equation}
+	where:
+	\begin{equation}
+		\begin{aligned}
+		R_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}})&=k(\mathbf{x},\mathbf{x})-k(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}})\:G(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}k(\tilde{\mathbf{x}}_{\mathrm{old}},\mathbf{x})\\
+		&=k_{|\mathrm{old}}(\mathbf{x},\mathbf{x})
+		\end{aligned}
+	\end{equation}
+
+	Every finite linear combination of the values of $f$ conditioned on $\tilde{\mathbf{z}}_{\mathrm{old}}$ is thus Gaussian, and \Cref{th:GP_definition} concludes the proof.
+\end{proof}
+
+By the chain rule, the density of $z$ given $\tilde{\mathbf{z}}$ reads:
+\begin{equation}
+	p(z|\tilde{\mathbf{z}})=\frac{p(z,\tilde{\mathbf{z}}_{\mathrm{new}}|\tilde{\mathbf{z}}_{\mathrm{old}})}{p(\tilde{\mathbf{z}}_{\mathrm{new}}|\tilde{\mathbf{z}}_{\mathrm{old}})}
+\end{equation}
+
+Conditioning on $\tilde{\mathbf{z}}$ thus amounts to conditioning on $\tilde{\mathbf{z}}_{\mathrm{old}}$, then on $\tilde{\mathbf{z}}_{\mathrm{new}}$, \textit{i.e.}:
+\begin{equation}
+	z|\tilde{\mathbf{z}}=(z|\tilde{\mathbf{z}}_{\mathrm{old}})|\tilde{\mathbf{z}}_{\mathrm{new}}
+\end{equation}
+
+In particular, this means that the new batch can be incorporated by kriging the GP defined in \Cref{th:conditional_GP} with the new observations $\tilde{\mathbf{z}}_{\mathrm{new}}$, as shown by \Cref{th:kriging_update} \cite{bib:kriging-update}.
+
+\begin{proposition}[Sequential simple kriging update]\label{th:kriging_update}
+	Let $\hat{z}_{\mathrm{SK}|\mathrm{old}}$ and $R_{\mathrm{SK}|\mathrm{old}}$ denote the SK estimator and error covariance of \Cref{th:simple_kriging}, taken under $k_{|\mathrm{old}}$ rather than $k$, and let:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}&\triangleq\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathrm{SK}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m)\\
+		S_{\mathrm{new}|\mathrm{old}}&\triangleq k_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{new}})+I_{\tilde{N}_{\mathrm{new}}}\otimes\tilde{R}
+		\end{aligned}\right.
+	\end{equation}
+	be the innovation of the new observations and its covariance. Then:
+	\begin{equation}
+		\begin{aligned}
+		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=\hat{z}_{\mathrm{SK}|\mathrm{old}}\left(x,\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{z}}_{\mathrm{new}},\hat{z}_{\mathrm{SK}}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m)\right)\\
+		&=\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m)+k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}
+		\end{aligned}
+	\end{equation}
+	and:
+	\begin{equation}
+		\begin{aligned}
+		R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&=R_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\\
+		&=R_{\mathrm{SK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}})-k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}k_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
+		\end{aligned}
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	For the sake of brevity, we write $\hat{z}_{\mathrm{old}}$ for $\hat{z}_{\mathrm{SK}}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m)$. Since the joint covariance of $(z,\tilde{\mathbf{z}})$ is SPD, \Cref{th:Gaussian_conditioning} states that the covariance of $(z,\tilde{\mathbf{z}}_{\mathrm{new}})$ given $\tilde{\mathbf{z}}_{\mathrm{old}}$ is also SPD. Applying \Cref{th:simple_kriging_conditional} to the GP of \Cref{th:conditional_GP}, observed at $\tilde{\mathbf{x}}_{\mathrm{new}}$ with noises independent of $f$ and $\tilde{\mathbf{z}}_{\mathrm{old}}$, thus gives:
+	\begin{equation}
+		z|\tilde{\mathbf{z}}=(z|\tilde{\mathbf{z}}_{\mathrm{old}})|\tilde{\mathbf{z}}_{\mathrm{new}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{z}}_{\mathrm{new}},\hat{z}_{\mathrm{old}}),R_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\right)
+	\end{equation}
+
+	By \Cref{th:simple_kriging_conditional} applied to $\tilde{\mathbf{x}}$, the mean and covariance of this distribution are also $\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)$ and $R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})$. Moreover, $S_{\mathrm{new}|\mathrm{old}}$ is the Gram matrix of $\tilde{\mathbf{x}}_{\mathrm{new}}$ under $k_{|\mathrm{old}}$, and \Cref{th:simple_kriging} gives:
+	\begin{equation}
+		\begin{aligned}
+		\hat{z}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{z}}_{\mathrm{new}},\hat{z}_{\mathrm{old}})&=\hat{z}_{\mathrm{old}}(x)+k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
+		&=\hat{z}_{\mathrm{old}}(x)+k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}
+		\end{aligned}
+	\end{equation}
+	and:
+	\begin{equation}
+		\begin{aligned}
+		R_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})&=k_{|\mathrm{old}}(x,x)+R-k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}k_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)\\
+		&=R_{\mathrm{SK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}})-k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}k_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
+		\end{aligned}
+	\end{equation}
+\end{proof}
+
+\begin{remark}[Link with the Kalman filter]
+	\Cref{th:kriging_update} takes the form of the correction step of \Cref{alg:Kalman_filter}, with $\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}$ as the innovation, $S_{\mathrm{new}|\mathrm{old}}$ as its covariance, and $k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}$ as the gain.
 \end{remark}
 
-\begin{remark}[One update for the three estimators]\label{th:universal_kriging_update}
-	\Cref{eq:kriging_update} involves the current estimator and its error covariance, never the Gram matrix. It therefore applies unchanged to ordinary and universal kriging, which \Cref{th:kriging_vague_prior} reads as simple kriging under an augmented kernel. Only the covariance fed to the update changes, from $R_{\mathrm{SK}}$ to $R_{\mathrm{OK}}$ or $R_{\mathrm{UK}}$.
+Finally, \Cref{th:universal_kriging_update} extends \Cref{th:kriging_update} to universal kriging, and thus to ordinary kriging, by passing to the limit of the vague trend prior of \Cref{th:kriging_vague_prior}. It uses the blocks $\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})$ and $\bar{k}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}})$ of \Cref{th:block_kriging} to give the UK conditional kernel the same form as \eqref{eq:conditional_kernel}.
 
-	Two differences survive this unification. The UK estimator is undefined until $g(\tilde{\mathbf{x}})$ has full column rank, so the recursion needs a first batch of at least $r_{\mathrm{UK}}$ points, where simple kriging accepts any number. And the vague limit is not to be implemented by substituting the augmented kernel, so that the trend coefficients are carried explicitly rather than dissolved into $R_{\mathrm{UK}}$.
-\end{remark}
+\begin{proposition}[Sequential universal kriging update]\label{th:universal_kriging_update}
+	Assume that $g(\tilde{\mathbf{x}}_{\mathrm{old}})$ has full column rank, and let $k_{\mathrm{UK}|\mathrm{old}}$ be the UK conditional kernel:
+	\begin{equation}
+		k_{\mathrm{UK}|\mathrm{old}}:x,x'\mapsto k(x,x')-\bar{k}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},x')
+	\end{equation}
+	and let:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}&\triangleq\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},g)\\
+		S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}&\triangleq k_{\mathrm{UK}|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{new}})+I_{\tilde{N}_{\mathrm{new}}}\otimes\tilde{R}
+		\end{aligned}\right.
+	\end{equation}
+	be the UK innovation of the new observations and its covariance. Then:
+	\begin{equation}
+		\left\{\begin{aligned}
+		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},g)+k_{\mathrm{UK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\left(S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}\right)^{-1}\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}\\
+		R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},g)-k_{\mathrm{UK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\left(S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}\right)^{-1}k_{\mathrm{UK}|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
+		\end{aligned}\right.
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	See \cref{sec:proof_UK_update}.
+\end{proof}
+
+Compared with \Cref{th:kriging_update}, the conditional kernel thus also accounts for the estimation of the trend from $\tilde{\mathbf{x}}_{\mathrm{old}}$. However, the UK estimator is only defined once $g(\tilde{\mathbf{x}}_{\mathrm{old}})$ has full column rank, so that the first batch must contain at least $r_{\mathrm{UK}}$ training points, whereas simple kriging accepts any number.
+
+\begin{comment}
 
 What such a recursion carries is the pair $\left(\hat{m}_{\mathrm{UK}},M\right)$, where $M$ is the matrix inverted in \eqref{eq:kriged_universal_mean}. That matrix is the error covariance of the coefficients themselves, $R_{\hat{m}_{\mathrm{UK}}}$ being only its image at a query point. Writing $U_{\mathrm{new}}$ for the factor of \eqref{eq:kriged_universal_mean} evaluated at the new points:
 \begin{equation}

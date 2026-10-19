@@ -382,14 +382,14 @@ Let $x,x'\in\mathcal{U}$. The mean of $f$ can thus be computed by decomposing:
 By independence of $f-g\:\beta$ and $\beta$, it follows that:
 \begin{equation}
 	\begin{aligned}
-	\mathbb{E}\left[f(x)\:f(x')^\top\right]&=\mathbb{E}\left[(f(x)-g(x)\:\beta)(f(x')-g(x')\:\beta)^\top\right]+g(x)^\top\:\mathbb{E}\left[\beta\:\beta^\top\right]g(x')+\\
-	&\qquad\mathbb{E}\left[(f(x)-g(x)\:\beta)\:\beta^\top\right]g(x')^\top+g(x')\:\mathbb{E}\left[\beta\:(f(x)-g(x)\:\beta)^\top\right]\\
+	\mathbb{E}\left[f(x)\:f(x')^\top\right]&=\mathbb{E}\left[(f(x)-g(x)\:\beta)(f(x')-g(x')\:\beta)^\top\right]+g(x)\:\mathbb{E}\left[\beta\:\beta^\top\right]g(x')^\top+\\
+	&\qquad\mathbb{E}\left[(f(x)-g(x)\:\beta)\:\beta^\top\right]g(x')^\top+g(x)\:\mathbb{E}\left[\beta\:(f(x')-g(x')\:\beta)^\top\right]\\
 	&=k(x,x')+g(x)\:B\:g(x')^\top+0+0\\
 	&=k_B(x,x')
 	\end{aligned}
 \end{equation}
 
-As a linear combiantion of the jointly Gaussian distributions $f-g\:\beta$ and $\beta$, we finally have:
+As a linear combination of the jointly Gaussian distributions $f-g\:\beta$ and $\beta$, we finally have:
 \begin{equation}
 	f\sim\mathcal{GP}(0,k_B)
 \end{equation}
@@ -479,7 +479,7 @@ For the covariance, we compute:
 and:
 \begin{equation}
 	\begin{aligned}
-	g(x)\:B\:g(x)^\top-k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top&=U^\top g\:B\:g(x)^\top
+	g(x)\:B\:g(x)^\top-k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top&=U^\top B\:g(x)^\top
 	\end{aligned}
 \end{equation}
 to obtain:
@@ -500,8 +500,133 @@ Since $M_B\to M$ as $B^{-1}\to0$, we finally have:
 	R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})&\underset{B^{-1}\to0}{\longrightarrow}k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M\:U
 	\end{aligned}\right.
 \end{equation}
-the limit of which are exactly \eqref{eq:UK_z_proof} and \eqref{eq:UK_R_proof}.
+the limits of which are exactly \eqref{eq:UK_z_proof} and \eqref{eq:UK_R_proof}.
 
 \begin{comment}
 \textbf{TODO: ça a l'air de mériter sa propre proposition mais jsp si ç'est utile}The coefficients follow the same course. The Gaussian linear model gives $\beta$ the posterior $\mathcal{N}\left(M_B\:g^\top G^{-1}\tilde{\mathbf{z}},M_B\right)$, whose limit is $\mathcal{N}\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),M\right)$. The estimator of \eqref{eq:kriged_universal_mean} is therefore the posterior mean of the trend, and $M$ its posterior covariance.
 \end{comment}
+
+\section[Proof of Proposition 3.11]{Proof of \Cref{th:block_kriging}}\label{sec:proof_block_kriging}
+
+For the sake of clarity, we let $G$ and $g$ respectively denote $G(\tilde{\mathbf{x}})$ and $g(\tilde{\mathbf{x}})$, and we reuse:
+\begin{equation}
+	M\triangleq\left(g^\top G^{-1}g\right)^{-1}
+\end{equation}
+from \cref{sec:proof_UK}. The Schur complement of $\mathcal{G}(\tilde{\mathbf{x}})$ with respect to $G$ is then $0-g^\top G^{-1}g=-M^{-1}$, which is invertible. \Cref{th:Schur} thus applies, and gives:
+\begin{equation}
+	\mathcal{G}(\tilde{\mathbf{x}})^{-1}=\begin{bmatrix}G^{-1}-G^{-1}g\:M\:g^\top G^{-1}&G^{-1}g\:M\\M\:g^\top G^{-1}&-M\end{bmatrix}
+\end{equation}
+
+Using:
+\begin{equation}
+	\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)=M\:g^\top G^{-1}\tilde{\mathbf{z}}
+\end{equation}
+it comes that:
+\begin{equation}
+	\begin{aligned}
+	\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}&=\begin{bmatrix}k(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}G^{-1}-G^{-1}g\:M\:g^\top G^{-1}&G^{-1}g\:M\\M\:g^\top G^{-1}&-M\end{bmatrix}\begin{bmatrix}\tilde{\mathbf{z}}\\0\end{bmatrix}\\
+	&=\begin{bmatrix}k(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}G^{-1}\left(\tilde{\mathbf{z}}-g\:M\:g^\top G^{-1}\tilde{\mathbf{z}}\right)\\M\:g^\top G^{-1}\tilde{\mathbf{z}}\end{bmatrix}\\
+	&=\begin{bmatrix}k(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}G^{-1}(\tilde{\mathbf{z}}-g\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g))\\\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\end{bmatrix}\\
+	&=k(x,\tilde{\mathbf{x}})\:G^{-1}(\tilde{\mathbf{z}}-g\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g))+g(x)\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\\
+	&=\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)
+	\end{aligned}
+\end{equation}
+
+Similarly, writing:
+\begin{equation}
+	V(x)\triangleq g(x)-k(x,\tilde{\mathbf{x}})\:G^{-1}g
+\end{equation}
+for the weights given to the estimated trend coefficients gives:
+\begin{equation}
+	\begin{aligned}
+	\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)&=\begin{bmatrix}G^{-1}-G^{-1}g\:M\:g^\top G^{-1}&G^{-1}g\:M\\M\:g^\top G^{-1}&-M\end{bmatrix}\begin{bmatrix}k(\tilde{\mathbf{x}},x)\\g(x)^\top\end{bmatrix}\\
+	&=\begin{bmatrix}G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}g\:M\left(g(x)^\top-g^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\\-M\left(g(x)^\top-g^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\end{bmatrix}\\
+	&=\begin{bmatrix}G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}g\:M\:V(x)^\top\\-M\:V(x)^\top\end{bmatrix}
+	\end{aligned}
+\end{equation}
+and therefore:
+\begin{equation}
+	\begin{aligned}
+	\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)&=\begin{bmatrix}k(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}g\:M\:V(x)^\top\\-M\:V(x)^\top\end{bmatrix}\\
+	&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+\left(k(x,\tilde{\mathbf{x}})\:G^{-1}g-g(x)\right)M\:V(x)^\top\\
+	&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)-V(x)\:M\:V(x)^\top
+	\end{aligned}
+\end{equation}
+
+The subtracted term is $R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)$, as given by \eqref{eq:kriged_universal_mean}, which gives the second line of \eqref{eq:universal_kriging_equations}.
+
+\section[Proof of Proposition 3.14]{Proof of \Cref{th:universal_kriging_update}}\label{sec:proof_UK_update}
+
+Let $B\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}$, and assume that $\beta\sim\mathcal{N}(0,B)$. \Cref{th:kriging_vague_prior} gives:
+\begin{equation}
+	f\sim\mathcal{GP}(0,k_B)
+\end{equation}
+
+For the sake of clarity, we let $\hat{z}_B$ denote $\hat{z}_{\mathrm{SK},B}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},0)$, and $k_{B|\mathrm{old}}$ and $S_B$ respectively denote $k_{|\mathrm{old}}$ and $S_{\mathrm{new}|\mathrm{old}}$ taken under $k_B$. Applying \Cref{th:kriging_update} under $k_B$, with $m=0$, thus yields:
+\begin{equation}
+	\left\{\begin{aligned}
+	\hat{z}_{\mathrm{SK},B}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=\hat{z}_B(x)+k_{B|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_B^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_B(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
+	R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})&=R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}}_{\mathrm{old}})-k_{B|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_B^{-1}k_{B|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
+	\end{aligned}\right.
+\end{equation}
+
+Since $g(\tilde{\mathbf{x}}_{\mathrm{old}})$ has full column rank, so does $g(\tilde{\mathbf{x}})$, whose first rows it gathers. Applying \Cref{th:kriging_vague_prior} to $\tilde{\mathbf{x}}$, to $\tilde{\mathbf{x}}_{\mathrm{old}}$, and at each point of $\tilde{\mathbf{x}}_{\mathrm{new}}$ thus gives:
+\begin{equation}
+	\left\{\begin{aligned}
+	\hat{z}_{\mathrm{SK},B}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\underset{B^{-1}\to0}{\longrightarrow}\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\\
+	\hat{z}_B(x)&\underset{B^{-1}\to0}{\longrightarrow}\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},g)\\
+	\hat{z}_B(\tilde{\mathbf{x}}_{\mathrm{new}})&\underset{B^{-1}\to0}{\longrightarrow}\hat{z}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},g)
+	\end{aligned}\right.
+\end{equation}
+and:
+\begin{equation}
+	\left\{\begin{aligned}
+	R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})&\underset{B^{-1}\to0}{\longrightarrow}R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)\\
+	R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}}_{\mathrm{old}})&\underset{B^{-1}\to0}{\longrightarrow}R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},g)
+	\end{aligned}\right.
+\end{equation}
+
+For the conditional kernel, let $x'\in\mathcal{U}$. For the sake of clarity, we now let $G$, $g$ and $G_B$ respectively denote $G(\tilde{\mathbf{x}}_{\mathrm{old}})$, $g(\tilde{\mathbf{x}}_{\mathrm{old}})$ and $G+g\:B\:g^\top$, and we define:
+\begin{equation}
+	\mathcal{G}_B\triangleq\begin{bmatrix}G&g\\g^\top&-B^{-1}\end{bmatrix}
+\end{equation}
+
+Its Schur complement with respect to $-B^{-1}$ is $G+g\:B\:g^\top=G_B$, which is SPD. The inferior right Schur inversion formula (see \Cref{th:Schur}) thus gives:
+\begin{equation}
+	\mathcal{G}_B^{-1}=\begin{bmatrix}G_B^{-1}&G_B^{-1}g\:B\\B\:g^\top G_B^{-1}&-B+B\:g^\top G_B^{-1}g\:B\end{bmatrix}
+\end{equation}
+and so:
+\begin{equation}
+	\begin{aligned}
+	\mathcal{G}_B^{-1}\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},x')&=\begin{bmatrix}G_B^{-1}&G_B^{-1}g\:B\\B\:g^\top G_B^{-1}&-B+B\:g^\top G_B^{-1}g\:B\end{bmatrix}\begin{bmatrix}k(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\g(x')^\top\end{bmatrix}\\
+	&=\begin{bmatrix}G_B^{-1}k(\tilde{\mathbf{x}}_{\mathrm{old}},x')+G_B^{-1}g\:B\:g(x')^\top\\B\:g^\top G_B^{-1}k(\tilde{\mathbf{x}}_{\mathrm{old}},x')+B\:g^\top G_B^{-1}g\:B\:g(x')^\top-B\:g(x')^\top\end{bmatrix}\\
+	&=\begin{bmatrix}G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\B\:g^\top G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')-B\:g(x')^\top\end{bmatrix}
+	\end{aligned}
+\end{equation}
+and therefore:
+\begin{equation}
+	\begin{aligned}
+	\bar{k}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathcal{G}_B^{-1}\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},x')&=\begin{bmatrix}k(x,\tilde{\mathbf{x}}_{\mathrm{old}})&g(x)\end{bmatrix}\begin{bmatrix}G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\B\:g^\top G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')-B\:g(x')^\top\end{bmatrix}\\
+	&=\left(k(x,\tilde{\mathbf{x}}_{\mathrm{old}})+g(x)\:B\:g^\top\right)G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')-g(x)\:B\:g(x')^\top\\
+	&=k_B(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')-g(x)\:B\:g(x')^\top
+	\end{aligned}
+\end{equation}
+
+It comes that:
+\begin{equation}
+	\begin{aligned}
+	k_{B|\mathrm{old}}(x,x')&=k_B(x,x')-k_B(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\
+	&=k(x,x')-\bar{k}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathcal{G}_B^{-1}\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},x')
+	\end{aligned}
+\end{equation}
+
+Since $\mathcal{G}_B$ tends to $\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})$ as $B^{-1}\to0$, and the latter is invertible by \Cref{th:block_kriging}, the continuity of the inversion gives:
+\begin{equation}
+	k_{B|\mathrm{old}}(x,x')\underset{B^{-1}\to0}{\longrightarrow}k(x,x')-\bar{k}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},x')=k_{\mathrm{UK}|\mathrm{old}}(x,x')
+\end{equation}
+
+In particular, $S_B$ tends to $S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$. Up to the order of its rows and columns, $\mathcal{G}(\tilde{\mathbf{x}})$ reads:
+\begin{equation}
+	\begin{bmatrix}\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})&\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{x}}_{\mathrm{new}})\\\bar{k}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{old}})&G(\tilde{\mathbf{x}}_{\mathrm{new}})\end{bmatrix}
+\end{equation}
+and its Schur complement with respect to $\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})$ is $S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$. Since both $\mathcal{G}(\tilde{\mathbf{x}})$ and $\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})$ are invertible by \Cref{th:block_kriging}, so is $S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$ \cite{bib:Schur-complement}, and $S_B^{-1}$ tends to its inverse. Passing to the limit in the identities obtained under $k_B$ finally gives the result.

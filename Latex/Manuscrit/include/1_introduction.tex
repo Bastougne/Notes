@@ -18,7 +18,7 @@ Although particle filters provide a reliable solution to the navigation problem,
 
 The first one arises when the environment is poorly known, and the vehicle only has access to a degraded map consisting of sparse and noisy measurements of the field. In this case, Gaussian processes provide a probabilistic framework for representing the field and quantifying the associated uncertainty. The available data can then be used to reconstruct its spatial distribution through kriging. However, potential non-stationarity in the observed field and the computational cost of standard kriging methods pose significant challenges to their use in real-time outdoor navigation.
 
-The second scenario arises when no prior data are available at all, so that the field must be mapped during the mission itself, jointly with the localisation of the vehicle on it. Additional assumptions, such as local stationarity, can be made on the field to allow parametric representations of the observation function. The associated coefficents can then be learnt online, alongside the estimation of the vehicle's state.
+The second scenario arises when no prior data are available at all, so that the field must be mapped during the mission itself, jointly with the localisation of the vehicle on it. Additional assumptions, such as stationarity, can be made on the field to allow parametric representations of the observation function. The associated coefficients can then be learnt online, alongside the estimation of the vehicle's state.
 
 \vspace{\baselineskip}
 

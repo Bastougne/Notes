@@ -237,7 +237,7 @@ function [c, l, nom] = style_methode(cle)
         case 'carte',    c = [0.00 0.00 0.00];  l = ':';   nom = 'Known map';
         case 'ok',       c = [0.15 0.35 0.70];  l = '-';   nom = 'Static kriging';
         case 'inertiel', c = [0.45 0.45 0.45];  l = '--';  nom = 'Inertial navigation';
-        case 'rbpf',     c = [0.75 0.02 0.15];  l = '-';   nom = 'RBPF';
+        case 'rbpf',     c = [0.75 0.02 0.15];  l = '-';   nom = 'RBPF-SLAM';
         case 'akkf',     c = [0.95 0.60 0.00];  l = '-';   nom = 'AKKF-SLAM';
         otherwise
             error('figures_chapitre_5:style', 'Cle de methode inconnue : %s.', cle);
