@@ -1,33 +1,33 @@
 \section{Reduced-Rank Kernel Approximation}\label{sec:reduced_rank}
 
-Exact GP regression requires inverting the $\tilde{N}d_z\times\tilde{N}d_z$ Gram matrix $G(\tilde{\mathbf{x}})$, which scales as $\mathcal{O}\left(\tilde{N}^3\right)$. When the number of training points is large, this operation becomes prohibitive. Reduced-rank methods \cite{bib:Nystrom,bib:inducing-points} circumvent this issue by approximating the kernel as a linear combination of $r_{\mathrm{KL}}\in\mathbb{N}^*$ basis functions, with $r_{\mathrm{KL}}<\tilde{N}$. The inversion cost is reduced to $\mathcal{O}\left(r_{\mathrm{KL}}^3\right)$, bringing down the overall kriging cost to $\mathcal{O}\left(r_{\mathrm{KL}}^2\tilde{N}\right)$.
+Exact GP regression requires inverting the $\tilde{N}d_z\times\tilde{N}d_z$ Gram matrix $\mathbf{G}(\tilde{\mathbf{x}})$, which scales as $\mathcal{O}\left(\tilde{N}^3\right)$. When the number of training points is large, this operation becomes prohibitive. Reduced-rank methods \cite{bib:Nystrom,bib:inducing-points} circumvent this issue by approximating the kernel as a linear combination of $r_{\mathrm{KL}}\in\mathbb{N}^*$ basis functions, with $r_{\mathrm{KL}}<\tilde{N}$. The inversion cost is reduced to $\mathcal{O}\left(r_{\mathrm{KL}}^3\right)$, bringing down the overall kriging cost to $\mathcal{O}\left(r_{\mathrm{KL}}^2\tilde{N}\right)$.
 
-Mercer's theorem \cite{bib:Mercer}, presented in \Cref{th:Mercer}, establishes the existence of such a decomposition as soon as $k$ is a continuous SPD kernel, which Matérn kernels satisfy, as proven by \Cref{th:Matérn_properties}, and $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$. The Woodbury inversion formula is then used to rewrite the kriging estimator in a computationally efficient expression. Finally, the Karhunen-Loève decomposition is introduced as a way to represent the structure of a GP without relying on training data.
+Mercer's theorem \cite{bib:Mercer}, presented in \Cref{th:Mercer}, establishes the existence of such a decomposition as soon as $\kappa$ is a continuous SPD kernel, which Matérn kernels satisfy, as proven by \Cref{th:Matérn_properties}, and $\Omega$ is a compact subset of $\mathbb{R}^{d_x}$. The Woodbury inversion formula is then used to rewrite the kriging estimator in a computationally efficient expression. Finally, the Karhunen-Loève decomposition is introduced as a way to represent the structure of a GP without relying on training data.
 
 \subsection{Mercer's Theorem}\label{sec:Mercer}
 
-We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$.
+We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$.
 
 \begin{definition}[Self-adjoint positive semi-definite operator]
-	A functional operator $T$ on $\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$ is self-adjoint positive semi-definite (SPSD) if:
+	A functional operator $T$ on $\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$ is self-adjoint positive semi-definite (SPSD) if:
 	\begin{equation}
 		\left\{\begin{array}{ll}
-		\forall\phi,\phi'\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z}),\:\langle T\phi|\phi'\rangle=\langle\phi|T\phi'\rangle&\text{self-adjoint}\\
-		\forall\phi\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z}),\:\langle\phi|T\phi\rangle\geq0&\text{positive semi-definite}
+		\forall\phi,\phi'\in\mathcal{L}^2(\Omega,\mathbb{R}^{d_z}),\:\langle T\phi|\phi'\rangle=\langle\phi|T\phi'\rangle&\text{self-adjoint}\\
+		\forall\phi\in\mathcal{L}^2(\Omega,\mathbb{R}^{d_z}),\:\langle\phi|T\phi\rangle\geq0&\text{positive semi-definite}
 		\end{array}\right.
 	\end{equation}
 	where $\langle\cdot|\cdot\rangle$ is the following scalar product:
 	\begin{equation}
-		(\phi,\phi')\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})^2\mapsto\langle\phi|\phi'\rangle\triangleq\int_{\mathcal{U}}{\phi(x)^\top\phi'(x)\:dx}
+		(\phi,\phi')\in\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})^2\mapsto\langle\phi|\phi'\rangle\triangleq\int_{\Omega}{\phi(x)^\top\phi'(x)\:dx}
 	\end{equation}
 \end{definition}
 
 \begin{proposition}[Mercer operator]\label{th:covariance_operator}
-	Assume that $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$ and $k$ is a continuous SPD kernel. The Mercer operator:
+	Assume that $\Omega$ is a compact subset of $\mathbb{R}^{d_x}$ and $\kappa$ is a continuous SPD kernel. The Mercer operator:
 	\begin{equation}
 		\mathcal{K}:\left\{\begin{aligned}
-		\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})&\to\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})\\
-		\phi&\mapsto\left(x\mapsto\int_{\mathcal{U}}{k(x,y)\:\phi(y)\:dy}\right)
+		\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})&\to\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})\\
+		\phi&\mapsto\left(x\mapsto\int_{\Omega}{\kappa(x,y)\:\phi(y)\:dy}\right)
 		\end{aligned}\right.
 	\end{equation}
 	is a compact SPSD functional operator.
@@ -40,10 +40,10 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 \begin{proposition}[Mercer's theorem]\label{th:Mercer}
 	Under the assumptions of \Cref{th:covariance_operator}, there exists a non-increasing sequence $(\lambda_i)_{i\in\mathbb{N}^*}$ of strictly positive eigenvalues of $\mathcal{K}$ converging to $0$, and an associated orthonormal family $(\psi_i)_{i\in\mathbb{N}^*}$ of continuous $\mathbb{R}^{d_z}$-valued eigenfunctions, such that:
 	\begin{equation}
-		\forall x,x'\in\mathcal{U},\:k(x,x')=\sum_{i=1}^{+\infty}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top\label{eq:Mercer}
+		\forall x,x'\in\Omega,\:\kappa(x,x')=\sum_{i=1}^{+\infty}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top\label{eq:Mercer}
 	\end{equation}
 
-	Furthermore, this series converges absolutely and uniformly on $\mathcal{U}\times\mathcal{U}$.
+	Furthermore, this series converges absolutely and uniformly on $\Omega\times\Omega$.
 \end{proposition}
 
 \begin{proof}
@@ -53,94 +53,98 @@ We start by generalising \Cref{th:kernel_SPSD} to functional operators on $\math
 \begin{remark}[Definiteness without invertibility]
 	Since all the eigenvalues $\lambda_i$ are strictly positive, the quadratic form:
 	\begin{equation}
-		\phi\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})\mapsto\langle\phi|\mathcal{K}\phi\rangle=\sum_{i=1}^{+\infty}\lambda_i\:\langle\phi|\psi_i\rangle^2
+		\phi\in\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})\mapsto\langle\phi|\mathcal{K}\phi\rangle=\sum_{i=1}^{+\infty}\lambda_i\:\langle\phi|\psi_i\rangle^2
 	\end{equation}
 	is strictly positive for every $\phi\neq0$, hence positive definite. For a symmetric matrix, definiteness amounts to invertibility, but this equivalence fails in infinite dimension. In particular, since $\mathcal{K}$ is compact with $\lambda_i\to0$, it admits no positive lower bound on the unit sphere, so $0$ belongs to its spectrum. $\mathcal{K}^{-1}$ is thus unbounded, and so the Mercer operator is positive definite yet not invertible.
 
-	In finite dimension, strict positivity and invertibility coincide and jointly characterise SPD matrices, whereas this is not the case in infinite dimension. This is not restrictive, however, as only the finite Gram matrices induced by $k$ are inverted throughout this document.
+	In finite dimension, strict positivity and invertibility coincide and jointly characterise SPD matrices, whereas this is not the case in infinite dimension. This is not restrictive, however, as only the finite Gram matrices induced by $\kappa$ are inverted throughout this document.
 \end{remark}
 
 \subsection{Efficient Kriging Estimation}\label{sec:efficient_kriging}
 
-For the sake of brevity, the space of the square-integrable matrix-valued kernels over $\mathcal{U}\times\mathcal{U}$ is written as:
+For the sake of brevity, the space of the square-integrable matrix-valued kernels over $\Omega\times\Omega$ is written as:
 \begin{equation}
-	\mathcal{F}\triangleq\mathcal{L}^2\left(\mathcal{U}\times\mathcal{U},\mathcal{M}_{d_z,d_z}(\mathbb{R})\right)
+	\mathcal{F}\triangleq\mathcal{L}^2\left(\Omega\times\Omega,\mathcal{M}_{d_z,d_z}(\mathbb{R})\right)
 \end{equation}
 
+\Cref{th:reduced_rank} shows that truncating the decomposition of \Cref{th:Mercer} to its first $r_{\mathrm{KL}}$ terms gives the best approximation of $\kappa$ among the kernels of rank at most $r_{\mathrm{KL}}$.\textbf{TODO: à relire}
+
 \begin{proposition}[Reduced-rank approximation]\label{th:reduced_rank}
-	For a continuous SPD kernel $k$, we define the rank of $k$ as the dimension of the image of $\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$ by its associated Mercer operator:
+	For a continuous SPD kernel $\kappa$, we define the rank of $\kappa$ as the dimension of the image of $\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$ by its associated Mercer operator:
 	\begin{equation}
-		\operatorname{rank}(k)\triangleq\operatorname{dim}\left(\mathcal{K}\left(\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})\right)\right)
+		\operatorname{rank}(\kappa)\triangleq\operatorname{dim}\left(\mathcal{K}\left(\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})\right)\right)
 	\end{equation}
 
 	Under the assumptions of \Cref{th:covariance_operator}, the truncated kernel:
 	\begin{equation}
-		k_{r_{\mathrm{KL}}}:\left\{\begin{aligned}
-		\mathcal{U}\times\mathcal{U}&\to\mathcal{M}_{d_z,d_z}(\mathbb{R})\\
+		\kappa_{r_{\mathrm{KL}}}:\left\{\begin{aligned}
+		\Omega\times\Omega&\to\mathcal{M}_{d_z,d_z}(\mathbb{R})\\
 		x,x'&\mapsto\sum_{i=1}^{r_{\mathrm{KL}}}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top
 		\end{aligned}\right.
 	\end{equation}
-	is a continuous SPSD kernel of rank at most $r_{\mathrm{KL}}\in\mathbb{N}^*$. It converges uniformly towards $k$ as $r_{\mathrm{KL}}\to+\infty$, and minimises $\left\|k-k_{r_{\mathrm{KL}}}\right\|_{\mathcal{F}}$ among all kernels of rank at most $r_{\mathrm{KL}}$.
+	is a continuous SPSD kernel of rank at most $r_{\mathrm{KL}}\in\mathbb{N}^*$. It converges uniformly towards $\kappa$ as $r_{\mathrm{KL}}\to+\infty$, and minimises $\left\|\kappa-\kappa_{r_{\mathrm{KL}}}\right\|_{\mathcal{F}}$ among all kernels of rank at most $r_{\mathrm{KL}}$.
 \end{proposition}
 
 \begin{proof}
-	Let $r_{\mathrm{KL}}\in\mathbb{N}^*$ and $\phi\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$. We have:
+	Let $r_{\mathrm{KL}}\in\mathbb{N}^*$ and $\phi\in\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$. We have:
 	\begin{equation}
 		\mathcal{K}_{r_{\mathrm{KL}}}\phi=\sum_{i=1}^{r_{\mathrm{KL}}}\lambda_i\langle\phi|\psi_i\rangle\:\psi_i
 	\end{equation}
-	where $\mathcal{K}_{r_{\mathrm{KL}}}$ is the Mercer operator associated with $k_{r_{\mathrm{KL}}}$. Every $\mathcal{K}_{r_{\mathrm{KL}}}\phi$ thus belongs to the subspace of continuous functions spanned by $\psi_1,\dots,\psi_{r_{\mathrm{KL}}}$. The orthonormality of the basis ensures that this subspace is of dimension $r_{\mathrm{KL}}$, and thus the rank of $k_{r_{\mathrm{KL}}}$ is at most $r_{\mathrm{KL}}$. The uniform convergence of $(k_{r_{\mathrm{KL}}})_{r_{\mathrm{KL}}\in\mathbb{N}^*}$ has already been proven by \Cref{th:Mercer}.
+	where $\mathcal{K}_{r_{\mathrm{KL}}}$ is the Mercer operator associated with $\kappa_{r_{\mathrm{KL}}}$. Every $\mathcal{K}_{r_{\mathrm{KL}}}\phi$ thus belongs to the subspace of continuous functions spanned by $\psi_1,\dots,\psi_{r_{\mathrm{KL}}}$. The orthonormality of the basis ensures that this subspace is of dimension $r_{\mathrm{KL}}$, and thus the rank of $\kappa_{r_{\mathrm{KL}}}$ is at most $r_{\mathrm{KL}}$. The uniform convergence of $(\kappa_{r_{\mathrm{KL}}})_{r_{\mathrm{KL}}\in\mathbb{N}^*}$ has already been proven by \Cref{th:Mercer}.
 
 	Finally, applying the Eckart-Young-Mirsky theorem \cite{bib:Eckart-Young,bib:Mirsky} to $\mathcal{K}$ and using the orthonormality of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ yields:
 	\begin{equation}
-		\underset{\tilde{k}\in\mathcal{F}\mid\operatorname{rank}(\tilde{k})\leq r_{\mathrm{KL}}}{\min}\|k-\tilde{k}\|_{\mathcal{F}}^2=\sum_{j>r_{\mathrm{KL}}}\lambda_j^2=\|k-k_{r_{\mathrm{KL}}}\|_{\mathcal{F}}^2
+		\underset{\tilde{\kappa}\in\mathcal{F}\mid\operatorname{rank}(\tilde{\kappa})\leq r_{\mathrm{KL}}}{\min}\|\kappa-\tilde{\kappa}\|_{\mathcal{F}}^2=\sum_{j>r_{\mathrm{KL}}}\lambda_j^2=\|\kappa-\kappa_{r_{\mathrm{KL}}}\|_{\mathcal{F}}^2
 	\end{equation}
 \end{proof}
 
 In compact form, the eigenfunctions are collected into:
 \begin{equation}
-	\Psi(x)\triangleq\begin{bmatrix}
+	\boldsymbol{\Psi}(x)\triangleq\begin{bmatrix}
 	\psi_1(x)&\cdots&\psi_{r_{\mathrm{KL}}}(x)
 	\end{bmatrix}\in\mathcal{M}_{d_z,r_{\mathrm{KL}}}(\mathbb{R})
 \end{equation}
 and the corresponding eigenvalues are gathered as:
 \begin{equation}
-	\Lambda\triangleq\begin{bmatrix}
+	\boldsymbol{\Lambda}\triangleq\begin{bmatrix}
 	\lambda_1&&(0)\\&\ddots&\\(0)&&\lambda_{r_{\mathrm{KL}}}
 	\end{bmatrix}\in\mathcal{M}_{r_{\mathrm{KL}},r_{\mathrm{KL}}}(\mathbb{R})
 \end{equation}
 
-By \Cref{th:Mercer}, the eigenvalues $\lambda_i$ are strictly positive, so that $\Lambda\succ0$ and $\Lambda^{-1}$ is well-defined. \Cref{th:reduced_rank} can thus be rewritten as:
+By \Cref{th:Mercer}, the eigenvalues $\lambda_i$ are strictly positive, so that $\boldsymbol{\Lambda}\succ0$ and $\boldsymbol{\Lambda}^{-1}$ is well-defined. \Cref{th:reduced_rank} can thus be rewritten as:
 \begin{equation}
-	k(x,x')\approx\Psi(x)\:\Lambda\:\Psi(x')^\top
+	\kappa(x,x')\approx\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x')^\top
 \end{equation}
 and then:
 \begin{equation}
-	G(\tilde{\mathbf{x}})\approx\Psi(\tilde{\mathbf{x}})\:\Lambda\:\Psi(\tilde{\mathbf{x}})^\top+I_{\tilde{N}}\otimes\tilde{R},\qquad\Psi(\tilde{\mathbf{x}})=\begin{bmatrix}\Psi(\tilde{x}_1)\\\vdots\\\Psi(\tilde{x}_{\tilde{N}})\end{bmatrix}\label{eq:reduced_rank_Gram}
+	\mathbf{G}(\tilde{\mathbf{x}})\approx\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top+\mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}},\qquad\boldsymbol{\Psi}(\tilde{\mathbf{x}})=\begin{bmatrix}\boldsymbol{\Psi}(\tilde{x}_1)\\\vdots\\\boldsymbol{\Psi}(\tilde{x}_{\tilde{N}})\end{bmatrix}\label{eq:reduced_rank_Gram}
 \end{equation}
+
+\Cref{th:reduced_rank_kriging} derives the centred SK estimator and its error covariance under this approximation.\textbf{TODO: à relire}
 
 \begin{proposition}[Reduced-rank simple kriging]\label{th:reduced_rank_kriging}
 	Let:
 	\begin{equation}
-		\tilde{G}(\tilde{\mathbf{x}})\triangleq\Lambda^{-1}+\Psi(\tilde{\mathbf{x}})^\top\left(I_{\tilde{N}}\otimes\tilde{R}\right)^{-1}\Psi(\tilde{\mathbf{x}})\in\mathcal{M}_{r_{\mathrm{KL}},r_{\mathrm{KL}}}(\mathbb{R})
+		\tilde{\mathbf{G}}(\tilde{\mathbf{x}})\triangleq\boldsymbol{\Lambda}^{-1}+\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\left(\mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}}\right)^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})\in\mathcal{M}_{r_{\mathrm{KL}},r_{\mathrm{KL}}}(\mathbb{R})
 	\end{equation}
 	be the reduced-rank Gram matrix. Under the reduced-rank approximation of \eqref{eq:reduced_rank_Gram}, the centred SK estimator of \Cref{th:simple_kriging} and its error covariance matrix reduce to:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top\left(I_{\tilde{N}}\otimes\tilde{R}\right)^{-1}\tilde{\mathbf{z}}\\
-		R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&\approx R+\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(x)^\top
+		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\approx\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\left(\mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}}\right)^{-1}\tilde{\mathbf{z}}\\
+		\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&\approx \mathbf{R}+\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(x)^\top
 		\end{aligned}\right.\label{eq:reduced_rank_kriging}
 	\end{equation}
-	which require only the inversion of $\tilde{G}(\tilde{\mathbf{x}})$.
+	which require only the inversion of $\tilde{\mathbf{G}}(\tilde{\mathbf{x}})$.
 
-	When there exists $\sigma>0$ such that $\tilde{R}=\sigma^2I$, \eqref{eq:reduced_rank_kriging} further simplify to:
+	When there exists $\sigma>0$ such that $\tilde{\mathbf{R}}=\sigma^2\mathbf{I}$, \eqref{eq:reduced_rank_kriging} further simplify to:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\approx\Psi(x)\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}\Psi(\tilde{\mathbf{x}})^\top\tilde{\mathbf{z}}\\
-		R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&\approx R+\sigma^2\Psi(x)\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}\Psi(x)^\top
+		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\approx\boldsymbol{\Psi}(x)\left(\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\boldsymbol{\Psi}(\tilde{\mathbf{x}})+\sigma^2\boldsymbol{\Lambda}^{-1}\right)^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\tilde{\mathbf{z}}\\
+		\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&\approx \mathbf{R}+\sigma^2\boldsymbol{\Psi}(x)\left(\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\boldsymbol{\Psi}(\tilde{\mathbf{x}})+\sigma^2\boldsymbol{\Lambda}^{-1}\right)^{-1}\boldsymbol{\Psi}(x)^\top
 		\end{aligned}\right.
 	\end{equation}
 
-	These expressions remain valid at $\sigma=0$ provided $\Psi(\tilde{\mathbf{x}})$ has full column rank.
+	These expressions remain valid at $\sigma=0$ provided $\boldsymbol{\Psi}(\tilde{\mathbf{x}})$ has full column rank.
 \end{proposition}
 
 \begin{proof}
@@ -148,19 +152,19 @@ and then:
 \end{proof}
 
 \begin{remark}[Construction of the eigenpairs]\label{th:eigenpairs}
-	While Mercer's theorem establishes the existence of the decomposition presented by \eqref{eq:Mercer} for any continuous SPD kernel defined on a compact subset of $\mathbb{R}^{d_x}$, it does not provide a closed-form expression for the eigenpairs $(\lambda_i,\psi_i)_{i\in\mathbb{N}^*}$. As they depend on $k$ and $\mathcal{U}$, additional assumptions are usually made in order to derive an explicit approximation of the form of \Cref{th:reduced_rank}.
+	While Mercer's theorem establishes the existence of the decomposition presented by \eqref{eq:Mercer} for any continuous SPD kernel defined on a compact subset of $\mathbb{R}^{d_x}$, it does not provide a closed-form expression for the eigenpairs $(\lambda_i,\psi_i)_{i\in\mathbb{N}^*}$. As they depend on $\kappa$ and $\Omega$, additional assumptions are usually made in order to derive an explicit approximation of the form of \Cref{th:reduced_rank}.
 \end{remark}
 
 \subsection{Karhunen-Loève Decomposition}
 
-While \cref{sec:Mercer} uses the eigenpairs of the Mercer operator associated with $k$ to decompose the kernel, they can also be used to represent the process itself. This representation is known as the Karhunen-Loève (KL) decomposition \cite{bib:Karhunen-Loeve} and is presented by \Cref{th:KL}.
+While \cref{sec:Mercer} uses the eigenpairs of the Mercer operator associated with $\kappa$ to decompose the kernel, they can also be used to represent the process itself. This representation is known as the Karhunen-Loève (KL) decomposition \cite{bib:Karhunen-Loeve} and is presented by \Cref{th:KL}.
 
 \begin{proposition}[Karhunen-Loève decomposition]\label{th:KL}
-	Let $f\sim\mathcal{GP}(m,k)$, where $k:\mathcal{U}\times\mathcal{U}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is a continuous SPD kernel, and $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$. Let $(\lambda_i,\psi_i)_{i\in\mathbb{N}^*}$ be the Mercer eigenpairs of \Cref{th:Mercer}. Then, for all $x\in\mathcal{U}$, we have:
+	Let $h\sim\mathcal{GP}(m,\kappa)$, where $\kappa:\Omega\times\Omega\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ is a continuous SPD kernel, and $\Omega$ is a compact subset of $\mathbb{R}^{d_x}$. Let $(\lambda_i,\psi_i)_{i\in\mathbb{N}^*}$ be the Mercer eigenpairs of \Cref{th:Mercer}. Then, for all $x\in\Omega$, we have:
 	\begin{equation}
-		f(x)=m(x)+\sum_{i=1}^{+\infty}\sqrt{\lambda_i}\:\xi_i\:\psi_i(x),\qquad\xi_i\triangleq\frac{1}{\sqrt{\lambda_i}}\langle f-m|\psi_i\rangle\overset{i.i.d.}{\sim}\mathcal{N}(0,1)\label{eq:KL}
+		h(x)=m(x)+\sum_{i=1}^{+\infty}\sqrt{\lambda_i}\:\xi_i\:\psi_i(x),\qquad\xi_i\triangleq\frac{1}{\sqrt{\lambda_i}}\langle h-m|\psi_i\rangle\overset{i.i.d.}{\sim}\mathcal{N}(0,1)\label{eq:KL}
 	\end{equation}
-	where the series converges in mean square uniformly over $\mathcal{U}$.
+	where the series converges in mean square uniformly over $\Omega$.
 \end{proposition}
 
 \begin{proof}
@@ -168,25 +172,25 @@ While \cref{sec:Mercer} uses the eigenpairs of the Mercer operator associated wi
 \end{proof}
 
 \begin{remark}[Almost sure convergence]
-	When $f$ has almost surely continuous sample paths, the convergence of \eqref{eq:KL} strengthens from mean square to almost sure and uniform over $\mathcal{U}$: by the Itô--Nisio theorem \cite{bib:Karhunen-Loeve}, the partial sums converge to $f$ uniformly over $\mathcal{U}$ almost surely. A single event of probability one then carries \eqref{eq:KL} simultaneously for all $x\in\mathcal{U}$, rather than for each $x$ separately.
+	When $h$ has almost surely continuous sample paths, the convergence of \eqref{eq:KL} strengthens from mean square to almost sure and uniform over $\Omega$: by the Itô--Nisio theorem \cite{bib:Karhunen-Loeve}, the partial sums converge to $h$ uniformly over $\Omega$ almost surely. A single event of probability one then carries \eqref{eq:KL} simultaneously for all $x\in\Omega$, rather than for each $x$ separately.
 \end{remark}
 
-Conversely, the KL decomposition can be used to generate, from a family $(\xi_i)_{i\in\mathbb{N}^*}$ of i.i.d standard Gaussian variables, a GP of covariance kernel $k$. This is the object of \Cref{th:KL_converse}.
+Conversely, the KL decomposition can be used to generate, from a family $(\xi_i)_{i\in\mathbb{N}^*}$ of i.i.d. standard Gaussian variables, a GP of covariance kernel $\kappa$. This is the object of \Cref{th:KL_converse}.
 
 \begin{proposition}[Karhunen-Loève converse]\label{th:KL_converse}
-	Assume that there exist a continuous SPD kernel $k:\mathcal{U}\times\mathcal{U}\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ and a function $m:\mathcal{U}\to\mathbb{R}^{d_z}$, where $\mathcal{U}$ is a compact subset of $\mathbb{R}^{d_x}$. Let $(\lambda_i,\psi_i)_{i\in\mathbb{N}^*}$ be the Mercer eigenpairs associated with $k$ and $\mathcal{U}$, and let:
+	Assume that there exist a continuous SPD kernel $\kappa:\Omega\times\Omega\to\mathcal{M}_{d_z,d_z}(\mathbb{R})$ and a function $m:\Omega\to\mathbb{R}^{d_z}$, where $\Omega$ is a compact subset of $\mathbb{R}^{d_x}$. Let $(\lambda_i,\psi_i)_{i\in\mathbb{N}^*}$ be the Mercer eigenpairs associated with $\kappa$ and $\Omega$, and let:
 	\begin{equation}
 		(\xi_i)_{i\in\mathbb{N}^*}\overset{i.i.d.}{\sim}\mathcal{N}(0,1)
 	\end{equation}
 
 	The stochastic process:
 	\begin{equation}
-		f:\left\{\begin{aligned}
-		\mathcal{U}&\to\mathbb{R}^{d_z}\\
+		h:\left\{\begin{aligned}
+		\Omega&\to\mathbb{R}^{d_z}\\
 		x&\mapsto m(x)+\sum_{i=1}^{+\infty}\sqrt{\lambda_i}\:\xi_i\:\psi_i(x)
 		\end{aligned}\right.
 	\end{equation}
-	is a GP with mean function $m$ and covariance kernel $k$.
+	is a GP with mean function $m$ and covariance kernel $\kappa$.
 \end{proposition}
 
 \begin{proof}
@@ -194,14 +198,14 @@ Conversely, the KL decomposition can be used to generate, from a family $(\xi_i)
 \end{proof}
 
 \begin{remark}[Finite-dimensional parametrisation]\label{th:KL_parametrisation}
-	As for \cref{sec:efficient_kriging}, Mercer's theorem can be used to represent the field by a finite approximation. Indeed, for $r_{\mathrm{KL}}\in\mathbb{N}^*$, $\Psi$ defined as in \eqref{eq:reduced_rank_Gram} and:
+	As for \cref{sec:efficient_kriging}, Mercer's theorem can be used to represent the field by a finite approximation. Indeed, for $r_{\mathrm{KL}}\in\mathbb{N}^*$, $\boldsymbol{\Psi}$ defined as in \eqref{eq:reduced_rank_Gram} and:
 	\begin{equation}
-		\alpha\triangleq\begin{bmatrix}\sqrt{\lambda_1}\xi_1&\cdots&\sqrt{\lambda_{r_{\mathrm{KL}}}}\xi_{r_{\mathrm{KL}}}\end{bmatrix}^\top
+		\boldsymbol{\gamma}\triangleq\begin{bmatrix}\sqrt{\lambda_1}\xi_1&\cdots&\sqrt{\lambda_{r_{\mathrm{KL}}}}\xi_{r_{\mathrm{KL}}}\end{bmatrix}^\top
 	\end{equation}
 	we have:
 	\begin{equation}
-		\forall x\in\mathcal{U},\:f(x)\approx m(x)+\Psi(x)\:\alpha,\qquad\alpha\sim\mathcal{N}(0,\Lambda)
+		\forall x\in\Omega,\:h(x)\approx m(x)+\boldsymbol{\Psi}(x)\:\boldsymbol{\gamma},\qquad\boldsymbol{\gamma}\sim\mathcal{N}(0,\boldsymbol{\Lambda})
 	\end{equation}
 
-	Up to this approximation, inferring $f$ thus amounts to inferring the $r_{\mathrm{KL}}$ coefficients of $\alpha$.
+	Up to this approximation, inferring $h$ thus amounts to inferring the $r_{\mathrm{KL}}$ coefficients of $\boldsymbol{\gamma}$.
 \end{remark}

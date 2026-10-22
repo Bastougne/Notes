@@ -1,28 +1,28 @@
 \section{Gaussian Process Regression}\label{sec:kriging}
 
-Gaussian process regression, also known as kriging \cite{bib:Matheron,bib:Rasmussen-regression,bib:GP-intro}, estimates the value of a field at an unobserved location using noisy measurements of the same field at known locations. Formally, let $f\sim\mathcal{GP}(m,k):\mathcal{U}\to\mathbb{R}^{d_z}$, and $x\in\mathcal{U}$. We wish to estimate the law of:
+Gaussian process regression, also known as kriging \cite{bib:Matheron,bib:Rasmussen-regression,bib:GP-intro}, estimates the value of a field at an unobserved location using noisy measurements of the same field at known locations. Formally, let $h\sim\mathcal{GP}(m,\kappa):\Omega\to\mathbb{R}^{d_z}$, and $x\in\Omega$. We wish to estimate the law of:
 \begin{equation}
-	z\triangleq f(x)+\varepsilon\in\mathbb{R}^{d_z},\qquad\varepsilon\sim\mathcal{N}(0,R),\qquad R\in\mathcal{S}_{d_z}^+(\mathbb{R})
+	z\triangleq h(x)+\varepsilon\in\mathbb{R}^{d_z},\qquad\varepsilon\sim\mathcal{N}(0,\mathbf{R}),\qquad \mathbf{R}\in\mathcal{S}_{d_z}^+(\mathbb{R})
 \end{equation}
-where $\varepsilon$ is independent of $f$.
+where $\varepsilon$ is independent of $h$.
 
-While kriging usually aims to reconstruct $f(x)$ itself, the query noise $\varepsilon$ models the observation uncertainty, so that kriging estimates the noisy observation from \eqref{eq:navigation_problem}. The standard formulation can nonetheless be recovered by taking $R=0$.
+While kriging usually aims to reconstruct $h(x)$ itself, the query noise $\varepsilon$ models the observation uncertainty, so that kriging estimates the noisy observation from \eqref{eq:navigation_problem}. The standard formulation can nonetheless be recovered by taking $\mathbf{R}=0$.
 
-Without further information regarding $f$, we would only be able to state that $z$ follows a Gaussian distribution of expectation $m(x)$ and covariance $k(x,x)+R$. However, we are given $\tilde{N}\in\mathbb{N}^*$ distinct training points $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\mathcal{U}^{\tilde{N}}$ and their corresponding noisy observations:
+Without further information regarding $h$, we would only be able to state that $z$ follows a Gaussian distribution of expectation $m(x)$ and covariance $\kappa(x,x)+\mathbf{R}$. However, we are given $\tilde{N}\in\mathbb{N}^*$ distinct training points $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\Omega^{\tilde{N}}$ and their corresponding noisy observations:
 \begin{equation}
 	\tilde{\mathbf{z}}\triangleq\begin{bmatrix}
-		f(\tilde{x}_1)+\varepsilon_1\\\vdots\\f(\tilde{x}_{\tilde{N}})+\varepsilon_{\tilde{N}}
-	\end{bmatrix}\in\mathbb{R}^{\tilde{N}d_z},\qquad\varepsilon_i\sim\mathcal{N}(0,\tilde{R}),\qquad\tilde{R}\in\mathcal{S}_{d_z}^+(\mathbb{R})
+		h(\tilde{x}_1)+\tilde{\varepsilon}_1\\\vdots\\h(\tilde{x}_{\tilde{N}})+\tilde{\varepsilon}_{\tilde{N}}
+	\end{bmatrix}\in\mathbb{R}^{\tilde{N}d_z},\qquad\tilde{\varepsilon}_i\sim\mathcal{N}(0,\tilde{\mathbf{R}}),\qquad\tilde{\mathbf{R}}\in\mathcal{S}_{d_z}^+(\mathbb{R})
 \end{equation}
-where $\varepsilon_1,\dots,\varepsilon_{\tilde{N}}$ are mutually independent and independent of $f$.
+where $\tilde{\varepsilon}_1,\dots,\tilde{\varepsilon}_{\tilde{N}}$ are mutually independent and independent of $h$.
 
 The goal of this section is to derive the best linear unbiased estimator (BLUE) of $z$ with respect to $\tilde{\mathbf{z}}$, \textit{i.e.} the estimator:
 \begin{equation}
-	\hat{z}=W^\top\tilde{\mathbf{z}}
+	\hat{z}=\mathbf{W}^\top\tilde{\mathbf{z}}
 \end{equation}
 parametrised by a weight matrix:
 \begin{equation}
-	W\triangleq\begin{bmatrix}
+	\mathbf{W}\triangleq\begin{bmatrix}
 	w_1\\\vdots\\w_{\tilde{N}}
 	\end{bmatrix}\in\mathcal{M}_{\tilde{N}d_z,d_z}(\mathbb{R})
 \end{equation}
@@ -41,21 +41,21 @@ Since $\hat{z}-z$ is a vector, its covariance is a matrix, and cannot be minimis
 In the following, we present three kriging estimates, based on increasingly relaxed assumptions made on our knowledge of the underlying GP. Each method relies on the inversion of the Gram matrix:
 \begin{equation}
 	\begin{aligned}
-	G(\tilde{\mathbf{x}})&\triangleq k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}\\
+	\mathbf{G}(\tilde{\mathbf{x}})&\triangleq \kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}}\\
 	&=\begin{bmatrix}
-	k(\tilde{x}_1,\tilde{x}_1)+\tilde{R}&\cdots&k(\tilde{x}_1,\tilde{x}_{\tilde{N}})\\\vdots&\ddots&\vdots\\k(\tilde{x}_{\tilde{N}},\tilde{x}_1)&\cdots&k(\tilde{x}_{\tilde{N}},\tilde{x}_{\tilde{N}})+\tilde{R}
+	\kappa(\tilde{x}_1,\tilde{x}_1)+\tilde{\mathbf{R}}&\cdots&\kappa(\tilde{x}_1,\tilde{x}_{\tilde{N}})\\\vdots&\ddots&\vdots\\\kappa(\tilde{x}_{\tilde{N}},\tilde{x}_1)&\cdots&\kappa(\tilde{x}_{\tilde{N}},\tilde{x}_{\tilde{N}})+\tilde{\mathbf{R}}
 	\end{bmatrix}
 	\end{aligned}
 \end{equation}
-of $\tilde{\mathbf{x}}$ with respect to $f$, where $\otimes$ is the Kronecker matrix product. Since $k$ is SPD and the training points are distinct, it comes that:
+of $\tilde{\mathbf{x}}$ with respect to $h$, where $\otimes$ is the Kronecker matrix product. Since $\kappa$ is SPD and the training points are distinct, it comes that:
 \begin{equation}
-	G(\tilde{\mathbf{x}})\in\mathcal{S}_{\tilde{N}d_z}^{++}(\mathbb{R})
+	\mathbf{G}(\tilde{\mathbf{x}})\in\mathcal{S}_{\tilde{N}d_z}^{++}(\mathbb{R})
 \end{equation}
-and so $G(\tilde{\mathbf{x}})$ is invertible, even in the noiseless case $\tilde{R}=0$.
+and so $\mathbf{G}(\tilde{\mathbf{x}})$ is invertible, even in the noiseless case $\tilde{\mathbf{R}}=0$.
 
-We also assume that the query point $x$ differs from the training points $\tilde{\mathbf{x}}$, so that the joint law of $(z,\tilde{\mathbf{z}})$ is non-degenerate. This hypothesis is not restrictive and is only needed for the proofs. Indeed, the estimators are continuous in $x$ and thus remain valid at the training points as soon as $m$ and $k$ are continuous, which we assume.
+We also assume that the query point $x$ differs from the training points $\tilde{\mathbf{x}}$, so that the joint law of $(z,\tilde{\mathbf{z}})$ is non-degenerate. This hypothesis is not restrictive and is only needed for the proofs. Indeed, the estimators are continuous in $x$ and thus remain valid at the training points as soon as $m$ and $\kappa$ are continuous, which we assume.
 
-Moreover, $\mathbb{V}\left[\hat{z}-z\right]$ is a covariance matrix, and therefore SPSD whatever the weight matrix $W$. It is furthermore positive definite when $x$ is not one of the training points, since $\hat{z}-z$ is a non-degenerate linear combination of $z$ and $\tilde{\mathbf{z}}$.
+Moreover, $\mathbb{V}\left[\hat{z}-z\right]$ is a covariance matrix, and therefore SPSD whatever the weight matrix $\mathbf{W}$. It is furthermore positive definite when $x$ is not one of the training points, since $\hat{z}-z$ is a non-degenerate linear combination of $z$ and $\tilde{\mathbf{z}}$.
 
 \subsection{Simple Kriging}
 
@@ -65,89 +65,89 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 	Using the notations introduced in \cref{sec:kriging}, the SK estimator of $z$ and its error covariance are:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=m(x)+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\:(\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}}))\\
-		R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k\left(\tilde{\mathbf{x}},x\right)
+		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=m(x)+\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\:(\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}}))\\
+		\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&=\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa\left(\tilde{\mathbf{x}},x\right)
 		\end{aligned}\right.\label{eq:simple_kriging_equations}
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	Since $m$ is known, we may assume it to be identically equal to $0$ by working with $f-m$ instead of $f$, without any loss of generality. In the centred case, \eqref{eq:error_covariance} can be developed as follows:
+	Since $m$ is known, we may assume it to be identically equal to $0$ by working with $h-m$ instead of $h$, without any loss of generality. In the centred case, \eqref{eq:error_covariance} can be developed as follows:
 	\begin{equation}
-		\mathbb{V}[W^\top\tilde{\mathbf{z}}-z]=W^\top G(\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\label{eq:generic_kriging_variance}
+		\mathbb{V}[\mathbf{W}^\top\tilde{\mathbf{z}}-z]=\mathbf{W}^\top \mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{W}-\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{W}+\kappa(x,x)+\mathbf{R}\label{eq:generic_kriging_variance}
 	\end{equation}
 
-	By symmetry of $G(\tilde{\mathbf{x}})$, differentiating \eqref{eq:error_covariance} with respect to $W$ yields:
+	By symmetry of $\mathbf{G}(\tilde{\mathbf{x}})$, differentiating \eqref{eq:error_covariance} with respect to $\mathbf{W}$ yields:
 	\begin{equation}
 		\begin{aligned}
-		&\frac{\partial}{\partial W}\left(\operatorname{tr}\left(W^\top G(\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\right)\right)=0\\
-		\iff\quad&\frac{\partial}{\partial W}\left(\operatorname{tr}\left(W^\top G(\tilde{\mathbf{x}})\:W\right)\right)-2\frac{\partial}{\partial W}\left(\operatorname{tr}\left(W^\top k(\tilde{\mathbf{x}},x)\right)\right)=0\\
-		\iff\quad&2G(\tilde{\mathbf{x}})\:W-2k(\tilde{\mathbf{x}},x)=0\\
-		\iff\quad&W=G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)
+		&\frac{\partial}{\partial \mathbf{W}}\left(\operatorname{tr}\left(\mathbf{W}^\top \mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{W}-\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{W}+\kappa(x,x)+\mathbf{R}\right)\right)=0\\
+		\iff\quad&\frac{\partial}{\partial \mathbf{W}}\left(\operatorname{tr}\left(\mathbf{W}^\top \mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{W}\right)\right)-2\frac{\partial}{\partial \mathbf{W}}\left(\operatorname{tr}\left(\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)\right)\right)=0\\
+		\iff\quad&2\mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{W}-2\kappa(\tilde{\mathbf{x}},x)=0\\
+		\iff\quad&\mathbf{W}=\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)
 		\end{aligned}
 	\end{equation}
 
 	The SK estimator is thus:
 	\begin{equation}
-		\hat{z}_{\mathrm{SK}}=W^\top\tilde{\mathbf{z}}=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}
+		\hat{z}_{\mathrm{SK}}=\mathbf{W}^\top\tilde{\mathbf{z}}=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}
 	\end{equation}
 	and its corresponding covariance:
 	\begin{equation}
 		\begin{aligned}
-		R_{\mathrm{SK}}&=W^\top G(\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
-		&=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}G(\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
-		&\qquad-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)+k(x,x)+R\\
-		&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)
+		\mathbf{R}_{\mathrm{SK}}&=\mathbf{W}^\top \mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{W}-\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{W}+\kappa(x,x)+\mathbf{R}\\
+		&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)\\
+		&\qquad-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)+\kappa(x,x)+\mathbf{R}\\
+		&=\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)
 		\end{aligned}
 	\end{equation}
 
-	The general case is obtained by adding $m$ back into $f$.
+	The general case is obtained by adding $m$ back into $h$.
 \end{proof}
 
 \begin{remark}[Additive query noise]
-	In \Cref{th:simple_kriging}, the term $R$ appears because the noisy query $z$ is predicted rather than the field value $f(x)$. The two share the same estimator, and differ in covariance only by an additive $R$ term. Kriging the field can thus be done by subtracting $R$, or equivalently by taking $R=0$ as mentioned in the introduction to kriging.
+	In \Cref{th:simple_kriging}, the term $\mathbf{R}$ appears because the noisy query $z$ is predicted rather than the field value $h(x)$. The two share the same estimator, and differ in covariance only by an additive $\mathbf{R}$ term. Kriging the field can thus be done by subtracting $\mathbf{R}$, or equivalently by taking $\mathbf{R}=0$ as mentioned in the introduction to kriging.
 \end{remark}
 
 \begin{remark}[Error covariance minimisation]
-	While the SK weight matrix $W=G^{-1}k(\tilde{\mathbf{x}},x)$ was obtained by minimising the trace of $\mathbb{V}[\hat{z}-z]$, it minimises the whole covariance in the SPSD sense. Indeed:
+	While the SK weight matrix $\mathbf{W}=\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)$ was obtained by minimising the trace of $\mathbb{V}[\hat{z}-z]$, it minimises the whole covariance in the SPSD sense. Indeed:
 	\begin{equation}
 		\begin{aligned}
-		\mathbb{V}[\hat{z}-z]-R_{\mathrm{SK}}&=W^\top G(\tilde{\mathbf{x}})\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
-		&=\left(W-G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)^\top G(\tilde{\mathbf{x}})\left(W-G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\right)\\
+		\mathbb{V}[\hat{z}-z]-\mathbf{R}_{\mathrm{SK}}&=\mathbf{W}^\top \mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{W}-\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{W}+\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)\\
+		&=\left(\mathbf{W}-\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)\right)^\top \mathbf{G}(\tilde{\mathbf{x}})\left(\mathbf{W}-\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)\right)\\
 		&\succeq0
 		\end{aligned}
 	\end{equation}
-	with equality if and only if $W=G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)$ since $G(\tilde{\mathbf{x}})\succ0$.
+	with equality if and only if $\mathbf{W}=\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)$ since $\mathbf{G}(\tilde{\mathbf{x}})\succ0$.
 \end{remark}
 
 \begin{proposition}[Exact interpolation in the noiseless case]
-	Assume that $\tilde{R}=0$, and let $i\in[\![1,\tilde{N}]\!]$. The SK estimator interpolates the data at $\tilde{x}_i$ exactly:
+	Assume that $\tilde{\mathbf{R}}=0$, and let $i\in[\![1,\tilde{N}]\!]$. The SK estimator interpolates the data at $\tilde{x}_i$ exactly:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{z}_{\mathrm{SK}}(\tilde{x}_i,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=\tilde{z}_i\\
-		R_{\mathrm{SK}}(\tilde{x}_i,\tilde{\mathbf{x}})&=R
+		\mathbf{R}_{\mathrm{SK}}(\tilde{x}_i,\tilde{\mathbf{x}})&=\mathbf{R}
 		\end{aligned}\right.
 	\end{equation}
 
-	In particular, the error covariance reduces to the query noise $R$ alone, and vanishes when $R=0$. That degenerate case is the one set aside at the start of this section, and is reached by continuity in $x$. On the contrary, a positive training noise $\tilde{R}\succ0$ turns kriging into a smoother rather than an interpolator \cite{bib:spline-correspondence}.
+	In particular, the error covariance reduces to the query noise $\mathbf{R}$ alone, and vanishes when $\mathbf{R}=0$. That degenerate case is the one set aside at the start of this section, and is reached by continuity in $x$. On the contrary, a positive training noise $\tilde{\mathbf{R}}\succ0$ turns kriging into a smoother rather than an interpolator \cite{bib:spline-correspondence}.
 \end{proposition}
 
 \begin{proof}
-	Since $\tilde{R}=0$, the Gram matrix reduces to $G(\tilde{\mathbf{x}})=k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$. Let $e_i\triangleq[0,\dots,0,1,0,\dots,0]^\top$ be the $i$-th canonical basis vector of $\mathbb{R}^{\tilde{N}}$. The matrix $e_i^\top\otimes I_{d_z}$ extracts the $i$-th block of a stacked matrix, such that:
+	Since $\tilde{\mathbf{R}}=0$, the Gram matrix reduces to $\mathbf{G}(\tilde{\mathbf{x}})=\kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})$. Let $e_i\triangleq[0,\dots,0,1,0,\dots,0]^\top$ be the $i$-th canonical basis vector of $\mathbb{R}^{\tilde{N}}$. The matrix $e_i^\top\otimes \mathbf{I}_{d_z}$ extracts the $i$-th block of a stacked matrix, such that:
 	\begin{equation}
-		\left(e_i^\top\otimes I_{d_z}\right)G(\tilde{\mathbf{x}})=\left(e_i^\top\otimes I_{d_z}\right)k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})=k(\tilde{x}_i,\tilde{\mathbf{x}})
+		\left(e_i^\top\otimes \mathbf{I}_{d_z}\right)\mathbf{G}(\tilde{\mathbf{x}})=\left(e_i^\top\otimes \mathbf{I}_{d_z}\right)\kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})=\kappa(\tilde{x}_i,\tilde{\mathbf{x}})
 	\end{equation}
 
 	The kriging weights thus reduce to this selector:
 	\begin{equation}
-		k(\tilde{x}_i,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}=\left(e_i^\top\otimes I_{d_z}\right)G(\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}=e_i^\top\otimes I_{d_z}
+		\kappa(\tilde{x}_i,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}=\left(e_i^\top\otimes \mathbf{I}_{d_z}\right)\mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}=e_i^\top\otimes \mathbf{I}_{d_z}
 	\end{equation}
 
-	Evaluating \eqref{eq:simple_kriging_equations} at $x=\tilde{x}_i$ by the continuity yields:
+	Evaluating \eqref{eq:simple_kriging_equations} at $x=\tilde{x}_i$ by continuity yields:
 	\begin{equation}
 		\begin{aligned}
-			\hat{z}_{\mathrm{SK}}(\tilde{x}_i,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=m(\tilde{x}_i)+k(\tilde{x}_i,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}})\right)\\
-			&=m(\tilde{x}_i)+\left(e_i^\top\otimes I_{d_z}\right)\left(\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}})\right)\\
+			\hat{z}_{\mathrm{SK}}(\tilde{x}_i,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=m(\tilde{x}_i)+\kappa(\tilde{x}_i,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}})\right)\\
+			&=m(\tilde{x}_i)+\left(e_i^\top\otimes \mathbf{I}_{d_z}\right)\left(\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}})\right)\\
 			&=m(\tilde{x}_i)+\tilde{z}_i-m(\tilde{x}_i)\\
 			&=\tilde{z}_i
 		\end{aligned}
@@ -156,10 +156,10 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 	Similarly:
 	\begin{equation}
 		\begin{aligned}
-			R_{\mathrm{SK}}(\tilde{x}_i,\tilde{\mathbf{x}})&=k(\tilde{x}_i,\tilde{x}_i)+R-k(\tilde{x}_i,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},\tilde{x}_i)\\
-			&=k(\tilde{x}_i,\tilde{x}_i)+R-\left(e_i^\top\otimes I_{d_z}\right)k(\tilde{\mathbf{x}},\tilde{x}_i)\\
-			&=k(\tilde{x}_i,\tilde{x}_i)+R-k(\tilde{x}_i,\tilde{x}_i)\\
-			&=R
+			\mathbf{R}_{\mathrm{SK}}(\tilde{x}_i,\tilde{\mathbf{x}})&=\kappa(\tilde{x}_i,\tilde{x}_i)+\mathbf{R}-\kappa(\tilde{x}_i,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},\tilde{x}_i)\\
+			&=\kappa(\tilde{x}_i,\tilde{x}_i)+\mathbf{R}-\left(e_i^\top\otimes \mathbf{I}_{d_z}\right)\kappa(\tilde{\mathbf{x}},\tilde{x}_i)\\
+			&=\kappa(\tilde{x}_i,\tilde{x}_i)+\mathbf{R}-\kappa(\tilde{x}_i,\tilde{x}_i)\\
+			&=\mathbf{R}
 		\end{aligned}
 	\end{equation}
 \end{proof}
@@ -167,7 +167,7 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 \begin{proposition}[Gaussian conditioning interpretation]\label{th:simple_kriging_conditional}
 	The conditional distribution of $z$ knowing $\tilde{\mathbf{z}}$ is Gaussian, parametrised by the SK estimator and its error covariance matrix:
 	\begin{equation}
-		z\mid\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m),R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})\right)
+		z\mid\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m),\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})\right)
 	\end{equation}
 \end{proposition}
 
@@ -179,7 +179,7 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 		\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}
 		m(x)\\m(\tilde{\mathbf{x}})
 		\end{bmatrix},\begin{bmatrix}
-		k(x,x)+R&k(x,\tilde{\mathbf{x}})\\k(\tilde{\mathbf{x}},x)&G(\tilde{\mathbf{x}})
+		\kappa(x,x)+\mathbf{R}&\kappa(x,\tilde{\mathbf{x}})\\\kappa(\tilde{\mathbf{x}},x)&\mathbf{G}(\tilde{\mathbf{x}})
 		\end{bmatrix}\right)
 	\end{equation}
 
@@ -188,10 +188,10 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 
 This result is a special case of the more general result established in \Cref{th:MMSE_estimator}. Since the unbiased hypothesis of the BLUE is automatically verified by the SK estimator, the minimisation criterion \eqref{eq:error_covariance} amounts to finding the MMSE estimator of $z$ given $\tilde{\mathbf{z}}$, which is always the conditional expectation.
 
-\begin{remark}[Simultaneous estimation]\label{th:simultaneous_estimation}
-	The simultaneous estimation of $f$ at several query points $\mathbf{x}=(x_1,\dots,x_n)\in\mathcal{U}^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. In particular, the $\mathcal{O}\left(\tilde{N}^3\right)$ cost of inverting $G(\tilde{\mathbf{x}})$ can be shared across the $n$ estimations whether they are performed successively or simultaneously.
+\begin{remark}[Simultaneous estimation]
+	The simultaneous estimation of $h$ at several query points $\mathbf{x}=(x_1,\dots,x_n)\in\Omega^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. In particular, the $\mathcal{O}\left(\tilde{N}^3\right)$ cost of inverting $\mathbf{G}(\tilde{\mathbf{x}})$ can be shared across the $n$ estimations whether they are performed successively or simultaneously.
 
-	However, computing only the $n$ diagonal blocks of $R_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}})$ costs $\mathcal{O}(\tilde{N}^3+n\tilde{N}^2)$, whereas forming the full matrix before discarding its off-diagonal blocks costs $\mathcal{O}(\tilde{N}^3+n\tilde{N}^2+n^2\tilde{N})$ due to the extra off-diagonal matrix products. The off-diagonal blocks describe the correlation between the estimation errors made at distinct query points, and should only be computed when that correlation is needed.
+	However, computing only the $n$ diagonal blocks of $\mathbf{R}_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}})$ costs $\mathcal{O}(\tilde{N}^3+n\tilde{N}^2)$, whereas forming the full matrix before discarding its off-diagonal blocks costs $\mathcal{O}(\tilde{N}^3+n\tilde{N}^2+n^2\tilde{N})$ due to the extra off-diagonal matrix products. The off-diagonal blocks describe the correlation between the estimation errors made at distinct query points, and should only be computed when that correlation is needed.
 \end{remark}
 
 \subsection{Ordinary Kriging}
@@ -202,14 +202,14 @@ The unbiased assumption of the OK estimator yields:
 \begin{equation}
 	\begin{aligned}
 	&\mathbb{E}[\hat{z}-z]=0\\
-	\iff\quad&W^\top\mathbb{E}[\tilde{\mathbf{z}}]-\mathbb{E}[z]=0\\
-	\iff\quad&\left(\sum_{i=1}^{\tilde{N}}w_i^\top-I_{d_z}\right)m=0\\
-	\iff\quad&C^\top W-I_{d_z}=0
+	\iff\quad&\mathbf{W}^\top\mathbb{E}[\tilde{\mathbf{z}}]-\mathbb{E}[z]=0\\
+	\iff\quad&\left(\sum_{i=1}^{\tilde{N}}w_i^\top-\mathbf{I}_{d_z}\right)m=0\\
+	\iff\quad&\mathbf{C}^\top \mathbf{W}-\mathbf{I}_{d_z}=0
 	\end{aligned}\label{eq:ordinary_kriging_constraint}
 \end{equation}
 with:
 \begin{equation}
-	C\triangleq\mathbf{1}_{\tilde{N}}\otimes I_{d_z}\in\mathcal{M}_{\tilde{N}d_z,d_z}(\mathbb{R}),\qquad\mathbf{1}_{\tilde{N}}\triangleq\begin{bmatrix}1\\\vdots\\1\end{bmatrix}\in\mathbb{R}^{\tilde{N}}\label{eq:C_definition}
+	\mathbf{C}\triangleq\mathbf{1}_{\tilde{N}}\otimes \mathbf{I}_{d_z}\in\mathcal{M}_{\tilde{N}d_z,d_z}(\mathbb{R}),\qquad\mathbf{1}_{\tilde{N}}\triangleq\begin{bmatrix}1\\\vdots\\1\end{bmatrix}\in\mathbb{R}^{\tilde{N}}\label{eq:C_definition}
 \end{equation}
 
 The OK weights thus minimise \eqref{eq:error_covariance} under the constraint \eqref{eq:ordinary_kriging_constraint}. Using the Lagrange multiplier method \cite{bib:Lagrange-multipliers}, \Cref{th:ordinary_kriging} derives the corresponding estimator and covariance matrix, and \Cref{th:ordinary_simple_kriging_link} establishes the link between ordinary and simple kriging.
@@ -218,19 +218,19 @@ The OK weights thus minimise \eqref{eq:error_covariance} under the constraint \e
 	The OK estimator of $z$ given $\tilde{\mathbf{z}}$ and its error covariance are:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{OK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-C\:\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\right)\\
-		R_{\mathrm{OK}}(x,\tilde{\mathbf{x}})&=R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k\left(\tilde{\mathbf{x}},x\right)
+		\hat{z}_{\mathrm{OK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})+\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-\mathbf{C}\:\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\right)\\
+		\mathbf{R}_{\mathrm{OK}}(x,\tilde{\mathbf{x}})&=\mathbf{R}_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})+\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa\left(\tilde{\mathbf{x}},x\right)
 		\end{aligned}\right.\label{eq:ordinary_kriging_equations}
 	\end{equation}
 	with:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=\left(C^\top G(\tilde{\mathbf{x}})^{-1}C\right)^{-1}C^\top G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
-		R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})&=\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}C\right)\left(C^\top G(\tilde{\mathbf{x}})^{-1}C\right)^{-1}\\
-		&\qquad\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}C\right)^\top
+		\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=\left(\mathbf{C}^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}\mathbf{C}\right)^{-1}\mathbf{C}^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
+		\mathbf{R}_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})&=\left(\mathbf{I}_{d_z}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\mathbf{C}\right)\left(\mathbf{C}^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}\mathbf{C}\right)^{-1}\\
+		&\qquad\left(\mathbf{I}_{d_z}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\mathbf{C}\right)^\top
 		\end{aligned}\right.
 	\end{equation}
-	and $R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})\succeq0$.
+	and $\mathbf{R}_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})\succeq0$.
 \end{proposition}
 
 \begin{proof}
@@ -242,33 +242,33 @@ The OK weights thus minimise \eqref{eq:error_covariance} under the constraint \e
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{z}_{\mathrm{OK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}})&=\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}}))\\
-		R_{\mathrm{OK}}(x,\tilde{\mathbf{x}})&=R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})+R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})
+		\mathbf{R}_{\mathrm{OK}}(x,\tilde{\mathbf{x}})&=\mathbf{R}_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})+\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})
 		\end{aligned}\right.
 	\end{equation}
 	where, by abuse of notation, $\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$ denotes either the estimated mean vector or its replication for each of the training points $\tilde{\mathbf{x}}$, namely:
 	\begin{equation}
 		\underbrace{\begin{bmatrix}
 		\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\\\vdots\\\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
-		\end{bmatrix}}_{\tilde{N}\text{ times}}=C\:\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
+		\end{bmatrix}}_{\tilde{N}\text{ times}}=\mathbf{C}\:\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
 	\end{equation}
 
-	Ordinary kriging can therefore be interpreted as simple kriging in which the mean $m$ is concurrently estimated from the observations. The uncertainty associated with this second estimation is captured by the covariance term $R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})\succeq0$, and is added to the SK covariance.
+	Ordinary kriging can therefore be interpreted as simple kriging in which the mean $m$ is concurrently estimated from the observations. The uncertainty associated with this second estimation is captured by the covariance term $\mathbf{R}_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})\succeq0$, and is added to the SK covariance.
 \end{remark}
 
 \subsection{Universal Kriging}
 
-Universal kriging (UK) \cite{bib:universal-kriging} generalises the constant mean of ordinary kriging to a linear combination of $r_{\mathrm{UK}}\in\mathbb{N}^*$ known trend functions $g_1,\dots,g_{r_{\mathrm{UK}}}:\mathcal{U}\to\mathbb{R}$:
+Universal kriging (UK) \cite{bib:universal-kriging} generalises the constant mean of ordinary kriging to a linear combination of $r_{\mathrm{UK}}\in\mathbb{N}^*$ known trend functions $g_1,\dots,g_{r_{\mathrm{UK}}}:\Omega\to\mathbb{R}$:
 \begin{equation}
-	m(x)=g(x)\:\beta=\sum_{i=1}^{r_{\mathrm{UK}}}g_i(x)\:\beta_i\label{eq:UK_mean}
+	m(x)=g(x)\:\boldsymbol{\gamma}=\sum_{i=1}^{r_{\mathrm{UK}}}g_i(x)\:\gamma_i\label{eq:UK_mean}
 \end{equation}
 where $g(x)$ is the trend matrix:
 \begin{equation}
-	g(x)\triangleq\begin{bmatrix}g_1(x)&\cdots&g_{r_{\mathrm{UK}}}(x)\end{bmatrix}\otimes I_{d_z}\in\mathcal{M}_{d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
+	g(x)\triangleq\begin{bmatrix}g_1(x)&\cdots&g_{r_{\mathrm{UK}}}(x)\end{bmatrix}\otimes \mathbf{I}_{d_z}\in\mathcal{M}_{d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
 \end{equation}
-and $\beta$ gathers the unknown coefficients $\beta_i\in\mathbb{R}^{d_z}$:
+and $\boldsymbol{\gamma}$ gathers the unknown coefficients $\gamma_i\in\mathbb{R}^{d_z}$:
 \begin{equation}
-	\beta\triangleq\begin{bmatrix}
-	\beta_1\\\vdots\\\beta_{r_{\mathrm{UK}}}
+	\boldsymbol{\gamma}\triangleq\begin{bmatrix}
+	\gamma_1\\\vdots\\\gamma_{r_{\mathrm{UK}}}
 	\end{bmatrix}\in\mathbb{R}^{r_{\mathrm{UK}}d_z}
 \end{equation}
 
@@ -278,7 +278,7 @@ The trend matrix at the training points stacks these evaluations:
 	g(\tilde{x}_1)\\\vdots\\g(\tilde{x}_{\tilde{N}})
 	\end{bmatrix}\in\mathcal{M}_{\tilde{N}d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
 \end{equation}
-so that $m(\tilde{\mathbf{x}})=g(\tilde{\mathbf{x}})\:\beta$ lies in $\mathbb{R}^{\tilde{N}d_z}$, as does $\tilde{\mathbf{z}}$.
+so that $m(\tilde{\mathbf{x}})=g(\tilde{\mathbf{x}})\:\boldsymbol{\gamma}$ lies in $\mathbb{R}^{\tilde{N}d_z}$, as does $\tilde{\mathbf{z}}$.
 
 This matrix is assumed to have full column rank, which requires at least $\tilde{N}\geq r_{\mathrm{UK}}$ training points, and the trend functions to be linearly independent once restricted to the training points. \Cref{th:universal_kriging} generalises \Cref{th:ordinary_kriging} accordingly.
 
@@ -286,19 +286,19 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	Assume that $g(\tilde{\mathbf{x}})$ has full column rank. The UK estimator of $z$ given $\tilde{\mathbf{z}}$ and its error covariance are:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=g(x)\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)+k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right)\\
-		R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k\left(\tilde{\mathbf{x}},x\right)
+		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=g(x)\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)+\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right)\\
+		\mathbf{R}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=\mathbf{R}_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)+\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa\left(\tilde{\mathbf{x}},x\right)
 		\end{aligned}\right.\label{eq:universal_kriging_equations}
 	\end{equation}
 	with:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\left(g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^{-1}g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
-		R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)&=\left(g(x)-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)\left(g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^{-1}\\
-		&\qquad\left(g(x)-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^\top
+		\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\left(g(\tilde{\mathbf{x}})^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^{-1}g(\tilde{\mathbf{x}})^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
+		\mathbf{R}_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)&=\left(g(x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)\left(g(\tilde{\mathbf{x}})^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^{-1}\\
+		&\qquad\left(g(x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^\top
 		\end{aligned}\right.\label{eq:kriged_universal_mean}
 	\end{equation}
-	and $R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)\succeq0$.
+	and $\mathbf{R}_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)\succeq0$.
 \end{proposition}
 
 \begin{proof}
@@ -306,26 +306,26 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 \end{proof}
 
 \begin{remark}[Link with ordinary and simple kriging]
-	As mentioned in the beginning of this section, ordinary kriging is a special case of universal kriging, which arises when $r_{\mathrm{UK}}=1$ and $g_1\equiv1$. In this scenario, the trend matrices reduce to $g(x)=I_{d_z}$ and $g(\tilde{\mathbf{x}})=C$. This, in turn, yields:
+	As mentioned in the beginning of this section, ordinary kriging is a special case of universal kriging, which arises when $r_{\mathrm{UK}}=1$ and $g_1\equiv1$. In this scenario, the trend matrices reduce to $g(x)=\mathbf{I}_{d_z}$ and $g(\tilde{\mathbf{x}})=\mathbf{C}$. This, in turn, yields:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},1)&=\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\\
-		R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},1)&=R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})
+		\mathbf{R}_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},1)&=\mathbf{R}_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})
 		\end{aligned}\right.
 	\end{equation}
 	and thus:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},1)&=\hat{z}_{\mathrm{OK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}})\\
-		R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},1)&=R_{\mathrm{OK}}(x,\tilde{\mathbf{x}})
+		\mathbf{R}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},1)&=\mathbf{R}_{\mathrm{OK}}(x,\tilde{\mathbf{x}})
 		\end{aligned}\right.
 	\end{equation}
 
-	Similarly to \Cref{th:ordinary_simple_kriging_link}, universal kriging can be seen as the simultaneous simple kriging from the training points and mean estimation from the trend functions. Indeed, comparing \eqref{eq:universal_kriging_equations} with \Cref{th:simple_kriging} shows that the following relation:
+	Similarly to \Cref{th:ordinary_simple_kriging_link}, universal kriging can be seen as the simultaneous simple kriging from the training points and mean estimation from the trend functions. Indeed, comparing \eqref{eq:universal_kriging_equations} with \Cref{th:simple_kriging} shows that the following relation holds:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\hat{z}_{\mathrm{SK}}\left(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right)\\
-		R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)+R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})
+		\mathbf{R}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=\mathbf{R}_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)+\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})
 		\end{aligned}\right.
 	\end{equation}
 
@@ -333,7 +333,7 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 \end{remark}
 
 \begin{remark}[Cost of estimating the mean]
-	In addition to the $\mathcal{O}(\tilde{N}^3)$ cost of inverting $G(\tilde{\mathbf{x}})$, and the $\mathcal{O}(\tilde{N}^2)$ required to query the simple kriging model, universal kriging incurs an additional cost to estimate the mean. This can be decomposed into an $\mathcal{O}(r_{\mathrm{UK}}\tilde{N}^2+r_{\mathrm{UK}}^2\tilde{N}+r_{\mathrm{UK}}^3)$ computation of $g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, and an additional $\mathcal{O}(r_{\mathrm{UK}}\tilde{N}+r_{\mathrm{UK}}^2)$ per query to compute the estimated mean and covariance matrix.
+	In addition to the $\mathcal{O}(\tilde{N}^3)$ cost of inverting $\mathbf{G}(\tilde{\mathbf{x}})$, and the $\mathcal{O}(\tilde{N}^2)$ required to query the simple kriging model, universal kriging incurs an additional cost to estimate the mean. This can be decomposed into an $\mathcal{O}(r_{\mathrm{UK}}\tilde{N}^2+r_{\mathrm{UK}}^2\tilde{N}+r_{\mathrm{UK}}^3)$ computation of $g(\tilde{\mathbf{x}})^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$, and an additional $\mathcal{O}(r_{\mathrm{UK}}\tilde{N}+r_{\mathrm{UK}}^2)$ per query to compute the estimated mean and covariance matrix.
 
 	In particular, when $\tilde{N}\gg r_{\mathrm{UK}}$, universal kriging retains the same dominant complexity as simple kriging.
 \end{remark}
@@ -341,23 +341,23 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 \Cref{th:simple_kriging_conditional} shows that simple kriging can be seen as a Gaussian conditioning, which ordinary and universal kriging do not admit as such, their estimators being BLUEs of an unknown mean rather than posterior expectations. This interpretation can nonetheless be recovered by using a Gaussian prior on the trend coefficients, as proven by \Cref{th:kriging_vague_prior} \cite{bib:Bayesian-kriging, bib:Bayesian-trend}.
 
 \begin{proposition}[Conditioning under a vague trend prior]\label{th:kriging_vague_prior}
-	Let $B\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}$, and assume that the UK coefficients follow:
+	Let $\mathbf{B}\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}$, and assume that the UK coefficients follow:
 	\begin{equation}
-		\beta\sim\mathcal{N}(0,B)
+		\boldsymbol{\gamma}\sim\mathcal{N}(0,\mathbf{B})
 	\end{equation}
 
 	Then:
 	\begin{equation}
-		f\sim\mathcal{GP}(0,k_B)
+		h\sim\mathcal{GP}(0,\kappa_{\mathbf{B}})
 	\end{equation}
-	where $k_B$ is the augmented kernel:
+	where $\kappa_{\mathbf{B}}$ is the augmented kernel:
 	\begin{equation}
-		k_B:x,x'\mapsto k(x,x')+g(x)\:B\:g(x')^\top
+		\kappa_{\mathbf{B}}:x,x'\mapsto \kappa(x,x')+g(x)\:\mathbf{B}\:g(x')^\top
 	\end{equation}
 
-	We write $\hat{z}_{\mathrm{SK},B}$ and $R_{\mathrm{SK},B}$ for the SK estimator and error covariance of \Cref{th:simple_kriging} taken under $k_B$ rather than $k$. The following limit holds:
+	We write $\hat{z}_{\mathrm{SK},\mathbf{B}}$ and $\mathbf{R}_{\mathrm{SK},\mathbf{B}}$ for the SK estimator and error covariance of \Cref{th:simple_kriging} taken under $\kappa_{\mathbf{B}}$ rather than $\kappa$. The following limit holds:
 	\begin{equation}
-		z\mid\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK},B}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0),R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})\right)\underset{B^{-1}\to0}{\longrightarrow}\mathcal{N}\left(\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)\right)
+		z\mid\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0),\mathbf{R}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}})\right)\underset{\mathbf{B}^{-1}\to0}{\longrightarrow}\mathcal{N}\left(\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),\mathbf{R}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)\right)
 	\end{equation}
 	which gives an asymptotic equivalent of \Cref{th:simple_kriging_conditional} for universal, and thus ordinary, kriging.
 \end{proposition}
@@ -368,23 +368,23 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 
 The kriging equations can be written in a block form, in which the unbiasedness constraints are gathered into the Gram matrix. Formally, let:
 \begin{equation}
-	\mathcal{G}(\tilde{\mathbf{x}})\triangleq\begin{bmatrix}G(\tilde{\mathbf{x}})&g(\tilde{\mathbf{x}})\\g(\tilde{\mathbf{x}})^\top&0\end{bmatrix},
-	\qquad\bar{k}(\tilde{\mathbf{x}},x)\triangleq\begin{bmatrix}k(\tilde{\mathbf{x}},x)\\g(x)^\top\end{bmatrix},
+	\bar{\mathbf{G}}(\tilde{\mathbf{x}})\triangleq\begin{bmatrix}\mathbf{G}(\tilde{\mathbf{x}})&g(\tilde{\mathbf{x}})\\g(\tilde{\mathbf{x}})^\top&0\end{bmatrix},
+	\qquad\bar{\kappa}(\tilde{\mathbf{x}},x)\triangleq\begin{bmatrix}\kappa(\tilde{\mathbf{x}},x)\\g(x)^\top\end{bmatrix},
 	\qquad\bar{\mathbf{z}}\triangleq\begin{bmatrix}\tilde{\mathbf{z}}\\0\end{bmatrix}
 \end{equation}
-be obtained by appending the trend to $G(\tilde{\mathbf{x}})$, $k(\tilde{\mathbf{x}},x)$ and $\tilde{\mathbf{z}}$, with:
+be obtained by appending the trend to $\mathbf{G}(\tilde{\mathbf{x}})$, $\kappa(\tilde{\mathbf{x}},x)$ and $\tilde{\mathbf{z}}$, with:
 \begin{equation}
-	\bar{k}(x,\tilde{\mathbf{x}})=\bar{k}(\tilde{\mathbf{x}},x)^\top
+	\bar{\kappa}(x,\tilde{\mathbf{x}})=\bar{\kappa}(\tilde{\mathbf{x}},x)^\top
 \end{equation}
 
 Finally, \Cref{th:block_kriging} shows that these blocks give universal kriging a form similar to that of simple kriging \cite{bib:dual-kriging}.
 
 \begin{proposition}[Block form of universal kriging]\label{th:block_kriging}
-	Assume that $g(\tilde{\mathbf{x}})$ has full column rank. The matrix $\mathcal{G}(\tilde{\mathbf{x}})$ is invertible, and the UK estimator and covariance matrix verify:
+	Assume that $g(\tilde{\mathbf{x}})$ has full column rank. The matrix $\bar{\mathbf{G}}(\tilde{\mathbf{x}})$ is invertible, and the UK estimator and covariance matrix verify:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}\\
-		R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=k(x,x)+R-\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)
+		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\bar{\kappa}(x,\tilde{\mathbf{x}})\:\bar{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}\\
+		\mathbf{R}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=\kappa(x,x)+\mathbf{R}-\bar{\kappa}(x,\tilde{\mathbf{x}})\:\bar{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\bar{\kappa}(\tilde{\mathbf{x}},x)
 		\end{aligned}\right.
 	\end{equation}
 \end{proposition}
@@ -402,34 +402,34 @@ Formally, let the training data be split into the previous ones and a new batch 
 	\tilde{\mathbf{x}}=\left(\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{x}}_{\mathrm{new}}\right),\qquad\tilde{\mathbf{z}}=\begin{bmatrix}\tilde{\mathbf{z}}_{\mathrm{old}}\\\tilde{\mathbf{z}}_{\mathrm{new}}\end{bmatrix}
 \end{equation}
 
-\Cref{th:conditional_GP} extends \Cref{th:simple_kriging_conditional} to the whole process, by showing that $f$ conditioned on $\tilde{\mathbf{z}}_{\mathrm{old}}$ is still a GP, whose mean is the SK estimator built on $\tilde{\mathbf{x}}_{\mathrm{old}}$.
+\Cref{th:conditional_GP} extends \Cref{th:simple_kriging_conditional} to the whole process, by showing that $h$ conditioned on $\tilde{\mathbf{z}}_{\mathrm{old}}$ is still a GP, whose mean is the SK estimator built on $\tilde{\mathbf{x}}_{\mathrm{old}}$.
 
 \begin{proposition}[Conditional Gaussian process]\label{th:conditional_GP}
-	Let $k_{|\mathrm{old}}$ be the conditional kernel:
+	Let $\kappa_{|\mathrm{old}}$ be the conditional kernel:
 	\begin{equation}
-		k_{|\mathrm{old}}:x,x'\mapsto k(x,x')-k(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:G(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}k(\tilde{\mathbf{x}}_{\mathrm{old}},x')\label{eq:conditional_kernel}
+		\kappa_{|\mathrm{old}}:x,x'\mapsto \kappa(x,x')-\kappa(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathbf{G}(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}\kappa(\tilde{\mathbf{x}}_{\mathrm{old}},x')\label{eq:conditional_kernel}
 	\end{equation}
 
 	Then:
 	\begin{equation}
-		f\mid\tilde{\mathbf{z}}_{\mathrm{old}}\sim\mathcal{GP}\left(\hat{z}_{\mathrm{SK}}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m),k_{|\mathrm{old}}\right)
+		h\mid\tilde{\mathbf{z}}_{\mathrm{old}}\sim\mathcal{GP}\left(\hat{z}_{\mathrm{SK}}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m),\kappa_{|\mathrm{old}}\right)
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	Let $n\in\mathbb{N}^*$ and $\mathbf{x}\in\mathcal{U}^n$. \Cref{th:simple_kriging_conditional} applied with $R=0$ gives:
+	Let $n\in\mathbb{N}^*$ and $\mathbf{x}\in\Omega^n$. \Cref{th:simple_kriging_conditional} applied with $\mathbf{R}=0$ gives:
 	\begin{equation}
-		f(\mathbf{x})\mid\tilde{\mathbf{z}}_{\mathrm{old}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m),R_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}})\right)
+		h(\mathbf{x})\mid\tilde{\mathbf{z}}_{\mathrm{old}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m),\mathbf{R}_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}})\right)
 	\end{equation}
 	where:
 	\begin{equation}
 		\begin{aligned}
-		R_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}})&=k(\mathbf{x},\mathbf{x})-k(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}})\:G(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}k(\tilde{\mathbf{x}}_{\mathrm{old}},\mathbf{x})\\
-		&=k_{|\mathrm{old}}(\mathbf{x},\mathbf{x})
+		\mathbf{R}_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}})&=\kappa(\mathbf{x},\mathbf{x})-\kappa(\mathbf{x},\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathbf{G}(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}\kappa(\tilde{\mathbf{x}}_{\mathrm{old}},\mathbf{x})\\
+		&=\kappa_{|\mathrm{old}}(\mathbf{x},\mathbf{x})
 		\end{aligned}
 	\end{equation}
 
-	Every finite linear combination of the values of $f$ conditioned on $\tilde{\mathbf{z}}_{\mathrm{old}}$ is thus Gaussian, and \Cref{th:GP_definition} concludes the proof.
+	Every finite linear combination of the values of $h$ conditioned on $\tilde{\mathbf{z}}_{\mathrm{old}}$ is thus Gaussian, and \Cref{th:GP_definition} concludes the proof.
 \end{proof}
 
 By the chain rule, the density of $z$ given $\tilde{\mathbf{z}}$ reads:
@@ -445,74 +445,74 @@ Conditioning on $\tilde{\mathbf{z}}$ thus amounts to conditioning on $\tilde{\ma
 In particular, this means that the new batch can be incorporated by kriging the GP defined in \Cref{th:conditional_GP} with the new observations $\tilde{\mathbf{z}}_{\mathrm{new}}$, as shown by \Cref{th:kriging_update} \cite{bib:kriging-update}.
 
 \begin{proposition}[Sequential simple kriging update]\label{th:kriging_update}
-	Let $\hat{z}_{\mathrm{SK}|\mathrm{old}}$ and $R_{\mathrm{SK}|\mathrm{old}}$ denote the SK estimator and error covariance of \Cref{th:simple_kriging}, taken under $k_{|\mathrm{old}}$ rather than $k$, and let:
+	Let $\hat{z}_{\mathrm{SK}|\mathrm{old}}$ and $\mathbf{R}_{\mathrm{SK}|\mathrm{old}}$ denote the SK estimator and error covariance of \Cref{th:simple_kriging}, taken under $\kappa_{|\mathrm{old}}$ rather than $\kappa$, and let:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}&\triangleq\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathrm{SK}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m)\\
-		S_{\mathrm{new}|\mathrm{old}}&\triangleq k_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{new}})+I_{\tilde{N}_{\mathrm{new}}}\otimes\tilde{R}
+		\mathbf{S}_{\mathrm{new}|\mathrm{old}}&\triangleq \kappa_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{new}})+\mathbf{I}_{\tilde{N}_{\mathrm{new}}}\otimes\tilde{\mathbf{R}}
 		\end{aligned}\right.
 	\end{equation}
 	be the innovation of the new observations and its covariance. Then:
 	\begin{equation}
 		\begin{aligned}
 		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=\hat{z}_{\mathrm{SK}|\mathrm{old}}\left(x,\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{z}}_{\mathrm{new}},\hat{z}_{\mathrm{SK}}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m)\right)\\
-		&=\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m)+k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}
+		&=\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m)+\kappa_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{-1}\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}
 		\end{aligned}
 	\end{equation}
 	and:
 	\begin{equation}
 		\begin{aligned}
-		R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&=R_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\\
-		&=R_{\mathrm{SK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}})-k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}k_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
+		\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})&=\mathbf{R}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\\
+		&=\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}})-\kappa_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{-1}\kappa_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
 		\end{aligned}
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	For the sake of brevity, we write $\hat{z}_{\mathrm{old}}$ for $\hat{z}_{\mathrm{SK}}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m)$. Since the joint covariance of $(z,\tilde{\mathbf{z}})$ is SPD, \Cref{th:Gaussian_conditioning} states that the covariance of $(z,\tilde{\mathbf{z}}_{\mathrm{new}})$ given $\tilde{\mathbf{z}}_{\mathrm{old}}$ is also SPD. Applying \Cref{th:simple_kriging_conditional} to the GP of \Cref{th:conditional_GP}, observed at $\tilde{\mathbf{x}}_{\mathrm{new}}$ with noises independent of $f$ and $\tilde{\mathbf{z}}_{\mathrm{old}}$, thus gives:
+	For the sake of clarity, we let $\hat{z}_{\mathrm{old}}$ denote $\hat{z}_{\mathrm{SK}}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m)$. Since the joint covariance of $(z,\tilde{\mathbf{z}})$ is SPD, \Cref{th:Gaussian_conditioning} states that the covariance of $(z,\tilde{\mathbf{z}}_{\mathrm{new}})$ given $\tilde{\mathbf{z}}_{\mathrm{old}}$ is also SPD. Applying \Cref{th:simple_kriging_conditional} to the GP of \Cref{th:conditional_GP}, observed at $\tilde{\mathbf{x}}_{\mathrm{new}}$ with noises independent of $h$ and $\tilde{\mathbf{z}}_{\mathrm{old}}$, thus gives:
 	\begin{equation}
-		z|\tilde{\mathbf{z}}=(z|\tilde{\mathbf{z}}_{\mathrm{old}})|\tilde{\mathbf{z}}_{\mathrm{new}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{z}}_{\mathrm{new}},\hat{z}_{\mathrm{old}}),R_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\right)
+		z|\tilde{\mathbf{z}}=(z|\tilde{\mathbf{z}}_{\mathrm{old}})|\tilde{\mathbf{z}}_{\mathrm{new}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{z}}_{\mathrm{new}},\hat{z}_{\mathrm{old}}),\mathbf{R}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\right)
 	\end{equation}
 
-	By \Cref{th:simple_kriging_conditional} applied to $\tilde{\mathbf{x}}$, the mean and covariance of this distribution are also $\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)$ and $R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})$. Moreover, $S_{\mathrm{new}|\mathrm{old}}$ is the Gram matrix of $\tilde{\mathbf{x}}_{\mathrm{new}}$ under $k_{|\mathrm{old}}$, and \Cref{th:simple_kriging} gives:
+	By \Cref{th:simple_kriging_conditional} applied to $\tilde{\mathbf{x}}$, the mean and covariance of this distribution are also $\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)$ and $\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})$. Moreover, $\mathbf{S}_{\mathrm{new}|\mathrm{old}}$ is the Gram matrix of $\tilde{\mathbf{x}}_{\mathrm{new}}$ under $\kappa_{|\mathrm{old}}$, and \Cref{th:simple_kriging} gives:
 	\begin{equation}
 		\begin{aligned}
-		\hat{z}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{z}}_{\mathrm{new}},\hat{z}_{\mathrm{old}})&=\hat{z}_{\mathrm{old}}(x)+k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
-		&=\hat{z}_{\mathrm{old}}(x)+k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}
+		\hat{z}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{z}}_{\mathrm{new}},\hat{z}_{\mathrm{old}})&=\hat{z}_{\mathrm{old}}(x)+\kappa_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
+		&=\hat{z}_{\mathrm{old}}(x)+\kappa_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{-1}\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}
 		\end{aligned}
 	\end{equation}
 	and:
 	\begin{equation}
 		\begin{aligned}
-		R_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})&=k_{|\mathrm{old}}(x,x)+R-k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}k_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)\\
-		&=R_{\mathrm{SK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}})-k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}k_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
+		\mathbf{R}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})&=\kappa_{|\mathrm{old}}(x,x)+\mathbf{R}-\kappa_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{-1}\kappa_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)\\
+		&=\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}})-\kappa_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{-1}\kappa_{|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
 		\end{aligned}
 	\end{equation}
 \end{proof}
 
 \begin{remark}[Link with the Kalman filter]
-	\Cref{th:kriging_update} takes the form of the correction step of \Cref{alg:Kalman_filter}, with $\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}$ as the innovation, $S_{\mathrm{new}|\mathrm{old}}$ as its covariance, and $k_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_{\mathrm{new}|\mathrm{old}}^{-1}$ as the gain.
+	\Cref{th:kriging_update} takes the form of the correction step of \Cref{alg:Kalman_filter}, with $\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}$ as the innovation, $\mathbf{S}_{\mathrm{new}|\mathrm{old}}$ as its covariance, and $\kappa_{|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{-1}$ as the gain.
 \end{remark}
 
-Finally, \Cref{th:universal_kriging_update} extends \Cref{th:kriging_update} to universal kriging, and thus to ordinary kriging, by passing to the limit of the vague trend prior of \Cref{th:kriging_vague_prior}. It uses the blocks $\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})$ and $\bar{k}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}})$ of \Cref{th:block_kriging} to give the UK conditional kernel the same form as \eqref{eq:conditional_kernel}.
+Finally, \Cref{th:universal_kriging_update} extends \Cref{th:kriging_update} to universal kriging, and thus to ordinary kriging, by passing to the limit of the vague trend prior of \Cref{th:kriging_vague_prior}. It uses the blocks $\bar{\mathbf{G}}(\tilde{\mathbf{x}}_{\mathrm{old}})$ and $\bar{\kappa}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}})$ of \Cref{th:block_kriging} to give the UK conditional kernel the same form as \eqref{eq:conditional_kernel}.
 
 \begin{proposition}[Sequential universal kriging update]\label{th:universal_kriging_update}
-	Assume that $g(\tilde{\mathbf{x}}_{\mathrm{old}})$ has full column rank, and let $k_{\mathrm{UK}|\mathrm{old}}$ be the UK conditional kernel:
+	Assume that $g(\tilde{\mathbf{x}}_{\mathrm{old}})$ has full column rank, and let $\kappa_{\mathrm{UK}|\mathrm{old}}$ be the UK conditional kernel:
 	\begin{equation}
-		k_{\mathrm{UK}|\mathrm{old}}:x,x'\mapsto k(x,x')-\bar{k}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},x')
+		\kappa_{\mathrm{UK}|\mathrm{old}}:x,x'\mapsto \kappa(x,x')-\bar{\kappa}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\bar{\mathbf{G}}(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}\bar{\kappa}(\tilde{\mathbf{x}}_{\mathrm{old}},x')
 	\end{equation}
 	and let:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}&\triangleq\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},g)\\
-		S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}&\triangleq k_{\mathrm{UK}|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{new}})+I_{\tilde{N}_{\mathrm{new}}}\otimes\tilde{R}
+		\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}&\triangleq \kappa_{\mathrm{UK}|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{new}})+\mathbf{I}_{\tilde{N}_{\mathrm{new}}}\otimes\tilde{\mathbf{R}}
 		\end{aligned}\right.
 	\end{equation}
 	be the UK innovation of the new observations and its covariance. Then:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},g)+k_{\mathrm{UK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\left(S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}\right)^{-1}\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}\\
-		R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},g)-k_{\mathrm{UK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\left(S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}\right)^{-1}k_{\mathrm{UK}|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
+		\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)&=\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},g)+\kappa_{\mathrm{UK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\left(\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}\right)^{-1}\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}\\
+		\mathbf{R}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)&=\mathbf{R}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},g)-\kappa_{\mathrm{UK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\left(\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}\right)^{-1}\kappa_{\mathrm{UK}|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
 		\end{aligned}\right.
 	\end{equation}
 \end{proposition}
@@ -525,25 +525,25 @@ Compared with \Cref{th:kriging_update}, the conditional kernel thus also account
 
 \begin{comment}
 
-What such a recursion carries is the pair $\left(\hat{m}_{\mathrm{UK}},M\right)$, where $M$ is the matrix inverted in \eqref{eq:kriged_universal_mean}. That matrix is the error covariance of the coefficients themselves, $R_{\hat{m}_{\mathrm{UK}}}$ being only its image at a query point. Writing $U_{\mathrm{new}}$ for the factor of \eqref{eq:kriged_universal_mean} evaluated at the new points:
+What such a recursion carries is the pair $\left(\hat{m}_{\mathrm{UK}},\mathbf{M}\right)$, where $\mathbf{M}$ is the matrix inverted in \eqref{eq:kriged_universal_mean}. That matrix is the error covariance of the coefficients themselves, $\mathbf{R}_{\hat{m}_{\mathrm{UK}}}$ being only its image at a query point. Writing $\mathbf{U}_{\mathrm{new}}$ for the factor of \eqref{eq:kriged_universal_mean} evaluated at the new points:
 \begin{equation}
-	U_{\mathrm{new}}\triangleq g(\tilde{\mathbf{x}}_{\mathrm{new}})-k(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\in\mathcal{M}_{\tilde{N}_{\mathrm{new}}d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
+	\mathbf{U}_{\mathrm{new}}\triangleq g(\tilde{\mathbf{x}}_{\mathrm{new}})-\kappa(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\in\mathcal{M}_{\tilde{N}_{\mathrm{new}}d_z,r_{\mathrm{UK}}d_z}(\mathbb{R})
 \end{equation}
 the batch updates them as:
 \begin{equation}
 	\left\{\begin{aligned}
-	\hat{m}_{\mathrm{UK}}^{\mathrm{new}}&=\hat{m}_{\mathrm{UK}}+M\:U_{\mathrm{new}}^\top\:R_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
-	M_{\mathrm{new}}&=M-M\:U_{\mathrm{new}}^\top\:R_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}U_{\mathrm{new}}\:M
+	\hat{m}_{\mathrm{UK}}^{\mathrm{new}}&=\hat{m}_{\mathrm{UK}}+\mathbf{M}\:\mathbf{U}_{\mathrm{new}}^\top\:\mathbf{R}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
+	\mathbf{M}_{\mathrm{new}}&=\mathbf{M}-\mathbf{M}\:\mathbf{U}_{\mathrm{new}}^\top\:\mathbf{R}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}\mathbf{U}_{\mathrm{new}}\:\mathbf{M}
 	\end{aligned}\right.\label{eq:universal_kriging_update}
 \end{equation}
 
 This is again a Kalman correction, this time on the coefficients rather than on the field, and its innovation covariance is the UK covariance at the new points:
 \begin{equation}
-	R_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})=R_{\mathrm{SK}}(\tilde{\mathbf{x}}_{\mathrm{new}})+U_{\mathrm{new}}\:M\:U_{\mathrm{new}}^\top
+	\mathbf{R}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}})=\mathbf{R}_{\mathrm{SK}}(\tilde{\mathbf{x}}_{\mathrm{new}})+\mathbf{U}_{\mathrm{new}}\:\mathbf{M}\:\mathbf{U}_{\mathrm{new}}^\top
 \end{equation}
-The two terms separate what the new batch teaches about the field from what it teaches about the trend, and the second is exactly the uncertainty the update consumes. In information form, $M_{\mathrm{new}}^{-1}=M^{-1}+U_{\mathrm{new}}^\top R_{\mathrm{SK}}(\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}U_{\mathrm{new}}$, so each batch adds to the information on the trend and never removes any.
+The two terms separate what the new batch teaches about the field from what it teaches about the trend, and the second is exactly the uncertainty the update consumes. In information form, $\mathbf{M}_{\mathrm{new}}^{-1}=\mathbf{M}^{-1}+\mathbf{U}_{\mathrm{new}}^\top \mathbf{R}_{\mathrm{SK}}(\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}\mathbf{U}_{\mathrm{new}}$, so each batch adds to the information on the trend and never removes any.
 
-\Cref{eq:universal_kriging_update} has a reading of its own. The trend coefficients are learnt as the mission proceeds, rather than fitted once on a prior survey, and the pair $\left(\hat{m}_{\mathrm{UK}},M\right)$ is then a map being built while the vehicle moves, which is the promise of simultaneous localisation and mapping.
+\Cref{eq:universal_kriging_update} has a reading of its own. The trend coefficients are learnt as the mission proceeds, rather than fitted once on a prior survey, and the pair $\left(\hat{m}_{\mathrm{UK}},\mathbf{M}\right)$ is then a map being built while the vehicle moves, which is the promise of simultaneous localisation and mapping.
 
 \begin{remark}[Why this is not yet SLAM]
 	The recursion above assumes the training inputs to be known, as every kriging estimator of this section does. A navigating vehicle does not know them. It would feed the update the pair $\left(\hat{x}_k,z_k\right)$, its current state estimate and its current observation, which breaks the assumption twice over.

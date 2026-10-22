@@ -417,6 +417,13 @@ function out = run_akkf(base, z_obs, scen, opt)
     cov_et = valeur_option(opt.akkf, 'cov_etat', 0);
     entree = valeur_option(opt.akkf, 'entree_carte', 0);
 
+    % LES OBSERVATIONS SIMULÉES (2026-10-20, pistes C1 et C3(ii) du retour de relecture du
+    % 19/10), neutres par défaut. 1 : le champ vrai, pour l'AKKF sur carte connue, qui
+    % sépare ce qui revient au filtre de ce qui revient à l'apprentissage ; 2 : la carte
+    % courante avec la variance prédictive R (1 + Psi' Pa Psi) du RLS lu comme une
+    % régression bayésienne, qui porte l'incertitude de la carte jusque dans la correction.
+    obs_sim = valeur_option(opt.akkf, 'obs_simulees', 0);
+
     X  = scen.x_true(:, 1) + Lp * randn(d_x, 1) + Lp * randn(d_x, n);
     Xp = X;                                                  % le nuage de proposition
     Gp = gram(Xp ./ ech_x, Xp ./ ech_x, opt.akkf.gamma_x);
@@ -437,7 +444,18 @@ function out = run_akkf(base, z_obs, scen, opt)
         C = C + (D * D') / n;
 
         % Les observations simulées viennent de la carte courante, la vraie étant inconnue.
-        z_sim = (base.eval(X(1:2, :))' * alpha)' + sqrt(opt.R_obs) * randn(1, n);
+        % Les variantes tirent le même nombre de gaussiennes, pour que les essais restent
+        % appariés avec ceux de l'algorithme du chapitre.
+        Psi = base.eval(X(1:2, :));
+        switch obs_sim
+            case 1      % le champ vrai, centré comme les observations
+                z_sim = opt.h_vrai(X(1:2, :))' + sqrt(opt.R_obs) * randn(1, n);
+            case 2      % la variance prédictive de la carte
+                v_sim = opt.R_obs * (1 + sum(Psi .* (Pa * Psi), 1));
+                z_sim = (Psi' * alpha)' + sqrt(v_sim) .* randn(1, n);
+            otherwise
+                z_sim = (Psi' * alpha)' + sqrt(opt.R_obs) * randn(1, n);
+        end
 
         ech_z = echelle_obs(z_sim, z_obs(k), opt);
         Gz    = gram(z_sim, z_sim, ech_z);

@@ -64,11 +64,11 @@ layout_axes();
 asp = h_21 / w_21;               % points per y-unit over points per x-unit
 
 txt(0.140, 0.900, {'\textbf{Prior knowledge}', '\textbf{of state}'}, fontsize);
-txt(0.400, 0.905, {'$P_{k-1|k-1}$', '$\hat{x}_{k-1|k-1}$'}, fontsize);
+txt(0.400, 0.905, {'$\mathbf{P}_{k-1|k-1}$', '$\hat{x}_{k-1|k-1}$'}, fontsize);
 txt(0.628, 0.905, {'\textbf{Prediction}'}, fontsize);
-txt(0.628, 0.640, {'$P_{k|k-1}$', '$\hat{x}_{k|k-1}$'}, fontsize);
+txt(0.628, 0.640, {'$\mathbf{P}_{k|k-1}$', '$\hat{x}_{k|k-1}$'}, fontsize);
 txt(0.628, 0.355, {'\textbf{Correction}'}, fontsize);
-txt(0.400, 0.355, {'$P_{k|k}$', '$\hat{x}_{k|k}$'}, fontsize);
+txt(0.400, 0.355, {'$\mathbf{P}_{k|k}$', '$\hat{x}_{k|k}$'}, fontsize);
 txt(0.400, 0.635, {'\textbf{Next time step}', '$k\leftarrow k+1$'}, fontsize);
 txt(0.880, 0.412, {'$z_k$'}, fontsize);          % above, so that the word below it
 txt(0.880, 0.355, {'\textbf{Observation}'}, fontsize);   % sits on the row it enters

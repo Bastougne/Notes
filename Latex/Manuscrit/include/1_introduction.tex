@@ -12,7 +12,7 @@ In GNSS-denied scenarios, navigation can instead be aided by the physical fields
 
 Physical field-aided navigation falls under the scope of Bayesian estimation methods, the most famous of which is the Kalman filter. In practice, however, two main issues prevent the use of this algorithm. First, the observed physical field may be strongly non-linear and non-injective, so that a single observation may remain compatible with several, possibly distant, hypotheses about the vehicle state. This can result in highly multimodal state distributions that cannot be adequately represented by a Kalman filter. Second, the initial state of the vehicle may be poorly known at the beginning of the mission, which may prevent localised approximations from converging towards the true state.
 
-An alternative to Kalman filtering are particle filters, which use Monte Carlo approximations to represent the probability density of the vehicle state throughout the mission. While these methods are robust to multimodal densities and high initial uncertainty, they suffer from two problems, known as weight degeneracy and particle impoverishment, potentially limiting their ability to operate reliably over long missions. More advanced particle filters, used throughout this work, are thus required.
+Particle filters, which use Monte Carlo approximations to represent the probability density of the vehicle state throughout the mission, offer an alternative to Kalman filtering. While these methods are robust to multimodal densities and high initial uncertainty, they suffer from two problems, known as weight degeneracy and particle impoverishment, potentially limiting their ability to operate reliably over long missions. More advanced particle filters, used throughout this work, are thus required.
 
 Although particle filters provide a reliable solution to the navigation problem, they require an embedded map of the environment. When no such map is available, the observation model is itself unknown and must be inferred during the mission. In this work, we examine two scenarios depending on the amount of prior information available about the environment.
 
@@ -26,12 +26,12 @@ The contributions of this thesis are thus threefold:
 \begin{itemize}
 	\item The exploration of Gaussian process-based representations of physical fields and the quantification of the resulting approximation errors.
 	\item The use of this representation to develop a computationally tractable particle filter-based navigation solution in poorly known environments.
-	\item The extention of these methods to navigation without prior knowledge of the field, through its online reconstruction concurrently with the estimation of the vehicle's state.
+	\item The extension of these methods to navigation without prior knowledge of the field, through its online reconstruction concurrently with the estimation of the vehicle's state.
 \end{itemize}
 
 \section{Thesis structure}
 
-This document is organised into two parts and six chapters. Aside from the general introduction, the first two chapters present mathematical concepts relative to Bayesian estimation and Gaussian processes respectively.
+This document is organised into two parts and six chapters, followed by appendices. Aside from the general introduction, the first two chapters present mathematical concepts relative to Bayesian estimation and Gaussian processes respectively.
 
 In particular, \cref{sec:Bayesian_estimation} first introduces point estimators of probability densities, then the optimal recursive Bayesian filter. The Kalman filter, corresponding to the linear-Gaussian case, is detailed next, along with the approximations that extend it to non-linear systems. The chapter then turns to Monte Carlo methods to handle more general distributions, by approximating the posterior by a weighted sample. Finally, it presents advanced particle filters, including the regularised and Rao-Blackwellised variants used throughout this work.
 

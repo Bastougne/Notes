@@ -58,7 +58,7 @@ plot(r, k_52,  '--', 'LineWidth', linewidth);
 plot(r, k_inf, '-',  'LineWidth', linewidth);
 
 xlabel('$r=\|x-x''\|$', 'Interpreter', 'latex', 'FontSize', fontsize);
-ylabel('$k_\nu(r)$',    'Interpreter', 'latex', 'FontSize', fontsize);
+ylabel('$\kappa_\nu(r)$', 'Interpreter', 'latex', 'FontSize', fontsize);
 legend({'$\nu=1/2$', '$\nu=3/2$', '$\nu=5/2$', '$\nu=+\infty$ (SE)'}, ...
        'Interpreter', 'latex', 'FontSize', fontsize, 'Location', 'northeast');
 set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);

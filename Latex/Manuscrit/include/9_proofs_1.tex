@@ -12,151 +12,152 @@
 	\mathbb{V}[X]\triangleq\mathbb{E}\left[(X-\mathbb{E}[X])(X-\mathbb{E}[X])^\top\right]
 \end{equation}
 
-Since $x_k=F_k\:x_{k-1}+b_k^{(e)}+w_k$ is an affine transformation of two independent Gaussian random variables $x_{k-1}|\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k-1|k-1},P_{k-1|k-1}\right)$ and $w_k\sim\mathcal{N}(0,Q_k)$, the predicted state $x_k|\mathbf{z}_{1:k-1}$ is also Gaussian, with:
+Since $x_k=\mathbf{F}_k\:x_{k-1}+b_k^{(e)}+\eta_k$ is an affine transformation of two independent Gaussian random variables $x_{k-1}|\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k-1|k-1},\mathbf{P}_{k-1|k-1}\right)$ and $\eta_k\sim\mathcal{N}(0,\mathbf{Q}_k)$, the predicted state $x_k|\mathbf{z}_{1:k-1}$ is also Gaussian, with:
 \begin{equation}
 	\begin{aligned}
 	\hat{x}_{k|k-1}&\triangleq\mathbb{E}[x_k|\mathbf{z}_{1:k-1}]\\
-	&=F_k\:\mathbb{E}[x_{k-1}|\mathbf{z}_{1:k-1}]+b_k^{(e)}+\mathbb{E}[w_k|\mathbf{z}_{1:k-1}]\\
-	&=F_k\:\hat{x}_{k-1|k-1}+b_k^{(e)}
+	&=\mathbf{F}_k\:\mathbb{E}[x_{k-1}|\mathbf{z}_{1:k-1}]+b_k^{(e)}+\mathbb{E}[\eta_k|\mathbf{z}_{1:k-1}]\\
+	&=\mathbf{F}_k\:\hat{x}_{k-1|k-1}+b_k^{(e)}
 	\end{aligned}
 \end{equation}
 and:
 \begin{equation}
 	\begin{aligned}
-	P_{k|k-1}&\triangleq\mathbb{V}[x_k|\mathbf{z}_{1:k-1}]\\
-	&=F_k\:\mathbb{V}[x_{k-1}|\mathbf{z}_{1:k-1}]\:F_k^\top+\mathbb{V}[w_k|\mathbf{z}_{1:k-1}]\\
-	&=F_k\:P_{k-1|k-1}\:F_k^\top+Q_k
+	\mathbf{P}_{k|k-1}&\triangleq\mathbb{V}[x_k|\mathbf{z}_{1:k-1}]\\
+	&=\mathbf{F}_k\:\mathbb{V}[x_{k-1}|\mathbf{z}_{1:k-1}]\:\mathbf{F}_k^\top+\mathbb{V}[\eta_k|\mathbf{z}_{1:k-1}]\\
+	&=\mathbf{F}_k\:\mathbf{P}_{k-1|k-1}\:\mathbf{F}_k^\top+\mathbf{Q}_k
 	\end{aligned}
 \end{equation}
 
-The predicted covariance is thus SPD as the sum of an SPSD matrix and the SPD matrix $Q_k$.
+The predicted covariance is thus SPD as the sum of an SPSD matrix and the SPD matrix $\mathbf{Q}_k$.
 
-\textbf{Correction.} The joint distribution of $(x_k,z_k)$ given $\mathbf{z}_{1:k-1}$ is also Gaussian, since $z_k=H_k\:x_k+b_k^{(o)}+n_k$ is an affine transformation of the independent Gaussian variables $x_k|\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k|k-1},P_{k|k-1}\right)$ and $n_k\sim\mathcal{N}(0,R_k)$. It comes that:
+\textbf{Correction.} The joint distribution of $(x_k,z_k)$ given $\mathbf{z}_{1:k-1}$ is also Gaussian, since $z_k=\mathbf{H}_k\:x_k+b_k^{(o)}+\varepsilon_k$ is an affine transformation of the independent Gaussian variables $x_k|\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k|k-1},\mathbf{P}_{k|k-1}\right)$ and $\varepsilon_k\sim\mathcal{N}(0,\mathbf{R}_k)$. It comes that:
 \begin{equation}
 	\left.\begin{bmatrix}
 	x_k\\z_k
 	\end{bmatrix}\right|
 	\mathbf{z}_{1:k-1}\sim\mathcal{N}
 	\left(\begin{bmatrix}
-	\hat{x}_{k|k-1}\\H_k\hat{x}_{k|k-1}+b_k^{(o)}
+	\hat{x}_{k|k-1}\\\mathbf{H}_k\hat{x}_{k|k-1}+b_k^{(o)}
 	\end{bmatrix},
 	\begin{bmatrix}
-	P_{k|k-1}&P_{k|k-1}H_k^\top\\
-	H_k P_{k|k-1}&S_k
+	\mathbf{P}_{k|k-1}&\mathbf{P}_{k|k-1}\mathbf{H}_k^\top\\
+	\mathbf{H}_k \mathbf{P}_{k|k-1}&\mathbf{S}_k
 	\end{bmatrix}\right)
 \end{equation}
 where:
 \begin{equation}
-	S_k\triangleq H_k\:P_{k|k-1}\:H_k^\top+R_k
+	\mathbf{S}_k\triangleq \mathbf{H}_k\:\mathbf{P}_{k|k-1}\:\mathbf{H}_k^\top+\mathbf{R}_k
 \end{equation}
 is called the innovation covariance, and is the covariance associated with the innovation vector:
 \begin{equation}
-	y_k\triangleq z_k-\left(H_k\:\hat{x}_{k|k-1}+b_k^{(o)}\right)
+	y_k\triangleq z_k-\left(\mathbf{H}_k\:\hat{x}_{k|k-1}+b_k^{(o)}\right)
 \end{equation}
 
-Since $R_k\succ0$, the independent pair $(x_k,n_k)$ has the covariance:
+Since $\mathbf{R}_k\succ0$, the independent pair $(x_k,\varepsilon_k)$ has the covariance:
 \begin{equation}
 	\begin{bmatrix}
-	P_{k|k-1}&0\\0&R_k
+	\mathbf{P}_{k|k-1}&0\\0&\mathbf{R}_k
 	\end{bmatrix}\succ0
 \end{equation}
 
-Its image under the invertible linear map $(x,n)\mapsto(x,H_k\:x+n)$ therefore has an SPD covariance as well. The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) can thus be applied to give the posterior distribution $x_k|\mathbf{z}_{1:k}$ is Gaussian, with:
+Its image under the invertible linear map $(x,\varepsilon)\mapsto(x,\mathbf{H}_k\:x+\varepsilon)$ therefore has an SPD covariance as well. The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) can thus be applied to show that the posterior distribution $x_k|\mathbf{z}_{1:k}$ is Gaussian, with:
 \begin{align}
-	\hat{x}_{k|k}&=\hat{x}_{k|k-1}+K_k\:y_k\\
-	P_{k|k}&=(I-K_k\:H_k)\:P_{k|k-1}
+	\hat{x}_{k|k}&=\hat{x}_{k|k-1}+\mathbf{K}_k\:y_k\\
+	\mathbf{P}_{k|k}&=(\mathbf{I}-\mathbf{K}_k\:\mathbf{H}_k)\:\mathbf{P}_{k|k-1}
 \end{align}
 where:
 \begin{equation}
-	K_k\triangleq P_{k|k-1}\:H_k^\top\:S_k^{-1}
+	\mathbf{K}_k\triangleq \mathbf{P}_{k|k-1}\:\mathbf{H}_k^\top\:\mathbf{S}_k^{-1}
 \end{equation}
 is the Kalman gain.
 
 Finally, \Cref{th:Gaussian_conditioning} proves that the Schur complement of the SPD joint covariance:
 \begin{equation}
-	P_{k|k-1}-\left(P_{k|k-1}\:H_k^\top\right)S_k^{-1}\left(H_k\:P_{k|k-1}\right)=P_{k|k-1}-K_k\:H_k\:P_{k|k-1}=P_{k|k}
+	\mathbf{P}_{k|k-1}-\left(\mathbf{P}_{k|k-1}\:\mathbf{H}_k^\top\right)\mathbf{S}_k^{-1}\left(\mathbf{H}_k\:\mathbf{P}_{k|k-1}\right)=\mathbf{P}_{k|k-1}-\mathbf{K}_k\:\mathbf{H}_k\:\mathbf{P}_{k|k-1}=\mathbf{P}_{k|k}
 \end{equation}
-is itself SPD, so $P_{k|k}\succ0$.
+is itself SPD, so $\mathbf{P}_{k|k}\succ0$.
 
 \section[Proof of Proposition 2.10]{Proof of \Cref{th:RBPF_decorrelation}}\label{sec:proof_RBPF}
 
-As a linear combination of the centred noises $w_k^l$ and $w_k^n$, $\overline{w}_k^l$ is centred. Its covariance develops as:
+As a linear combination of the centred noises $\eta_k^l$ and $\eta_k^n$, $\overline{\eta}_k^l$ is centred. Its covariance develops as:
 \begin{equation}
 	\begin{aligned}
-	\overline{Q}_k^l&=\mathbb{E}\left[\overline{w}_k^l\:{\overline{w}_k^l}^\top\right]\\
-	&=\mathbb{E}\left[(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]\\
-	&=\mathbb{E}\left[w_k^l\:(w_k^l)^\top\right]-\mathbb{E}\left[w_k^l\:(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]-\mathbb{E}\left[(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^l)^\top\right]\\
-	&\qquad+\mathbb{E}\left[(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)^\top\right]\\
-	&=\mathbb{E}\left[w_k^l\:(w_k^l)^\top\right]-\mathbb{E}\left[w_k^l\:(w_k^n)^\top\right](Q_k^n)^{-\top}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^l)^\top\right]\\
-	&\qquad+Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^n)^\top\right]\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
-	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\:(Q_k^n)^{-\top}\:(Q_k^{nl})^\top\\
-	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top+Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top\\
-	&=Q_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:(Q_k^{nl})^\top
+	\overline{\mathbf{Q}}_k^l&=\mathbb{E}\left[\overline{\eta}_k^l\:{\overline{\eta}_k^l}^\top\right]\\
+	&=\mathbb{E}\left[(\eta_k^l-\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\eta_k^n)\:(\eta_k^l-\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\eta_k^n)^\top\right]\\
+	&=\mathbb{E}\left[\eta_k^l\:(\eta_k^l)^\top\right]-\mathbb{E}\left[\eta_k^l\:(\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\eta_k^n)^\top\right]-\mathbb{E}\left[(\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\eta_k^n)\:(\eta_k^l)^\top\right]\\
+	&\qquad+\mathbb{E}\left[(\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\eta_k^n)\:(\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\eta_k^n)^\top\right]\\
+	&=\mathbb{E}\left[\eta_k^l\:(\eta_k^l)^\top\right]-\mathbb{E}\left[\eta_k^l\:(\eta_k^n)^\top\right](\mathbf{Q}_k^n)^{-\top}\:(\mathbf{Q}_k^{nl})^\top-\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\mathbb{E}\left[\eta_k^n\:(\eta_k^l)^\top\right]\\
+	&\qquad+\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\mathbb{E}\left[\eta_k^n\:(\eta_k^n)^\top\right]\:(\mathbf{Q}_k^n)^{-\top}\:(\mathbf{Q}_k^{nl})^\top\\
+	&=\mathbf{Q}_k^l-\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-\top}\:(\mathbf{Q}_k^{nl})^\top-\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:(\mathbf{Q}_k^{nl})^\top\\
+	&\qquad+\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\mathbf{Q}_k^n\:(\mathbf{Q}_k^n)^{-\top}\:(\mathbf{Q}_k^{nl})^\top\\
+	&=\mathbf{Q}_k^l-\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:(\mathbf{Q}_k^{nl})^\top-\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:(\mathbf{Q}_k^{nl})^\top+\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:(\mathbf{Q}_k^{nl})^\top\\
+	&=\mathbf{Q}_k^l-\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:(\mathbf{Q}_k^{nl})^\top
 	\end{aligned}
 \end{equation}
 
 Finally, computing:
 \begin{equation}
 	\begin{aligned}
-	\mathbb{E}\left[\overline{w}_k^l\:(w_k^n)^\top\right]&=\mathbb{E}\left[(w_k^l-Q_k^{nl}\:(Q_k^n)^{-1}\:w_k^n)\:(w_k^n)^\top\right]\\
-	&=\mathbb{E}\left[w_k^l\:(w_k^n)^\top\right]-Q_k^{nl}\:(Q_k^n)^{-1}\:\mathbb{E}\left[w_k^n\:(w_k^n)^\top\right]\\
-	&=Q_k^{nl}-Q_k^{nl}\:(Q_k^n)^{-1}\:Q_k^n\\
+	\mathbb{E}\left[\overline{\eta}_k^l\:(\eta_k^n)^\top\right]&=\mathbb{E}\left[(\eta_k^l-\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\eta_k^n)\:(\eta_k^n)^\top\right]\\
+	&=\mathbb{E}\left[\eta_k^l\:(\eta_k^n)^\top\right]-\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\mathbb{E}\left[\eta_k^n\:(\eta_k^n)^\top\right]\\
+	&=\mathbf{Q}_k^{nl}-\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:\mathbf{Q}_k^n\\
 	&=0
 	\end{aligned}
 \end{equation}
-shows that $\overline{w}_k^l$ and $w_k^n$ are uncorrelated.
+shows that $\overline{\eta}_k^l$ and $\eta_k^n$ are uncorrelated.
 
 \section[Proof of Proposition 3.2]{Proof of \Cref{th:kernel_gram_equivalence}}\label{sec:proof_definite_kernels}
 
-\textbf{Forward implication.} Let $n\in\mathbb{N}^*$ and $\mathbf{x}\in\mathcal{U}^n$. It comes from the symmetry of $k$ that:
+\textbf{Forward implication.} Let $n\in\mathbb{N}^*$ and $\mathbf{x}\in\Omega^n$. It comes from the symmetry of $\kappa$ that:
 \begin{equation}
 	\begin{aligned}
-	k(\mathbf{x},\mathbf{x})&=\begin{bmatrix}
-	k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)
+	\kappa(\mathbf{x},\mathbf{x})&=\begin{bmatrix}
+	\kappa(x_1,x_1)&\cdots&\kappa(x_1,x_n)\\\vdots&\ddots&\vdots\\\kappa(x_n,x_1)&\cdots&\kappa(x_n,x_n)
 	\end{bmatrix}\\
 	&=\begin{bmatrix}
-	k(x_1,x_1)^\top&\cdots&k(x_n,x_1)^\top\\\vdots&\ddots&\vdots\\k(x_1,x_n)^\top&\cdots&k(x_n,x_n)^\top
+	\kappa(x_1,x_1)^\top&\cdots&\kappa(x_n,x_1)^\top\\\vdots&\ddots&\vdots\\\kappa(x_1,x_n)^\top&\cdots&\kappa(x_n,x_n)^\top
 	\end{bmatrix}\\
 	&=\begin{bmatrix}
-	k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)
+	\kappa(x_1,x_1)&\cdots&\kappa(x_1,x_n)\\\vdots&\ddots&\vdots\\\kappa(x_n,x_1)&\cdots&\kappa(x_n,x_n)
 	\end{bmatrix}^\top\\
-	&=k(\mathbf{x},\mathbf{x})^\top
+	&=\kappa(\mathbf{x},\mathbf{x})^\top
 	\end{aligned}
 \end{equation}
 
 Let $a\in\mathbb{R}^{nd_z}$. We decompose $a=[a_1^\top,\dots,a_n^\top]^\top$ with $a_i\in\mathbb{R}^{d_z},\:i\in[\![1,n]\!]$ to obtain:
 \begin{equation}
 	\begin{aligned}
-	a^\top k(\mathbf{x},\mathbf{x})\:a&=\begin{bmatrix}a_1^\top&\cdots&a_n^\top\end{bmatrix}\begin{bmatrix}k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)\end{bmatrix}\begin{bmatrix}a_1\\\vdots\\a_n\end{bmatrix}\\
-	&=\sum_{i=1}^n\sum_{j=1}^na_i^\top k(x_i,x_j)\:a_j\\
+	a^\top \kappa(\mathbf{x},\mathbf{x})\:a&=\begin{bmatrix}a_1^\top&\cdots&a_n^\top\end{bmatrix}\begin{bmatrix}\kappa(x_1,x_1)&\cdots&\kappa(x_1,x_n)\\\vdots&\ddots&\vdots\\\kappa(x_n,x_1)&\cdots&\kappa(x_n,x_n)\end{bmatrix}\begin{bmatrix}a_1\\\vdots\\a_n\end{bmatrix}\\
+	&=\sum_{i=1}^n\sum_{j=1}^na_i^\top \kappa(x_i,x_j)\:a_j\\
 	&\geq0
 	\end{aligned}
 \end{equation}
 
-\textbf{Reverse implication.} Let $x,x'\in\mathcal{U}$. By symmetry of $k((x,x'),(x,x'))$, it comes that:
+\textbf{Reverse implication.} Let $x,x'\in\Omega$. By symmetry of $\kappa((x,x'),(x,x'))$, it comes that:
 \begin{equation}
 	\begin{aligned}
 	\begin{bmatrix}
-	k(x,x)&k(x,x')\\k(x',x)&k(x',x')
+	\kappa(x,x)&\kappa(x,x')\\\kappa(x',x)&\kappa(x',x')
 	\end{bmatrix}&=\begin{bmatrix}
-	k(x,x)&k(x,x')\\k(x',x)&k(x',x')
+	\kappa(x,x)&\kappa(x,x')\\\kappa(x',x)&\kappa(x',x')
 	\end{bmatrix}^\top\\
 	&=\begin{bmatrix}
-	k(x,x)^\top&k(x',x)^\top\\k(x,x')^\top&k(x',x')^\top
+	\kappa(x,x)^\top&\kappa(x',x)^\top\\\kappa(x,x')^\top&\kappa(x',x')^\top
 	\end{bmatrix}
 	\end{aligned}
 \end{equation}
 
 In particular, the upper-right block gives:
 \begin{equation}
-	k(x,x')=k(x',x)^\top
+	\kappa(x,x')=\kappa(x',x)^\top
 \end{equation}
 
-Let $n\in\mathbb{N}^*$, $\mathbf{x}\in\mathcal{U}^n$, and $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, and set $a\triangleq[a_1^\top,\dots,a_n^\top]^\top\in\mathbb{R}^{nd_z}$. Then:
+Let $n\in\mathbb{N}^*$, $\mathbf{x}\in\Omega^n$, and $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, and set $a\triangleq[a_1^\top,\dots,a_n^\top]^\top\in\mathbb{R}^{nd_z}$. Then:
 \begin{equation}
 	\begin{aligned}
-	\sum_{i=1}^n\sum_{j=1}^na_i^\top k(x_i,x_j)\:a_j&=\begin{bmatrix}a_1^\top&\cdots&a_n^\top\end{bmatrix}\begin{bmatrix}k(x_1,x_1)&\cdots&k(x_1,x_n)\\\vdots&\ddots&\vdots\\k(x_n,x_1)&\cdots&k(x_n,x_n)\end{bmatrix}\begin{bmatrix}a_1\\\vdots\\a_n\end{bmatrix}\\
-	&=a^\top k(\mathbf{x},\mathbf{x})\:a\\
+	\sum_{i=1}^n\sum_{j=1}^na_i^\top \kappa(x_i,x_j)\:a_j&=\begin{bmatrix}a_1^\top&\cdots&a_n^\top\end{bmatrix}\begin{bmatrix}\kappa(x_1,x_1)&\cdots&\kappa(x_1,x_n)\\\vdots&\ddots&\vdots\\\kappa(x_n,x_1)&\cdots&\kappa(x_n,x_n)\end{bmatrix}\begin{bmatrix}a_1\\\vdots\\a_n\end{bmatrix}\\
+	&=a^\top \kappa(\mathbf{x},\mathbf{x})\:a\\
 	&\geq0
 	\end{aligned}
 \end{equation}
@@ -165,16 +166,16 @@ Let $n\in\mathbb{N}^*$, $\mathbf{x}\in\mathcal{U}^n$, and $a_1,\dots,a_n\in\math
 
 \section[Proof of Proposition 3.3]{Proof of \Cref{th:Matérn_properties}}\label{sec:proof_Matérn}
 
-Assume that $\nu\in\mathbb{R}_+^*$ and let $k_\nu$ denote such a function. We also let:
+Assume that $\nu\in\mathbb{R}_+^*$ and let $\kappa_\nu$ denote such a function. We also let:
 \begin{equation}
 	g:\left\{\begin{aligned}
 	\mathbb{R}_+&\to\mathbb{R}_+\\
-	r&\mapsto\sigma_f^2\:\frac{2^{1-\nu}}{\Gamma(\nu)}r^\nu K_\nu(r)
+	r&\mapsto\sigma_h^2\:\frac{2^{1-\nu}}{\Gamma(\nu)}r^\nu K_\nu(r)
 	\end{aligned}\right.
 	\quad\text{and}\quad
 	\tilde{r}:\left\{\begin{aligned}
 	\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}&\to\mathbb{R}_+\\
-	x,x'&\mapsto\frac{\sqrt{2\nu}}{l}\|x-x'\|
+	x,x'&\mapsto\frac{\sqrt{2\nu}}{\ell}\|x-x'\|
 	\end{aligned}\right.
 \end{equation}
 
@@ -183,32 +184,32 @@ $\tilde{r}$ and $K_\nu$ are continuous on $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x
 	K_\nu(r)=2^{\nu-1}\Gamma(\nu)\:r^{-\nu}+o\left(r^{-\nu}\right)
 \end{equation}
 
-Therefore, $f$ can be continuously extended to $0$ by setting $f(0)=\sigma_f^2$, and $k_\nu$ is thus continuous on the entirety of $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}$.
+Therefore, $g$ can be continuously extended to $0$ by setting $g(0)=\sigma_h^2$, and $\kappa_\nu$ is thus continuous on the entirety of $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}$.
 
 Let $x,x'\in\mathbb{R}^{d_x}$. By symmetry of the norm, $\tilde{r}(x,x')=\tilde{r}(x',x)$, and thus:
 \begin{equation}
-	k_\nu=g\circ\tilde{r}
+	\kappa_\nu=g\circ\tilde{r}
 \end{equation}
 is symmetric, with $\circ$ being the composition operator.
 
-Furthermore, Bochner's theorem \cite{bib:Akhiezer} states that a continuous integrable function with a strictly positive Fourier transform is SPD. It can be shown \cite{bib:Matérn-correlation} that the Fourier transform of $k_\nu$ on $\mathbb{R}^{d_x}$ is:
+Furthermore, Bochner's theorem \cite{bib:Akhiezer} states that a continuous integrable function with a strictly positive Fourier transform is SPD. It can be shown \cite{bib:Matérn-correlation} that the Fourier transform of $\kappa_\nu$ on $\mathbb{R}^{d_x}$ is:
 \begin{equation}
 	S_\nu:\left\{\begin{aligned}
 	\mathbb{R}^{d_x}&\to\mathbb{R}\\
-	\omega&\mapsto C\:\left(\frac{2\nu}{l^2}+\|\omega\|^2\right)^{-(\nu+d_x/2)}
+	\omega&\mapsto C\:\left(\frac{2\nu}{\ell^2}+\|\omega\|^2\right)^{-(\nu+d_x/2)}
 	\end{aligned}\right.
 \end{equation}
-where $C>0$ is a normalising constant which only depends on $d_x$ and the parameters of $k_\nu$. Since $\nu>0$, $l>0$, it comes that:
+where $C>0$ is a normalising constant which only depends on $d_x$ and the parameters of $\kappa_\nu$. Since $\nu>0$, $\ell>0$, it comes that:
 \begin{equation}
 	\forall\omega\in\mathbb{R}^{d_x},\:S_\nu(\omega)>0
 \end{equation}
-and thus $k_\nu$ is a SPD kernel. By definition, it is also a radial kernel.
+and thus $\kappa_\nu$ is an SPD kernel. By definition, it is also a radial kernel.
 
 The case $\nu=+\infty$ is more direct. The squared exponential kernel is continuous on the whole of $\mathbb{R}_+$ without any extension, and symmetric by the same composition argument. Its Fourier transform on $\mathbb{R}^{d_x}$ is:
 \begin{equation}
 	S_\nu:\left\{\begin{aligned}
 	\mathbb{R}^{d_x}&\to\mathbb{R}\\
-	\omega&\mapsto C\:\exp\left(-\frac{l^2\|\omega\|^2}{2}\right)
+	\omega&\mapsto C\:\exp\left(-\frac{\ell^2\|\omega\|^2}{2}\right)
 	\end{aligned}\right.
 \end{equation}
 which is again strictly positive, so Bochner's theorem applies as above.
@@ -217,416 +218,416 @@ which is again strictly positive, so Bochner's theorem applies as above.
 
 Let:
 \begin{equation}
-	\mathcal{L}(W,\xi)\triangleq\operatorname{tr}\left(\mathbb{V}\left[W^\top\tilde{\mathbf{z}}-z\right]\right)+2\:\operatorname{tr}\left(\xi^\top\left(C^\top W-I_{d_z}\right)\right)
+	\mathcal{L}(\mathbf{W},\boldsymbol{\Xi})\triangleq\operatorname{tr}\left(\mathbb{V}\left[\mathbf{W}^\top\tilde{\mathbf{z}}-z\right]\right)+2\:\operatorname{tr}\left(\boldsymbol{\Xi}^\top\left(\mathbf{C}^\top \mathbf{W}-\mathbf{I}_{d_z}\right)\right)
 \end{equation}
-be the Lagrangian associated with the optimisation problem \eqref{eq:error_covariance} under the constraint \eqref{eq:ordinary_kriging_constraint}, and $\xi\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$ the corresponding Lagrange multiplier.
+be the Lagrangian associated with the optimisation problem \eqref{eq:error_covariance} under the constraint \eqref{eq:ordinary_kriging_constraint}, and $\boldsymbol{\Xi}\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$ the corresponding Lagrange multiplier.
 
-This problem is solved by finding the minimum of $\mathcal{L}$, \textit{i.e.} finding a zero of its derivative. Writing $G$ for $G(\tilde{\mathbf{x}})$, the same properties used in the proof of \Cref{th:simple_kriging} give:
+This problem is solved by finding the minimum of $\mathcal{L}$, \textit{i.e.} finding a zero of its derivative. Writing $\mathbf{G}$ for $\mathbf{G}(\tilde{\mathbf{x}})$, the same properties used in the proof of \Cref{th:simple_kriging} give:
 \begin{equation}
 	\begin{aligned}
-	&\frac{\partial\mathcal{L}}{\partial W}(W,\xi)=0\\
-	\iff\quad&2G\:W-2k(\tilde{\mathbf{x}},x)+2\frac{\partial}{\partial W}\left(\operatorname{tr}\left(\xi^\top\left(C^\top W-I_{d_z}\right)\right)\right)=0\\
-	\iff\quad&2G\:W-2k(\tilde{\mathbf{x}},x)+2C\xi=0\\
-	\iff\quad&G\:W+C\xi=k(\tilde{\mathbf{x}},x)
+	&\frac{\partial\mathcal{L}}{\partial \mathbf{W}}(\mathbf{W},\boldsymbol{\Xi})=0\\
+	\iff\quad&2\mathbf{G}\:\mathbf{W}-2\kappa(\tilde{\mathbf{x}},x)+2\frac{\partial}{\partial \mathbf{W}}\left(\operatorname{tr}\left(\boldsymbol{\Xi}^\top\left(\mathbf{C}^\top \mathbf{W}-\mathbf{I}_{d_z}\right)\right)\right)=0\\
+	\iff\quad&2\mathbf{G}\:\mathbf{W}-2\kappa(\tilde{\mathbf{x}},x)+2\mathbf{C}\boldsymbol{\Xi}=0\\
+	\iff\quad&\mathbf{G}\:\mathbf{W}+\mathbf{C}\boldsymbol{\Xi}=\kappa(\tilde{\mathbf{x}},x)
 	\end{aligned}\label{eq:Lagrangian_minimum}
 \end{equation}
 
-Together with the constraint $C^\top W=I_{d_z}$, this yields the block system:
+Together with the constraint $\mathbf{C}^\top \mathbf{W}=\mathbf{I}_{d_z}$, this yields the block system:
 \begin{equation}
 	\begin{bmatrix}
-	G&C\\C^\top&0
+	\mathbf{G}&\mathbf{C}\\\mathbf{C}^\top&0
 	\end{bmatrix}\begin{bmatrix}
-	W\\\xi
+	\mathbf{W}\\\boldsymbol{\Xi}
 	\end{bmatrix}=\begin{bmatrix}
-	k(\tilde{\mathbf{x}},x)\\I_{d_z}
+	\kappa(\tilde{\mathbf{x}},x)\\\mathbf{I}_{d_z}
 	\end{bmatrix}
 \end{equation}
 
 The left matrix block can be inverted using the upper left Schur inversion formula from \Cref{th:Schur}. Its Schur complement,
 \begin{equation}
-	S\triangleq0-C^\top G^{-1}C=-C^\top G^{-1}C,
+	\mathbf{S}\triangleq0-\mathbf{C}^\top \mathbf{G}^{-1}\mathbf{C}=-\mathbf{C}^\top \mathbf{G}^{-1}\mathbf{C},
 \end{equation}
-is invertible since $G\succ0$ and $C$ has full column rank. The convention of \Cref{th:Schur} gives the four blocks of the inverse:
+is invertible since $\mathbf{G}\succ0$ and $\mathbf{C}$ has full column rank. The convention of \Cref{th:Schur} gives the four blocks of the inverse:
 \begin{equation}
 	\left\{\begin{aligned}
-	\bar{A}&=G^{-1}+G^{-1}C\:S^{-1}C^\top G^{-1}\\
-	\bar{B}&=-G^{-1}C\:S^{-1}\\
-	\bar{C}&=-S^{-1}C^\top G^{-1}\\
-	\bar{D}&=S^{-1}
+	\bar{\mathbf{A}}&=\mathbf{G}^{-1}+\mathbf{G}^{-1}\mathbf{C}\:\mathbf{S}^{-1}\mathbf{C}^\top \mathbf{G}^{-1}\\
+	\bar{\mathbf{B}}&=-\mathbf{G}^{-1}\mathbf{C}\:\mathbf{S}^{-1}\\
+	\bar{\mathbf{C}}&=-\mathbf{S}^{-1}\mathbf{C}^\top \mathbf{G}^{-1}\\
+	\bar{\mathbf{D}}&=\mathbf{S}^{-1}
 	\end{aligned}\right.
 \end{equation}
 
-Let $M\triangleq-S^{-1}=\left(C^\top G^{-1}C\right)^{-1}$ and $U\triangleq I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)$. The weight matrix can be derived from the upper blocks of the inverse:
+Let $\mathbf{M}\triangleq-\mathbf{S}^{-1}=\left(\mathbf{C}^\top \mathbf{G}^{-1}\mathbf{C}\right)^{-1}$ and $\mathbf{U}\triangleq \mathbf{I}_{d_z}-\mathbf{C}^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)$. The weight matrix can be derived from the upper blocks of the inverse:
 \begin{equation}
 	\begin{aligned}
-	W&=\bar{A}\:k(\tilde{\mathbf{x}},x)+\bar{B}\:I_{d_z}\\
-	&=\left(G^{-1}+G^{-1}C\:S^{-1}C^\top G^{-1}\right)k(\tilde{\mathbf{x}},x)-G^{-1}C\:S^{-1}\\
-	&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:S^{-1}\left(C^\top G^{-1}k(\tilde{\mathbf{x}},x)-I_{d_z}\right)\\
-	&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:M\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\\
-	&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}C\:M\:U
+	\mathbf{W}&=\bar{\mathbf{A}}\:\kappa(\tilde{\mathbf{x}},x)+\bar{\mathbf{B}}\:\mathbf{I}_{d_z}\\
+	&=\left(\mathbf{G}^{-1}+\mathbf{G}^{-1}\mathbf{C}\:\mathbf{S}^{-1}\mathbf{C}^\top \mathbf{G}^{-1}\right)\kappa(\tilde{\mathbf{x}},x)-\mathbf{G}^{-1}\mathbf{C}\:\mathbf{S}^{-1}\\
+	&=\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{G}^{-1}\mathbf{C}\:\mathbf{S}^{-1}\left(\mathbf{C}^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)-\mathbf{I}_{d_z}\right)\\
+	&=\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{G}^{-1}\mathbf{C}\:\mathbf{M}\left(\mathbf{I}_{d_z}-\mathbf{C}^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)\right)\\
+	&=\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{G}^{-1}\mathbf{C}\:\mathbf{M}\:\mathbf{U}
 	\end{aligned}
 \end{equation}
-and $\xi$ from the lower blocks:
+and $\boldsymbol{\Xi}$ from the lower blocks:
 \begin{equation}
 	\begin{aligned}
-	\xi&=\bar{C}\:k(\tilde{\mathbf{x}},x)+\bar{D}\:I_{d_z}\\
-	&=-S^{-1}C^\top G^{-1}k(\tilde{\mathbf{x}},x)+S^{-1}\\
-	&=S^{-1}\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\\
-	&=-M\left(I_{d_z}-C^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\\
-	&=-M\:U
+	\boldsymbol{\Xi}&=\bar{\mathbf{C}}\:\kappa(\tilde{\mathbf{x}},x)+\bar{\mathbf{D}}\:\mathbf{I}_{d_z}\\
+	&=-\mathbf{S}^{-1}\mathbf{C}^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{S}^{-1}\\
+	&=\mathbf{S}^{-1}\left(\mathbf{I}_{d_z}-\mathbf{C}^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)\right)\\
+	&=-\mathbf{M}\left(\mathbf{I}_{d_z}-\mathbf{C}^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)\right)\\
+	&=-\mathbf{M}\:\mathbf{U}
 	\end{aligned}
 \end{equation}
 
-Since $M$ is symmetric, the OK estimator is:
+Since $\mathbf{M}$ is symmetric, the OK estimator is:
 \begin{equation}
 	\begin{aligned}
-	\hat{z}_{\mathrm{OK}}&=W^\top\tilde{\mathbf{z}}\\
-	&=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+U^\top M\:C^\top G^{-1}\tilde{\mathbf{z}}\\
-	&=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G^{-1}C\right)M\:C^\top G^{-1}\tilde{\mathbf{z}}\\
-	&=M\:C^\top G^{-1}\tilde{\mathbf{z}}+k(x,\tilde{\mathbf{x}})\:G^{-1}\left(\tilde{\mathbf{z}}-C\:M\:C^\top G^{-1}\tilde{\mathbf{z}}\right)
+	\hat{z}_{\mathrm{OK}}&=\mathbf{W}^\top\tilde{\mathbf{z}}\\
+	&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\tilde{\mathbf{z}}+\mathbf{U}^\top \mathbf{M}\:\mathbf{C}^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}\\
+	&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\tilde{\mathbf{z}}+\left(\mathbf{I}_{d_z}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\mathbf{C}\right)\mathbf{M}\:\mathbf{C}^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}\\
+	&=\mathbf{M}\:\mathbf{C}^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}+\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\left(\tilde{\mathbf{z}}-\mathbf{C}\:\mathbf{M}\:\mathbf{C}^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}\right)
 	\end{aligned}
 \end{equation}
-which is exactly \eqref{eq:ordinary_kriging_equations}, the estimated mean being $\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})=M\:C^\top G^{-1}\tilde{\mathbf{z}}$.
+which is exactly \eqref{eq:ordinary_kriging_equations}, the estimated mean being $\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})=\mathbf{M}\:\mathbf{C}^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}$.
 
-Since $R_{\mathrm{OK}}$ is a centred moment of the estimation error, it is insensitive to the unknown mean and \eqref{eq:generic_kriging_variance} can be applied. Using \eqref{eq:Lagrangian_minimum} and the constraint $W^\top C=I_{d_z}$ gives the identity:
+Since $\mathbf{R}_{\mathrm{OK}}$ is a centred moment of the estimation error, it is insensitive to the unknown mean and \eqref{eq:generic_kriging_variance} can be applied. Using \eqref{eq:Lagrangian_minimum} and the constraint $\mathbf{W}^\top \mathbf{C}=\mathbf{I}_{d_z}$ gives the identity:
 \begin{equation}
 	\begin{aligned}
-	W^\top G\:W&=W^\top\left(k(\tilde{\mathbf{x}},x)-C\:\xi\right)\\
-	&=W^\top k(\tilde{\mathbf{x}},x)-W^\top C\:\xi\\
-	&=W^\top k(\tilde{\mathbf{x}},x)-\xi
+	\mathbf{W}^\top \mathbf{G}\:\mathbf{W}&=\mathbf{W}^\top\left(\kappa(\tilde{\mathbf{x}},x)-\mathbf{C}\:\boldsymbol{\Xi}\right)\\
+	&=\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-\mathbf{W}^\top \mathbf{C}\:\boldsymbol{\Xi}\\
+	&=\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-\boldsymbol{\Xi}
 	\end{aligned}\label{eq:OK_identity}
 \end{equation}
 
 Combining these results yields:
 \begin{equation}
 	\begin{aligned}
-	R_{\mathrm{OK}}&=W^\top G\:W-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
-	&=W^\top k(\tilde{\mathbf{x}},x)-\xi-W^\top k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
-	&=-\xi-k(x,\tilde{\mathbf{x}})\:W+k(x,x)+R\\
-	&=M\:U-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)-k(x,\tilde{\mathbf{x}})\:G^{-1}C\:M\:U+k(x,x)+R\\
-	&=\left(I_{d_z}-k(x,\tilde{\mathbf{x}})\:G^{-1}C\right)M\:U+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)\\
-	&=U^\top M\:U+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)
+	\mathbf{R}_{\mathrm{OK}}&=\mathbf{W}^\top \mathbf{G}\:\mathbf{W}-\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{W}+\kappa(x,x)+\mathbf{R}\\
+	&=\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-\boldsymbol{\Xi}-\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{W}+\kappa(x,x)+\mathbf{R}\\
+	&=-\boldsymbol{\Xi}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{W}+\kappa(x,x)+\mathbf{R}\\
+	&=\mathbf{M}\:\mathbf{U}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\mathbf{C}\:\mathbf{M}\:\mathbf{U}+\kappa(x,x)+\mathbf{R}\\
+	&=\left(\mathbf{I}_{d_z}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\mathbf{C}\right)\mathbf{M}\:\mathbf{U}+\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)\\
+	&=\mathbf{U}^\top \mathbf{M}\:\mathbf{U}+\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)
 	\end{aligned}
 \end{equation}
 
-Finally, recognising $R_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})=U^\top M\:U\succeq0$, since $M\succ0$, gives the desired expression.
+Finally, recognising $\mathbf{R}_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})=\mathbf{U}^\top \mathbf{M}\:\mathbf{U}\succeq0$, since $\mathbf{M}\succ0$, gives the desired expression.
 
 \section[Proof of Proposition 3.9]{Proof of \Cref{th:universal_kriging}}\label{sec:proof_UK}
 
 The unbiased assumption now reads:
 \begin{equation}
-	g(\tilde{\mathbf{x}})^\top W-g(x)^\top=0
+	g(\tilde{\mathbf{x}})^\top \mathbf{W}-g(x)^\top=0
 \end{equation}
 and the Lagrange multiplier method of \Cref{th:ordinary_kriging} can be transposed to universal kriging under the substitutions:
 \begin{equation}
 	\left\{\begin{aligned}
-	C&\longrightarrow g(\tilde{\mathbf{x}})\\
-	I_{d_z}&\longrightarrow g(x)^\top\\
-	\xi&\in\mathcal{M}_{r_{\mathrm{UK}}d_z,d_z}(\mathbb{R})
+	\mathbf{C}&\longrightarrow g(\tilde{\mathbf{x}})\\
+	\mathbf{I}_{d_z}&\longrightarrow g(x)^\top\\
+	\boldsymbol{\Xi}&\in\mathcal{M}_{r_{\mathrm{UK}}d_z,d_z}(\mathbb{R})
 	\end{aligned}\right.
 \end{equation}
 
-The full column rank of $g(\tilde{\mathbf{x}})$ ensures that $S$ is invertible, and that $M$ is SPD. Writing $G$ for $G(\tilde{\mathbf{x}})$, the shorthands of that proof thus become:
+The full column rank of $g(\tilde{\mathbf{x}})$ ensures that $\mathbf{S}$ is invertible, and that $\mathbf{M}$ is SPD. Writing $\mathbf{G}$ for $\mathbf{G}(\tilde{\mathbf{x}})$, the shorthands of that proof thus become:
 \begin{equation}
 	\left\{\begin{aligned}
-	M&\triangleq-S^{-1}=\left(g(\tilde{\mathbf{x}})^\top G^{-1}g(\tilde{\mathbf{x}})\right)^{-1}\\
-	U&\triangleq g(x)^\top-g(\tilde{\mathbf{x}})^\top G^{-1}k(\tilde{\mathbf{x}},x)
+	\mathbf{M}&\triangleq-\mathbf{S}^{-1}=\left(g(\tilde{\mathbf{x}})^\top \mathbf{G}^{-1}g(\tilde{\mathbf{x}})\right)^{-1}\\
+	\mathbf{U}&\triangleq g(x)^\top-g(\tilde{\mathbf{x}})^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)
 	\end{aligned}\right.
 \end{equation}
 so that the weight matrix and Lagrange multiplier are:
 \begin{equation}
 	\left\{\begin{aligned}
-	W&=G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}g(\tilde{\mathbf{x}})\:M\:U\\
-	\xi&=-M\:U
+	\mathbf{W}&=\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{G}^{-1}g(\tilde{\mathbf{x}})\:\mathbf{M}\:\mathbf{U}\\
+	\boldsymbol{\Xi}&=-\mathbf{M}\:\mathbf{U}
 	\end{aligned}\right.
 \end{equation}
 
 Finally, the bilinear identity \eqref{eq:OK_identity} becomes:
 \begin{equation}
-	W^\top G\:W=W^\top k(\tilde{\mathbf{x}},x)-g(x)\:\xi
+	\mathbf{W}^\top \mathbf{G}\:\mathbf{W}=\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-g(x)\:\boldsymbol{\Xi}
 \end{equation}
 
 The UK estimator and covariance matrices are derived exactly like for \Cref{th:ordinary_kriging}, using the corrected results:
 \begin{equation}
 	\begin{aligned}
-	\hat{z}_{\mathrm{UK}}&=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+U^\top M\:g(\tilde{\mathbf{x}})^\top G^{-1}\tilde{\mathbf{z}}\\
-	&=g(x)\:M\:g(\tilde{\mathbf{x}})^\top G^{-1}\tilde{\mathbf{z}}+k(x,\tilde{\mathbf{x}})\:G^{-1}\left(\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\:M\:g(\tilde{\mathbf{x}})^\top G^{-1}\tilde{\mathbf{z}}\right)
+	\hat{z}_{\mathrm{UK}}&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\tilde{\mathbf{z}}+\mathbf{U}^\top \mathbf{M}\:g(\tilde{\mathbf{x}})^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}\\
+	&=g(x)\:\mathbf{M}\:g(\tilde{\mathbf{x}})^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}+\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\left(\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\:\mathbf{M}\:g(\tilde{\mathbf{x}})^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}\right)
 	\end{aligned}\label{eq:UK_z_proof}
 \end{equation}
 and:
 \begin{equation}
-	R_{\mathrm{UK}}=U^\top M\:U+k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)\label{eq:UK_R_proof}
+	\mathbf{R}_{\mathrm{UK}}=\mathbf{U}^\top \mathbf{M}\:\mathbf{U}+\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)\label{eq:UK_R_proof}
 \end{equation}
 
 \section[Proof of Proposition 3.10]{Proof of \Cref{th:kriging_vague_prior}}\label{sec:proof_vague_prior}
 
 Using \eqref{eq:UK_mean}, it comes that:
 \begin{equation}
-	f\mid\beta\sim\mathcal{GP}(g\:\beta,k)
+	h\mid\boldsymbol{\gamma}\sim\mathcal{GP}(g\:\boldsymbol{\gamma},\kappa)
 \end{equation}
 and thus:
 \begin{equation}
-	f-g\:\beta\mid\beta\sim\mathcal{GP}(0,k)
+	h-g\:\boldsymbol{\gamma}\mid\boldsymbol{\gamma}\sim\mathcal{GP}(0,\kappa)
 \end{equation}
 
-Since this law is free of $\beta$, $f-g\:\beta$ is independent of $\beta$, which gives:
+Since this law is free of $\boldsymbol{\gamma}$, $h-g\:\boldsymbol{\gamma}$ is independent of $\boldsymbol{\gamma}$, which gives:
 \begin{equation}
-	f-g\:\beta\sim\mathcal{GP}(0,k)
+	h-g\:\boldsymbol{\gamma}\sim\mathcal{GP}(0,\kappa)
 \end{equation}
 
-Let $x,x'\in\mathcal{U}$. The mean of $f$ can thus be computed by decomposing:
+Let $x,x'\in\Omega$. The mean of $h$ can thus be computed by decomposing:
 \begin{equation}
-	\mathbb{E}[f(x)]=g(x)\:\mathbb{E}[\beta]+\mathbb{E}[f(x)-g(x)\:\beta]=0
+	\mathbb{E}[h(x)]=g(x)\:\mathbb{E}[\boldsymbol{\gamma}]+\mathbb{E}[h(x)-g(x)\:\boldsymbol{\gamma}]=0
 \end{equation}
 
-By independence of $f-g\:\beta$ and $\beta$, it follows that:
+By independence of $h-g\:\boldsymbol{\gamma}$ and $\boldsymbol{\gamma}$, it follows that:
 \begin{equation}
 	\begin{aligned}
-	\mathbb{E}\left[f(x)\:f(x')^\top\right]&=\mathbb{E}\left[(f(x)-g(x)\:\beta)(f(x')-g(x')\:\beta)^\top\right]+g(x)\:\mathbb{E}\left[\beta\:\beta^\top\right]g(x')^\top+\\
-	&\qquad\mathbb{E}\left[(f(x)-g(x)\:\beta)\:\beta^\top\right]g(x')^\top+g(x)\:\mathbb{E}\left[\beta\:(f(x')-g(x')\:\beta)^\top\right]\\
-	&=k(x,x')+g(x)\:B\:g(x')^\top+0+0\\
-	&=k_B(x,x')
+	\mathbb{E}\left[h(x)\:h(x')^\top\right]&=\mathbb{E}\left[(h(x)-g(x)\:\boldsymbol{\gamma})(h(x')-g(x')\:\boldsymbol{\gamma})^\top\right]+g(x)\:\mathbb{E}\left[\boldsymbol{\gamma}\:\boldsymbol{\gamma}^\top\right]g(x')^\top+\\
+	&\qquad\mathbb{E}\left[(h(x)-g(x)\:\boldsymbol{\gamma})\:\boldsymbol{\gamma}^\top\right]g(x')^\top+g(x)\:\mathbb{E}\left[\boldsymbol{\gamma}\:(h(x')-g(x')\:\boldsymbol{\gamma})^\top\right]\\
+	&=\kappa(x,x')+g(x)\:\mathbf{B}\:g(x')^\top+0+0\\
+	&=\kappa_{\mathbf{B}}(x,x')
 	\end{aligned}
 \end{equation}
 
-As a linear combination of the jointly Gaussian distributions $f-g\:\beta$ and $\beta$, we finally have:
+As a linear combination of the jointly Gaussian distributions $h-g\:\boldsymbol{\gamma}$ and $\boldsymbol{\gamma}$, we finally have:
 \begin{equation}
-	f\sim\mathcal{GP}(0,k_B)
+	h\sim\mathcal{GP}(0,\kappa_{\mathbf{B}})
 \end{equation}
 
-In this form, the mean function of $f$ is known, and \Cref{th:simple_kriging_conditional} states that simple kriging using $k_B$ gives the conditional distribution of $z\mid\tilde{\mathbf{z}}$:
+In this form, the mean function of $h$ is known, and \Cref{th:simple_kriging_conditional} states that simple kriging using $\kappa_{\mathbf{B}}$ gives the conditional distribution of $z\mid\tilde{\mathbf{z}}$:
 \begin{equation}
-	z\mid\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK},B}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0),R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})\right)
+	z\mid\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0),\mathbf{R}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}})\right)
 \end{equation}
 
 The SK estimator and error covariance matrix can be expressed as follows:
 \begin{equation}
 	\left\{\begin{aligned}
-	\hat{z}_{\mathrm{SK},B}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=k_B(x,\tilde{\mathbf{x}})\:G_B(\tilde{\mathbf{x}})^{-1}\:\tilde{\mathbf{z}}\\
-	R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})&=k_B(x,x)+R-k_B(x,\tilde{\mathbf{x}})\:G_B(\tilde{\mathbf{x}})^{-1}k_B\left(\tilde{\mathbf{x}},x\right)
+	\hat{z}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=\kappa_{\mathbf{B}}(x,\tilde{\mathbf{x}})\:\mathbf{G}_{\mathbf{B}}(\tilde{\mathbf{x}})^{-1}\:\tilde{\mathbf{z}}\\
+	\mathbf{R}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}})&=\kappa_{\mathbf{B}}(x,x)+\mathbf{R}-\kappa_{\mathbf{B}}(x,\tilde{\mathbf{x}})\:\mathbf{G}_{\mathbf{B}}(\tilde{\mathbf{x}})^{-1}\kappa_{\mathbf{B}}\left(\tilde{\mathbf{x}},x\right)
 	\end{aligned}\right.
 \end{equation}
 where:
 \begin{equation}
-	G_B\triangleq k_B(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+I_{\tilde{N}}\otimes\tilde{R}=G+g(\tilde{\mathbf{x}})\:B\:g(\tilde{\mathbf{x}})^\top
+	\mathbf{G}_{\mathbf{B}}\triangleq \kappa_{\mathbf{B}}(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}}=\mathbf{G}+g(\tilde{\mathbf{x}})\:\mathbf{B}\:g(\tilde{\mathbf{x}})^\top
 \end{equation}
 
-For the sake of clarity, we let $G$ and $g$ respectively denote $G(\tilde{\mathbf{x}})$ and $g(\tilde{\mathbf{x}})$, and we reuse:
+For the sake of clarity, we let $\mathbf{G}$ and $g$ respectively denote $\mathbf{G}(\tilde{\mathbf{x}})$ and $g(\tilde{\mathbf{x}})$, and we reuse:
 \begin{equation}
 	\left\{\begin{aligned}
-	M&\triangleq\left(g^\top G^{-1}g\right)^{-1}\\
-	U&\triangleq g(x)^\top-g^\top G^{-1}k(\tilde{\mathbf{x}},x)
+	\mathbf{M}&\triangleq\left(g^\top \mathbf{G}^{-1}g\right)^{-1}\\
+	\mathbf{U}&\triangleq g(x)^\top-g^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)
 	\end{aligned}\right.
 \end{equation}
 from \cref{sec:proof_UK}.
 
 Using \Cref{th:Woodbury}, it comes that:
 \begin{equation}
-	G_B^{-1}=G^{-1}-G^{-1}g\:M_B\:g^\top G^{-1}
+	\mathbf{G}_{\mathbf{B}}^{-1}=\mathbf{G}^{-1}-\mathbf{G}^{-1}g\:\mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}
 \end{equation}
 with:
 \begin{equation}
-	M_B\triangleq\left(B^{-1}+g^\top G^{-1}g\right)^{-1}=\left(B^{-1}+M^{-1}\right)^{-1}
+	\mathbf{M}_{\mathbf{B}}\triangleq\left(\mathbf{B}^{-1}+g^\top \mathbf{G}^{-1}g\right)^{-1}=\left(\mathbf{B}^{-1}+\mathbf{M}^{-1}\right)^{-1}
 \end{equation}
 
-By definition of $M_B$, we have:
+By definition of $\mathbf{M}_{\mathbf{B}}$, we have:
 \begin{equation}
 	\begin{aligned}
-	&\left(B^{-1}+M^{-1}\right)M_B=I\\
-	\iff\quad&M^{-1}M_B=I-B^{-1}M_B\\
-	\iff\quad&B\:M^{-1}M_B=B-M_B\\
+	&\left(\mathbf{B}^{-1}+\mathbf{M}^{-1}\right)\mathbf{M}_{\mathbf{B}}=\mathbf{I}\\
+	\iff\quad&\mathbf{M}^{-1}\mathbf{M}_{\mathbf{B}}=\mathbf{I}-\mathbf{B}^{-1}\mathbf{M}_{\mathbf{B}}\\
+	\iff\quad&\mathbf{B}\:\mathbf{M}^{-1}\mathbf{M}_{\mathbf{B}}=\mathbf{B}-\mathbf{M}_{\mathbf{B}}\\
 	\end{aligned}
 \end{equation}
 
 We also precompute:
 \begin{equation}
 	\begin{aligned}
-	g(x)\:B\:g^\top\:G_B^{-1}&=g(x)\:B\:g^\top\left(G^{-1}-G^{-1}g\:M_B\:g^\top G^{-1}\right)\\
-	&=g(x)\left(B\:g^\top G^{-1}-B\:g^\top G^{-1}g\:M_B\:g^\top G^{-1}\right)\\
-	&=g(x)\left(B\:g^\top G^{-1}-B\:M^{-1}\:M_B\:g^\top G^{-1}\right)\\
-	&=g(x)\left(B\:g^\top G^{-1}-(B-M_B)\:g^\top G^{-1}\right)\\
-	&=g(x)\:M_B\:g^\top G^{-1}
+	g(x)\:\mathbf{B}\:g^\top\:\mathbf{G}_{\mathbf{B}}^{-1}&=g(x)\:\mathbf{B}\:g^\top\left(\mathbf{G}^{-1}-\mathbf{G}^{-1}g\:\mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\right)\\
+	&=g(x)\left(\mathbf{B}\:g^\top \mathbf{G}^{-1}-\mathbf{B}\:g^\top \mathbf{G}^{-1}g\:\mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\right)\\
+	&=g(x)\left(\mathbf{B}\:g^\top \mathbf{G}^{-1}-\mathbf{B}\:\mathbf{M}^{-1}\:\mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\right)\\
+	&=g(x)\left(\mathbf{B}\:g^\top \mathbf{G}^{-1}-(\mathbf{B}-\mathbf{M}_{\mathbf{B}})\:g^\top \mathbf{G}^{-1}\right)\\
+	&=g(x)\:\mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}
 	\end{aligned}
 \end{equation}
 
 It comes that:
 \begin{equation}
 	\begin{aligned}
-	k_B(x,\tilde{\mathbf{x}})\:G_B^{-1}&=\left(k(x,\tilde{\mathbf{x}})+g(x)\:B\:g^\top\right)G_B^{-1}\\
-	&=k(x,\tilde{\mathbf{x}})\:G_B^{-1}+g(x)\:B\:g^\top G_B^{-1}\\
-	&=k(x,\tilde{\mathbf{x}})\left(G^{-1}-G^{-1}g\:M_B\:g^\top G^{-1}\right)+g(x)\:M_B\:g^\top G^{-1}\\
-	&=k(x,\tilde{\mathbf{x}})\:G^{-1}+\left(-k(x,\tilde{\mathbf{x}})\:G^{-1}g+g(x)\right)M_B\:g^\top G^{-1}\\
-	&=k(x,\tilde{\mathbf{x}})\:G^{-1}+U^\top M_B\:g^\top G^{-1}
+	\kappa_{\mathbf{B}}(x,\tilde{\mathbf{x}})\:\mathbf{G}_{\mathbf{B}}^{-1}&=\left(\kappa(x,\tilde{\mathbf{x}})+g(x)\:\mathbf{B}\:g^\top\right)\mathbf{G}_{\mathbf{B}}^{-1}\\
+	&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}_{\mathbf{B}}^{-1}+g(x)\:\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}\\
+	&=\kappa(x,\tilde{\mathbf{x}})\left(\mathbf{G}^{-1}-\mathbf{G}^{-1}g\:\mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\right)+g(x)\:\mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\\
+	&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}+\left(-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}g+g(x)\right)\mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\\
+	&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}+\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}
 	\end{aligned}
 \end{equation}
 and thus:
 \begin{equation}
-	\hat{z}_{\mathrm{SK},B}=k_B(x,\tilde{\mathbf{x}})\:G_B^{-1}\tilde{\mathbf{z}}=k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+U^\top M_B\:g^\top G^{-1}\tilde{\mathbf{z}}
+	\hat{z}_{\mathrm{SK},\mathbf{B}}=\kappa_{\mathbf{B}}(x,\tilde{\mathbf{x}})\:\mathbf{G}_{\mathbf{B}}^{-1}\tilde{\mathbf{z}}=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\tilde{\mathbf{z}}+\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}
 \end{equation}
 
 For the covariance, we compute:
 \begin{equation}
 	\begin{aligned}
-	k_B(x,\tilde{\mathbf{x}})\:G_B^{-1}k_B(\tilde{\mathbf{x}},x)&=\left(k(x,\tilde{\mathbf{x}})\:G^{-1}+U^\top M_B\:g^\top G^{-1}\right)\left(k(\tilde{\mathbf{x}},x)+g\:B\:g(x)^\top\right)\\
-	&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)+\\
-	&\qquad k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top+U^\top M_B\:g^\top G^{-1}g\:B\:g(x)^\top\\
-	&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)+\\
-	&\qquad k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top+U^\top M_B\:M^{-1}\:B\:g(x)^\top\\
-	&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)+\\
-	&\qquad k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top+U^\top(B-M_B)\:g(x)^\top
+	\kappa_{\mathbf{B}}(x,\tilde{\mathbf{x}})\:\mathbf{G}_{\mathbf{B}}^{-1}\kappa_{\mathbf{B}}(\tilde{\mathbf{x}},x)&=\left(\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}+\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\right)\left(\kappa(\tilde{\mathbf{x}},x)+g\:\mathbf{B}\:g(x)^\top\right)\\
+	&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\\
+	&\qquad \kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}g\:\mathbf{B}\:g(x)^\top+\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}g\:\mathbf{B}\:g(x)^\top\\
+	&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\\
+	&\qquad \kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}g\:\mathbf{B}\:g(x)^\top+\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:\mathbf{M}^{-1}\:\mathbf{B}\:g(x)^\top\\
+	&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\\
+	&\qquad \kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}g\:\mathbf{B}\:g(x)^\top+\mathbf{U}^\top(\mathbf{B}-\mathbf{M}_{\mathbf{B}})\:g(x)^\top
 	\end{aligned}
 \end{equation}
 and:
 \begin{equation}
 	\begin{aligned}
-	g(x)\:B\:g(x)^\top-k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top&=U^\top B\:g(x)^\top
+	g(x)\:\mathbf{B}\:g(x)^\top-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}g\:\mathbf{B}\:g(x)^\top&=\mathbf{U}^\top \mathbf{B}\:g(x)^\top
 	\end{aligned}
 \end{equation}
 to obtain:
 \begin{equation}
 	\begin{aligned}
-	R_{\mathrm{SK},B}&=k_B(x,x)+R-k_B(x,\tilde{\mathbf{x}})\:G_B(\tilde{\mathbf{x}})^{-1}k_B\left(\tilde{\mathbf{x}},x\right)\\
-	&=k(x,x)+g(x)\:B\:g(x)^\top+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)-U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)-\\
-	&\qquad k(x,\tilde{\mathbf{x}})\:G^{-1}g\:B\:g(x)^\top-U^\top(B-M_B)\:g(x)^\top\\
-	&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)-U^\top M_B\:g^\top G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:g(x)^\top\\
-	&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M_B\:U
+	\mathbf{R}_{\mathrm{SK},\mathbf{B}}&=\kappa_{\mathbf{B}}(x,x)+\mathbf{R}-\kappa_{\mathbf{B}}(x,\tilde{\mathbf{x}})\:\mathbf{G}_{\mathbf{B}}(\tilde{\mathbf{x}})^{-1}\kappa_{\mathbf{B}}\left(\tilde{\mathbf{x}},x\right)\\
+	&=\kappa(x,x)+g(x)\:\mathbf{B}\:g(x)^\top+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)-\\
+	&\qquad\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}g\:\mathbf{B}\:g(x)^\top-\mathbf{U}^\top(\mathbf{B}-\mathbf{M}_{\mathbf{B}})\:g(x)^\top\\
+	&=\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)-\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:g(x)^\top\\
+	&=\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{U}^\top \mathbf{M}_{\mathbf{B}}\:\mathbf{U}
 	\end{aligned}
 \end{equation}
 
-Since $M_B\to M$ as $B^{-1}\to0$, we finally have:
+Since $\mathbf{M}_{\mathbf{B}}\to \mathbf{M}$ as $\mathbf{B}^{-1}\to0$, we finally have:
 \begin{equation}
 	\left\{\begin{aligned}
-	\hat{z}_{\mathrm{SK},B}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\underset{B^{-1}\to0}{\longrightarrow}k(x,\tilde{\mathbf{x}})\:G^{-1}\tilde{\mathbf{z}}+U^\top M\:g^\top G^{-1}\tilde{\mathbf{z}}\\
-	R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})&\underset{B^{-1}\to0}{\longrightarrow}k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+U^\top M\:U
+	\hat{z}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\underset{\mathbf{B}^{-1}\to0}{\longrightarrow}\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\tilde{\mathbf{z}}+\mathbf{U}^\top \mathbf{M}\:g^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}\\
+	\mathbf{R}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}})&\underset{\mathbf{B}^{-1}\to0}{\longrightarrow}\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{U}^\top \mathbf{M}\:\mathbf{U}
 	\end{aligned}\right.
 \end{equation}
 the limits of which are exactly \eqref{eq:UK_z_proof} and \eqref{eq:UK_R_proof}.
 
 \begin{comment}
-\textbf{TODO: ça a l'air de mériter sa propre proposition mais jsp si ç'est utile}The coefficients follow the same course. The Gaussian linear model gives $\beta$ the posterior $\mathcal{N}\left(M_B\:g^\top G^{-1}\tilde{\mathbf{z}},M_B\right)$, whose limit is $\mathcal{N}\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),M\right)$. The estimator of \eqref{eq:kriged_universal_mean} is therefore the posterior mean of the trend, and $M$ its posterior covariance.
+\textbf{TODO: ça a l'air de mériter sa propre proposition mais jsp si ç'est utile}The coefficients follow the same course. The Gaussian linear model gives $\boldsymbol{\gamma}$ the posterior $\mathcal{N}\left(\mathbf{M}_{\mathbf{B}}\:g^\top \mathbf{G}^{-1}\tilde{\mathbf{z}},\mathbf{M}_{\mathbf{B}}\right)$, whose limit is $\mathcal{N}\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g),\mathbf{M}\right)$. The estimator of \eqref{eq:kriged_universal_mean} is therefore the posterior mean of the trend, and $\mathbf{M}$ its posterior covariance.
 \end{comment}
 
 \section[Proof of Proposition 3.11]{Proof of \Cref{th:block_kriging}}\label{sec:proof_block_kriging}
 
-For the sake of clarity, we let $G$ and $g$ respectively denote $G(\tilde{\mathbf{x}})$ and $g(\tilde{\mathbf{x}})$, and we reuse:
+For the sake of clarity, we let $\mathbf{G}$ and $g$ respectively denote $\mathbf{G}(\tilde{\mathbf{x}})$ and $g(\tilde{\mathbf{x}})$, and we reuse:
 \begin{equation}
-	M\triangleq\left(g^\top G^{-1}g\right)^{-1}
+	\mathbf{M}\triangleq\left(g^\top \mathbf{G}^{-1}g\right)^{-1}
 \end{equation}
-from \cref{sec:proof_UK}. The Schur complement of $\mathcal{G}(\tilde{\mathbf{x}})$ with respect to $G$ is then $0-g^\top G^{-1}g=-M^{-1}$, which is invertible. \Cref{th:Schur} thus applies, and gives:
+from \cref{sec:proof_UK}. The Schur complement of $\bar{\mathbf{G}}(\tilde{\mathbf{x}})$ with respect to $\mathbf{G}$ is then $0-g^\top \mathbf{G}^{-1}g=-\mathbf{M}^{-1}$, which is invertible. \Cref{th:Schur} thus applies, and gives:
 \begin{equation}
-	\mathcal{G}(\tilde{\mathbf{x}})^{-1}=\begin{bmatrix}G^{-1}-G^{-1}g\:M\:g^\top G^{-1}&G^{-1}g\:M\\M\:g^\top G^{-1}&-M\end{bmatrix}
+	\bar{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}=\begin{bmatrix}\mathbf{G}^{-1}-\mathbf{G}^{-1}g\:\mathbf{M}\:g^\top \mathbf{G}^{-1}&\mathbf{G}^{-1}g\:\mathbf{M}\\\mathbf{M}\:g^\top \mathbf{G}^{-1}&-\mathbf{M}\end{bmatrix}
 \end{equation}
 
 Using:
 \begin{equation}
-	\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)=M\:g^\top G^{-1}\tilde{\mathbf{z}}
+	\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)=\mathbf{M}\:g^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}
 \end{equation}
 it comes that:
 \begin{equation}
 	\begin{aligned}
-	\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}&=\begin{bmatrix}k(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}G^{-1}-G^{-1}g\:M\:g^\top G^{-1}&G^{-1}g\:M\\M\:g^\top G^{-1}&-M\end{bmatrix}\begin{bmatrix}\tilde{\mathbf{z}}\\0\end{bmatrix}\\
-	&=\begin{bmatrix}k(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}G^{-1}\left(\tilde{\mathbf{z}}-g\:M\:g^\top G^{-1}\tilde{\mathbf{z}}\right)\\M\:g^\top G^{-1}\tilde{\mathbf{z}}\end{bmatrix}\\
-	&=\begin{bmatrix}k(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}G^{-1}(\tilde{\mathbf{z}}-g\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g))\\\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\end{bmatrix}\\
-	&=k(x,\tilde{\mathbf{x}})\:G^{-1}(\tilde{\mathbf{z}}-g\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g))+g(x)\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\\
+	\bar{\kappa}(x,\tilde{\mathbf{x}})\:\bar{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}&=\begin{bmatrix}\kappa(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}\mathbf{G}^{-1}-\mathbf{G}^{-1}g\:\mathbf{M}\:g^\top \mathbf{G}^{-1}&\mathbf{G}^{-1}g\:\mathbf{M}\\\mathbf{M}\:g^\top \mathbf{G}^{-1}&-\mathbf{M}\end{bmatrix}\begin{bmatrix}\tilde{\mathbf{z}}\\0\end{bmatrix}\\
+	&=\begin{bmatrix}\kappa(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}\mathbf{G}^{-1}\left(\tilde{\mathbf{z}}-g\:\mathbf{M}\:g^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}\right)\\\mathbf{M}\:g^\top \mathbf{G}^{-1}\tilde{\mathbf{z}}\end{bmatrix}\\
+	&=\begin{bmatrix}\kappa(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}\mathbf{G}^{-1}(\tilde{\mathbf{z}}-g\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g))\\\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\end{bmatrix}\\
+	&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}(\tilde{\mathbf{z}}-g\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g))+g(x)\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\\
 	&=\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)
 	\end{aligned}
 \end{equation}
 
 Similarly, writing:
 \begin{equation}
-	V(x)\triangleq g(x)-k(x,\tilde{\mathbf{x}})\:G^{-1}g
+	\mathbf{V}(x)\triangleq g(x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}g
 \end{equation}
 for the weights given to the estimated trend coefficients gives:
 \begin{equation}
 	\begin{aligned}
-	\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)&=\begin{bmatrix}G^{-1}-G^{-1}g\:M\:g^\top G^{-1}&G^{-1}g\:M\\M\:g^\top G^{-1}&-M\end{bmatrix}\begin{bmatrix}k(\tilde{\mathbf{x}},x)\\g(x)^\top\end{bmatrix}\\
-	&=\begin{bmatrix}G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}g\:M\left(g(x)^\top-g^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\\-M\left(g(x)^\top-g^\top G^{-1}k(\tilde{\mathbf{x}},x)\right)\end{bmatrix}\\
-	&=\begin{bmatrix}G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}g\:M\:V(x)^\top\\-M\:V(x)^\top\end{bmatrix}
+	\bar{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\bar{\kappa}(\tilde{\mathbf{x}},x)&=\begin{bmatrix}\mathbf{G}^{-1}-\mathbf{G}^{-1}g\:\mathbf{M}\:g^\top \mathbf{G}^{-1}&\mathbf{G}^{-1}g\:\mathbf{M}\\\mathbf{M}\:g^\top \mathbf{G}^{-1}&-\mathbf{M}\end{bmatrix}\begin{bmatrix}\kappa(\tilde{\mathbf{x}},x)\\g(x)^\top\end{bmatrix}\\
+	&=\begin{bmatrix}\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{G}^{-1}g\:\mathbf{M}\left(g(x)^\top-g^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)\right)\\-\mathbf{M}\left(g(x)^\top-g^\top \mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)\right)\end{bmatrix}\\
+	&=\begin{bmatrix}\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{G}^{-1}g\:\mathbf{M}\:\mathbf{V}(x)^\top\\-\mathbf{M}\:\mathbf{V}(x)^\top\end{bmatrix}
 	\end{aligned}
 \end{equation}
 and therefore:
 \begin{equation}
 	\begin{aligned}
-	\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)&=\begin{bmatrix}k(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}G^{-1}k(\tilde{\mathbf{x}},x)+G^{-1}g\:M\:V(x)^\top\\-M\:V(x)^\top\end{bmatrix}\\
-	&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)+\left(k(x,\tilde{\mathbf{x}})\:G^{-1}g-g(x)\right)M\:V(x)^\top\\
-	&=k(x,\tilde{\mathbf{x}})\:G^{-1}k(\tilde{\mathbf{x}},x)-V(x)\:M\:V(x)^\top
+	\bar{\kappa}(x,\tilde{\mathbf{x}})\:\bar{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\bar{\kappa}(\tilde{\mathbf{x}},x)&=\begin{bmatrix}\kappa(x,\tilde{\mathbf{x}})&g(x)\end{bmatrix}\begin{bmatrix}\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\mathbf{G}^{-1}g\:\mathbf{M}\:\mathbf{V}(x)^\top\\-\mathbf{M}\:\mathbf{V}(x)^\top\end{bmatrix}\\
+	&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)+\left(\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}g-g(x)\right)\mathbf{M}\:\mathbf{V}(x)^\top\\
+	&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)-\mathbf{V}(x)\:\mathbf{M}\:\mathbf{V}(x)^\top
 	\end{aligned}
 \end{equation}
 
-The subtracted term is $R_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)$, as given by \eqref{eq:kriged_universal_mean}, which gives the second line of \eqref{eq:universal_kriging_equations}.
+The subtracted term is $\mathbf{R}_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)$, as given by \eqref{eq:kriged_universal_mean}, which gives the second line of \eqref{eq:universal_kriging_equations}.
 
 \section[Proof of Proposition 3.14]{Proof of \Cref{th:universal_kriging_update}}\label{sec:proof_UK_update}
 
-Let $B\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}$, and assume that $\beta\sim\mathcal{N}(0,B)$. \Cref{th:kriging_vague_prior} gives:
+Let $\mathbf{B}\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}$, and assume that $\boldsymbol{\gamma}\sim\mathcal{N}(0,\mathbf{B})$. \Cref{th:kriging_vague_prior} gives:
 \begin{equation}
-	f\sim\mathcal{GP}(0,k_B)
+	h\sim\mathcal{GP}(0,\kappa_{\mathbf{B}})
 \end{equation}
 
-For the sake of clarity, we let $\hat{z}_B$ denote $\hat{z}_{\mathrm{SK},B}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},0)$, and $k_{B|\mathrm{old}}$ and $S_B$ respectively denote $k_{|\mathrm{old}}$ and $S_{\mathrm{new}|\mathrm{old}}$ taken under $k_B$. Applying \Cref{th:kriging_update} under $k_B$, with $m=0$, thus yields:
+For the sake of clarity, we let $\hat{z}_{\mathbf{B}}$ denote $\hat{z}_{\mathrm{SK},\mathbf{B}}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},0)$, and $\kappa_{\mathbf{B}|\mathrm{old}}$ and $\mathbf{S}_{\mathbf{B}}$ respectively denote $\kappa_{|\mathrm{old}}$ and $\mathbf{S}_{\mathrm{new}|\mathrm{old}}$ taken under $\kappa_{\mathbf{B}}$. Applying \Cref{th:kriging_update} under $\kappa_{\mathbf{B}}$, with $m=0$, thus yields:
 \begin{equation}
 	\left\{\begin{aligned}
-	\hat{z}_{\mathrm{SK},B}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=\hat{z}_B(x)+k_{B|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_B^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_B(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
-	R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})&=R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}}_{\mathrm{old}})-k_{B|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:S_B^{-1}k_{B|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
+	\hat{z}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=\hat{z}_{\mathbf{B}}(x)+\kappa_{\mathbf{B}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:\mathbf{S}_{\mathbf{B}}^{-1}\left(\tilde{\mathbf{z}}_{\mathrm{new}}-\hat{z}_{\mathbf{B}}(\tilde{\mathbf{x}}_{\mathrm{new}})\right)\\
+	\mathbf{R}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}})&=\mathbf{R}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}}_{\mathrm{old}})-\kappa_{\mathbf{B}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\:\mathbf{S}_{\mathbf{B}}^{-1}\kappa_{\mathbf{B}|\mathrm{old}}(\tilde{\mathbf{x}}_{\mathrm{new}},x)
 	\end{aligned}\right.
 \end{equation}
 
 Since $g(\tilde{\mathbf{x}}_{\mathrm{old}})$ has full column rank, so does $g(\tilde{\mathbf{x}})$, whose first rows it gathers. Applying \Cref{th:kriging_vague_prior} to $\tilde{\mathbf{x}}$, to $\tilde{\mathbf{x}}_{\mathrm{old}}$, and at each point of $\tilde{\mathbf{x}}_{\mathrm{new}}$ thus gives:
 \begin{equation}
 	\left\{\begin{aligned}
-	\hat{z}_{\mathrm{SK},B}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\underset{B^{-1}\to0}{\longrightarrow}\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\\
-	\hat{z}_B(x)&\underset{B^{-1}\to0}{\longrightarrow}\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},g)\\
-	\hat{z}_B(\tilde{\mathbf{x}}_{\mathrm{new}})&\underset{B^{-1}\to0}{\longrightarrow}\hat{z}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},g)
+	\hat{z}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\underset{\mathbf{B}^{-1}\to0}{\longrightarrow}\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\\
+	\hat{z}_{\mathbf{B}}(x)&\underset{\mathbf{B}^{-1}\to0}{\longrightarrow}\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},g)\\
+	\hat{z}_{\mathbf{B}}(\tilde{\mathbf{x}}_{\mathrm{new}})&\underset{\mathbf{B}^{-1}\to0}{\longrightarrow}\hat{z}_{\mathrm{UK}}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},g)
 	\end{aligned}\right.
 \end{equation}
 and:
 \begin{equation}
 	\left\{\begin{aligned}
-	R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}})&\underset{B^{-1}\to0}{\longrightarrow}R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)\\
-	R_{\mathrm{SK},B}(x,\tilde{\mathbf{x}}_{\mathrm{old}})&\underset{B^{-1}\to0}{\longrightarrow}R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},g)
+	\mathbf{R}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}})&\underset{\mathbf{B}^{-1}\to0}{\longrightarrow}\mathbf{R}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)\\
+	\mathbf{R}_{\mathrm{SK},\mathbf{B}}(x,\tilde{\mathbf{x}}_{\mathrm{old}})&\underset{\mathbf{B}^{-1}\to0}{\longrightarrow}\mathbf{R}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}_{\mathrm{old}},g)
 	\end{aligned}\right.
 \end{equation}
 
-For the conditional kernel, let $x'\in\mathcal{U}$. For the sake of clarity, we now let $G$, $g$ and $G_B$ respectively denote $G(\tilde{\mathbf{x}}_{\mathrm{old}})$, $g(\tilde{\mathbf{x}}_{\mathrm{old}})$ and $G+g\:B\:g^\top$, and we define:
+For the conditional kernel, let $x'\in\Omega$. For the sake of clarity, we now let $\mathbf{G}$, $g$ and $\mathbf{G}_{\mathbf{B}}$ respectively denote $\mathbf{G}(\tilde{\mathbf{x}}_{\mathrm{old}})$, $g(\tilde{\mathbf{x}}_{\mathrm{old}})$ and $\mathbf{G}+g\:\mathbf{B}\:g^\top$, and we define:
 \begin{equation}
-	\mathcal{G}_B\triangleq\begin{bmatrix}G&g\\g^\top&-B^{-1}\end{bmatrix}
+	\bar{\mathbf{G}}_{\mathbf{B}}\triangleq\begin{bmatrix}\mathbf{G}&g\\g^\top&-\mathbf{B}^{-1}\end{bmatrix}
 \end{equation}
 
-Its Schur complement with respect to $-B^{-1}$ is $G+g\:B\:g^\top=G_B$, which is SPD. The inferior right Schur inversion formula (see \Cref{th:Schur}) thus gives:
+Its Schur complement with respect to $-\mathbf{B}^{-1}$ is $\mathbf{G}+g\:\mathbf{B}\:g^\top=\mathbf{G}_{\mathbf{B}}$, which is SPD. The inferior right Schur inversion formula (see \Cref{th:Schur}) thus gives:
 \begin{equation}
-	\mathcal{G}_B^{-1}=\begin{bmatrix}G_B^{-1}&G_B^{-1}g\:B\\B\:g^\top G_B^{-1}&-B+B\:g^\top G_B^{-1}g\:B\end{bmatrix}
+	\bar{\mathbf{G}}_{\mathbf{B}}^{-1}=\begin{bmatrix}\mathbf{G}_{\mathbf{B}}^{-1}&\mathbf{G}_{\mathbf{B}}^{-1}g\:\mathbf{B}\\\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}&-\mathbf{B}+\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}g\:\mathbf{B}\end{bmatrix}
 \end{equation}
 and so:
 \begin{equation}
 	\begin{aligned}
-	\mathcal{G}_B^{-1}\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},x')&=\begin{bmatrix}G_B^{-1}&G_B^{-1}g\:B\\B\:g^\top G_B^{-1}&-B+B\:g^\top G_B^{-1}g\:B\end{bmatrix}\begin{bmatrix}k(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\g(x')^\top\end{bmatrix}\\
-	&=\begin{bmatrix}G_B^{-1}k(\tilde{\mathbf{x}}_{\mathrm{old}},x')+G_B^{-1}g\:B\:g(x')^\top\\B\:g^\top G_B^{-1}k(\tilde{\mathbf{x}}_{\mathrm{old}},x')+B\:g^\top G_B^{-1}g\:B\:g(x')^\top-B\:g(x')^\top\end{bmatrix}\\
-	&=\begin{bmatrix}G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\B\:g^\top G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')-B\:g(x')^\top\end{bmatrix}
+	\bar{\mathbf{G}}_{\mathbf{B}}^{-1}\bar{\kappa}(\tilde{\mathbf{x}}_{\mathrm{old}},x')&=\begin{bmatrix}\mathbf{G}_{\mathbf{B}}^{-1}&\mathbf{G}_{\mathbf{B}}^{-1}g\:\mathbf{B}\\\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}&-\mathbf{B}+\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}g\:\mathbf{B}\end{bmatrix}\begin{bmatrix}\kappa(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\g(x')^\top\end{bmatrix}\\
+	&=\begin{bmatrix}\mathbf{G}_{\mathbf{B}}^{-1}\kappa(\tilde{\mathbf{x}}_{\mathrm{old}},x')+\mathbf{G}_{\mathbf{B}}^{-1}g\:\mathbf{B}\:g(x')^\top\\\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}\kappa(\tilde{\mathbf{x}}_{\mathrm{old}},x')+\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}g\:\mathbf{B}\:g(x')^\top-\mathbf{B}\:g(x')^\top\end{bmatrix}\\
+	&=\begin{bmatrix}\mathbf{G}_{\mathbf{B}}^{-1}\kappa_{\mathbf{B}}(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}\kappa_{\mathbf{B}}(\tilde{\mathbf{x}}_{\mathrm{old}},x')-\mathbf{B}\:g(x')^\top\end{bmatrix}
 	\end{aligned}
 \end{equation}
 and therefore:
 \begin{equation}
 	\begin{aligned}
-	\bar{k}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathcal{G}_B^{-1}\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},x')&=\begin{bmatrix}k(x,\tilde{\mathbf{x}}_{\mathrm{old}})&g(x)\end{bmatrix}\begin{bmatrix}G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\B\:g^\top G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')-B\:g(x')^\top\end{bmatrix}\\
-	&=\left(k(x,\tilde{\mathbf{x}}_{\mathrm{old}})+g(x)\:B\:g^\top\right)G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')-g(x)\:B\:g(x')^\top\\
-	&=k_B(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')-g(x)\:B\:g(x')^\top
+	\bar{\kappa}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\bar{\mathbf{G}}_{\mathbf{B}}^{-1}\bar{\kappa}(\tilde{\mathbf{x}}_{\mathrm{old}},x')&=\begin{bmatrix}\kappa(x,\tilde{\mathbf{x}}_{\mathrm{old}})&g(x)\end{bmatrix}\begin{bmatrix}\mathbf{G}_{\mathbf{B}}^{-1}\kappa_{\mathbf{B}}(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}\kappa_{\mathbf{B}}(\tilde{\mathbf{x}}_{\mathrm{old}},x')-\mathbf{B}\:g(x')^\top\end{bmatrix}\\
+	&=\left(\kappa(x,\tilde{\mathbf{x}}_{\mathrm{old}})+g(x)\:\mathbf{B}\:g^\top\right)\mathbf{G}_{\mathbf{B}}^{-1}\kappa_{\mathbf{B}}(\tilde{\mathbf{x}}_{\mathrm{old}},x')-g(x)\:\mathbf{B}\:g(x')^\top\\
+	&=\kappa_{\mathbf{B}}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathbf{G}_{\mathbf{B}}^{-1}\kappa_{\mathbf{B}}(\tilde{\mathbf{x}}_{\mathrm{old}},x')-g(x)\:\mathbf{B}\:g(x')^\top
 	\end{aligned}
 \end{equation}
 
 It comes that:
 \begin{equation}
 	\begin{aligned}
-	k_{B|\mathrm{old}}(x,x')&=k_B(x,x')-k_B(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:G_B^{-1}k_B(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\
-	&=k(x,x')-\bar{k}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathcal{G}_B^{-1}\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},x')
+	\kappa_{\mathbf{B}|\mathrm{old}}(x,x')&=\kappa_{\mathbf{B}}(x,x')-\kappa_{\mathbf{B}}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathbf{G}_{\mathbf{B}}^{-1}\kappa_{\mathbf{B}}(\tilde{\mathbf{x}}_{\mathrm{old}},x')\\
+	&=\kappa(x,x')-\bar{\kappa}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\bar{\mathbf{G}}_{\mathbf{B}}^{-1}\bar{\kappa}(\tilde{\mathbf{x}}_{\mathrm{old}},x')
 	\end{aligned}
 \end{equation}
 
-Since $\mathcal{G}_B$ tends to $\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})$ as $B^{-1}\to0$, and the latter is invertible by \Cref{th:block_kriging}, the continuity of the inversion gives:
+Since $\bar{\mathbf{G}}_{\mathbf{B}}$ tends to $\bar{\mathbf{G}}(\tilde{\mathbf{x}}_{\mathrm{old}})$ as $\mathbf{B}^{-1}\to0$, and the latter is invertible by \Cref{th:block_kriging}, the continuity of the inversion gives:
 \begin{equation}
-	k_{B|\mathrm{old}}(x,x')\underset{B^{-1}\to0}{\longrightarrow}k(x,x')-\bar{k}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},x')=k_{\mathrm{UK}|\mathrm{old}}(x,x')
+	\kappa_{\mathbf{B}|\mathrm{old}}(x,x')\underset{\mathbf{B}^{-1}\to0}{\longrightarrow}\kappa(x,x')-\bar{\kappa}(x,\tilde{\mathbf{x}}_{\mathrm{old}})\:\bar{\mathbf{G}}(\tilde{\mathbf{x}}_{\mathrm{old}})^{-1}\bar{\kappa}(\tilde{\mathbf{x}}_{\mathrm{old}},x')=\kappa_{\mathrm{UK}|\mathrm{old}}(x,x')
 \end{equation}
 
-In particular, $S_B$ tends to $S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$. Up to the order of its rows and columns, $\mathcal{G}(\tilde{\mathbf{x}})$ reads:
+In particular, $\mathbf{S}_{\mathbf{B}}$ tends to $\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$. Up to the order of its rows and columns, $\bar{\mathbf{G}}(\tilde{\mathbf{x}})$ reads:
 \begin{equation}
-	\begin{bmatrix}\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})&\bar{k}(\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{x}}_{\mathrm{new}})\\\bar{k}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{old}})&G(\tilde{\mathbf{x}}_{\mathrm{new}})\end{bmatrix}
+	\begin{bmatrix}\bar{\mathbf{G}}(\tilde{\mathbf{x}}_{\mathrm{old}})&\bar{\kappa}(\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{x}}_{\mathrm{new}})\\\bar{\kappa}(\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{x}}_{\mathrm{old}})&\mathbf{G}(\tilde{\mathbf{x}}_{\mathrm{new}})\end{bmatrix}
 \end{equation}
-and its Schur complement with respect to $\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})$ is $S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$. Since both $\mathcal{G}(\tilde{\mathbf{x}})$ and $\mathcal{G}(\tilde{\mathbf{x}}_{\mathrm{old}})$ are invertible by \Cref{th:block_kriging}, so is $S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$ \cite{bib:Schur-complement}, and $S_B^{-1}$ tends to its inverse. Passing to the limit in the identities obtained under $k_B$ finally gives the result.
+and its Schur complement with respect to $\bar{\mathbf{G}}(\tilde{\mathbf{x}}_{\mathrm{old}})$ is $\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$. Since both $\bar{\mathbf{G}}(\tilde{\mathbf{x}})$ and $\bar{\mathbf{G}}(\tilde{\mathbf{x}}_{\mathrm{old}})$ are invertible by \Cref{th:block_kriging}, so is $\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$ \cite{bib:Schur-complement}, and $\mathbf{S}_{\mathbf{B}}^{-1}$ tends to its inverse. Passing to the limit in the identities obtained under $\kappa_{\mathbf{B}}$ finally gives the result.

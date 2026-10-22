@@ -18,11 +18,11 @@ In our case, however, we focus on local sensors, such as magnetometers or gravim
 Similarly to \cref{sec:kriging_navigation}, additional assumptions on the environment must be made in order to make the problem tractable. In this chapter, we assume the field to be stationary, such that it can be fully represented by the same GP on the whole of $\mathbb{R}^{d_x}$ and across time. This is formally modelled by \cref{th:SLAM_assumptions}.
 
 \begin{assumption}[Stationary observation model]\label{th:SLAM_assumptions}
-	The observation function is a time-invariant scalar GP, and its noise is an additive Gaussian white noise of variance $R_k>0$:
+	The observation function is a time-invariant scalar GP, and its noise is an additive Gaussian white noise of variance $\mathbf{R}_k>0$:
 	\begin{equation}
-		z_k=h(x_k)+n_k,\qquad n_k\sim\mathcal{N}(0,R_k)
+		z_k=h(x_k)+\varepsilon_k,\qquad \varepsilon_k\sim\mathcal{N}(0,\mathbf{R}_k)
 	\end{equation}
-	where the mean of the GP is known, and thus assumed to be zero without loss of generality, and its covariance kernel is a Matérn kernel $k_\nu$ with known hyperparameters, in the sense of \Cref{th:Matérn}.
+	where the mean of the GP is known, and thus assumed to be zero without loss of generality, and its covariance kernel is a Matérn kernel $\kappa_\nu$ with known hyperparameters, in the sense of \Cref{th:Matérn}.
 
 	Unlike \cref{th:kriging_navigation_assumptions}, no training data are available.
 \end{assumption}
@@ -44,57 +44,57 @@ In its original form, this method is applied to the three components of the magn
 
 \subsection{Reduced-Rank Field Representation}
 
-According to \Cref{th:KL}, a GP defined on a compact set can be decomposed over the eigenfunctions of its Mercer operator. Truncating this decomposition at rank $r_{\mathrm{KL}}\in\mathbb{N}^*$ gives the finite-dimensional parametrisation of \Cref{th:KL_parametrisation}, in which the field is described by $r_{\mathrm{KL}}$ coefficients. Formally, we assume that the state of the vehicle remains within a bounded domain:
+According to \Cref{th:KL}, a GP defined on a compact set can be decomposed over the eigenfunctions of its Mercer operator. Truncating this decomposition at rank $r_{\mathrm{KL}}\in\mathbb{N}^*$ gives the finite-dimensional parametrisation of \Cref{th:KL_parametrisation}, in which the field is described by $r_{\mathrm{KL}}$ coefficients. Since the observed field only depends on the position of the vehicle, its representation is defined on the position subspace, of dimension $d_{\mathrm{pos}}$. When a state $x$ is given as argument of $h$ or of the basis functions, it thus stands for its position $\boldsymbol{\Pi}_{\mathrm{pos}}\:x$. Formally, we assume that the position of the vehicle remains within a bounded domain:
 \begin{equation}
-	\mathcal{U}\triangleq\prod_{d=1}^{d_x}[a_d,b_d]
+	\Omega\triangleq\prod_{d=1}^{d_{\mathrm{pos}}}[a_d,b_d]
 \end{equation}
 and we let $L_d\triangleq b_d-a_d$ denote its length along the $d$-th axis.
 
-However, as noted in \Cref{th:eigenpairs}, the eigenpairs of the Mercer operator are not available in closed form in general. For a radial kernel, they can be approximated using the eigenfunctions of the Laplace operator on $\mathcal{U}$ with Dirichlet boundary conditions, which are known explicitly \cite{bib:reduced-rank}. Let $\omega_1,\dots,\omega_{r_{\mathrm{KL}}}\in\mathbb{R}^{d_x}$ denote the $r_{\mathrm{KL}}$ vectors of smallest norm among the frequencies:
+However, as noted in \Cref{th:eigenpairs}, the eigenpairs of the Mercer operator are not available in closed form in general. For a radial kernel, they can be approximated using the eigenfunctions of the Laplace operator on $\Omega$ with Dirichlet boundary conditions, which are known explicitly \cite{bib:reduced-rank}. Let $\omega_1,\dots,\omega_{r_{\mathrm{KL}}}\in\mathbb{R}^{d_{\mathrm{pos}}}$ denote the $r_{\mathrm{KL}}$ vectors of smallest norm among the frequencies:
 \begin{equation}
 	\pi\begin{bmatrix}
-	\dfrac{n_1}{L_1}&\cdots&\dfrac{n_{d_x}}{L_{d_x}}
-	\end{bmatrix}^\top,\qquad n_1,\dots,n_{d_x}\in\mathbb{N}^*
+	\dfrac{n_1}{L_1}&\cdots&\dfrac{n_{d_{\mathrm{pos}}}}{L_{d_{\mathrm{pos}}}}
+	\end{bmatrix}^\top,\qquad n_1,\dots,n_{d_{\mathrm{pos}}}\in\mathbb{N}^*
 \end{equation}
 
 The eigenpairs of the Mercer operator are then approximated by:
 \begin{equation}
 	\left\{\begin{aligned}
-	\psi_j&:x\in\mathcal{U}\mapsto\prod_{d=1}^{d_x}\sqrt{\frac{2}{L_d}}\:\sin\left(\omega_j^{(d)}\left(x^{(d)}-a_d\right)\right)\\
+	\psi_j&:x\in\Omega\mapsto\prod_{d=1}^{d_{\mathrm{pos}}}\sqrt{\frac{2}{L_d}}\:\sin\left(\omega_j^{(d)}\left(x^{(d)}-a_d\right)\right)\\
 	\lambda_j&=S_\nu(\omega_j)
 	\end{aligned}\right.\label{eq:Laplace_basis}
 \end{equation}
-where $\omega_j^{(d)}$ and $x^{(d)}$ denote the $d$-th components of $\omega_j$ and $x$, and $S_\nu$ is the Fourier transform of $k_\nu$ given in \cref{sec:proof_Matérn}, also known as its spectral density.
+where $\omega_j^{(d)}$ and $x^{(d)}$ denote the $d$-th components of $\omega_j$ and $x$, and $S_\nu$ is the Fourier transform of $\kappa_\nu$ given in \cref{sec:proof_Matérn}, also known as its spectral density.
 
-Let $\Psi$ and $\Lambda$ be defined as in \cref{sec:efficient_kriging} from these approximated eigenpairs. Under \cref{th:SLAM_assumptions}, \Cref{th:KL_parametrisation} then gives:
+Let $\boldsymbol{\Psi}$ and $\boldsymbol{\Lambda}$ be defined as in \cref{sec:efficient_kriging} from these approximated eigenpairs. Under \cref{th:SLAM_assumptions}, \Cref{th:KL_parametrisation} then gives:
 \begin{equation}
-	\forall x\in\mathcal{U},\:h(x)\approx\Psi(x)\:\alpha,\qquad\alpha\sim\mathcal{N}(0,\Lambda)\label{eq:SLAM_map}
+	\forall x\in\Omega,\:h(x)\approx\boldsymbol{\Psi}(x)\:\boldsymbol{\gamma},\qquad\boldsymbol{\gamma}\sim\mathcal{N}(0,\boldsymbol{\Lambda})\label{eq:SLAM_map}
 \end{equation}
 
-Furthermore, the basis functions only depend on the domain, and can thus be computed before the mission.
+Since $S_\nu$ is only given up to the constant $C$ in \cref{sec:proof_Matérn}, the eigenvalues are normalised such that the variance $\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top$ of the approximated field equals $\sigma_h^2$ at the centre of $\Omega$, where the boundary conditions have the least influence. Furthermore, the basis functions only depend on the domain, and can thus be computed before the mission.
 
 \begin{remark}[Choice of the domain]
-	The basis functions of \eqref{eq:Laplace_basis} are equal to zero on the boundary of $\mathcal{U}$, and so is the field reconstructed from \eqref{eq:SLAM_map}. The domain must therefore be chosen larger than the region covered by the vehicle. However, the frequencies are spaced by $\pi/L_d$ along the $d$-th axis. The rank $r_{\mathrm{KL}}$ required to reach a given frequency thus increases with the size of the domain, which is why the original method divides it into tiles.
+	The basis functions of \eqref{eq:Laplace_basis} are equal to zero on the boundary of $\Omega$, and so is the field reconstructed from \eqref{eq:SLAM_map}. The domain must therefore be chosen larger than the region covered by the vehicle. However, the frequencies are spaced by $\pi/L_d$ along the $d$-th axis. The rank $r_{\mathrm{KL}}$ required to reach a given frequency thus increases with the size of the domain, which is why the original method divides it into tiles.
 \end{remark}
 
 \subsection{Rao-Blackwellised Estimation}
 
 Under \cref{th:SLAM_assumptions} and the approximation \eqref{eq:SLAM_map}, the observation equation becomes:
 \begin{equation}
-	z_k=\Psi(x_k)\:\alpha+n_k
+	z_k=\boldsymbol{\Psi}(x_k)\:\boldsymbol{\gamma}+\varepsilon_k
 \end{equation}
 and is thus linear in the coefficients for a given state. Assuming that the evolution noise is additive and Gaussian, the navigation problem \eqref{eq:navigation_problem} is then the system \eqref{eq:RBPF_model} with:
 \begin{equation}
 	\left\{\begin{array}{llll}
-	x_k^n=x_k&F_k^n=0&f_k^n=f_k&Q_k^n=Q_k\\
-	x_k^l=\alpha&F_k^l=I_{r_{\mathrm{KL}}}&f_k^l=0&Q_k^l=0\\
-	H_k=\Psi&h_k=0&Q_k^{nl}=0&
+	x_k^n=x_k&\mathbf{F}_k^n=0&f_k^n=f_k&\mathbf{Q}_k^n=\mathbf{Q}_k\\
+	x_k^l=\boldsymbol{\gamma}&\mathbf{F}_k^l=\mathbf{I}_{r_{\mathrm{KL}}}&f_k^l=0&\mathbf{Q}_k^l=0\\
+	\mathbf{H}_k=\boldsymbol{\Psi}\circ\boldsymbol{\Pi}_{\mathrm{pos}}&h_k=0&\mathbf{Q}_k^{nl}=0&
 	\end{array}\right.
 \end{equation}
 
-Since $F_k^n=0$, the propagation of the state does not depend on the coefficients, and the Kalman pre-correction \eqref{eq:RBPF_precorrection_debut} through \eqref{eq:RBPF_precorrection_fin} is omitted. Moreover, since the field does not vary over time, the coefficients are constant, and the Kalman prediction \eqref{eq:RBPF_prediction_debut} through \eqref{eq:RBPF_prediction_fin} leaves their estimate and its covariance unchanged. For the sake of clarity, we thus write $\hat{\alpha}_k^{(i)}$ and $P_k^{\alpha(i)}$ for the estimate $\hat{x}_{k|k}^{l(i)}$ of the coefficients associated with the $i$-th particle and for its covariance $P_{k|k}^{l(i)}$. They are initialised with the prior distribution of \eqref{eq:SLAM_map}:
+Since $\mathbf{F}_k^n=0$, the propagation of the state does not depend on the coefficients, and the Kalman pre-correction \eqref{eq:RBPF_precorrection_debut} through \eqref{eq:RBPF_precorrection_fin} is omitted. Moreover, since the field does not vary over time, the coefficients are constant, and the Kalman prediction \eqref{eq:RBPF_prediction_debut} through \eqref{eq:RBPF_prediction_fin} leaves their estimate and its covariance unchanged. For the sake of clarity, we thus write $\hat{\boldsymbol{\gamma}}_k^{(i)}$ and $\mathbf{P}_k^{\gamma(i)}$ for the estimate $\hat{x}_{k|k}^{l(i)}$ of the coefficients associated with the $i$-th particle and for its covariance $\mathbf{P}_{k|k}^{l(i)}$. They are initialised with the prior distribution of \eqref{eq:SLAM_map}:
 \begin{equation}
-	\hat{\alpha}_0^{(i)}=0\quad\text{and}\quad P_0^{\alpha(i)}=\Lambda
+	\hat{\boldsymbol{\gamma}}_0^{(i)}=0\quad\text{and}\quad \mathbf{P}_0^{\gamma(i)}=\boldsymbol{\Lambda}
 \end{equation}
 
 Using the transition density as proposal, as described in \eqref{eq:prior_proposal}, each iteration of the RBPF is then computed in three steps:
@@ -103,50 +103,60 @@ Using the transition density as proposal, as described in \eqref{eq:prior_propos
 	\begin{equation}
 		x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{(i)}\right)
 	\end{equation}
-	\item\textbf{Weight update.} Let $\Psi_k^{(i)}\triangleq\Psi\left(x_k^{(i)}\right)$. The innovation and its covariance are:
+	\item\textbf{Weight update.} Let $\boldsymbol{\Psi}_k^{(i)}\triangleq\boldsymbol{\Psi}\left(x_k^{(i)}\right)$. The innovation and its covariance are:
 	\begin{equation}
 		\left\{\begin{aligned}
-		y_k^{(i)}&=z_k-\Psi_k^{(i)}\:\hat{\alpha}_{k-1}^{(i)}\\
-		S_k^{(i)}&=\Psi_k^{(i)}\:P_{k-1}^{\alpha(i)}\left(\Psi_k^{(i)}\right)^\top+R_k
+		y_k^{(i)}&=z_k-\boldsymbol{\Psi}_k^{(i)}\:\hat{\boldsymbol{\gamma}}_{k-1}^{(i)}\\
+		\mathbf{S}_k^{(i)}&=\boldsymbol{\Psi}_k^{(i)}\:\mathbf{P}_{k-1}^{\gamma(i)}\left(\boldsymbol{\Psi}_k^{(i)}\right)^\top+\mathbf{R}_k+\max\left(\sigma_h^2-\boldsymbol{\Psi}_k^{(i)}\:\boldsymbol{\Lambda}\left(\boldsymbol{\Psi}_k^{(i)}\right)^\top,0\right)
 		\end{aligned}\right.\label{eq:SLAM_innovation}
 	\end{equation}
 	and the weights are updated as in \eqref{eq:weight_update_prior}, with the likelihood:
 	\begin{equation}
-		z_k|\mathbf{x}_{0:k}^{(i)},\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\Psi_k^{(i)}\:\hat{\alpha}_{k-1}^{(i)},S_k^{(i)}\right)\label{eq:SLAM_likelihood}
+		z_k|\mathbf{x}_{0:k}^{(i)},\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\boldsymbol{\Psi}_k^{(i)}\:\hat{\boldsymbol{\gamma}}_{k-1}^{(i)},\mathbf{S}_k^{(i)}\right)
 	\end{equation}
 
-	Similarly to \eqref{eq:kriged_likelihood}, its covariance accounts for both the uncertainty of the estimated field and the observation noise.
+	Similarly to \eqref{eq:kriged_likelihood}, its covariance accounts for both the uncertainty of the estimated field and the observation noise. The last term of $\mathbf{S}_k^{(i)}$, which is not part of the original method, is the part of the prior variance $\sigma_h^2$ that the truncated basis does not represent. Since it cannot be learnt, it is treated as an additional observation noise.
 	\item\textbf{Kalman correction.} The coefficients associated with each particle are corrected as:
 	\begin{equation}
 		\left\{\begin{aligned}
-		K_k^{\alpha(i)}&=P_{k-1}^{\alpha(i)}\left(\Psi_k^{(i)}\right)^\top\left(S_k^{(i)}\right)^{-1}\\
-		\hat{\alpha}_k^{(i)}&=\hat{\alpha}_{k-1}^{(i)}+K_k^{\alpha(i)}\:y_k^{(i)}\\
-		P_k^{\alpha(i)}&=\left(I_{r_{\mathrm{KL}}}-K_k^{\alpha(i)}\:\Psi_k^{(i)}\right)P_{k-1}^{\alpha(i)}
-		\end{aligned}\right.\label{eq:SLAM_correction}
+		\mathbf{K}_k^{\gamma(i)}&=\mathbf{P}_{k-1}^{\gamma(i)}\left(\boldsymbol{\Psi}_k^{(i)}\right)^\top\left(\mathbf{S}_k^{(i)}\right)^{-1}\\
+		\hat{\boldsymbol{\gamma}}_k^{(i)}&=\hat{\boldsymbol{\gamma}}_{k-1}^{(i)}+\mathbf{K}_k^{\gamma(i)}\:y_k^{(i)}\\
+		\mathbf{P}_k^{\gamma(i)}&=\left(\mathbf{I}_{r_{\mathrm{KL}}}-\mathbf{K}_k^{\gamma(i)}\:\boldsymbol{\Psi}_k^{(i)}\right)\mathbf{P}_{k-1}^{\gamma(i)}
+		\end{aligned}\right.
 	\end{equation}
 \end{itemize}
 
 The state and the coefficients are then estimated as in \cref{sec:particle_filtering}, by the weighted means:
 \begin{equation}
-	\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}\quad\text{and}\quad\hat{\alpha}_k=\sum_{i=1}^Nw_k^{(i)}\:\hat{\alpha}_k^{(i)}
+	\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}\quad\text{and}\quad\hat{\boldsymbol{\gamma}}_k=\sum_{i=1}^Nw_k^{(i)}\:\hat{\boldsymbol{\gamma}}_k^{(i)}
 \end{equation}
-and the field is reconstructed as $x\mapsto\Psi(x)\:\hat{\alpha}_k$.
+and the field is reconstructed as $x\mapsto\boldsymbol{\Psi}(x)\:\hat{\boldsymbol{\gamma}}_k$.
 
-As for the generic PF, the particles are only resampled when the effective sample size falls below $N_{\mathrm{th}}$. In this case, the coefficients and their covariance are duplicated along with their particle before the Kalman correction. The resulting algorithm, referred to as RBPF-SLAM, is given by \Cref{alg:SLAM_RBPF}, where $i^{(j)}$ denotes the parent index of the $j$-th resampled particle.
+As for the RPF of \Cref{alg:RPF}, the particles are only resampled when the effective sample size falls below $N_{\mathrm{th}}$, and then regularised. In this case, the coefficients and their covariance are duplicated along with their particle, and the innovation is computed again at the regularised particles before the Kalman correction. It must be noted that the regularisation is not part of the original method. Since it only moves the states, each set of coefficients, which is conditioned on the trajectory of its parent, is thus corrected at a perturbed position, which is an approximation. The resulting algorithm, referred to as RBPF-SLAM, is given by \Cref{alg:SLAM_RBPF}, where $i^{(j)}$ denotes the parent index of the $j$-th resampled particle.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
 	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{(i)}\right)$}\Comment{Particle propagation}
-	\State{$\forall i\in[\![1,N]\!],\:$compute $y_k^{(i)}$ and $S_k^{(i)}$ with \eqref{eq:SLAM_innovation}}\Comment{\textbf{Innovation}}
-	\State{$\forall i\in[\![1,N]\!],\:$compute $\tilde{p}\left(z_k|x_k^{(i)}\right)$ from \eqref{eq:SLAM_likelihood}}
+	\State{$\forall i\in[\![1,N]\!],\:\boldsymbol{\Psi}_k^{(i)}=\boldsymbol{\Psi}\left(x_k^{(i)}\right)$}\Comment{\textbf{Innovation}}
+	\State{$\forall i\in[\![1,N]\!],\:y_k^{(i)}=z_k-\boldsymbol{\Psi}_k^{(i)}\:\hat{\boldsymbol{\gamma}}_{k-1}^{(i)}$}
+	\State{$\forall i\in[\![1,N]\!],\:\mathbf{S}_k^{(i)}=\boldsymbol{\Psi}_k^{(i)}\:\mathbf{P}_{k-1}^{\gamma(i)}\left(\boldsymbol{\Psi}_k^{(i)}\right)^\top+\mathbf{R}_k+\max\left(\sigma_h^2-\boldsymbol{\Psi}_k^{(i)}\:\boldsymbol{\Lambda}\left(\boldsymbol{\Psi}_k^{(i)}\right)^\top,0\right)$}
+	\State{$\forall i\in[\![1,N]\!],\:z_k|\mathbf{x}_{0:k}^{(i)},\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\boldsymbol{\Psi}_k^{(i)}\:\hat{\boldsymbol{\gamma}}_{k-1}^{(i)},\mathbf{S}_k^{(i)}\right)$}
 	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\tilde{p}\left(z_k|x_k^{(i)}\right)$}\Comment{Weight update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
 	\State{$\displaystyle\hat{N}_{\mathrm{eff}}=\left.1\middle/\sum_{i=1}^N\left(w_k^{(i)}\right)^2\right.$}\Comment{Resampling criterion}
 	\If{$\hat{N}_{\mathrm{eff}}<N_{\mathrm{th}}$}
+	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}x_k^{(i)}$}\Comment{Whitening}
+	\State{$\displaystyle\hat{\mathbf{P}}_k=\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top$}
+	\State{$\mathbf{A}_k\text{ s.t. }\hat{\mathbf{P}}_k=\mathbf{A}_k\:\mathbf{A}_k^\top$}
 	\State{$\left\{x_k^{(j)},w_k^{(j)},i^{(j)}\right\}_{j=1}^N\gets\operatorname{Resampling}\left(\left\{x_k^{(i)},w_k^{(i)}\right\}_{i=1}^N\right)$}\Comment{Resampling}
-	\State{$\forall j\in[\![1,N]\!],\:\left(\hat{\alpha}_{k-1}^{(j)},P_{k-1}^{\alpha(j)}\right)\gets\left(\hat{\alpha}_{k-1}^{\left(i^{(j)}\right)},P_{k-1}^{\alpha\left(i^{(j)}\right)}\right)$}\Comment{\textbf{Map duplication}}
+	\State{$\forall j\in[\![1,N]\!],\:\left(\hat{\boldsymbol{\gamma}}_{k-1}^{(j)},\mathbf{P}_{k-1}^{\gamma(j)}\right)\gets\left(\hat{\boldsymbol{\gamma}}_{k-1}^{\left(i^{(j)}\right)},\mathbf{P}_{k-1}^{\gamma\left(i^{(j)}\right)}\right)$}\Comment{\textbf{Map duplication}}
+	\State{$\forall j\in[\![1,N]\!],\:\varepsilon^{(j)}\sim K$}\Comment{Regularisation}
+	\State{$\forall j\in[\![1,N]\!],\:x_k^{(j)}\gets x_k^{(j)}+\alpha_{\mathrm{RPF}}\ell \mathbf{A}_k\:\varepsilon^{(j)}$}
+	\State{$\forall j\in[\![1,N]\!],\:$recompute $\boldsymbol{\Psi}_k^{(j)}$, $y_k^{(j)}$ and $\mathbf{S}_k^{(j)}$}\Comment{\textbf{Innovation}}
 	\EndIf
-	\State{$\forall i\in[\![1,N]\!],\:$compute $\hat{\alpha}_k^{(i)}$ and $P_k^{\alpha(i)}$ with \eqref{eq:SLAM_correction}}\Comment{\textbf{Kalman correction}}
+	\State{$\forall i\in[\![1,N]\!],\:\mathbf{K}_k^{\gamma(i)}=\mathbf{P}_{k-1}^{\gamma(i)}\left(\boldsymbol{\Psi}_k^{(i)}\right)^\top\left(\mathbf{S}_k^{(i)}\right)^{-1}$}\Comment{\textbf{Kalman correction}}
+	\State{$\forall i\in[\![1,N]\!],\:\hat{\boldsymbol{\gamma}}_k^{(i)}=\hat{\boldsymbol{\gamma}}_{k-1}^{(i)}+\mathbf{K}_k^{\gamma(i)}\:y_k^{(i)}$}
+	\State{$\forall i\in[\![1,N]\!],\:\mathbf{P}_k^{\gamma(i)}=\left(\mathbf{I}_{r_{\mathrm{KL}}}-\mathbf{K}_k^{\gamma(i)}\:\boldsymbol{\Psi}_k^{(i)}\right)\mathbf{P}_{k-1}^{\gamma(i)}$}
 	\end{algorithmic}\caption{Rao-Blackwellised SLAM}\label{alg:SLAM_RBPF}
 \end{algorithm}
 
@@ -162,16 +172,18 @@ The AKKF never evaluates the likelihood, and only requires samples of $p(z_k|x_k
 
 \subsection{Random Fourier Features}
 
-Let $\mathcal{H}_{k_\nu}$ be the native RKHS of the kernel $k_\nu$. According to \Cref{th:RKHS_regularisation}, the regularised least-squares estimate of $h$ in $\mathcal{H}_{k_\nu}$ is a linear combination of the features of its training points. As for kriging, its number of coefficients is thus equal to the number of training points, which increases at each time step when the observations are collected along the trajectory. To obtain a fixed number of coefficients, the kernel is approximated by a finite number of known functions instead.
+Let $\mathcal{H}_{\kappa_\nu}$ be the native RKHS of the kernel $\kappa_\nu$. According to \Cref{th:RKHS_regularisation}, the regularised least-squares estimate of $h$ in $\mathcal{H}_{\kappa_\nu}$ is a linear combination of the features of its training points. As for kriging, its number of coefficients is thus equal to the number of training points, which increases at each time step when the observations are collected along the trajectory. To obtain a fixed number of coefficients, the kernel is approximated by a finite number of known functions instead.
 
-Let $p_\nu$ be the probability density obtained by normalising the spectral density of $k_\nu$:
+Let $p_\nu$ be the probability density obtained by normalising the spectral density of $\kappa_\nu$:
 \begin{equation}
-	p_\nu:\omega\in\mathbb{R}^{d_x}\mapsto\left.S_\nu(\omega)\middle/\int_{\mathbb{R}^{d_x}}{S_\nu(\omega')\:d\omega'}\right.
+	p_\nu:\omega\in\mathbb{R}^{d_{\mathrm{pos}}}\mapsto\left.S_\nu(\omega)\middle/\int_{\mathbb{R}^{d_{\mathrm{pos}}}}{S_\nu(\omega')\:d\omega'}\right.
 \end{equation}
 
-According to Bochner's theorem, already used in \cref{sec:proof_Matérn}, a continuous SPD radial kernel is the Fourier transform of a positive measure. For $k_\nu$, the density of this measure is proportional to $S_\nu$, and thus to $p_\nu$. Since $k_\nu$ is real-valued and $k_\nu(x,x)=\sigma_f^2$, this gives:
+In particular, $p_\nu$ is the density of a centred multivariate Student distribution with $2\nu$ degrees of freedom and scale matrix $\ell^{-2}\mathbf{I}_{d_{\mathrm{pos}}}$, which becomes Gaussian when $\nu=+\infty$.
+
+According to Bochner's theorem, already used in \cref{sec:proof_Matérn}, a continuous stationary kernel is SPSD if and only if it is the Fourier transform of a finite positive measure. For $\kappa_\nu$, the density of this measure is proportional to $S_\nu$, and thus to $p_\nu$. Since $\kappa_\nu$ is real-valued and $\kappa_\nu(x,x)=\sigma_h^2$, this gives:
 \begin{equation}
-	\forall x,x'\in\mathbb{R}^{d_x},\:k_\nu(x,x')=\sigma_f^2\int_{\mathbb{R}^{d_x}}{\cos\left(\omega^\top(x-x')\right)p_\nu(\omega)\:d\omega}
+	\forall x,x'\in\mathbb{R}^{d_{\mathrm{pos}}},\:\kappa_\nu(x,x')=\sigma_h^2\int_{\mathbb{R}^{d_{\mathrm{pos}}}}{\cos\left(\omega^\top(x-x')\right)p_\nu(\omega)\:d\omega}
 \end{equation}
 
 Let $\omega$ be a random variable of probability density $p_\nu$, and $b\sim\mathcal{U}([0,2\pi])$ be independent of $\omega$. We have:
@@ -184,100 +196,100 @@ Let $\omega$ be a random variable of probability density $p_\nu$, and $b\sim\mat
 \end{equation}
 since the expectation of the second term with respect to $b$ is zero. The kernel can thus be written as an expectation:
 \begin{equation}
-	k_\nu(x,x')=\sigma_f^2\:\mathbb{E}\left[2\cos\left(\omega^\top x+b\right)\cos\left(\omega^\top x'+b\right)\right]
+	\kappa_\nu(x,x')=\sigma_h^2\:\mathbb{E}\left[2\cos\left(\omega^\top x+b\right)\cos\left(\omega^\top x'+b\right)\right]
 \end{equation}
 
-Similarly to \Cref{th:MC_estimator}, this expectation can be approximated by a Monte Carlo estimator. Let $r_{\mathrm{RFF}}\in\mathbb{N}^*$, and let $(\omega_j,b_j)_{j\in[\![1,r_{\mathrm{RFF}}]\!]}$ be i.i.d. draws of $(\omega,b)$. In this section, $\psi_j$ and $\Psi$ denote the corresponding features:
+Similarly to \Cref{th:MC_estimator}, this expectation can be approximated by a Monte Carlo estimator. Let $r_{\mathrm{RFF}}\in\mathbb{N}^*$, and let $(\omega_j,b_j)_{j\in[\![1,r_{\mathrm{RFF}}]\!]}$ be i.i.d. draws of $(\omega,b)$. In this section, $\psi_j$ and $\boldsymbol{\Psi}$ denote the corresponding features:
 \begin{equation}
-	\psi_j:x\in\mathbb{R}^{d_x}\mapsto\sqrt{\frac{2}{r_{\mathrm{RFF}}}}\:\cos\left(\omega_j^\top x+b_j\right)
+	\psi_j:x\in\mathbb{R}^{d_{\mathrm{pos}}}\mapsto\sqrt{\frac{2}{r_{\mathrm{RFF}}}}\:\cos\left(\omega_j^\top x+b_j\right)
 \end{equation}
 and:
 \begin{equation}
-	\Psi(x)\triangleq\begin{bmatrix}
+	\boldsymbol{\Psi}(x)\triangleq\begin{bmatrix}
 	\psi_1(x)&\cdots&\psi_{r_{\mathrm{RFF}}}(x)
 	\end{bmatrix}
 \end{equation}
 
 The kernel is then approximated by:
 \begin{equation}
-	k_\nu(x,x')\approx\sigma_f^2\:\Psi(x)\:\Psi(x')^\top
+	\kappa_\nu(x,x')\approx\sigma_h^2\:\boldsymbol{\Psi}(x)\:\boldsymbol{\Psi}(x')^\top
 \end{equation}
 
 Every function of the native RKHS of this approximated kernel is a linear combination of $\psi_1,\dots,\psi_{r_{\mathrm{RFF}}}$. The observation function is thus estimated as:
 \begin{equation}
-	\forall x\in\mathbb{R}^{d_x},\:h(x)\approx\Psi(x)\:\alpha\label{eq:RFF_map}
+	\forall x\in\mathbb{R}^{d_{\mathrm{pos}}},\:h(x)\approx\boldsymbol{\Psi}(x)\:\boldsymbol{\gamma}\label{eq:RFF_map}
 \end{equation}
-with $\alpha\in\mathbb{R}^{r_{\mathrm{RFF}}}$. This representation has the same form as \eqref{eq:SLAM_map}. However, its basis functions are defined on the whole of $\mathbb{R}^{d_x}$, and do not depend on any domain.
+with $\boldsymbol{\gamma}\in\mathbb{R}^{r_{\mathrm{RFF}}}$. This representation has the same form as \eqref{eq:SLAM_map}. However, its basis functions are defined on the whole of $\mathbb{R}^{d_{\mathrm{pos}}}$, and do not depend on any domain.
 
 \subsection{Recursive Least Squares}
 
-The coefficients of \eqref{eq:RFF_map} are estimated from the observations collected by the vehicle. Since the true states are unknown, each observation $z_l$ is associated with the state estimate $\hat{x}_l$ of the filter at time $l$. Formally, the estimate $\hat{\alpha}_k$ of the coefficients at time $k$ is defined as the minimiser of the regularised least-squares criterion:
+The coefficients of \eqref{eq:RFF_map} are estimated from the observations collected by the vehicle. Since the true states are unknown, each observation $z_l$ is associated with the state estimate $\hat{x}_l$ of the filter at time $l$. Formally, the estimate $\hat{\boldsymbol{\gamma}}_k$ of the coefficients at time $k$ is defined as the minimiser of the regularised least-squares criterion:
 \begin{equation}
-	J_k:\alpha\in\mathbb{R}^{r_{\mathrm{RFF}}}\mapsto\sum_{l=1}^k\beta^{k-l}\left(z_l-\Psi\left(\hat{x}_l\right)\alpha\right)^2+\beta^k\lambda_{\mathrm{RLS}}\|\alpha\|_2^2\label{eq:RLS_criterion}
+	J_k:\boldsymbol{\gamma}\in\mathbb{R}^{r_{\mathrm{RFF}}}\mapsto\sum_{l=1}^k\beta_{\mathrm{RLS}}^{k-l}\left(z_l-\boldsymbol{\Psi}\left(\hat{x}_l\right)\boldsymbol{\gamma}\right)^2+\beta_{\mathrm{RLS}}^k\alpha_{\mathrm{RLS}}\|\boldsymbol{\gamma}\|_2^2\label{eq:RLS_criterion}
 \end{equation}
-where $\lambda_{\mathrm{RLS}}\in\mathbb{R}_+^*$ is a regularisation coefficient, and $\beta\in(0,1]$ is a forgetting factor, which reduces the influence of the oldest observations when $\beta<1$.
+where $\alpha_{\mathrm{RLS}}\in\mathbb{R}_+^*$ is a regularisation coefficient, and $\beta_{\mathrm{RLS}}\in(0,1]$ is a forgetting factor, which reduces the influence of the oldest observations when $\beta_{\mathrm{RLS}}<1$.
 
-Minimising \eqref{eq:RLS_criterion} at each time step would require storing every pair $\left(\hat{x}_l,z_l\right)$. \Cref{th:RLS} shows that $\hat{\alpha}_k$ can instead be computed from $\hat{\alpha}_{k-1}$ and the last pair alone, which is known as the RLS algorithm.
+Minimising \eqref{eq:RLS_criterion} at each time step would require storing every pair $\left(\hat{x}_l,z_l\right)$. \Cref{th:RLS} shows that $\hat{\boldsymbol{\gamma}}_k$ can instead be computed from $\hat{\boldsymbol{\gamma}}_{k-1}$ and the last pair alone, which is known as the RLS algorithm.
 
 \begin{proposition}[Recursive least squares]\label{th:RLS}
-	Let $k\in\mathbb{N}^*$. The criterion \eqref{eq:RLS_criterion} admits a unique minimiser $\hat{\alpha}_k$, which verifies:
+	Let $k\in\mathbb{N}^*$. The criterion \eqref{eq:RLS_criterion} admits a unique minimiser $\hat{\boldsymbol{\gamma}}_k$, which verifies:
 	\begin{equation}
 		\left\{\begin{aligned}
-		K_k^\alpha&=P_{k-1}^\alpha\:\Psi\left(\hat{x}_k\right)^\top\left(\beta+\Psi\left(\hat{x}_k\right)P_{k-1}^\alpha\:\Psi\left(\hat{x}_k\right)^\top\right)^{-1}\\
-		\hat{\alpha}_k&=\hat{\alpha}_{k-1}+K_k^\alpha\left(z_k-\Psi\left(\hat{x}_k\right)\hat{\alpha}_{k-1}\right)\\
-		P_k^\alpha&=\frac{1}{\beta}\left(I_{r_{\mathrm{RFF}}}-K_k^\alpha\:\Psi\left(\hat{x}_k\right)\right)P_{k-1}^\alpha
+		\mathbf{K}_k^\gamma&=\mathbf{P}_{k-1}^\gamma\:\boldsymbol{\Psi}\left(\hat{x}_k\right)^\top\left(\beta_{\mathrm{RLS}}+\boldsymbol{\Psi}\left(\hat{x}_k\right)\mathbf{P}_{k-1}^\gamma\:\boldsymbol{\Psi}\left(\hat{x}_k\right)^\top\right)^{-1}\\
+		\hat{\boldsymbol{\gamma}}_k&=\hat{\boldsymbol{\gamma}}_{k-1}+\mathbf{K}_k^\gamma\left(z_k-\boldsymbol{\Psi}\left(\hat{x}_k\right)\hat{\boldsymbol{\gamma}}_{k-1}\right)\\
+		\mathbf{P}_k^\gamma&=\frac{1}{\beta_{\mathrm{RLS}}}\left(\mathbf{I}_{r_{\mathrm{RFF}}}-\mathbf{K}_k^\gamma\:\boldsymbol{\Psi}\left(\hat{x}_k\right)\right)\mathbf{P}_{k-1}^\gamma
 		\end{aligned}\right.\label{eq:RLS}
 	\end{equation}
 	with:
 	\begin{equation}
-		\hat{\alpha}_0=0\quad\text{and}\quad P_0^\alpha=\frac{1}{\lambda_{\mathrm{RLS}}}I_{r_{\mathrm{RFF}}}
+		\hat{\boldsymbol{\gamma}}_0=0\quad\text{and}\quad \mathbf{P}_0^\gamma=\frac{1}{\alpha_{\mathrm{RLS}}}\mathbf{I}_{r_{\mathrm{RFF}}}
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	Writing $\Psi_l$ for $\Psi\left(\hat{x}_l\right)$, we let:
+	Writing $\boldsymbol{\Psi}_l$ for $\boldsymbol{\Psi}\left(\hat{x}_l\right)$, we let:
 	\begin{equation}
-		P_k^\alpha\triangleq\left(\sum_{l=1}^k\beta^{k-l}\:\Psi_l^\top\Psi_l+\beta^k\lambda_{\mathrm{RLS}}I_{r_{\mathrm{RFF}}}\right)^{-1}
+		\mathbf{P}_k^\gamma\triangleq\left(\sum_{l=1}^k\beta_{\mathrm{RLS}}^{k-l}\:\boldsymbol{\Psi}_l^\top\boldsymbol{\Psi}_l+\beta_{\mathrm{RLS}}^k\alpha_{\mathrm{RLS}}\mathbf{I}_{r_{\mathrm{RFF}}}\right)^{-1}
 	\end{equation}
-	which is well defined as the inverse of the sum of an SPSD and an SPD matrix. In particular, $P_0^\alpha$ is the matrix given above. Since the Hessian of $J_k$ is $2\left(P_k^\alpha\right)^{-1}\succ0$, this function is strictly convex. It is therefore minimised where its derivative vanishes:
+	which is well defined as the inverse of the sum of an SPSD and an SPD matrix. In particular, $\mathbf{P}_0^\gamma$ is the matrix given above. Since the Hessian of $J_k$ is $2\left(\mathbf{P}_k^\gamma\right)^{-1}\succ0$, this function is strictly convex. It is therefore minimised where its derivative vanishes:
 	\begin{equation}
 		\begin{aligned}
-		&\frac{\partial J_k}{\partial\alpha}=0\\
-		\iff\quad&\sum_{l=1}^k\beta^{k-l}\:\Psi_l^\top\left(\Psi_l\:\alpha-z_l\right)+\beta^k\lambda_{\mathrm{RLS}}\:\alpha=0\\
-		\iff\quad&\alpha=P_k^\alpha\sum_{l=1}^k\beta^{k-l}\:\Psi_l^\top z_l
+		&\frac{\partial J_k}{\partial\boldsymbol{\gamma}}=0\\
+		\iff\quad&\sum_{l=1}^k\beta_{\mathrm{RLS}}^{k-l}\:\boldsymbol{\Psi}_l^\top\left(\boldsymbol{\Psi}_l\:\boldsymbol{\gamma}-z_l\right)+\beta_{\mathrm{RLS}}^k\alpha_{\mathrm{RLS}}\:\boldsymbol{\gamma}=0\\
+		\iff\quad&\boldsymbol{\gamma}=\mathbf{P}_k^\gamma\sum_{l=1}^k\beta_{\mathrm{RLS}}^{k-l}\:\boldsymbol{\Psi}_l^\top z_l
 		\end{aligned}
 	\end{equation}
-	which gives the unique minimiser $\hat{\alpha}_k$. This expression also holds for $k=0$ with $\hat{\alpha}_0=0$.
+	which gives the unique minimiser $\hat{\boldsymbol{\gamma}}_k$. This expression also holds for $k=0$ with $\hat{\boldsymbol{\gamma}}_0=0$.
 
 	By definition, we have:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\left(P_k^\alpha\right)^{-1}&=\beta\left(P_{k-1}^\alpha\right)^{-1}+\Psi_k^\top\Psi_k\\
-		\left(P_k^\alpha\right)^{-1}\hat{\alpha}_k&=\beta\left(P_{k-1}^\alpha\right)^{-1}\hat{\alpha}_{k-1}+\Psi_k^\top z_k
+		\left(\mathbf{P}_k^\gamma\right)^{-1}&=\beta_{\mathrm{RLS}}\left(\mathbf{P}_{k-1}^\gamma\right)^{-1}+\boldsymbol{\Psi}_k^\top\boldsymbol{\Psi}_k\\
+		\left(\mathbf{P}_k^\gamma\right)^{-1}\hat{\boldsymbol{\gamma}}_k&=\beta_{\mathrm{RLS}}\left(\mathbf{P}_{k-1}^\gamma\right)^{-1}\hat{\boldsymbol{\gamma}}_{k-1}+\boldsymbol{\Psi}_k^\top z_k
 		\end{aligned}\right.
 	\end{equation}
 
 	The Woodbury inversion formula (see \Cref{th:Woodbury}) applied to the first equation gives:
 	\begin{equation}
 		\begin{aligned}
-		P_k^\alpha&=\frac{1}{\beta}\left(P_{k-1}^\alpha-P_{k-1}^\alpha\:\Psi_k^\top\left(\beta+\Psi_k\:P_{k-1}^\alpha\:\Psi_k^\top\right)^{-1}\Psi_k\:P_{k-1}^\alpha\right)\\
-		&=\frac{1}{\beta}\left(I_{r_{\mathrm{RFF}}}-K_k^\alpha\:\Psi_k\right)P_{k-1}^\alpha
+		\mathbf{P}_k^\gamma&=\frac{1}{\beta_{\mathrm{RLS}}}\left(\mathbf{P}_{k-1}^\gamma-\mathbf{P}_{k-1}^\gamma\:\boldsymbol{\Psi}_k^\top\left(\beta_{\mathrm{RLS}}+\boldsymbol{\Psi}_k\:\mathbf{P}_{k-1}^\gamma\:\boldsymbol{\Psi}_k^\top\right)^{-1}\boldsymbol{\Psi}_k\:\mathbf{P}_{k-1}^\gamma\right)\\
+		&=\frac{1}{\beta_{\mathrm{RLS}}}\left(\mathbf{I}_{r_{\mathrm{RFF}}}-\mathbf{K}_k^\gamma\:\boldsymbol{\Psi}_k\right)\mathbf{P}_{k-1}^\gamma
 		\end{aligned}
 	\end{equation}
 	and thus:
 	\begin{equation}
 		\begin{aligned}
-		P_k^\alpha\:\Psi_k^\top&=\frac{1}{\beta}\left(K_k^\alpha\left(\beta+\Psi_k\:P_{k-1}^\alpha\:\Psi_k^\top\right)-K_k^\alpha\:\Psi_k\:P_{k-1}^\alpha\:\Psi_k^\top\right)\\
-		&=K_k^\alpha
+		\mathbf{P}_k^\gamma\:\boldsymbol{\Psi}_k^\top&=\frac{1}{\beta_{\mathrm{RLS}}}\left(\mathbf{K}_k^\gamma\left(\beta_{\mathrm{RLS}}+\boldsymbol{\Psi}_k\:\mathbf{P}_{k-1}^\gamma\:\boldsymbol{\Psi}_k^\top\right)-\mathbf{K}_k^\gamma\:\boldsymbol{\Psi}_k\:\mathbf{P}_{k-1}^\gamma\:\boldsymbol{\Psi}_k^\top\right)\\
+		&=\mathbf{K}_k^\gamma
 		\end{aligned}
 	\end{equation}
 
 	Combining these results finally yields:
 	\begin{equation}
 		\begin{aligned}
-		\hat{\alpha}_k&=P_k^\alpha\left(\beta\left(P_{k-1}^\alpha\right)^{-1}\hat{\alpha}_{k-1}+\Psi_k^\top z_k\right)\\
-		&=P_k^\alpha\left(\left(\left(P_k^\alpha\right)^{-1}-\Psi_k^\top\Psi_k\right)\hat{\alpha}_{k-1}+\Psi_k^\top z_k\right)\\
-		&=\hat{\alpha}_{k-1}+K_k^\alpha\left(z_k-\Psi_k\:\hat{\alpha}_{k-1}\right)
+		\hat{\boldsymbol{\gamma}}_k&=\mathbf{P}_k^\gamma\left(\beta_{\mathrm{RLS}}\left(\mathbf{P}_{k-1}^\gamma\right)^{-1}\hat{\boldsymbol{\gamma}}_{k-1}+\boldsymbol{\Psi}_k^\top z_k\right)\\
+		&=\mathbf{P}_k^\gamma\left(\left(\left(\mathbf{P}_k^\gamma\right)^{-1}-\boldsymbol{\Psi}_k^\top\boldsymbol{\Psi}_k\right)\hat{\boldsymbol{\gamma}}_{k-1}+\boldsymbol{\Psi}_k^\top z_k\right)\\
+		&=\hat{\boldsymbol{\gamma}}_{k-1}+\mathbf{K}_k^\gamma\left(z_k-\boldsymbol{\Psi}_k\:\hat{\boldsymbol{\gamma}}_{k-1}\right)
 		\end{aligned}
 	\end{equation}
 \end{proof}
@@ -289,12 +301,12 @@ Since \eqref{eq:RLS} only involves the pair $\left(\hat{x}_k,z_k\right)$, the co
 	\item\textbf{Embedded prediction.} The particles are propagated through the evolution model, and the weights and their covariance are predicted as in \Cref{alg:AKKF}.
 	\item\textbf{Embedded correction.} Since $h$ is unknown, the simulated observations are generated from the current estimate of the field:
 	\begin{equation}
-		\forall i\in[\![1,N]\!],\:z_k^{(i)}=\Psi\left(x_k^{(i)}\right)\hat{\alpha}_{k-1}+n_k^{(i)},\qquad n_k^{(i)}\sim p_k^{(o)}
+		\forall i\in[\![1,N]\!],\:z_k^{(i)}=\boldsymbol{\Psi}\left(x_k^{(i)}\right)\hat{\boldsymbol{\gamma}}_{k-1}+\varepsilon_k^{(i)},\qquad \varepsilon_k^{(i)}\sim p_k^{(o)}
 	\end{equation}
 
 	The correction of the weights and the state estimation are then those of \Cref{alg:AKKF}.
-	\item\textbf{Map update.} The coefficients $\hat{\alpha}_k$ are computed with \eqref{eq:RLS}, from the real observation $z_k$ and the state estimate $\hat{x}_k$.
-	\item\textbf{Resampling.} The new particles are drawn from $\mathcal{N}\left(\hat{x}_k,\hat{P}_k\right)$, and the embedded resampling is performed as in \Cref{alg:AKKF}.
+	\item\textbf{Map update.} The coefficients $\hat{\boldsymbol{\gamma}}_k$ are computed with \eqref{eq:RLS}, from the real observation $z_k$ and the state estimate $\hat{x}_k$.
+	\item\textbf{Resampling.} The new particles are drawn from $\mathcal{N}\left(\hat{x}_k,\hat{\mathbf{P}}_k\right)$, and the embedded resampling is performed as in \Cref{alg:AKKF}.
 \end{itemize}
 
 It must be noted that the map update only relies on the real observation $z_k$, whereas the correction step uses the observations simulated from the estimated field. The resulting algorithm, referred to as AKKF-SLAM and originally proposed in \cite{bib:RFF-KKF-SLAM}, is given by \Cref{alg:AKKF_SLAM}.
@@ -302,30 +314,32 @@ It must be noted that the map update only relies on the real observation $z_k$, 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
 	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{+(i)}\right)$}\Comment{Particle propagation}
-	\State{$D_k=\left(G_{k-1}^x+\lambda_xI_N\right)^{-1}G_{k-1}^x-I_N$}\Comment{Embedded prediction}
-	\State{$\displaystyle\Sigma_{k|k-1}=\Sigma_{k-1|k-1}^++\frac{1}{N}D_k\:D_k^\top$}
-	\State{$\forall i\in[\![1,N]\!],\:z_k^{(i)}=\Psi\left(x_k^{(i)}\right)\hat{\alpha}_{k-1}+n_k^{(i)},\:n_k^{(i)}\sim p_k^{(o)}$}\Comment{\textbf{Simulated observations}}
-	\State{$K_k=\Sigma_{k|k-1}\left(G_k^z\:\Sigma_{k|k-1}+\lambda_zI_N\right)^{-1}$}\Comment{Embedded correction}
-	\State{$\mathbf{w}_k=\mathbf{w}_{k-1}^++K_k\left(k_z\left(\mathbf{z}_k,z_k\right)-G_k^z\:\mathbf{w}_{k-1}^+\right)$}
-	\State{$\Sigma_{k|k}=\Sigma_{k|k-1}-K_k\:G_k^z\:\Sigma_{k|k-1}$}
+	\State{$\mathbf{D}_k=\left(\mathbf{G}_{k-1}^x+\alpha_{\mathrm{RKHS},x}\mathbf{I}_N\right)^{-1}\mathbf{G}_{k-1}^x-\mathbf{I}_N$}\Comment{Embedded prediction}
+	\State{$\displaystyle\boldsymbol{\Sigma}_{k|k-1}=\boldsymbol{\Sigma}_{k-1|k-1}^++\frac{1}{N}\mathbf{D}_k\:\mathbf{D}_k^\top$}
+	\State{$\forall i\in[\![1,N]\!],\:z_k^{(i)}=\boldsymbol{\Psi}\left(x_k^{(i)}\right)\hat{\boldsymbol{\gamma}}_{k-1}+\varepsilon_k^{(i)},\:\varepsilon_k^{(i)}\sim p_k^{(o)}$}\Comment{\textbf{Simulated observations}}
+	\State{$\mathbf{K}_k=\boldsymbol{\Sigma}_{k|k-1}\left(\mathbf{G}_k^z\:\boldsymbol{\Sigma}_{k|k-1}+\alpha_{\mathrm{RKHS},z}\mathbf{I}_N\right)^{-1}$}\Comment{Embedded correction}
+	\State{$\mathbf{w}_k=\mathbf{w}_{k-1}^++\mathbf{K}_k\left(\kappa_Z\left(\mathbf{z}_k,z_k\right)-\mathbf{G}_k^z\:\mathbf{w}_{k-1}^+\right)$}
+	\State{$\boldsymbol{\Sigma}_{k|k}=\boldsymbol{\Sigma}_{k|k-1}-\mathbf{K}_k\:\mathbf{G}_k^z\:\boldsymbol{\Sigma}_{k|k-1}$}
 	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}$}\Comment{State estimation}
-	\State{$\displaystyle\hat{P}_k=\sum_{i=1}^N\sum_{j=1}^N\left[\Sigma_{k|k}\right]_{ij}\:x_k^{(i)}\left(x_k^{(j)}\right)^\top$}
-	\State{Compute $K_k^\alpha$, $\hat{\alpha}_k$ and $P_k^\alpha$ from \eqref{eq:RLS}}\Comment{\textbf{Map update}}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{+(i)}\sim\mathcal{N}\left(\hat{x}_k,\hat{P}_k\right)$}\Comment{Resampling}
-	\State{$T_k=\left(G_k^x+\lambda_xI_N\right)^{-1}k_x\left(\mathbf{x}_k^+,\mathbf{x}_k\right)$}\Comment{Embedded resampling}
-	\State{$\mathbf{w}_k^+=T_k\mathbf{w}_k$}
-	\State{$\Sigma_{k|k}^+=T_k\:\Sigma_{k|k}\:T_k^\top$}
+	\State{$\displaystyle\hat{\mathbf{P}}_k=\sum_{i=1}^N\sum_{j=1}^N\left[\boldsymbol{\Sigma}_{k|k}\right]_{ij}\:x_k^{(i)}\left(x_k^{(j)}\right)^\top$}
+	\State{$\mathbf{K}_k^\gamma=\mathbf{P}_{k-1}^\gamma\:\boldsymbol{\Psi}\left(\hat{x}_k\right)^\top\left(\beta_{\mathrm{RLS}}+\boldsymbol{\Psi}\left(\hat{x}_k\right)\mathbf{P}_{k-1}^\gamma\:\boldsymbol{\Psi}\left(\hat{x}_k\right)^\top\right)^{-1}$}\Comment{\textbf{Map update}}
+	\State{$\hat{\boldsymbol{\gamma}}_k=\hat{\boldsymbol{\gamma}}_{k-1}+\mathbf{K}_k^\gamma\left(z_k-\boldsymbol{\Psi}\left(\hat{x}_k\right)\hat{\boldsymbol{\gamma}}_{k-1}\right)$}
+	\State{$\mathbf{P}_k^\gamma=\dfrac{1}{\beta_{\mathrm{RLS}}}\left(\mathbf{I}_{r_{\mathrm{RFF}}}-\mathbf{K}_k^\gamma\:\boldsymbol{\Psi}\left(\hat{x}_k\right)\right)\mathbf{P}_{k-1}^\gamma$}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{+(i)}\sim\mathcal{N}\left(\hat{x}_k,\hat{\mathbf{P}}_k\right)$}\Comment{Resampling}
+	\State{$\mathbf{T}_k=\left(\mathbf{G}_k^x+\alpha_{\mathrm{RKHS},x}\mathbf{I}_N\right)^{-1}\kappa_X\left(\mathbf{x}_k^+,\mathbf{x}_k\right)$}\Comment{Embedded resampling}
+	\State{$\mathbf{w}_k^+=\mathbf{T}_k\mathbf{w}_k$}
+	\State{$\boldsymbol{\Sigma}_{k|k}^+=\mathbf{T}_k\:\boldsymbol{\Sigma}_{k|k}\:\mathbf{T}_k^\top$}
 	\end{algorithmic}\caption{AKKF-SLAM}\label{alg:AKKF_SLAM}
 \end{algorithm}
 
 \begin{remark}[Dependence on the origin]\label{th:AKKF_origin}
-	The weights $\mathbf{w}_k$ solve a regularised least-squares problem, and are not constrained to sum to one. Since $k_x$ is radial, they are unchanged when the origin is translated by $t\in\mathbb{R}^{d_x}$, whereas $\hat{x}_k$ is moved by $\left(\mathbf{1}_N^\top\mathbf{w}_k\right)t$ instead of $t$. The state estimate thus carries an error proportional to the distance between the particles and the origin, and $\hat{P}_k$ a term growing with its square. Both dominate as soon as this distance is large compared with the dispersion of the particles.
+	The weights $\mathbf{w}_k$ solve a regularised least-squares problem, and are not constrained to sum to one. Since $\kappa_X$ is radial, they are unchanged when the origin is translated by $t\in\mathbb{R}^{d_x}$, whereas $\hat{x}_k$ is moved by $\left(\mathbf{1}_N^\top\mathbf{w}_k\right)t$ instead of $t$. The state estimate thus carries an error proportional to the distance between the particles and the origin, and $\hat{\mathbf{P}}_k$ a term growing with its square. Both dominate as soon as this distance is large compared with the dispersion of the particles.
 
 	This dependence is removed by computing the two moments with respect to the empirical mean $\bar{x}_k$ of the particles $\mathbf{x}_k$:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{x}_k&=\bar{x}_k+\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\bar{x}_k\right)\\
-		\hat{P}_k&=\sum_{i=1}^N\sum_{j=1}^N\left[\Sigma_{k|k}\right]_{ij}\left(x_k^{(i)}-\bar{x}_k\right)\left(x_k^{(j)}-\bar{x}_k\right)^\top
+		\hat{\mathbf{P}}_k&=\sum_{i=1}^N\sum_{j=1}^N\left[\boldsymbol{\Sigma}_{k|k}\right]_{ij}\left(x_k^{(i)}-\bar{x}_k\right)\left(x_k^{(j)}-\bar{x}_k\right)^\top
 		\end{aligned}\right.
 	\end{equation}
 \end{remark}
@@ -342,7 +356,7 @@ It must be noted that the map update only relies on the real observation $z_k$, 
 
 \subsection{Simulation Scenario}
 
-The two methods are compared on a scenario derived from that of \cref{sec:scenario}. The state of the vehicle, its evolution model, its speed and the time step are unchanged, as well as the covariances $Q_k$ and $R_k$. However, three elements differ.
+The two methods are compared on a scenario derived from that of \cref{sec:scenario}. The state of the vehicle, its evolution model, its speed and the time step are unchanged, as well as the covariances $\mathbf{Q}_k$ and $\mathbf{R}_k$. However, three elements differ.
 
 First, the magnetic anomaly map is replaced by the analytical field of \cite{bib:RFF-KKF-SLAM}, scaled to the dimensions of the scenario:
 \begin{equation}
@@ -351,13 +365,13 @@ First, the magnetic anomaly map is replaced by the analytical field of \cite{bib
 	&\qquad\left.+0.3\sin\left(\frac{2\pi\left(p^{(x)}+p^{(y)}\right)}{43.75}\right)\right)
 	\end{aligned}
 \end{equation}
-where $h(x)$ is expressed in nT, and the positions $p^{(x)}$ and $p^{(y)}$ in km. Its standard deviation is $124$ nT. Unlike the magnetic anomaly map, whose variations cover a wide range of spatial scales, this field only contains three spatial frequencies, and can thus be represented by a basis of moderate rank.
+where $h(x)$ is expressed in nT, and the positions $p^{(x)}$ and $p^{(y)}$ in km. Its standard deviation is $124$ nT. Since \cref{th:SLAM_assumptions} assumes a centred field, its mean over the neighbourhood of the trajectory, equal to $1.6$ nT, is subtracted from both the field and the observations. Unlike the magnetic anomaly map, whose variations cover a wide range of spatial scales, this field only contains three spatial frequencies, and can thus be represented by a basis of moderate rank.
 
-Second, the mower pattern is replaced by a closed circuit, which the vehicle follows several times. This circuit is a square of side $60$ km, whose corners are rounded with the turn radius of $25.5$ km, and has a length of $196$ km. The mission lasts $n_\mathrm{steps}=300$ steps, which corresponds to $3.8$ laps. Unlike the branches of the mower pattern, which are $51$ km apart, this trajectory repeatedly crosses regions that have already been observed. This is required for the field estimated during a lap to be used during the following ones.
+Second, the mower pattern is replaced by a closed circuit, which the vehicle follows several times. This circuit is a square of side $60$ km, whose corners are rounded with the turn radius of $25.5$ km, and has a length of $196$ km. The mission lasts $N_\mathrm{steps}=300$ steps, which corresponds to $3.8$ laps. Unlike the branches of the mower pattern, which are $51$ km apart, this trajectory repeatedly crosses regions that have already been observed. This is required for the field estimated during a lap to be used during the following ones.
 
 Finally, the initial uncertainty is reduced to:
 \begin{equation}
-	P_0=\begin{bmatrix}
+	\mathbf{P}_0=\begin{bmatrix}
 	1000^2&0&0&0\\
 	0&1000^2&0&0\\
 	0&0&2^2&0\\
@@ -366,26 +380,27 @@ Finally, the initial uncertainty is reduced to:
 \end{equation}
 in the units of \cref{sec:scenario}. Indeed, since the kernel is radial, translating both the trajectory and the field does not change the distribution of the observations. Without training data, the error on the initial position can therefore not be corrected, and a SLAM method can only limit the growth of the estimation error over time.
 
-Five filters are compared, each using $N=500$ particles:
+Six filters are compared, each using $N=500$ particles:
 \begin{itemize}
 	\item The RPF of \cref{sec:scenario} using the known field, which serves as a reference case.
+	\item The AKKF of \Cref{alg:AKKF}, also using the known field. It separates the behaviour of this filter from that of the map learnt by AKKF-SLAM.
 	\item The same RPF using static kriging on a training set of resolution $\Delta_g=3.5$ km, built as in \cref{sec:scenario}. It corresponds to the method of \cref{sec:kriging_PF}, when a prior survey of the field is available.
 	\item Inertial navigation, in which the particles are propagated without any correction.
 	\item RBPF-SLAM, presented by \Cref{alg:SLAM_RBPF}.
 	\item AKKF-SLAM, as given by \Cref{alg:AKKF_SLAM}.
 \end{itemize}
 
-Both SLAM methods are given the same kernel, which is a Matérn kernel of smoothness $\nu=3/2$, variance $\sigma_f^2=124^2$ $(\text{nT})^2$ and correlation length $l=4$ km. Since the field only depends on the position of the vehicle, their basis functions are defined on the position subspace, of dimension $d_{\mathrm{pos}}=2$, and evaluated at $\Pi_{\mathrm{pos}}\:x$.
+Both SLAM methods are given the same kernel, which is a Matérn kernel of smoothness $\nu=3/2$, variance $\sigma_h^2=124^2$ $(\text{nT})^2$ and correlation length $\ell=4$ km, on the position subspace of dimension $d_{\mathrm{pos}}=2$. It must be noted that the field is deterministic and only contains three spatial frequencies, so that \cref{th:SLAM_assumptions} is deliberately misspecified. The correlation of $\kappa_{3/2}$ is close to one half at a distance $\ell$. The correlation length is thus chosen close to $25/6\approx4.2$ km, the distance at which the autocorrelation of the main component of the field, of wavelength $25$ km, falls to one half.
 
-For RBPF-SLAM, the domain $\mathcal{U}$ is the smallest rectangle containing the trajectory, extended by a margin of $25$ km on each side, and $r_{\mathrm{KL}}=300$ basis functions are used. Its particles are regularised as in \Cref{alg:RPF}, with the parameters of \cref{sec:scenario}. Moreover, the variance of the field that is not represented by the truncated basis is added to $R_k$ in \eqref{eq:SLAM_innovation}.
+For RBPF-SLAM, the domain $\Omega$ is the smallest rectangle containing the trajectory, extended by a margin of $25$ km on each side, and $r_{\mathrm{KL}}=300$ basis functions are used. Its regularisation uses the parameters of \cref{sec:scenario}.
 
-For AKKF-SLAM, $r_{\mathrm{RFF}}=500$ features are used, with $\lambda_x=\lambda_z=0.1$, $\lambda_{\mathrm{RLS}}=0.01$ and $\beta=0.995$. The kernel $k_x$ is an SE kernel of unit variance and correlation length, using the Mahalanobis norm associated with $P_0$. The kernel $k_z$ is an SE kernel of unit variance, whose correlation length is set at each time step to the median of the distances between the simulated observations and $z_k$, with a minimum of $\sqrt{R_k}$. Since the positions are large compared with the dispersion of the particles, the state estimate and its covariance are computed with respect to the empirical mean of the particles, as described in \Cref{th:AKKF_origin}.
+For AKKF-SLAM, $r_{\mathrm{RFF}}=500$ features are used, with $\alpha_{\mathrm{RKHS},x}=\alpha_{\mathrm{RKHS},z}=0.1$, $\alpha_{\mathrm{RLS}}=0.01$ and $\beta_{\mathrm{RLS}}=0.995$. Their frequencies and phases are drawn again for each Monte Carlo realisation. The kernel $\kappa_X$ is an SE kernel of unit variance and correlation length, using the Mahalanobis norm associated with $\mathbf{P}_0$. The kernel $\kappa_Z$ is an SE kernel of unit variance, whose correlation length is set at each time step to the median of the distances between the simulated observations and $z_k$, with a minimum of $\sqrt{\mathbf{R}_k}$. Since the positions are large compared with the dispersion of the particles, the state estimate and its covariance are computed with respect to the empirical mean of the particles, as described in \Cref{th:AKKF_origin}. The AKKF using the known field shares these settings.
 
 This scenario is illustrated by \Cref{fig:SLAM_scenario} and summarised by \Cref{tab:SLAM_scenario}.
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=0.7\textwidth]{../../Images/Champ et circuit du SLAM.pdf}
-	\caption{The analytical field used in this chapter. The black line represents the circuit followed by the vehicle, and the black dot signals the beginning of the trajectory. The dashed rectangle delimits the domain $\mathcal{U}$ of RBPF-SLAM.}\label{fig:SLAM_scenario}
+	\caption{The analytical field used in this chapter. The black line represents the circuit followed by the vehicle, and the black dot signals the beginning of the trajectory. The dashed rectangle delimits the domain $\Omega$ of RBPF-SLAM.}\label{fig:SLAM_scenario}
 \end{figure}
 
 \begin{table}[!htb]
@@ -396,51 +411,57 @@ This scenario is illustrated by \Cref{fig:SLAM_scenario} and summarised by \Cref
 		\multirow{4}{*}{Trajectory}&Form&Closed circuit\\\cline{2-3}
 		&Dimensions&$60$ km$\times60$ km\\\cline{2-3}
 		&Turn radius&$25.5$ km\\\cline{2-3}
-		&$n_\mathrm{steps}$&$300$\\\hline
+		&$N_\mathrm{steps}$&$300$\\\hline
 		\multirow{2}{*}{Filters}&$N$&$500$\\\cline{2-3}
-		&$P_0$&$1000^2\text{ m}^2$, $2^2\text{ m}^2\text{s}^{-2}$\\\hline
+		&$\mathbf{P}_0$&$1000^2\text{ m}^2$, $2^2\text{ m}^2\text{s}^{-2}$\\\hline
 		\multirow{3}{*}{Kernel}&$\nu$&$3/2$\\\cline{2-3}
-		&$\sigma_f^2$&$124^2$ $(\text{nT})^2$\\\cline{2-3}
-		&$l$&$4$ km\\\hline
+		&$\sigma_h^2$&$124^2$ $(\text{nT})^2$\\\cline{2-3}
+		&$\ell$&$4$ km\\\hline
 		\multirow{2}{*}{RBPF-SLAM}&$r_{\mathrm{KL}}$&$300$\\\cline{2-3}
-		&$\mathcal{U}$&$110$ km$\times110$ km\\\hline
+		&$\Omega$&$110$ km$\times110$ km\\\hline
 		\multirow{4}{*}{AKKF-SLAM}&$r_{\mathrm{RFF}}$&$500$\\\cline{2-3}
-		&$\lambda_x,\lambda_z$&$0.1$\\\cline{2-3}
-		&$\lambda_{\mathrm{RLS}}$&$0.01$\\\cline{2-3}
-		&$\beta$&$0.995$\\\hline
+		&$\alpha_{\mathrm{RKHS},x},\alpha_{\mathrm{RKHS},z}$&$0.1$\\\cline{2-3}
+		&$\alpha_{\mathrm{RLS}}$&$0.01$\\\cline{2-3}
+		&$\beta_{\mathrm{RLS}}$&$0.995$\\\hline
 	\end{tabular}
 	\caption{Simulation parameters of the SLAM scenario. The parameters that are not listed are those of \Cref{tab:scenario}.}\label{tab:SLAM_scenario}
 \end{table}
 
-Each configuration is run over $n_\mathrm{MC}=100$ Monte Carlo realisations. As in \cref{sec:scenario}, their performance is read through the estimation RMSE \eqref{eq:estimation_RMSE} and the NEES. The RMSE is also averaged over a set $E$ of time steps, which gives the $\mathrm{ARMSE}_{\hat{x}}(E)$ in the sense of \eqref{eq:kriging_ARMSE}.
+Each configuration is run over $N_\mathrm{MC}=100$ Monte Carlo realisations. As in \cref{sec:scenario}, their performance is read through the estimation RMSE \eqref{eq:estimation_RMSE} and the NEES. The RMSE is also averaged over a set $E$ of time steps, which gives the $\mathrm{ARMSE}_{\hat{x}}(E)$ in the sense of \eqref{eq:kriging_ARMSE}.
 
-For the two SLAM methods, the field reconstructed at the end of the mission is also compared with $h$. Its RMSE is defined as in \eqref{eq:kriging_RMSE}, and its ARMSE is computed over the points of $\mathcal{U}$ located within $8$ km of the trajectory.
+For the two SLAM methods, the field reconstructed at the end of the mission is also compared with $h$. Its RMSE is defined as in \eqref{eq:kriging_RMSE}, and its ARMSE is computed over the points of $\Omega$ located within $8$ km of the trajectory.
 
 \subsection{Numerical Results}
 
-\Cref{fig:SLAM_RMSE} presents the RMSE and NEES of the five filters throughout the mission, and \Cref{tab:SLAM_results} gives their average values, along with the reconstruction error of the field.
+\Cref{fig:SLAM_RMSE} presents the RMSE and NEES of the six filters throughout the mission, and \Cref{tab:SLAM_results} gives their average values, along with the reconstruction error of the field.
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=\textwidth]{../../Images/RMSE et NEES du SLAM.pdf}
-	\caption{Estimation RMSE and NEES of the five filters on the SLAM scenario. The shaded area corresponds to that of the NEES figures of \cref{sec:kriging_navigation}.}\label{fig:SLAM_RMSE}
+	\caption{Estimation RMSE and NEES of the six filters on the SLAM scenario. The shaded area corresponds to that of the NEES figures of \cref{sec:kriging_navigation}.}\label{fig:SLAM_RMSE}
 \end{figure}
 
 \begin{table}[!htb]
 	\centering\input{include/resultats_slam.tex}
-	\caption{Estimation ARMSE of the five filters over three successive parts of the mission, NEES averaged over the last one, and reconstruction ARMSE of the field along the trajectory. For inertial navigation, the field is reconstructed as zero.}\label{tab:SLAM_results}
+	\caption{Estimation ARMSE of the six filters over three successive parts of the mission, NEES averaged over the last one, and reconstruction ARMSE of the field along the trajectory. For inertial navigation, the field is reconstructed as zero.}\label{tab:SLAM_results}
 \end{table}
 
-When a map is available, whether known or kriged from a prior survey, the RPF corrects the initial error within the first ten time steps, and its RMSE then remains around $200$ m. Conversely, the error of the inertial solution increases throughout the mission, from $1.3$ km to $4.6$ km.
+When a map is available, whether known or kriged from a prior survey, the RPF corrects the initial error within the first ten time steps, and its RMSE then remains around $200$ m. The AKKF using the known field corrects it more slowly, its RMSE being still of $312$ m at $k=30$, but then remains around $130$ m, with a NEES of the same order as that of the RPF. Conversely, the error of the inertial solution increases throughout the mission, from $1.3$ km to $4.6$ km.
 
-As expected, neither SLAM method reduces the initial error. During the first lap, the RMSE of RBPF-SLAM increases slightly faster than that of the inertial solution, and reaches $2.0$ km at $k=76$. It then decreases to $1.4$ km at $k=85$, when the vehicle crosses the beginning of the circuit for the second time. From this point onward, it increases much more slowly than the error of the inertial solution, and is equal to $2.0$ km at the end of the mission. However, its NEES exceeds $1$ from $k=95$, and leaves the consistency band from $k=142$. RBPF-SLAM thus becomes overconfident as the mission progresses. This may be explained by the resampling steps of \Cref{alg:SLAM_RBPF}, in which each new particle inherits the coefficients of its parent. The particles thus descend from a decreasing number of ancestors, whose maps they share, while the regularisation only restores the diversity of their states. The dispersion of the particles therefore underestimates the estimation error. This degeneracy is known to affect Rao-Blackwellised SLAM methods over time, regardless of the number of particles \cite{bib:RBPF-SLAM-consistency}.
+As expected, neither SLAM method reduces the initial error. During the first lap, the RMSE of RBPF-SLAM remains close to that of the inertial solution, and reaches $2.0$ km at $k=76$. It then decreases to $1.4$ km at $k=85$, when the vehicle crosses the beginning of the circuit for the second time. From this point onward, it increases much more slowly than the error of the inertial solution, and is equal to $2.0$ km at the end of the mission. However, its NEES exceeds $1$ from $k=95$, and leaves the consistency band from $k=142$. RBPF-SLAM thus becomes overconfident as the mission progresses. This may be explained by the resampling steps of \Cref{alg:SLAM_RBPF}, in which each new particle inherits the coefficients of its parent. The particles thus descend from a decreasing number of ancestors, whose maps they share, while the regularisation only restores the diversity of their states. The dispersion of the particles therefore underestimates the estimation error. This degeneracy is known to affect Rao-Blackwellised SLAM methods over time, regardless of the number of particles \cite{bib:RBPF-SLAM-consistency}.
 
-On the other hand, the RMSE of AKKF-SLAM increases faster than that of the inertial solution at the beginning of the mission, and reaches $3.1$ km at $k=38$. It then remains between $2.2$ and $2.9$ km until the end of the mission, without any noticeable growth, and becomes lower than that of the inertial solution from $k=169$. However, it remains higher than that of RBPF-SLAM, and the NEES of AKKF-SLAM lies around $50$, far above the consistency band. This may be explained by the simulated observations of \Cref{alg:AKKF_SLAM}, which only add the observation noise to the estimated field. Unlike the innovation covariance $S_k^{(i)}$ of \eqref{eq:SLAM_innovation}, they do not account for the uncertainty of this field, and the embedded correction is thus overconfident.
+On the other hand, the RMSE of AKKF-SLAM increases faster than that of the inertial solution at the beginning of the mission, and reaches $2.7$ km at $k=47$. It then remains between $2.1$ and $2.6$ km until the end of the mission, without any noticeable growth, and becomes lower than that of the inertial solution from $k=143$. However, it remains higher than that of RBPF-SLAM, and the NEES of AKKF-SLAM lies between $32$ and $69$ after $k=100$, far above the consistency band.
 
-Regarding the field, both methods reduce the reconstruction error along the trajectory, from $103.7$ nT without any map to $78.4$ nT for RBPF-SLAM, and $89.4$ nT for AKKF-SLAM. These errors remain large compared with the standard deviation of the field. This may be explained by the position error. Indeed, the field is estimated at the estimated positions of the vehicle, so that an error of about $2$ km on these positions is transferred to the reconstructed field, whose shortest wavelength is $14.58$ km. Outside this region, the field is not observed, and neither method improves on the absence of map.
+Since the AKKF using the known field remains consistent, this overconfidence comes from the learnt map. Indeed, the simulated observations of \Cref{alg:AKKF_SLAM} only add the observation noise to the estimated field. Unlike the innovation covariance $\mathbf{S}_k^{(i)}$ of \eqref{eq:SLAM_innovation}, they do not account for the uncertainty of this field, and the embedded correction is thus overconfident. This is confirmed by drawing the simulated observations with the variance:
+\begin{equation}
+	\mathbf{R}_k\left(1+\boldsymbol{\Psi}\left(x_k^{(i)}\right)\mathbf{P}_{k-1}^\gamma\:\boldsymbol{\Psi}\left(x_k^{(i)}\right)^\top\right)
+\end{equation}
+which also accounts for the uncertainty of the coefficients estimated by \eqref{eq:RLS}. The NEES over the last third of the mission then decreases from $45$ to $26$, and the ARMSE over the whole mission from $2.34$ to $1.93$ km. However, this modification of \Cref{alg:AKKF_SLAM} only removes part of the overconfidence.
 
-Finally, the two methods differ in their memory requirements. RBPF-SLAM stores $N\:r_{\mathrm{KL}}^2=4.5\times10^7$ values for the covariance matrices of its coefficients, whereas AKKF-SLAM stores $r_{\mathrm{RFF}}^2=2.5\times10^5$ values for its single set of coefficients, in addition to its matrices of size $N\times N$.
+Regarding the field, both methods reduce the reconstruction error along the trajectory, from $103.7$ nT without any map to $78.4$ nT for RBPF-SLAM, and $85.5$ nT for AKKF-SLAM. These errors remain large compared with the standard deviation of the field, for two reasons. First, the field is estimated at the estimated positions of the vehicle, so that an error of about $2$ km on these positions is transferred to the reconstructed field, whose shortest wavelength is $14.58$ km. Second, the coefficients computed by \eqref{eq:RLS} along the trajectory estimated by the AKKF using the known field, whose ARMSE is $184$ m, still reconstruct the field with an error of $58.4$ nT. Over the rest of $\Omega$, where the field is not observed, neither method improves on the absence of map, with errors of $105.7$ nT for RBPF-SLAM and $116.6$ nT for AKKF-SLAM, against $104.2$ nT without any map.
 
-Taken together, these results show that both methods limit the growth of the estimation error in the absence of training data. On this scenario, RBPF-SLAM is the more accurate of the two, while AKKF-SLAM bounds its error with a single set of coefficients, at a lower memory cost. However, neither method provides a consistent estimate of its own uncertainty, and both remain far from the accuracy reached when a prior survey is available.
+Finally, the two methods differ in their costs. RBPF-SLAM stores $N\:r_{\mathrm{KL}}^2=4.5\times10^7$ values for the covariance matrices of its coefficients, whereas AKKF-SLAM stores $r_{\mathrm{RFF}}^2=2.5\times10^5$ values for its single set of coefficients, in addition to its matrices of size $N\times N$. Conversely, AKKF-SLAM requires of the order of $4N^3=5\times10^8$ operations per time step, against $3N\:r_{\mathrm{KL}}^2=1.4\times10^8$ for RBPF-SLAM. However, the computation times measured on our implementation follow the opposite order, with $139$ s per realisation for RBPF-SLAM against $18$ s for AKKF-SLAM. Indeed, at each time step, RBPF-SLAM reads and writes its $N$ covariance matrices several times, which is limited by memory access rather than by the number of operations, whereas AKKF-SLAM only manipulates a few matrices of size $N\times N$.
+
+Taken together, these results show that both methods limit the growth of the estimation error in the absence of training data. On this scenario, RBPF-SLAM is the more accurate of the two, while AKKF-SLAM bounds its error with a single set of coefficients, at a lower memory cost. However, neither method provides a consistent estimate of its own uncertainty, and both remain far from the accuracy reached when a prior survey is available. In the case of AKKF-SLAM, this inconsistency comes from the learnt map, the AKKF itself remaining consistent when the field is known.
 
 \begin{comment}
 \textbf{TODO: résultats de l'article sur son scénario analytique 2D, retirés du texte le 2026-10-12 quand la comparaison est passée sur le scénario commun. À réintégrer si l'on veut aussi ce scénario, sur lequel le RBPF n'a pas tourné.}
@@ -454,7 +475,7 @@ Taken together, these results show that both methods limit the growth of the est
 		&0.3\sin\left(0.4\left(p^{(x)}+p^{(y)}\right)\right)
 		\end{aligned}$\rule[-9mm]{0pt}{20mm}\\\hline
 		State&$x_k=\begin{bmatrix}p_k^{(x)}&p_k^{(y)}\end{bmatrix}^\top$, $d_x=2$, $d_z=1$\rule[-4mm]{0pt}{11mm}\\\hline
-		Trajectory&contracting spiral of $n_{\mathrm{steps}}=100$ steps over $[-5,5]^2$\\\hline
+		Trajectory&contracting spiral of $N_{\mathrm{steps}}=100$ steps over $[-5,5]^2$\\\hline
 		Evolution noise&$Q_k=0.01^2\:I_2$\\\hline
 		Observation noise&$R_k=0.01^2$\\\hline
 		Initial covariance&$P_0=0.1^2\:I_2$\\\hline
@@ -470,7 +491,7 @@ Three particle filters serve as a baseline, each given a known but degraded obse
 \begin{equation}
 	h_\gamma:x\mapsto\left(1+\varepsilon(x)\right)h(x),\qquad\varepsilon(x)\sim\mathcal{N}(0,\gamma)
 \end{equation}
-with $\gamma\in\{0,0.1,0.5\}$, the first of them navigating on the exact map. All four filters are run over $n_{\mathrm{MC}}=100$ Monte Carlo simulations, and compared through the estimation RMSE \eqref{eq:estimation_RMSE}, the state being here reduced to the position, and through its average $\mathrm{ARMSE}_{\hat{x}}(E)$ over a set $E$ of time steps, which is \eqref{eq:kriging_ARMSE} over a discrete index set. The table below reports the maximum of $\mathrm{RMSE}_{\hat{x}}$ over the first ten steps and its average over the last twenty.
+with $\gamma\in\{0,0.1,0.5\}$, the first of them navigating on the exact map. All four filters are run over $N_{\mathrm{MC}}=100$ Monte Carlo simulations, and compared through the estimation RMSE \eqref{eq:estimation_RMSE}, the state being here reduced to the position, and through its average $\mathrm{ARMSE}_{\hat{x}}(E)$ over a set $E$ of time steps, which is \eqref{eq:kriging_ARMSE} over a discrete index set. The table below reports the maximum of $\mathrm{RMSE}_{\hat{x}}$ over the first ten steps and its average over the last twenty.
 
 \begin{table}[!htb]
 	\centering\begin{tabular}{|l|c|c|c|c|}\hline
@@ -484,5 +505,5 @@ with $\gamma\in\{0,0.1,0.5\}$, the first of them navigating on the exact map. Al
 
 The baselines behave as expected, their error decreasing with $\gamma$, and the most degraded of them merely maintaining its initial error instead of converging. AKKF-SLAM starts markedly worse, at $0.56$ against $0.13$ for the best-informed filter, which is the price of having no map at all during the first steps. It then divides its error by almost three, ending at the level of the filter navigating on the most degraded map, whereas the ratio of the same two quantities is close to one for that filter.
 
-The reconstruction is evaluated through the spatial error defined as in \eqref{eq:kriging_RMSE}, computed between $h$ and the final map $x\mapsto\Psi(x)\:\hat{\alpha}_{n_{\mathrm{steps}}}$ of each run. Its average is $0.21$ over $[-5,5]^2$ and $0.07$ along the true trajectory.
+The reconstruction is evaluated through the spatial error defined as in \eqref{eq:kriging_RMSE}, computed between $h$ and the final map $x\mapsto\Psi(x)\:\hat{\alpha}_{N_{\mathrm{steps}}}$ of each run. Its average is $0.21$ over $[-5,5]^2$ and $0.07$ along the true trajectory.
 \end{comment}

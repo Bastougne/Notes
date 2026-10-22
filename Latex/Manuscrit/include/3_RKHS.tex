@@ -1,17 +1,17 @@
 \section{Reproducing Kernel Hilbert Spaces}\label{sec:RKHS}
 
-Beyond regression, the covariance kernel also induces a functional Hilbert space, known as reproducing kernel Hilbert space (RKHS) \cite{bib:Aronszajn,bib:RKHS-Dumbgen}. The RKHS representation is complementary to the probabilistic viewpoint described throughout this chapter. Indeed, while the GP describes a probabilistic distribution over functions, the RKHS associated with its covariance kernel provides a deterministic functional space in which such functions can be represented, manipulated, or approximated. For the sake of simplicity, we assume that $d_z=1$, so that the reproducing property can be written in its most natural form.
+Beyond regression, the covariance kernel also induces a functional Hilbert space, known as a reproducing kernel Hilbert space (RKHS) \cite{bib:Aronszajn,bib:RKHS-Dumbgen}. The RKHS representation is complementary to the probabilistic viewpoint described throughout this chapter. Indeed, while the GP describes a probabilistic distribution over functions, the RKHS associated with its covariance kernel provides a deterministic functional space in which such functions can be represented, manipulated, or approximated. For the sake of simplicity, we assume that $d_z=1$, so that the reproducing property can be written in its most natural form.
 
 \subsection{Reproducing Property and Definition}
 
-Let $\mathcal{U}$ be an arbitrary set, and let $(\mathcal{H},\langle\cdot\mid\cdot\rangle_{\mathcal{H}})$ denote a Hilbert space of functions from $\mathcal{U}$ to $\mathbb{R}$. \Cref{th:RKHS,th:reproducing_kernel} describe the conditions for this space to be an RKHS.
+Let $\Omega$ be an arbitrary set, and let $(\mathcal{H},\langle\cdot\mid\cdot\rangle_{\mathcal{H}})$ denote a Hilbert space of functions from $\Omega$ to $\mathbb{R}$. \Cref{th:RKHS,th:reproducing_kernel} describe the conditions for this space to be an RKHS.
 
 \begin{definition}[Reproducing kernel Hilbert space]\label{th:RKHS}
-	A Hilbert space $(\mathcal{H},\langle\cdot\mid\cdot\rangle_{\mathcal{H}})$ of functions from $\mathcal{U}$ to $\mathbb{R}$ is an RKHS if there exists a function $k:\mathcal{U}\times\mathcal{U}\to\mathbb{R}$ such that:
+	A Hilbert space $(\mathcal{H},\langle\cdot\mid\cdot\rangle_{\mathcal{H}})$ of functions from $\Omega$ to $\mathbb{R}$ is an RKHS if there exists a function $\kappa:\Omega\times\Omega\to\mathbb{R}$ such that:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\forall x\in\mathcal{U},&\:k(x,\cdot)\in\mathcal{H}\\
-		\forall x\in\mathcal{U},&\:\forall f\in\mathcal{H},\:\langle f\mid k(x,\cdot)\rangle_{\mathcal{H}}=f(x)
+		\forall x\in\Omega,&\:\kappa(x,\cdot)\in\mathcal{H}\\
+		\forall x\in\Omega,&\:\forall \psi\in\mathcal{H},\:\langle \psi\mid \kappa(x,\cdot)\rangle_{\mathcal{H}}=\psi(x)
 		\end{aligned}\right.
 	\end{equation}
 
@@ -19,90 +19,90 @@ Let $\mathcal{U}$ be an arbitrary set, and let $(\mathcal{H},\langle\cdot\mid\cd
 \end{definition}
 
 \begin{proposition}[Reproducing kernel]\label{th:reproducing_kernel}
-	When such a $k$ exists, it is symmetric and unique. It is called the reproducing kernel of $\mathcal{H}$.
+	When such a $\kappa$ exists, it is symmetric and unique. It is called the reproducing kernel of $\mathcal{H}$.
 \end{proposition}
 
 \begin{proof}
-	Let $k_1$ satisfy \Cref{th:RKHS}, and let $x,x'\in\mathcal{U}$. Then:
+	Let $\kappa_1$ satisfy \Cref{th:RKHS}, and let $x,x'\in\Omega$. Then:
 	\begin{equation}
 		\begin{aligned}
-		k_1(x,x')&=(k_1(x,\cdot))(x')\\
-		&=\langle k_1(x,\cdot)\mid k_1(x',\cdot)\rangle_{\mathcal{H}}\\
-		&=\langle k_1(x',\cdot)\mid k_1(x,\cdot)\rangle_{\mathcal{H}}\\
-		&=k_1(x',x)
+		\kappa_1(x,x')&=(\kappa_1(x,\cdot))(x')\\
+		&=\langle \kappa_1(x,\cdot)\mid \kappa_1(x',\cdot)\rangle_{\mathcal{H}}\\
+		&=\langle \kappa_1(x',\cdot)\mid \kappa_1(x,\cdot)\rangle_{\mathcal{H}}\\
+		&=\kappa_1(x',x)
 		\end{aligned}
 	\end{equation}
-	so $k_1$ is symmetric.
+	so $\kappa_1$ is symmetric.
 
-	Assume that there exists another function $k_2$ that verifies \Cref{th:RKHS}. It comes that:
+	Assume that there exists another function $\kappa_2$ that verifies \Cref{th:RKHS}. It comes that:
 	\begin{equation}
 		\begin{aligned}
-		k_2(x,x')&=(k_2(x,\cdot))(x')\\
-		&=\langle k_2(x,\cdot)\mid k_1(x',\cdot)\rangle_{\mathcal{H}}\\
-		&=\langle k_1(x',\cdot)\mid k_2(x,\cdot)\rangle_{\mathcal{H}}\\
-		&=k_1(x',x)\\
-		&=k_1(x,x')
+		\kappa_2(x,x')&=(\kappa_2(x,\cdot))(x')\\
+		&=\langle \kappa_2(x,\cdot)\mid \kappa_1(x',\cdot)\rangle_{\mathcal{H}}\\
+		&=\langle \kappa_1(x',\cdot)\mid \kappa_2(x,\cdot)\rangle_{\mathcal{H}}\\
+		&=\kappa_1(x',x)\\
+		&=\kappa_1(x,x')
 		\end{aligned}
 	\end{equation}
-	and so $k_2=k_1$.
+	and so $\kappa_2=\kappa_1$.
 \end{proof}
 
 It can be shown \cite{bib:RKHS-twelve-pages} that $\mathcal{H}$ is an RKHS if, and only if, the evaluation functional at every point of the domain:
 \begin{equation}
-	e_x:f\in\mathcal{H}\mapsto f(x)
+	\operatorname{ev}_x:\psi\in\mathcal{H}\mapsto \psi(x)
 \end{equation}
-is continuous on $\mathcal{H}$ for every $x\in\mathcal{U}$. Its reproducing kernel is necessarily SPSD. Conversely, every SPSD kernel $k$ admits a unique RKHS $\mathcal{H}_k$ for which $k$ is the reproducing kernel. Such an RKHS admits an explicit construction, as detailed in \Cref{th:native_RKHS}.
+is continuous on $\mathcal{H}$ for every $x\in\Omega$. Its reproducing kernel is necessarily SPSD. Conversely, every SPSD kernel $\kappa$ admits a unique RKHS $\mathcal{H}_\kappa$ for which $\kappa$ is the reproducing kernel. Such an RKHS admits an explicit construction, as detailed in \Cref{th:native_RKHS}.
 
 \begin{proposition}[Native RKHS]\label{th:native_RKHS}
-	Let $k$ be an SPSD kernel, let $\mathcal{H}_k$ be the completion of the set spanned by $\{k(x,\cdot),\:x\in\mathcal{U}\}$, and let $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$ be defined on the generators by:
+	Let $\kappa$ be an SPSD kernel, let $\mathcal{H}_\kappa$ be the completion of the set spanned by $\{\kappa(x,\cdot),\:x\in\Omega\}$, and let $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_\kappa}$ be defined on the generators by:
 	\begin{equation}
-		\forall x,x'\in\mathcal{U},\:\langle k(x,\cdot)\mid k(x',\cdot)\rangle_{\mathcal{H}_k}\triangleq k(x,x')
+		\forall x,x'\in\Omega,\:\langle \kappa(x,\cdot)\mid \kappa(x',\cdot)\rangle_{\mathcal{H}_\kappa}\triangleq \kappa(x,x')
 	\end{equation}
 
-	Then $(\mathcal{H}_k,\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k})$ is a Hilbert space and an RKHS. Its reproducing kernel is $k$, and it is the only RKHS for which $k$ is the reproducing kernel. It is called the native RKHS of $k$.
+	Then $(\mathcal{H}_\kappa,\langle\cdot\mid\cdot\rangle_{\mathcal{H}_\kappa})$ is a Hilbert space and an RKHS. Its reproducing kernel is $\kappa$, and it is the only RKHS for which $\kappa$ is the reproducing kernel. It is called the native RKHS of $\kappa$.
 \end{proposition}
 
 \begin{proof}
 	See \cref{sec:proof_native_RKHS}.
 \end{proof}
 
-The native RKHS is spanned by the functions $k(x,\cdot)$, so every $x\in\mathcal{U}$ is naturally represented in $\mathcal{H}_k$ by the $k(x,\cdot)$ it generates. This correspondence defines the feature map, introduced by \Cref{th:feature_map}, and provides the representation on which the kernel methods of the following sections operate.
+The native RKHS is spanned by the functions $\kappa(x,\cdot)$, so every $x\in\Omega$ is naturally represented in $\mathcal{H}_\kappa$ by the $\kappa(x,\cdot)$ it generates. This correspondence defines the feature map, introduced by \Cref{th:feature_map}, and provides the representation on which the kernel methods of the following sections operate.
 
 \begin{definition}[Feature map]\label{th:feature_map}
-	Let $k$ be an SPSD kernel on $\mathcal{U}$, and $(\mathcal{H}_k,\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k})$ be its native RKHS. The feature map of $\mathcal{H}_k$ is:
+	Let $\kappa$ be an SPSD kernel on $\Omega$, and $(\mathcal{H}_\kappa,\langle\cdot\mid\cdot\rangle_{\mathcal{H}_\kappa})$ be its native RKHS. The feature map of $\mathcal{H}_\kappa$ is:
 	\begin{equation}
 		\Phi:\left\{\begin{aligned}
-		\mathcal{U}&\to\mathcal{H}_k\\
-		x&\mapsto k(x,\cdot)
+		\Omega&\to\mathcal{H}_\kappa\\
+		x&\mapsto \kappa(x,\cdot)
 		\end{aligned}\right.
 	\end{equation}
 
 	The reproducing property can thus be rewritten as:
 	\begin{equation}
-		\forall x\in\mathcal{U},\:\forall f\in\mathcal{H}_k,\:f(x)=\langle f\mid\Phi(x)\rangle_{\mathcal{H}_k}
+		\forall x\in\Omega,\:\forall \psi\in\mathcal{H}_\kappa,\:\psi(x)=\langle \psi\mid\Phi(x)\rangle_{\mathcal{H}_\kappa}
 	\end{equation}
 
 	In particular, the kernel trick:
 	\begin{equation}
-		\forall x,x'\in\mathcal{U},\:\langle\Phi(x)\mid\Phi(x')\rangle_{\mathcal{H}_k}=k(x,x')
+		\forall x,x'\in\Omega,\:\langle\Phi(x)\mid\Phi(x')\rangle_{\mathcal{H}_\kappa}=\kappa(x,x')
 	\end{equation}
-	can be used to compute inner products in $\mathcal{H}_k$ without explicitly constructing the feature map $\Phi$ or evaluating $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$.
+	can be used to compute inner products in $\mathcal{H}_\kappa$ without explicitly constructing the feature map $\Phi$ or evaluating $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_\kappa}$.
 \end{definition}
 
 \subsection{Link with Gaussian Processes}
 
-In this section, we let $k$ be an SPD kernel on $\mathcal{U}$, and $(\mathcal{H}_k,\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k})$ be its native RKHS. \Cref{th:RKHS_regularisation} illustrates the relationship between the GP and RKHS viewpoints by showing that kriging using $k$ is equivalent to solving a variational problem in $\mathcal{H}_k$. It is a particular case of the representer theorem \cite{bib:representer,bib:representer-generalised}, presented by \Cref{th:representer}.
+In this section, we let $\kappa$ be an SPD kernel on $\Omega$, and $(\mathcal{H}_\kappa,\langle\cdot\mid\cdot\rangle_{\mathcal{H}_\kappa})$ be its native RKHS. \Cref{th:RKHS_regularisation} illustrates the relationship between the GP and RKHS viewpoints by showing that kriging using $\kappa$ is equivalent to solving a variational problem in $\mathcal{H}_\kappa$. It is a particular case of the representer theorem \cite{bib:representer,bib:representer-generalised}, presented by \Cref{th:representer}.
 
 \begin{proposition}[Representer theorem]\label{th:representer}
-	Let $\tilde{N}\in\mathbb{N}^*$, $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\mathcal{U}^{\tilde{N}}$, $E:\mathbb{R}^{\tilde{N}}\to\mathbb{R}$ and $g:\mathbb{R}_+\to\mathbb{R}$ strictly increasing.
+	Let $\tilde{N}\in\mathbb{N}^*$, $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\Omega^{\tilde{N}}$, $E:\mathbb{R}^{\tilde{N}}\to\mathbb{R}$ and $G:\mathbb{R}_+\to\mathbb{R}$ strictly increasing.
 
 	If the minimisation problem:
 	\begin{equation}
-		\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}(E(\psi(\tilde{x}_1),\dots,\psi(\tilde{x}_{\tilde{N}}))+g(\|\psi\|_{\mathcal{H}_k}))\label{eq:RKHS_minimisation}
+		\underset{\psi\in\mathcal{H}_\kappa}{\operatorname{argmin}}(E(\psi(\tilde{x}_1),\dots,\psi(\tilde{x}_{\tilde{N}}))+G(\|\psi\|_{\mathcal{H}_\kappa}))\label{eq:RKHS_minimisation}
 	\end{equation}
 	admits a solution, then it admits a solution in the set spanned by the features of $\tilde{\mathbf{x}}$:
 	\begin{equation}
-		\mathcal{V}_{\tilde{\mathbf{x}}}\triangleq\operatorname{span}\{\Phi(\tilde{x}_1),\dots,\Phi(\tilde{x}_{\tilde{N}})\}\subseteq\mathcal{H}_k
+		\mathcal{V}_{\tilde{\mathbf{x}}}\triangleq\operatorname{span}\{\Phi(\tilde{x}_1),\dots,\Phi(\tilde{x}_{\tilde{N}})\}\subseteq\mathcal{H}_\kappa
 	\end{equation}
 
 	In particular, this minimiser can be written as:
@@ -113,15 +113,15 @@ In this section, we let $k$ be an SPD kernel on $\mathcal{U}$, and $(\mathcal{H}
 \end{proposition}
 
 \begin{proof}
-	For $\psi\in\mathcal{H}_k$, we decompose it orthogonally as:
+	For $\psi\in\mathcal{H}_\kappa$, we decompose it orthogonally as:
 	\begin{equation}
 		\exists\:\psi_{\mathcal{V}}\in\mathcal{V}_{\tilde{\mathbf{x}}},\:\psi_{\perp}\in\mathcal{V}_{\tilde{\mathbf{x}}}^\perp\mid\psi=\psi_{\mathcal{V}}+\psi_{\perp}
 	\end{equation}
-	where $\mathcal{V}_{\tilde{\mathbf{x}}}^\perp$ denotes the subspace of $\mathcal{H}_k$ orthogonal to $\mathcal{V}_{\tilde{\mathbf{x}}}$.
+	where $\mathcal{V}_{\tilde{\mathbf{x}}}^\perp$ denotes the subspace of $\mathcal{H}_\kappa$ orthogonal to $\mathcal{V}_{\tilde{\mathbf{x}}}$.
 
 	Let $i\in[\![1,\tilde{N}]\!]$. Since $\Phi(\tilde{x}_i)\in\mathcal{V}_{\tilde{\mathbf{x}}}$, the reproducing property gives
 	\begin{equation}
-		\psi_{\perp}(\tilde{x}_i)=\langle\psi_{\perp}\mid\Phi(\tilde{x}_i)\rangle_{\mathcal{H}_k}=0
+		\psi_{\perp}(\tilde{x}_i)=\langle\psi_{\perp}\mid\Phi(\tilde{x}_i)\rangle_{\mathcal{H}_\kappa}=0
 	\end{equation}
 	and thus:
 	\begin{equation}
@@ -130,114 +130,114 @@ In this section, we let $k$ be an SPD kernel on $\mathcal{U}$, and $(\mathcal{H}
 
 	Moreover, by orthogonality:
 	\begin{equation}
-		\|\psi\|_{\mathcal{H}_k}=\sqrt{\|\psi_{\mathcal{V}}\|_{\mathcal{H}_k}^2+\|\psi_{\perp}\|_{\mathcal{H}_k}^2}\geq\|\psi_{\mathcal{V}}\|_{\mathcal{H}_k}
+		\|\psi\|_{\mathcal{H}_\kappa}=\sqrt{\|\psi_{\mathcal{V}}\|_{\mathcal{H}_\kappa}^2+\|\psi_{\perp}\|_{\mathcal{H}_\kappa}^2}\geq\|\psi_{\mathcal{V}}\|_{\mathcal{H}_\kappa}
 	\end{equation}
 	with equality if and only if $\psi\in\mathcal{V}_{\tilde{\mathbf{x}}}$.
 
 	Since $E$ depends only on the values of $\psi$ at
-	$\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}}$ and $g$ is strictly increasing, it comes that:
+	$\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}}$ and $G$ is strictly increasing, it comes that:
 	\begin{equation}
-		E(\psi(\tilde{x}_1),\dots,\psi(\tilde{x}_{\tilde{N}}))+g(\|\psi\|_{\mathcal{H}_k})\geq E(\psi_{\mathcal{V}}(\tilde{x}_1),\dots,\psi_{\mathcal{V}}(\tilde{x}_{\tilde{N}}))+g(\|\psi_{\mathcal{V}}\|_{\mathcal{H}_k})
+		E(\psi(\tilde{x}_1),\dots,\psi(\tilde{x}_{\tilde{N}}))+G(\|\psi\|_{\mathcal{H}_\kappa})\geq E(\psi_{\mathcal{V}}(\tilde{x}_1),\dots,\psi_{\mathcal{V}}(\tilde{x}_{\tilde{N}}))+G(\|\psi_{\mathcal{V}}\|_{\mathcal{H}_\kappa})
 	\end{equation}
 
 	Therefore, any minimiser of \eqref{eq:RKHS_minimisation} must belong to $\mathcal{V}_{\tilde{\mathbf{x}}}$, provided that such a minimiser exists.
 \end{proof}
 
 \begin{proposition}[Regularised least-squares in an RKHS]\label{th:RKHS_regularisation}
-	Let $\tilde{N}\in\mathbb{N}^*$, $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\mathcal{U}^{\tilde{N}}$ pairwise distinct, $\tilde{\mathbf{z}}\triangleq(\tilde{z}_1,\dots,\tilde{z}_{\tilde{N}})\in\mathbb{R}^{\tilde{N}}$ and $\lambda\geq0$. The regularised least-squares problem:
+	Let $\tilde{N}\in\mathbb{N}^*$, $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\Omega^{\tilde{N}}$ pairwise distinct, $\tilde{\mathbf{z}}\triangleq(\tilde{z}_1,\dots,\tilde{z}_{\tilde{N}})\in\mathbb{R}^{\tilde{N}}$ and $\alpha_{\mathrm{RKHS}}\geq0$. The regularised least-squares problem:
 	\begin{equation}
-		\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}\left(\frac{1}{\tilde{N}}\sum_{i=1}^{\tilde{N}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\lambda\|\psi\|_{\mathcal{H}_k}^2\right)\label{eq:RKHS_LS}
+		\underset{\psi\in\mathcal{H}_\kappa}{\operatorname{argmin}}\left(\frac{1}{\tilde{N}}\sum_{i=1}^{\tilde{N}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\alpha_{\mathrm{RKHS}}\|\psi\|_{\mathcal{H}_\kappa}^2\right)\label{eq:RKHS_LS}
 	\end{equation}
-	admits a solution, unique for $\lambda>0$, and given by:
+	admits a solution, unique for $\alpha_{\mathrm{RKHS}}>0$, and given by:
 	\begin{equation}
-		\psi_{\mathrm{RKHS}}(x)=k(x,\tilde{\mathbf{x}})\left(k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda\tilde{N}I_{\tilde{N}}\right)^{-1}\tilde{\mathbf{z}}
+		\hat{\psi}_{\mathrm{RKHS}}(x)=\kappa(x,\tilde{\mathbf{x}})\left(\kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\alpha_{\mathrm{RKHS}}\tilde{N}\mathbf{I}_{\tilde{N}}\right)^{-1}\tilde{\mathbf{z}}
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	Let $\psi\in\mathcal{H}_k$, and let $\psi_{\mathcal{V}}$ denote its orthogonal projection onto $\mathcal{V}_{\tilde{\mathbf{x}}}$. As established in the proof of \Cref{th:representer}, replacing $\psi$ with $\psi_{\mathcal{V}}$ does not change the values $\psi(\tilde{x}_1),\dots,\psi(\tilde{x}_{\tilde{N}})$, and does not increase the norm. It is thus sufficient to minimise \eqref{eq:RKHS_LS} over $\mathcal{V}_{\tilde{\mathbf{x}}}$.
+	Let $\psi\in\mathcal{H}_\kappa$, and let $\psi_{\mathcal{V}}$ denote its orthogonal projection onto $\mathcal{V}_{\tilde{\mathbf{x}}}$. As established in the proof of \Cref{th:representer}, replacing $\psi$ with $\psi_{\mathcal{V}}$ does not change the values $\psi(\tilde{x}_1),\dots,\psi(\tilde{x}_{\tilde{N}})$, and does not increase the norm. It is thus sufficient to minimise \eqref{eq:RKHS_LS} over $\mathcal{V}_{\tilde{\mathbf{x}}}$.
 
 	Let $a\in\mathbb{R}^{\tilde{N}}$ such that $\psi=a^\top\Phi(\tilde{\mathbf{x}})$. By the reproducing property and the kernel trick, we have:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\psi(\tilde{\mathbf{x}})&=k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a\\
-		\|\psi\|_{\mathcal{H}_k}^2&=a^\top k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a
+		\psi(\tilde{\mathbf{x}})&=\kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a\\
+		\|\psi\|_{\mathcal{H}_\kappa}^2&=a^\top \kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a
 		\end{aligned}\right.
 	\end{equation}
 	and the objective function of \eqref{eq:RKHS_LS} becomes:
 	\begin{equation}
-		J:a\in\mathbb{R}^{\tilde{N}}\mapsto\frac{1}{\tilde{N}}\left\|k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a-\tilde{\mathbf{z}}\right\|_2^2+\lambda\:a^\top k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a
+		J:a\in\mathbb{R}^{\tilde{N}}\mapsto\frac{1}{\tilde{N}}\left\|\kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a-\tilde{\mathbf{z}}\right\|_2^2+\alpha_{\mathrm{RKHS}}\:a^\top \kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:a
 	\end{equation}
 
-	Since $k$ is SPD and the training points are pairwise distinct, $k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\succ0$. The function $J$ is thus strictly convex, and differentiating it with respect to $a$ yields:
+	Since $\kappa$ is SPD and the training points are pairwise distinct, $\kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\succ0$. The function $J$ is thus strictly convex, and differentiating it with respect to $a$ yields:
 	\begin{equation}
 		\begin{aligned}
 		&\frac{\partial J}{\partial a}=0\\
-		\iff\quad&\frac{2}{\tilde{N}}\:k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\left(\left(k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda\tilde{N}I_{\tilde{N}}\right)a-\tilde{\mathbf{z}}\right)=0\\
-		\iff\quad&a=\left(k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\lambda\tilde{N}I_{\tilde{N}}\right)^{-1}\tilde{\mathbf{z}}
+		\iff\quad&\frac{2}{\tilde{N}}\:\kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\left(\left(\kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\alpha_{\mathrm{RKHS}}\tilde{N}\mathbf{I}_{\tilde{N}}\right)a-\tilde{\mathbf{z}}\right)=0\\
+		\iff\quad&a=\left(\kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\alpha_{\mathrm{RKHS}}\tilde{N}\mathbf{I}_{\tilde{N}}\right)^{-1}\tilde{\mathbf{z}}
 		\end{aligned}
 	\end{equation}
-	which gives the expression of $\psi_{\mathrm{RKHS}}$.
+	which gives the expression of $\hat{\psi}_{\mathrm{RKHS}}$.
 
-	Finally, when $\lambda>0$, the norm of $\psi$ is strictly greater than that of $\psi_{\mathcal{V}}$ for every $\psi\notin\mathcal{V}_{\tilde{\mathbf{x}}}$, and so $\psi_{\mathrm{RKHS}}$ is the unique solution of \eqref{eq:RKHS_LS}. When $\lambda=0$, however, adding any element of $\mathcal{V}_{\tilde{\mathbf{x}}}^\perp$ to $\psi_{\mathrm{RKHS}}$ leaves the objective function unchanged, and the solution is not unique in general.
+	Finally, when $\alpha_{\mathrm{RKHS}}>0$, the norm of $\psi$ is strictly greater than that of $\psi_{\mathcal{V}}$ for every $\psi\notin\mathcal{V}_{\tilde{\mathbf{x}}}$, and so $\hat{\psi}_{\mathrm{RKHS}}$ is the unique solution of \eqref{eq:RKHS_LS}. When $\alpha_{\mathrm{RKHS}}=0$, however, adding any element of $\mathcal{V}_{\tilde{\mathbf{x}}}^\perp$ to $\hat{\psi}_{\mathrm{RKHS}}$ leaves the objective function unchanged, and the solution is not unique in general.
 \end{proof}
 
 \begin{remark}[Simple kriging in the RKHS]
 	For:
 	\begin{equation}
-		\lambda=\frac{1}{\tilde{N}}\:\tilde{R}
+		\alpha_{\mathrm{RKHS}}=\frac{1}{\tilde{N}}\:\tilde{\mathbf{R}}
 	\end{equation}
-	the least-squares estimator $\psi_{\mathrm{RKHS}}$ coincides with the centred SK estimator of \Cref{th:simple_kriging}. Simple kriging can therefore be interpreted as a regularised least-squares regression in $\mathcal{H}_k$ \cite{bib:GP-kernel-methods}. In the noiseless case $\tilde{R}=0$, the SK estimator is also the solution of the minimum-norm interpolation problem:
+	the least-squares estimator $\hat{\psi}_{\mathrm{RKHS}}$ coincides with the centred SK estimator of \Cref{th:simple_kriging}. Simple kriging can therefore be interpreted as a regularised least-squares regression in $\mathcal{H}_\kappa$ \cite{bib:GP-kernel-methods}. In the noiseless case $\tilde{\mathbf{R}}=0$, the SK estimator is also the solution of the minimum-norm interpolation problem:
 	\begin{equation}
-		\underset{\psi\in\mathcal{H}_k}{\operatorname{argmin}}\left\{\|\psi\|_{\mathcal{H}_k}\:\middle|\:\forall i\in[\![1,\tilde{N}]\!],\:\psi(\tilde{x}_i)=\tilde{z}_i\right\}
+		\underset{\psi\in\mathcal{H}_\kappa}{\operatorname{argmin}}\left\{\|\psi\|_{\mathcal{H}_\kappa}\:\middle|\:\forall i\in[\![1,\tilde{N}]\!],\:\psi(\tilde{x}_i)=\tilde{z}_i\right\}
 	\end{equation}
 \end{remark}
 
 \begin{remark}[GP and RKHS correspondence]
-	The GP and RKHS viewpoints thus give two interpretations of the same estimator. The first one is probabilistic, as the mean of the conditional distribution of \Cref{th:simple_kriging_conditional}, while the second one is deterministic, as the solution of the variational problem \eqref{eq:RKHS_LS}. Moreover, under the assumptions of \Cref{th:Mercer}, it can be shown \cite{bib:Rasmussen-relationships} that $\mathcal{H}_k$ is the set of the functions:
+	The GP and RKHS viewpoints thus give two interpretations of the same estimator. The first one is probabilistic, as the mean of the conditional distribution of \Cref{th:simple_kriging_conditional}, while the second one is deterministic, as the solution of the variational problem \eqref{eq:RKHS_LS}. Moreover, under the assumptions of \Cref{th:Mercer}, it can be shown \cite{bib:Rasmussen-relationships} that $\mathcal{H}_\kappa$ is the set of the functions:
 	\begin{equation}
 		\varphi=\sum_{i=1}^{+\infty}a_i\:\psi_i
 	\end{equation}
 	such that:
 	\begin{equation}
-		\|\varphi\|_{\mathcal{H}_k}^2=\sum_{i=1}^{+\infty}\frac{a_i^2}{\lambda_i}<+\infty
+		\|\varphi\|_{\mathcal{H}_\kappa}^2=\sum_{i=1}^{+\infty}\frac{a_i^2}{\lambda_i}<+\infty
 	\end{equation}
-	where $(\lambda_i,\psi_i)_{i\in\mathbb{N}^*}$ are the Mercer eigenpairs of $k$. Since the eigenvalues converge to $0$, the coefficients $a_i$ must decay fast enough for this norm to be finite, which imposes a regularity condition on the elements of $\mathcal{H}_k$.
+	where $(\lambda_i,\psi_i)_{i\in\mathbb{N}^*}$ are the Mercer eigenpairs of $\kappa$. Since the eigenvalues converge to $0$, the coefficients $a_i$ must decay fast enough for this norm to be finite, which imposes a regularity condition on the elements of $\mathcal{H}_\kappa$.
 
-	Choosing a kernel thus amounts to choosing a regularity class for the unknown field. In particular, for $\mathcal{U}=\mathbb{R}^{d_x}$, the native RKHS of a Matérn kernel of smoothness $\nu$ is the Sobolev space of order $\nu+d_x/2$, up to an equivalent norm \cite{bib:Wendland}, whereas that of the SE kernel only contains infinitely differentiable functions.
+	Choosing a kernel thus amounts to choosing a regularity class for the unknown field. In particular, for $\Omega=\mathbb{R}^{d_x}$, the native RKHS of a Matérn kernel of smoothness $\nu$ is the Sobolev space of order $\nu+d_x/2$, up to an equivalent norm \cite{bib:Wendland}, whereas that of the SE kernel only contains infinitely differentiable functions.
 \end{remark}
 
-\Cref{th:power_function} extends this correspondence to the estimation error, by showing that the error committed on a function of unit norm of $\mathcal{H}_k$ is at most the standard deviation of the same error for a GP of covariance kernel $k$.
+\Cref{th:power_function} extends this correspondence to the estimation error, by showing that the error committed on a function of unit norm of $\mathcal{H}_\kappa$ is at most the standard deviation of the same error for a GP of covariance kernel $\kappa$.
 
 \begin{proposition}[Worst-case error interpretation]\label{th:power_function}
-	Let $\tilde{N}\in\mathbb{N}^*$, $\tilde{\mathbf{x}}\in\mathcal{U}^{\tilde{N}}$ pairwise distinct, $x\in\mathcal{U}$ and $W\in\mathbb{R}^{\tilde{N}}$. Let $\psi\in\mathcal{H}_k$ and $f\sim\mathcal{GP}(0,k)$. Then:
+	Let $\tilde{N}\in\mathbb{N}^*$, $\tilde{\mathbf{x}}\in\Omega^{\tilde{N}}$ pairwise distinct, $x\in\Omega$ and $\mathbf{W}\in\mathbb{R}^{\tilde{N}}$. Let $\psi\in\mathcal{H}_\kappa$ and $h\sim\mathcal{GP}(0,\kappa)$. Then:
 	\begin{equation}
-		\left|W^\top\psi(\tilde{\mathbf{x}})-\psi(x)\right|\leq\|\psi\|_{\mathcal{H}_k}\:\sqrt{\mathbb{V}\left[W^\top f(\tilde{\mathbf{x}})-f(x)\right]}\label{eq:worst_case_error}
+		\left|\mathbf{W}^\top\psi(\tilde{\mathbf{x}})-\psi(x)\right|\leq\|\psi\|_{\mathcal{H}_\kappa}\:\sqrt{\mathbb{V}\left[\mathbf{W}^\top h(\tilde{\mathbf{x}})-h(x)\right]}\label{eq:worst_case_error}
 	\end{equation}
 	with equality when:
 	\begin{equation}
-		\psi=W^\top\Phi(\tilde{\mathbf{x}})-\Phi(x)
+		\psi=\mathbf{W}^\top\Phi(\tilde{\mathbf{x}})-\Phi(x)
 	\end{equation}
 
-	Furthermore, the right-hand side of \eqref{eq:worst_case_error} is minimised by the weights of the SK estimator of \Cref{th:simple_kriging} for $R=0$ and $\tilde{R}=0$, which gives:
+	Furthermore, the right-hand side of \eqref{eq:worst_case_error} is minimised by the weights of the SK estimator of \Cref{th:simple_kriging} for $\mathbf{R}=0$ and $\tilde{\mathbf{R}}=0$, which gives:
 	\begin{equation}
-		\left|\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\psi(\tilde{\mathbf{x}}),0)-\psi(x)\right|\leq\|\psi\|_{\mathcal{H}_k}\:\sqrt{R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})}
+		\left|\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\psi(\tilde{\mathbf{x}}),0)-\psi(x)\right|\leq\|\psi\|_{\mathcal{H}_\kappa}\:\sqrt{\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})}
 	\end{equation}
-	where $\sqrt{R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})}$ is known as the power function \cite{bib:Wendland}.
+	where $\sqrt{\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})}$ is known as the power function \cite{bib:Wendland}.
 \end{proposition}
 
 \begin{proof}
-	Let $w_1,\dots,w_{\tilde{N}}$ denote the components of $W$, and let:
+	Let $w_1,\dots,w_{\tilde{N}}$ denote the components of $\mathbf{W}$, and let:
 	\begin{equation}
-		\varphi\triangleq W^\top\Phi(\tilde{\mathbf{x}})-\Phi(x)=\sum_{i=1}^{\tilde{N}}w_i\:\Phi(\tilde{x}_i)-\Phi(x)
+		\varphi\triangleq \mathbf{W}^\top\Phi(\tilde{\mathbf{x}})-\Phi(x)=\sum_{i=1}^{\tilde{N}}w_i\:\Phi(\tilde{x}_i)-\Phi(x)
 	\end{equation}
 
 	The reproducing property and the Cauchy-Schwarz inequality give:
 	\begin{equation}
 		\begin{aligned}
-		\left|W^\top\psi(\tilde{\mathbf{x}})-\psi(x)\right|&=\left|\sum_{i=1}^{\tilde{N}}w_i\:\langle\psi\mid\Phi(\tilde{x}_i)\rangle_{\mathcal{H}_k}-\langle\psi\mid\Phi(x)\rangle_{\mathcal{H}_k}\right|\\
-		&=\left|\langle\psi\mid\varphi\rangle_{\mathcal{H}_k}\right|\\
-		&\leq\|\psi\|_{\mathcal{H}_k}\:\|\varphi\|_{\mathcal{H}_k}
+		\left|\mathbf{W}^\top\psi(\tilde{\mathbf{x}})-\psi(x)\right|&=\left|\sum_{i=1}^{\tilde{N}}w_i\:\langle\psi\mid\Phi(\tilde{x}_i)\rangle_{\mathcal{H}_\kappa}-\langle\psi\mid\Phi(x)\rangle_{\mathcal{H}_\kappa}\right|\\
+		&=\left|\langle\psi\mid\varphi\rangle_{\mathcal{H}_\kappa}\right|\\
+		&\leq\|\psi\|_{\mathcal{H}_\kappa}\:\|\varphi\|_{\mathcal{H}_\kappa}
 		\end{aligned}
 	\end{equation}
 	with equality when $\psi=\varphi$.
@@ -245,132 +245,132 @@ In this section, we let $k$ be an SPD kernel on $\mathcal{U}$, and $(\mathcal{H}
 	We also have:
 	\begin{equation}
 		\begin{aligned}
-		\|\varphi\|_{\mathcal{H}_k}^2&=\sum_{i=1}^{\tilde{N}}\sum_{j=1}^{\tilde{N}}w_i\:w_j\:\langle\Phi(\tilde{x}_i)\mid\Phi(\tilde{x}_j)\rangle_{\mathcal{H}_k}-2\sum_{i=1}^{\tilde{N}}w_i\:\langle\Phi(\tilde{x}_i)\mid\Phi(x)\rangle_{\mathcal{H}_k}\\
-		&\qquad+\langle\Phi(x)\mid\Phi(x)\rangle_{\mathcal{H}_k}\\
-		&=\sum_{i=1}^{\tilde{N}}\sum_{j=1}^{\tilde{N}}w_i\:w_j\:k(\tilde{x}_i,\tilde{x}_j)-2\sum_{i=1}^{\tilde{N}}w_i\:k(\tilde{x}_i,x)+k(x,x)\\
-		&=W^\top k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:W-2W^\top k(\tilde{\mathbf{x}},x)+k(x,x)
+		\|\varphi\|_{\mathcal{H}_\kappa}^2&=\sum_{i=1}^{\tilde{N}}\sum_{j=1}^{\tilde{N}}w_i\:w_j\:\langle\Phi(\tilde{x}_i)\mid\Phi(\tilde{x}_j)\rangle_{\mathcal{H}_\kappa}-2\sum_{i=1}^{\tilde{N}}w_i\:\langle\Phi(\tilde{x}_i)\mid\Phi(x)\rangle_{\mathcal{H}_\kappa}\\
+		&\qquad+\langle\Phi(x)\mid\Phi(x)\rangle_{\mathcal{H}_\kappa}\\
+		&=\sum_{i=1}^{\tilde{N}}\sum_{j=1}^{\tilde{N}}w_i\:w_j\:\kappa(\tilde{x}_i,\tilde{x}_j)-2\sum_{i=1}^{\tilde{N}}w_i\:\kappa(\tilde{x}_i,x)+\kappa(x,x)\\
+		&=\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\mathbf{W}-2\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)+\kappa(x,x)
 		\end{aligned}
 	\end{equation}
-	which is exactly \eqref{eq:generic_kriging_variance} for $R=0$ and $\tilde{R}=0$, and thus the variance of $W^\top f(\tilde{\mathbf{x}})-f(x)$. As established in the proof of \Cref{th:simple_kriging}, this variance is minimised by the SK weights, for which it is equal to $R_{\mathrm{SK}}(x,\tilde{\mathbf{x}})$.
+	which is exactly \eqref{eq:generic_kriging_variance} for $\mathbf{R}=0$ and $\tilde{\mathbf{R}}=0$, and thus the variance of $\mathbf{W}^\top h(\tilde{\mathbf{x}})-h(x)$. As established in the proof of \Cref{th:simple_kriging}, this variance is minimised by the SK weights, for which it is equal to $\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})$.
 \end{proof}
 
-It must be noted that this interpretation only holds for noiseless observations of a function of $\mathcal{H}_k$, whose norm is unknown in practice. Furthermore, it can be shown \cite{bib:GP-kernel-methods} that the sample paths of a GP of covariance kernel $k$ almost surely do not belong to $\mathcal{H}_k$ when it is infinite-dimensional.
+It must be noted that this interpretation only holds for noiseless observations of a function of $\mathcal{H}_\kappa$, whose norm is unknown in practice. Furthermore, it can be shown \cite{bib:GP-kernel-methods} that the sample paths of a GP of covariance kernel $\kappa$ almost surely do not belong to $\mathcal{H}_\kappa$ when it is infinite-dimensional.
 
 \subsection{Kernel Mean Embedding}
 
-Beyond evaluating functions inside $\mathcal{H}_k$, the feature map can also be used to represent the moments of a probability distribution. \Cref{th:KME} introduces the kernel mean embedding (KME) of a random variable \cite{bib:KME}, while \Cref{th:joint_KME} generalises this concept to two random variables.
+Beyond evaluating functions inside $\mathcal{H}_\kappa$, the feature map can also be used to represent the moments of a probability distribution. \Cref{th:KME} introduces the kernel mean embedding (KME) of a random variable \cite{bib:KME}, while \Cref{th:joint_KME} generalises this concept to two random variables.
 
 \begin{definition}[Kernel mean embedding]\label{th:KME}
-	Let $X$ be a random variable on $\mathcal{U}$ with probability density $p$, and $\varphi\in\mathcal{H}_k$. The KME of $X$ is:
+	Let $X$ be a random variable on $\Omega$ with probability density $p$, and $\varphi\in\mathcal{H}_\kappa$. The KME of $X$ is:
 	\begin{equation}
-		\mu_X\triangleq\mathbb{E}_p\left[\Phi(X)\right]=\int_{\mathcal{U}}{\Phi(x)\:p(x)\:dx}\in\mathcal{H}_k\label{eq:KME}
+		\mu_X\triangleq\mathbb{E}_p\left[\Phi(X)\right]=\int_{\Omega}{\Phi(x)\:p(x)\:dx}\in\mathcal{H}_\kappa\label{eq:KME}
 	\end{equation}
 
-	By the reproducing property, the expectation of $\varphi(X)$ can then be expressed as an inner product in $\mathcal{H}_k$:
+	By the reproducing property, the expectation of $\varphi(X)$ can then be expressed as an inner product in $\mathcal{H}_\kappa$:
 	\begin{equation}
 		\begin{aligned}
-		\mathbb{E}_p\left[\varphi(X)\right]&=\int_{\mathcal{U}}{\varphi(x)\:p(x)\:dx}\\
-		&=\int_{\mathcal{U}}{\langle\varphi\mid\Phi(x)\rangle_{\mathcal{H}_k}\:p(x)\:dx}\\
-		&=\left\langle\varphi\:\middle|\:\int_{\mathcal{U}}{\Phi(x)\:p(x)\:dx}\right\rangle_{\mathcal{H}_k}\\
-		&=\langle\varphi\mid\mu_X\rangle_{\mathcal{H}_k}
+		\mathbb{E}_p\left[\varphi(X)\right]&=\int_{\Omega}{\varphi(x)\:p(x)\:dx}\\
+		&=\int_{\Omega}{\langle\varphi\mid\Phi(x)\rangle_{\mathcal{H}_\kappa}\:p(x)\:dx}\\
+		&=\left\langle\varphi\:\middle|\:\int_{\Omega}{\Phi(x)\:p(x)\:dx}\right\rangle_{\mathcal{H}_\kappa}\\
+		&=\langle\varphi\mid\mu_X\rangle_{\mathcal{H}_\kappa}
 		\end{aligned}\label{eq:KME_expectation}
 	\end{equation}
 \end{definition}
 
-Since \eqref{eq:KME} integrates a function taking its values in $\mathcal{H}_k$, its existence is not granted. \Cref{th:KME_existence} gives a sufficient condition \cite{bib:RKHS-Dumbgen}, which every bounded kernel satisfies.
+Since \eqref{eq:KME} integrates a function taking its values in $\mathcal{H}_\kappa$, its existence is not granted. \Cref{th:KME_existence} gives a sufficient condition \cite{bib:RKHS-Dumbgen}, which every bounded kernel satisfies.
 
 \begin{proposition}[Existence of the KME]\label{th:KME_existence}
-	If $\mathbb{E}_p\left[\sqrt{k(X,X)}\right]<\infty$, then $\mu_X$ is well defined, as the unique element of $\mathcal{H}_k$ for which \eqref{eq:KME_expectation} holds for all $\varphi\in\mathcal{H}_k$. Moreover:
+	If $\mathbb{E}_p\left[\sqrt{\kappa(X,X)}\right]<\infty$, then $\mu_X$ is well defined, as the unique element of $\mathcal{H}_\kappa$ for which \eqref{eq:KME_expectation} holds for all $\varphi\in\mathcal{H}_\kappa$. Moreover:
 	\begin{equation}
-		\forall x\in\mathcal{U},\:\mu_X(x)=\mathbb{E}_p\left[k(X,x)\right]
+		\forall x\in\Omega,\:\mu_X(x)=\mathbb{E}_p\left[\kappa(X,x)\right]
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	Let $\varphi\in\mathcal{H}_k$. We have:
+	Let $\varphi\in\mathcal{H}_\kappa$. We have:
 	\begin{equation}
 		\begin{aligned}
 		\left|\mathbb{E}_p\left[\varphi(X)\right]\right|&\leq\mathbb{E}_p\left[\left|\varphi(X)\right|\right]\\
-		&=\mathbb{E}_p\left[\left|\langle\varphi\mid\Phi(X)\rangle_{\mathcal{H}_k}\right|\right]\\
-		&\leq\|\varphi\|_{\mathcal{H}_k}\:\mathbb{E}_p\left[\|\Phi(X)\|_{\mathcal{H}_k}\right]\\
-		&=\|\varphi\|_{\mathcal{H}_k}\:\mathbb{E}_p\left[\sqrt{k(X,X)}\right]
+		&=\mathbb{E}_p\left[\left|\langle\varphi\mid\Phi(X)\rangle_{\mathcal{H}_\kappa}\right|\right]\\
+		&\leq\|\varphi\|_{\mathcal{H}_\kappa}\:\mathbb{E}_p\left[\|\Phi(X)\|_{\mathcal{H}_\kappa}\right]\\
+		&=\|\varphi\|_{\mathcal{H}_\kappa}\:\mathbb{E}_p\left[\sqrt{\kappa(X,X)}\right]
 		\end{aligned}
 	\end{equation}
 
-	By linearity of the expectation, $\varphi\mapsto\mathbb{E}_p\left[\varphi(X)\right]$ is thus a continuous linear form on $\mathcal{H}_k$. By the Riesz representation theorem \cite{bib:Riesz}, it is the inner product with a unique element of $\mathcal{H}_k$. This element is the meaning given to the integral of \eqref{eq:KME}, and it satisfies \eqref{eq:KME_expectation} by construction.
+	By linearity of the expectation, $\varphi\mapsto\mathbb{E}_p\left[\varphi(X)\right]$ is thus a continuous linear form on $\mathcal{H}_\kappa$. By the Riesz representation theorem \cite{bib:Riesz}, it is the inner product with a unique element of $\mathcal{H}_\kappa$. This element is the meaning given to the integral of \eqref{eq:KME}, and it satisfies \eqref{eq:KME_expectation} by construction.
 
-	Finally, let $x\in\mathcal{U}$. The reproducing property and \eqref{eq:KME_expectation} applied to $\varphi=\Phi(x)$ give:
+	Finally, let $x\in\Omega$. The reproducing property and \eqref{eq:KME_expectation} applied to $\varphi=\Phi(x)$ give:
 	\begin{equation}
-		\mu_X(x)=\langle\mu_X\mid\Phi(x)\rangle_{\mathcal{H}_k}=\mathbb{E}_p\left[(\Phi(x))(X)\right]=\mathbb{E}_p\left[k(X,x)\right]
+		\mu_X(x)=\langle\mu_X\mid\Phi(x)\rangle_{\mathcal{H}_\kappa}=\mathbb{E}_p\left[(\Phi(x))(X)\right]=\mathbb{E}_p\left[\kappa(X,x)\right]
 	\end{equation}
 \end{proof}
 
 It must be noted that two different probability densities may have the same KME. A kernel for which the map $p\mapsto\mu_X$ is injective is called a characteristic kernel \cite{bib:characteristic-kernels}. In this case, $\mu_X$ uniquely determines $p$. In particular, the SE and Matérn kernels of \cref{sec:covariance_kernels} are characteristic.
 
 \begin{definition}[Joint KME]\label{th:joint_KME}
-	Let $X$ and $Z$ be random variables on two sets $\mathcal{U}_X$ and $\mathcal{U}_Z$, with joint probability density $p_{XZ}$. Let $k_X$ and $k_Z$ be SPD kernels on $\mathcal{U}_X$ and $\mathcal{U}_Z$, with respective native RKHSs $(\mathcal{H}_{k_X},\langle\cdot\mid\cdot\rangle_{\mathcal{H}_{k_X}})$ and $(\mathcal{H}_{k_Z},\langle\cdot\mid\cdot\rangle_{\mathcal{H}_{k_Z}})$, and feature maps $\Phi_X$ and $\Phi_Z$. The joint KME of $(X,Z)$ is defined as:
+	Let $X$ and $Z$ be random variables on two sets $\Omega_X$ and $\Omega_Z$, with joint probability density $p_{XZ}$. Let $\kappa_X$ and $\kappa_Z$ be SPD kernels on $\Omega_X$ and $\Omega_Z$, with respective native RKHSs $(\mathcal{H}_{\kappa_X},\langle\cdot\mid\cdot\rangle_{\mathcal{H}_{\kappa_X}})$ and $(\mathcal{H}_{\kappa_Z},\langle\cdot\mid\cdot\rangle_{\mathcal{H}_{\kappa_Z}})$, and feature maps $\Phi_X$ and $\Phi_Z$. The joint KME of $(X,Z)$ is defined as:
 	\begin{equation}
 		\begin{aligned}
 		\mu_{XZ}&\triangleq\mathbb{E}_{p_{XZ}}\left[\Phi_X(X)\otimes\Phi_Z(Z)\right]\\
-		&=\iint_{\mathcal{U}_X\times\mathcal{U}_Z}{\Phi_X(x)\otimes\Phi_Z(z)\:p_{XZ}(x,z)\:dx\:dz}\\
-		&\in\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}
+		&=\iint_{\Omega_X\times\Omega_Z}{\Phi_X(x)\otimes\Phi_Z(z)\:p_{XZ}(x,z)\:dx\:dz}\\
+		&\in\mathcal{H}_{\kappa_X}\otimes\mathcal{H}_{\kappa_Z}
 		\end{aligned}
 	\end{equation}
 	where $\otimes$ denotes the tensor product in the product space.
 \end{definition}
 
-The space $\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}$ is the completion of the set spanned by the tensors $\varphi\otimes\psi$, for $\varphi\in\mathcal{H}_{k_X}$ and $\psi\in\mathcal{H}_{k_Z}$, under the inner product defined on these generators by:
+The space $\mathcal{H}_{\kappa_X}\otimes\mathcal{H}_{\kappa_Z}$ is the completion of the set spanned by the tensors $\varphi\otimes\psi$, for $\varphi\in\mathcal{H}_{\kappa_X}$ and $\psi\in\mathcal{H}_{\kappa_Z}$, under the inner product defined on these generators by:
 \begin{equation}
-	\langle\varphi\otimes\psi\mid\varphi'\otimes\psi'\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}\triangleq\langle\varphi\mid\varphi'\rangle_{\mathcal{H}_{k_X}}\langle\psi\mid\psi'\rangle_{\mathcal{H}_{k_Z}}
+	\langle\varphi\otimes\psi\mid\varphi'\otimes\psi'\rangle_{\mathcal{H}_{\kappa_X}\otimes\mathcal{H}_{\kappa_Z}}\triangleq\langle\varphi\mid\varphi'\rangle_{\mathcal{H}_{\kappa_X}}\langle\psi\mid\psi'\rangle_{\mathcal{H}_{\kappa_Z}}
 \end{equation}
 
-Each of its elements $T$ also acts as a continuous linear operator from $\mathcal{H}_{k_Z}$ to $\mathcal{H}_{k_X}$, the tensor $\varphi'\otimes\psi'$ mapping $\psi$ to $\langle\psi'\mid\psi\rangle_{\mathcal{H}_{k_Z}}\:\varphi'$, so that:
+Each of its elements $T$ also acts as a continuous linear operator from $\mathcal{H}_{\kappa_Z}$ to $\mathcal{H}_{\kappa_X}$, the tensor $\varphi'\otimes\psi'$ mapping $\psi$ to $\langle\psi'\mid\psi\rangle_{\mathcal{H}_{\kappa_Z}}\:\varphi'$, so that:
 \begin{equation}
-	\forall\varphi\in\mathcal{H}_{k_X},\:\forall\psi\in\mathcal{H}_{k_Z},\:\langle\varphi\mid T\psi\rangle_{\mathcal{H}_{k_X}}=\langle\varphi\otimes\psi\mid T\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}
+	\forall\varphi\in\mathcal{H}_{\kappa_X},\:\forall\psi\in\mathcal{H}_{\kappa_Z},\:\langle\varphi\mid T\psi\rangle_{\mathcal{H}_{\kappa_X}}=\langle\varphi\otimes\psi\mid T\rangle_{\mathcal{H}_{\kappa_X}\otimes\mathcal{H}_{\kappa_Z}}
 \end{equation}
 
 Similarly to \Cref{th:KME_existence}, \Cref{th:cross_covariance} gives a sufficient condition for the existence of $\mu_{XZ}$. It also generalises \eqref{eq:KME_expectation} to expectations involving both $X$ and $Z$ \cite{bib:kernel-embeddings}.
 
 \begin{proposition}[Existence of the joint KME]\label{th:cross_covariance}
-	With the notations of \Cref{th:joint_KME}, if $\mathbb{E}_{p_{XZ}}\left[\sqrt{k_X(X,X)\:k_Z(Z,Z)}\right]<\infty$, then $\mu_{XZ}$ is well defined and:
+	With the notations of \Cref{th:joint_KME}, if $\mathbb{E}_{p_{XZ}}\left[\sqrt{\kappa_X(X,X)\:\kappa_Z(Z,Z)}\right]<\infty$, then $\mu_{XZ}$ is well defined and:
 	\begin{equation}
-		\forall\varphi\in\mathcal{H}_{k_X},\:\forall\psi\in\mathcal{H}_{k_Z},\:\langle\varphi\mid\mu_{XZ}\:\psi\rangle_{\mathcal{H}_{k_X}}=\mathbb{E}_{p_{XZ}}\left[\varphi(X)\:\psi(Z)\right]
+		\forall\varphi\in\mathcal{H}_{\kappa_X},\:\forall\psi\in\mathcal{H}_{\kappa_Z},\:\langle\varphi\mid\mu_{XZ}\:\psi\rangle_{\mathcal{H}_{\kappa_X}}=\mathbb{E}_{p_{XZ}}\left[\varphi(X)\:\psi(Z)\right]
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	Let $x\in\mathcal{U}_X$ and $z\in\mathcal{U}_Z$. We have:
+	Let $x\in\Omega_X$ and $z\in\Omega_Z$. We have:
 	\begin{equation}
-		\|\Phi_X(x)\otimes\Phi_Z(z)\|_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}^2=k_X(x,x)\:k_Z(z,z)
+		\|\Phi_X(x)\otimes\Phi_Z(z)\|_{\mathcal{H}_{\kappa_X}\otimes\mathcal{H}_{\kappa_Z}}^2=\kappa_X(x,x)\:\kappa_Z(z,z)
 	\end{equation}
 
-	The same arguments presented in the proof of \Cref{th:KME_existence} can be applied in $\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}$ to define $\mu_{XZ}$ as the unique element of this space such that, for all $T\in\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}$:
+	The same arguments presented in the proof of \Cref{th:KME_existence} can be applied in $\mathcal{H}_{\kappa_X}\otimes\mathcal{H}_{\kappa_Z}$ to define $\mu_{XZ}$ as the unique element of this space such that, for all $T\in\mathcal{H}_{\kappa_X}\otimes\mathcal{H}_{\kappa_Z}$:
 	\begin{equation}
-		\langle T\mid\mu_{XZ}\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}=\mathbb{E}_{p_{XZ}}\left[\langle T\mid\Phi_X(X)\otimes\Phi_Z(Z)\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}\right]
+		\langle T\mid\mu_{XZ}\rangle_{\mathcal{H}_{\kappa_X}\otimes\mathcal{H}_{\kappa_Z}}=\mathbb{E}_{p_{XZ}}\left[\langle T\mid\Phi_X(X)\otimes\Phi_Z(Z)\rangle_{\mathcal{H}_{\kappa_X}\otimes\mathcal{H}_{\kappa_Z}}\right]
 	\end{equation}
 
-	Let $\varphi\in\mathcal{H}_{k_X}$ and $\psi\in\mathcal{H}_{k_Z}$. Applying the previous results with $T=\varphi\otimes\psi$ yields:
+	Let $\varphi\in\mathcal{H}_{\kappa_X}$ and $\psi\in\mathcal{H}_{\kappa_Z}$. Applying the previous results with $T=\varphi\otimes\psi$ yields:
 	\begin{equation}
 		\begin{aligned}
-		\langle\varphi\mid\mu_{XZ}\:\psi\rangle_{\mathcal{H}_{k_X}}&=\langle\varphi\otimes\psi\mid\mu_{XZ}\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}\\
-		&=\mathbb{E}_{p_{XZ}}\left[\langle\varphi\otimes\psi\mid\Phi_X(X)\otimes\Phi_Z(Z)\rangle_{\mathcal{H}_{k_X}\otimes\mathcal{H}_{k_Z}}\right]\\
-		&=\mathbb{E}_{p_{XZ}}\left[\langle\varphi\mid\Phi_X(X)\rangle_{\mathcal{H}_{k_X}}\langle\psi\mid\Phi_Z(Z)\rangle_{\mathcal{H}_{k_Z}}\right]\\
+		\langle\varphi\mid\mu_{XZ}\:\psi\rangle_{\mathcal{H}_{\kappa_X}}&=\langle\varphi\otimes\psi\mid\mu_{XZ}\rangle_{\mathcal{H}_{\kappa_X}\otimes\mathcal{H}_{\kappa_Z}}\\
+		&=\mathbb{E}_{p_{XZ}}\left[\langle\varphi\otimes\psi\mid\Phi_X(X)\otimes\Phi_Z(Z)\rangle_{\mathcal{H}_{\kappa_X}\otimes\mathcal{H}_{\kappa_Z}}\right]\\
+		&=\mathbb{E}_{p_{XZ}}\left[\langle\varphi\mid\Phi_X(X)\rangle_{\mathcal{H}_{\kappa_X}}\langle\psi\mid\Phi_Z(Z)\rangle_{\mathcal{H}_{\kappa_Z}}\right]\\
 		&=\mathbb{E}_{p_{XZ}}\left[\varphi(X)\:\psi(Z)\right]
 		\end{aligned}
 	\end{equation}
 \end{proof}
 
-\Cref{th:conditional_KME} introduces the embedding of a conditional law, and \Cref{th:conditional_operator} shows that it depends linearly on the feature of the value taken by the conditioning variable \cite{bib:conditional-embeddings}. In the following, $\mu_{ZX}$ and $\mu_{XX}$ denote the joint KMEs of $(Z,X)$ and of $(X,X)$, the latter being taken under the kernel $k_X$ alone.
+\Cref{th:conditional_KME} introduces the embedding of a conditional law, and \Cref{th:conditional_operator} shows that it depends linearly on the feature of the value taken by the conditioning variable \cite{bib:conditional-embeddings}. In the following, $\mu_{ZX}$ and $\mu_{XX}$ denote the joint KMEs of $(Z,X)$ and of $(X,X)$, the latter being taken under the kernel $\kappa_X$ alone.
 
 \begin{definition}[Conditional KME]\label{th:conditional_KME}
-	With the notations of \Cref{th:joint_KME}, let $p_{Z|X}$ be the conditional probability density of $Z$ given $X$, and $x\in\mathcal{U}_X$. The conditional KME of $Z$ given $X=x$ is:
+	With the notations of \Cref{th:joint_KME}, let $p_{Z|X}$ be the conditional probability density of $Z$ given $X$, and $x\in\Omega_X$. The conditional KME of $Z$ given $X=x$ is:
 	\begin{equation}
-		\mu_{Z|x}\triangleq\mathbb{E}\left[\Phi_Z(Z)|X=x\right]=\int_{\mathcal{U}_Z}{\Phi_Z(z)\:p_{Z|X}(z|x)\:dz}\in\mathcal{H}_{k_Z}\label{eq:conditional_KME}
+		\mu_{Z|x}\triangleq\mathbb{E}\left[\Phi_Z(Z)|X=x\right]=\int_{\Omega_Z}{\Phi_Z(z)\:p_{Z|X}(z|x)\:dz}\in\mathcal{H}_{\kappa_Z}\label{eq:conditional_KME}
 	\end{equation}
 
 	As in \Cref{th:KME}, it can be used to express conditional expectations in terms of inner products:
 	\begin{equation}
-		\forall\psi\in\mathcal{H}_{k_Z},\:\mathbb{E}[\psi(Z)|X=x]=\langle\psi\mid\mu_{Z|x}\rangle_{\mathcal{H}_{k_Z}}
+		\forall\psi\in\mathcal{H}_{\kappa_Z},\:\mathbb{E}[\psi(Z)|X=x]=\langle\psi\mid\mu_{Z|x}\rangle_{\mathcal{H}_{\kappa_Z}}
 	\end{equation}
 \end{definition}
 
@@ -379,16 +379,16 @@ Similarly to \Cref{th:KME_existence}, \Cref{th:cross_covariance} gives a suffici
 	\begin{equation}
 		\psi\mapsto\mathbb{E}[\psi(Z)|X=\cdot]
 	\end{equation}
-	is a continuous linear operator from $\mathcal{H}_{k_Z}$ to $\mathcal{H}_{k_X}$.
+	is a continuous linear operator from $\mathcal{H}_{\kappa_Z}$ to $\mathcal{H}_{\kappa_X}$.
 
-	We also let $\mu_{Z|X}$ be its adjoint, \textit{i.e.} the continuous linear operator from $\mathcal{H}_{k_X}$ to $\mathcal{H}_{k_Z}$ such that:
+	We also let $\mu_{Z|X}$ be its adjoint, \textit{i.e.} the continuous linear operator from $\mathcal{H}_{\kappa_X}$ to $\mathcal{H}_{\kappa_Z}$ such that:
 	\begin{equation}
-		\forall\varphi\in\mathcal{H}_{k_X},\:\forall\psi\in\mathcal{H}_{k_Z},\:\langle\psi\mid\mu_{Z|X}\:\varphi\rangle_{\mathcal{H}_{k_Z}}=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\varphi\rangle_{\mathcal{H}_{k_X}}
+		\forall\varphi\in\mathcal{H}_{\kappa_X},\:\forall\psi\in\mathcal{H}_{\kappa_Z},\:\langle\psi\mid\mu_{Z|X}\:\varphi\rangle_{\mathcal{H}_{\kappa_Z}}=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\varphi\rangle_{\mathcal{H}_{\kappa_X}}
 	\end{equation}
 
 	The conditional KME is then linear in the feature of the conditioning value:
 	\begin{equation}
-		\forall x\in\mathcal{U}_X,\:\mu_{Z|x}=\mu_{Z|X}\Phi_X(x)
+		\forall x\in\Omega_X,\:\mu_{Z|x}=\mu_{Z|X}\Phi_X(x)
 	\end{equation}
 	and $\mu_{Z|X}$ maps the embeddings of $X$ onto those of $(Z,X)$ and $Z$:
 	\begin{equation}
@@ -400,31 +400,31 @@ Similarly to \Cref{th:KME_existence}, \Cref{th:cross_covariance} gives a suffici
 \end{proposition}
 
 \begin{proof}
-	Let $\varphi\in\mathcal{H}_{k_X}$, $\psi\in\mathcal{H}_{k_Z}$ and $x\in\mathcal{U}_X$. We have:
+	Let $\varphi\in\mathcal{H}_{\kappa_X}$, $\psi\in\mathcal{H}_{\kappa_Z}$ and $x\in\Omega_X$. We have:
 	\begin{equation}
 		\begin{aligned}
-		\langle\psi\mid\mu_{Z|x}\rangle_{\mathcal{H}_{k_Z}}&=\mathbb{E}[\psi(Z)|X=x]\\
-		&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\Phi_X(x)\rangle_{\mathcal{H}_{k_X}}\\
-		&=\langle\psi\mid\mu_{Z|X}\Phi_X(x)\rangle_{\mathcal{H}_{k_Z}}
+		\langle\psi\mid\mu_{Z|x}\rangle_{\mathcal{H}_{\kappa_Z}}&=\mathbb{E}[\psi(Z)|X=x]\\
+		&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\Phi_X(x)\rangle_{\mathcal{H}_{\kappa_X}}\\
+		&=\langle\psi\mid\mu_{Z|X}\Phi_X(x)\rangle_{\mathcal{H}_{\kappa_Z}}
 		\end{aligned}
 	\end{equation}
 
 	Similarly, the tower property of conditional expectation yields:
 	\begin{equation}
 		\begin{aligned}
-		\langle\psi\mid\mu_{Z|X}\:\mu_{XX}\:\varphi\rangle_{\mathcal{H}_{k_Z}}&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\mu_{XX}\:\varphi\rangle_{\mathcal{H}_{k_X}}\\
+		\langle\psi\mid\mu_{Z|X}\:\mu_{XX}\:\varphi\rangle_{\mathcal{H}_{\kappa_Z}}&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\mu_{XX}\:\varphi\rangle_{\mathcal{H}_{\kappa_X}}\\
 		&=\mathbb{E}\left[\mathbb{E}[\psi(Z)|X]\:\varphi(X)\right]\\
 		&=\mathbb{E}_{p_{XZ}}\left[\psi(Z)\:\varphi(X)\right]\\
-		&=\langle\psi\mid\mu_{ZX}\:\varphi\rangle_{\mathcal{H}_{k_Z}}
+		&=\langle\psi\mid\mu_{ZX}\:\varphi\rangle_{\mathcal{H}_{\kappa_Z}}
 		\end{aligned}
 	\end{equation}
 	while the law of total expectation yields:
 	\begin{equation}
 		\begin{aligned}
-		\langle\psi\mid\mu_{Z|X}\:\mu_X\rangle_{\mathcal{H}_{k_Z}}&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\mu_X\rangle_{\mathcal{H}_{k_X}}\\
+		\langle\psi\mid\mu_{Z|X}\:\mu_X\rangle_{\mathcal{H}_{\kappa_Z}}&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\mu_X\rangle_{\mathcal{H}_{\kappa_X}}\\
 		&=\mathbb{E}\left[\mathbb{E}[\psi(Z)|X]\right]\\
 		&=\mathbb{E}\left[\psi(Z)\right]\\
-		&=\langle\psi\mid\mu_Z\rangle_{\mathcal{H}_{k_Z}}
+		&=\langle\psi\mid\mu_Z\rangle_{\mathcal{H}_{\kappa_Z}}
 		\end{aligned}
 	\end{equation}
 \end{proof}

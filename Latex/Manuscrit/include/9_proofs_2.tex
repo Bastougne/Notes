@@ -1,74 +1,74 @@
 \section[Proof of Proposition 3.15]{Proof of \Cref{th:covariance_operator}}\label{sec:proof_Mercer_operator}
 
-As $\mathcal{U}$ is compact and $k$ continuous, $k$ is bounded on $\mathcal{U}\times\mathcal{U}$, and $\mathcal{K}$ is compact.
+As $\Omega$ is compact and $\kappa$ continuous, $\kappa$ is bounded on $\Omega\times\Omega$, and $\mathcal{K}$ is compact.
 
-Let $\phi,\phi'\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$. Cauchy-Schwarz inequality ensures that there exists a constant $c\in\mathbb{R}_+$ such that:
+Let $\phi,\phi'\in\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$. Cauchy-Schwarz inequality ensures that there exists a constant $c\in\mathbb{R}_+$ such that:
 \begin{equation}
-	\iint_{\mathcal{U}\times\mathcal{U}}{\left|\phi(y)^\top k(x,y)^\top\phi'(x)\right|\:dx\:dy}\leq c\:\sqrt{\langle\phi|\phi\rangle}\:\sqrt{\langle\phi'|\phi'\rangle}<+\infty
+	\iint_{\Omega\times\Omega}{\left|\phi(y)^\top \kappa(x,y)^\top\phi'(x)\right|\:dx\:dy}\leq c\:\sqrt{\langle\phi|\phi\rangle}\:\sqrt{\langle\phi'|\phi'\rangle}<+\infty
 \end{equation}
 
 Fubini's integration theorem \cite{bib:Tonelli} can thus be used to give:
 \begin{equation}
 	\begin{aligned}
-	\langle\mathcal{K}\phi|\phi'\rangle&=\int_{\mathcal{U}}{(\mathcal{K}\phi)(x)^\top\phi'(x)\:dx}\\
-	&=\int_{\mathcal{U}}{\left(\int_{\mathcal{U}}{k(x,y)\:\phi(y)\:dy}\right)^\top\phi'(x)\:dx}\\
-	&=\int_{\mathcal{U}}{\int_{\mathcal{U}}{\phi(y)^\top k(x,y)^\top\phi'(x)\:dy}\:dx}\\
-	&=\int_{\mathcal{U}}{\int_{\mathcal{U}}{\phi(y)^\top k(y,x)\:\phi'(x)\:dx}\:dy}\\
-	&=\int_{\mathcal{U}}{\phi(y)^\top\left(\int_{\mathcal{U}}{k(y,x)\:\phi'(x)\:dx}\right)dy}\\
-	&=\int_{\mathcal{U}}{\phi(y)^\top(\mathcal{K}\phi')(y)\:dy}\\
+	\langle\mathcal{K}\phi|\phi'\rangle&=\int_{\Omega}{(\mathcal{K}\phi)(x)^\top\phi'(x)\:dx}\\
+	&=\int_{\Omega}{\left(\int_{\Omega}{\kappa(x,y)\:\phi(y)\:dy}\right)^\top\phi'(x)\:dx}\\
+	&=\int_{\Omega}{\int_{\Omega}{\phi(y)^\top \kappa(x,y)^\top\phi'(x)\:dy}\:dx}\\
+	&=\int_{\Omega}{\int_{\Omega}{\phi(y)^\top \kappa(y,x)\:\phi'(x)\:dx}\:dy}\\
+	&=\int_{\Omega}{\phi(y)^\top\left(\int_{\Omega}{\kappa(y,x)\:\phi'(x)\:dx}\right)dy}\\
+	&=\int_{\Omega}{\phi(y)^\top(\mathcal{K}\phi')(y)\:dy}\\
 	&=\langle\phi|\mathcal{K}\phi'\rangle
 	\end{aligned}
 \end{equation}
 
-Let $\phi:\mathcal{U}\to\mathbb{R}^{d_z}$ be a continuous function, and let $n\in\mathbb{N}^*$. We define $\left(\mathcal{U}_i^{(n)}\right)_{i\in[\![1,n]\!]}$ a partition of $\mathcal{U}$ such that the diameter of each $\mathcal{U}_i^{(n)},\:i\in[\![1,n]\!]$ tends to $0$ when $n\to+\infty$. Here, the diameter of a subset of the Euclidean space $\mathbb{R}^{d_x}$ is defined as the maximum distance between two points of this subset. For $i\in[\![1,n]\!]$, we define $x_i^{(n)}\in\mathcal{U}_i^{(n)}$, and we let:
+Let $\phi:\Omega\to\mathbb{R}^{d_z}$ be a continuous function, and let $n\in\mathbb{N}^*$. We define $\left(\Omega_i^{(n)}\right)_{i\in[\![1,n]\!]}$ a partition of $\Omega$ such that the diameter of each $\Omega_i^{(n)},\:i\in[\![1,n]\!]$ tends to $0$ when $n\to+\infty$. Here, the diameter of a subset of the Euclidean space $\mathbb{R}^{d_x}$ is defined as the maximum distance between two points of this subset. For $i\in[\![1,n]\!]$, we define $x_i^{(n)}\in\Omega_i^{(n)}$, and we let:
 \begin{equation}
-	a_i^{(n)}\triangleq\left(\int_{\mathcal{U}_i^{(n)}}{dx}\right)\phi\!\left(x_i^{(n)}\right)
+	a_i^{(n)}\triangleq\left(\int_{\Omega_i^{(n)}}{dx}\right)\phi\!\left(x_i^{(n)}\right)
 \end{equation}
 
 By continuity of $\phi$, the function:
 \begin{equation}
-	(x,y)\mapsto \phi(x)^\top k(x,y)\:\phi(y)
+	(x,y)\mapsto \phi(x)^\top \kappa(x,y)\:\phi(y)
 \end{equation}
-is continuous on the compact $\mathcal{U}\times\mathcal{U}$, so its Riemann sums converge:
+is continuous on the compact $\Omega\times\Omega$, so its Riemann sums converge:
 \begin{equation}
-	\sum_{i=1}^n\sum_{j=1}^n\left(a_i^{(n)}\right)^\top k\left(x_i^{(n)},x_j^{(n)}\right)a_j^{(n)}\underset{n\to+\infty}{\longrightarrow}\iint_{\mathcal{U}\times\mathcal{U}}{\phi(x)^\top k(x,y)\:\phi(y)\:dx\:dy}=\langle\phi|\mathcal{K}\phi\rangle
+	\sum_{i=1}^n\sum_{j=1}^n\left(a_i^{(n)}\right)^\top \kappa\left(x_i^{(n)},x_j^{(n)}\right)a_j^{(n)}\underset{n\to+\infty}{\longrightarrow}\iint_{\Omega\times\Omega}{\phi(x)^\top \kappa(x,y)\:\phi(y)\:dx\:dy}=\langle\phi|\mathcal{K}\phi\rangle
 \end{equation}
 
-The SPSDness of $k$ ensures that each Riemann sum is non-negative. By passing to the limit, it follows that:
+The SPSDness of $\kappa$ ensures that each Riemann sum is non-negative. By passing to the limit, it follows that:
 \begin{equation}
 	\langle\phi|\mathcal{K}\phi\rangle\geq0\label{eq:fKf_geq0}
 \end{equation}
 for every continuous function $\phi$.
 
-Finally, recall that the set of continuous functions of $\mathcal{U}$ is dense in $\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$. By continuity of:
+Finally, recall that the set of continuous functions of $\Omega$ is dense in $\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$. By continuity of:
 \begin{equation}
-	\phi\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})\mapsto\langle\phi|\mathcal{K}\phi\rangle
+	\phi\in\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})\mapsto\langle\phi|\mathcal{K}\phi\rangle
 \end{equation}
-the inequality \eqref{eq:fKf_geq0} extends to all $\phi\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$.
+the inequality \eqref{eq:fKf_geq0} extends to all $\phi\in\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$.
 
 \section[Proof of Proposition 3.16]{Proof of \Cref{th:Mercer}}\label{sec:proof_Mercer}
 
-By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$. The spectral theorem \cite{bib:spectral-theorem} thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing.
+By \Cref{th:covariance_operator}, $\mathcal{K}$ is a compact and self-adjoint operator on $\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$. The spectral theorem \cite{bib:spectral-theorem} thus states that there exists an orthonormal basis $(\psi_i)_{i\in\mathbb{N}^*}$ of $\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$ consisting of eigenfunctions of $\mathcal{K}$, with each corresponding eigenvalue $(\lambda_i)_{i\in\mathbb{N}^*}$ being real. Up to reordering, the sequence of eigenvalues can be considered to be non-increasing.
 
-Since $k$ is uniformly continuous on the compact $\mathcal{U}\times\mathcal{U}$, $\mathcal{K}\phi$ is continuous for every $\phi\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$. In particular, for each $i\in\mathbb{N}^*$ such that $\lambda_i\neq0$, the eigenfunction:
+Since $\kappa$ is uniformly continuous on the compact $\Omega\times\Omega$, $\mathcal{K}\phi$ is continuous for every $\phi\in\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$. In particular, for each $i\in\mathbb{N}^*$ such that $\lambda_i\neq0$, the eigenfunction:
 \begin{equation}
 	\psi_i=\lambda_i^{-1}\mathcal{K}\psi_i
 \end{equation}
 is continuous. Without loss of generality, it must be noted that the $\psi_i$ associated with a null eigenvalue do not contribute to \eqref{eq:Mercer} and may thus be dismissed.
 
-Since $(\psi_i)_{i\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$, the family $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{F}$. Let $\langle\cdot|\cdot\rangle_{\mathcal{U}\times\mathcal{U}}$ denote:
+Since $(\psi_i)_{i\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$, the family $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ is an orthonormal basis of $\mathcal{F}$. Let $\langle\cdot|\cdot\rangle_{\Omega\times\Omega}$ denote:
 \begin{equation}
-	(\phi,\phi')\in\mathcal{F}^2\mapsto\langle\phi|\phi'\rangle_{\mathcal{U}\times\mathcal{U}}\triangleq\iint_{\mathcal{U}\times\mathcal{U}}{\operatorname{tr}\left(\phi(x,y)^\top\phi'(x,y)\right)\:dx\:dy}
+	(\phi,\phi')\in\mathcal{F}^2\mapsto\langle\phi|\phi'\rangle_{\Omega\times\Omega}\triangleq\iint_{\Omega\times\Omega}{\operatorname{tr}\left(\phi(x,y)^\top\phi'(x,y)\right)\:dx\:dy}
 \end{equation}
 
 Let $i,j\in\mathbb{N}^*$. We have:
 \begin{equation}
 	\begin{aligned}
-		\langle k|\psi_i\:\psi_j^\top\rangle_{\mathcal{U}\times\mathcal{U}}&=\iint_{\mathcal{U}\times\mathcal{U}}{\operatorname{tr}\left(k(x,y)^\top\psi_i(x)\:\psi_j(y)^\top\right)dx\:dy}\\
-		&=\iint_{\mathcal{U}\times\mathcal{U}}{\psi_j(y)^\top k(x,y)^\top\psi_i(x)\:dx\:dy}\\
-		&=\int_{\mathcal{U}}{\psi_j(y)^\top\left(\int_{\mathcal{U}}{k(y,x)\:\psi_i(x)\:dx}\right)dy}\\
-		&=\int_{\mathcal{U}}{\psi_j(y)^\top\mathcal{K}\psi_i(y)\:dy}\\
-		&=\lambda_i\int_{\mathcal{U}}{\psi_j(y)^\top\:\psi_i(y)\:dy}\\
+		\langle \kappa|\psi_i\:\psi_j^\top\rangle_{\Omega\times\Omega}&=\iint_{\Omega\times\Omega}{\operatorname{tr}\left(\kappa(x,y)^\top\psi_i(x)\:\psi_j(y)^\top\right)dx\:dy}\\
+		&=\iint_{\Omega\times\Omega}{\psi_j(y)^\top \kappa(x,y)^\top\psi_i(x)\:dx\:dy}\\
+		&=\int_{\Omega}{\psi_j(y)^\top\left(\int_{\Omega}{\kappa(y,x)\:\psi_i(x)\:dx}\right)dy}\\
+		&=\int_{\Omega}{\psi_j(y)^\top\mathcal{K}\psi_i(y)\:dy}\\
+		&=\lambda_i\int_{\Omega}{\psi_j(y)^\top\:\psi_i(y)\:dy}\\
 		&=\lambda_i\:\delta_{i,j}
 	\end{aligned}
 \end{equation}
@@ -80,111 +80,111 @@ where:
 \end{equation}
 is the Kronecker symbol.
 
-Because $k\in\mathcal{F}$, it follows from the completeness of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ that:
+Because $\kappa\in\mathcal{F}$, it follows from the completeness of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ that:
 \begin{equation}
-	k_{r_{\mathrm{KL}}}(x,x')\triangleq\sum_{i=1}^{r_{\mathrm{KL}}}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top
+	\kappa_{r_{\mathrm{KL}}}(x,x')\triangleq\sum_{i=1}^{r_{\mathrm{KL}}}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top
 \end{equation}
-converges to $k$ in the $\mathcal{F}$ sense.
+converges to $\kappa$ in the $\mathcal{F}$ sense.
 
-It must be noted that $\mathcal{L}^2$ convergence only identifies $k$ up to a Lebesgue-null subset of $\mathcal{U}\times\mathcal{U}$, and gives no control at any specific point of the domain. In particular, it is not enough to justify substituting $k_{r_{\mathrm{KL}}}$ for $k$ in kriging scenarios. However, since $k$ is continuous on $\mathcal{U}\times\mathcal{U}$, the convergence can be extended to absolute and uniform convergence on the entire domain \cite{bib:Karhunen-Loeve}. The argument applies Dini's theorem \cite{bib:Dini} to the non-decreasing sequence $\left(x\mapsto\operatorname{tr}\:k_{r_{\mathrm{KL}}}(x,x)\right)_{r_{\mathrm{KL}}\in\mathbb{N}^*}$, whose limit is continuous on the compact $\mathcal{U}$, and extends the result off the diagonal through the Cauchy-Schwarz inequality.
+It must be noted that $\mathcal{L}^2$ convergence only identifies $\kappa$ up to a Lebesgue-null subset of $\Omega\times\Omega$, and gives no control at any specific point of the domain. In particular, it is not enough to justify substituting $\kappa_{r_{\mathrm{KL}}}$ for $\kappa$ in kriging scenarios. However, since $\kappa$ is continuous on $\Omega\times\Omega$, the convergence can be extended to absolute and uniform convergence on the entire domain \cite{bib:Karhunen-Loeve}. The argument applies Dini's theorem \cite{bib:Dini} to the non-decreasing sequence $\left(x\mapsto\operatorname{tr}\:\kappa_{r_{\mathrm{KL}}}(x,x)\right)_{r_{\mathrm{KL}}\in\mathbb{N}^*}$, whose limit is continuous on the compact $\Omega$, and extends the result off the diagonal through the Cauchy-Schwarz inequality.
 
 Since $\mathcal{K}$ is SPSD, every eigenvalue is non-negative. Assume that there exists a rank $r_0\in\mathbb{N}^*$ such that $\lambda_i=0$ as soon as $i>r_0$. Then the decomposition \eqref{eq:Mercer} would reduce to the finite sum:
 \begin{equation}
-	k=\sum_{i=1}^{r_0}\lambda_i\:\psi_i\:\psi_i^\top
+	\kappa=\sum_{i=1}^{r_0}\lambda_i\:\psi_i\:\psi_i^\top
 \end{equation}
-whose Gram matrices have rank at most $r_0$ and are thus singular at any $n$ distinct points with $nd_z>r_0$, contradicting the SPDness of $k$ by \Cref{th:kernel_gram_equivalence}. Consequently:
+whose Gram matrices have rank at most $r_0$ and are thus singular at any $n$ distinct points with $nd_z>r_0$, contradicting the SPDness of $\kappa$ by \Cref{th:kernel_gram_equivalence}. Consequently:
 \begin{equation}
 	\lambda_1\geq\lambda_2\geq\cdots>0
 \end{equation}
 
 \section[Proof of Proposition 3.18]{Proof of \Cref{th:reduced_rank_kriging}}\label{sec:proof_reduced_rank_kriging}
 
-As \eqref{eq:reduced_rank_Gram} is a rank $r_{\mathrm{KL}}$ perturbation of $A\triangleq I_{\tilde{N}}\otimes\tilde{R}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{N}d_z\times\tilde{N}d_z$ inversion of $G(\tilde{\mathbf{x}})$ to an $r_{\mathrm{KL}}\times r_{\mathrm{KL}}$ one:
+As \eqref{eq:reduced_rank_Gram} is a rank $r_{\mathrm{KL}}$ perturbation of $\mathbf{A}\triangleq \mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{N}d_z\times\tilde{N}d_z$ inversion of $\mathbf{G}(\tilde{\mathbf{x}})$ to an $r_{\mathrm{KL}}\times r_{\mathrm{KL}}$ one:
 \begin{equation}
-	G(\tilde{\mathbf{x}})^{-1}\approx A^{-1}-A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}
+	\mathbf{G}(\tilde{\mathbf{x}})^{-1}\approx \mathbf{A}^{-1}-\mathbf{A}^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}
 \end{equation}
 
 Computing the centred SK estimator from \Cref{th:simple_kriging} using this approximation and the push-through identity (see \Cref{th:push_through}) yields:
 \begin{equation}
 	\begin{aligned}
-	\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
-	&\approx\Psi(x)\:\Lambda\:\Psi(\tilde{\mathbf{x}})^\top\left(I-A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top\right)A^{-1}\tilde{\mathbf{z}}\\
-	&=\Psi(x)\:\Lambda\left(I-\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\right)\Psi(\tilde{\mathbf{x}})^\top A^{-1}\tilde{\mathbf{z}}
+	\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
+	&\approx\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\left(\mathbf{I}-\mathbf{A}^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\right)\mathbf{A}^{-1}\tilde{\mathbf{z}}\\
+	&=\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\left(\mathbf{I}-\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\right)\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}\tilde{\mathbf{z}}
 	\end{aligned}\label{eq:z_s_up_to_tilde_G}
 \end{equation}
 
-Recall that, by definition of $\tilde{G}(\tilde{\mathbf{x}})$:
+Recall that, by definition of $\tilde{\mathbf{G}}(\tilde{\mathbf{x}})$:
 \begin{equation}
-	\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}=\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})
+	\tilde{\mathbf{G}}(\tilde{\mathbf{x}})-\boldsymbol{\Lambda}^{-1}=\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})
 \end{equation}
 which gives:
 \begin{equation}
 	\begin{aligned}
-	I-\Psi(\tilde{\mathbf{x}})^\top A^{-1}\Psi(\tilde{\mathbf{x}})\:\tilde{G}(\tilde{\mathbf{x}})^{-1}&=I-\left(\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}\right)\tilde{G}(\tilde{\mathbf{x}})^{-1}\\
-	&=I-I+\Lambda^{-1}\tilde{G}(\tilde{\mathbf{x}})^{-1}\\
-	&=\Lambda^{-1}\tilde{G}(\tilde{\mathbf{x}})^{-1}
+	\mathbf{I}-\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}&=\mathbf{I}-\left(\tilde{\mathbf{G}}(\tilde{\mathbf{x}})-\boldsymbol{\Lambda}^{-1}\right)\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\\
+	&=\mathbf{I}-\mathbf{I}+\boldsymbol{\Lambda}^{-1}\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\\
+	&=\boldsymbol{\Lambda}^{-1}\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}
 	\end{aligned}\label{eq:reduced_rank_lemma}
 \end{equation}
 
-Plugging this result into \eqref{eq:z_s_up_to_tilde_G} and using $A^{-1}=I_{\tilde{N}}\otimes\tilde{R}^{-1}$ finally gives:
+Plugging this result into \eqref{eq:z_s_up_to_tilde_G} and using $\mathbf{A}^{-1}=\mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}}^{-1}$ finally gives:
 \begin{equation}
-	\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}\tilde{\mathbf{z}}
+	\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)\approx\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}\tilde{\mathbf{z}}
 \end{equation}
 
-For $R_{\mathrm{SK}}$, reusing:
+For $\mathbf{R}_{\mathrm{SK}}$, reusing:
 \begin{equation}
-	k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}\approx\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}
+	\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\approx\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}
 \end{equation}
 together with \eqref{eq:reduced_rank_lemma} yields:
 \begin{equation}
 	\begin{aligned}
-	R_{\mathrm{SK}}&=k(x,x)+R-k(x,\tilde{\mathbf{x}})\:G(\tilde{\mathbf{x}})^{-1}k(\tilde{\mathbf{x}},x)\\
-	&\approx\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(\tilde{\mathbf{x}})^\top A^{-1}\times\Psi(\tilde{\mathbf{x}})\:\Lambda\:\Psi(x)^\top\\
-	&=\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\left(\tilde{G}(\tilde{\mathbf{x}})-\Lambda^{-1}\right)\Lambda\:\Psi(x)^\top\\
-	&=\Psi(x)\:\Lambda\:\Psi(x)^\top+R-\Psi(x)\left(\Lambda-\tilde{G}(\tilde{\mathbf{x}})^{-1}\right)\Psi(x)^\top\\
-	&=R+\Psi(x)\:\tilde{G}(\tilde{\mathbf{x}})^{-1}\Psi(x)^\top
+	\mathbf{R}_{\mathrm{SK}}&=\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)\\
+	&\approx\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top+\mathbf{R}-\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}\times\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top\\
+	&=\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top+\mathbf{R}-\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{G}}(\tilde{\mathbf{x}})-\boldsymbol{\Lambda}^{-1}\right)\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top\\
+	&=\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top+\mathbf{R}-\boldsymbol{\Psi}(x)\left(\boldsymbol{\Lambda}-\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\right)\boldsymbol{\Psi}(x)^\top\\
+	&=\mathbf{R}+\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(x)^\top
 	\end{aligned}
 \end{equation}
 
-Finally, when $\tilde{R}=\sigma^2I_{d_z}$ with $\sigma>0$, substituting $A^{-1}=\sigma^{-2}I_{\tilde{N}d_z}$ yields the announced simplifications. For such $\sigma>0$, the matrix:
+Finally, when $\tilde{\mathbf{R}}=\sigma^2\mathbf{I}_{d_z}$ with $\sigma>0$, substituting $\mathbf{A}^{-1}=\sigma^{-2}\mathbf{I}_{\tilde{N}d_z}$ yields the announced simplifications. For such $\sigma>0$, the matrix:
 \begin{equation}
-	\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\succ0
+	\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\boldsymbol{\Psi}(\tilde{\mathbf{x}})+\sigma^2\boldsymbol{\Lambda}^{-1}\succ0
 \end{equation}
-is SPD, as the sum of the SPSD matrix $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})$ and the SPD matrix $\sigma^2\Lambda^{-1}$. The map:
+is SPD, as the sum of the SPSD matrix $\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\boldsymbol{\Psi}(\tilde{\mathbf{x}})$ and the SPD matrix $\sigma^2\boldsymbol{\Lambda}^{-1}$. The map:
 \begin{equation}
-	\sigma\in\mathbb{R}_+^*\mapsto\left(\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})+\sigma^2\Lambda^{-1}\right)^{-1}
+	\sigma\in\mathbb{R}_+^*\mapsto\left(\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\boldsymbol{\Psi}(\tilde{\mathbf{x}})+\sigma^2\boldsymbol{\Lambda}^{-1}\right)^{-1}
 \end{equation}
-is thus well-defined and continuous, and extends to $\sigma=0$ when $\Psi(\tilde{\mathbf{x}})^\top\Psi(\tilde{\mathbf{x}})\succ0$, \textit{i.e.} when $\Psi(\tilde{\mathbf{x}})$ has full column rank. As $\hat{z}_{\mathrm{SK}}$ and $R_{\mathrm{SK}}$ depend on $\sigma$ only through this inverse and an explicit factor $\sigma^2$, both expressions remain valid at $\sigma=0$ under this condition.
+is thus well-defined and continuous, and extends to $\sigma=0$ when $\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\boldsymbol{\Psi}(\tilde{\mathbf{x}})\succ0$, \textit{i.e.} when $\boldsymbol{\Psi}(\tilde{\mathbf{x}})$ has full column rank. As $\hat{z}_{\mathrm{SK}}$ and $\mathbf{R}_{\mathrm{SK}}$ depend on $\sigma$ only through this inverse and an explicit factor $\sigma^2$, both expressions remain valid at $\sigma=0$ under this condition.
 
 \section[Proof of Proposition 3.19]{Proof of \Cref{th:KL}}\label{sec:proof_KL}
 
-Let $i\in\mathbb{N}^*$. Since $\psi_i$ is bounded on the compact $\mathcal{U}$, Tonelli's theorem \cite{bib:Tonelli} and the continuity of $k$ give:
+Let $i\in\mathbb{N}^*$. Since $\psi_i$ is bounded on the compact $\Omega$, Tonelli's theorem \cite{bib:Tonelli} and the continuity of $\kappa$ give:
 \begin{equation}
-	\mathbb{E}\left[\int_{\mathcal{U}}{\|f(x)-m(x)\|^2\:dx}\right]=\int_{\mathcal{U}}{\operatorname{tr}k(x,x)\:dx}<\infty
+	\mathbb{E}\left[\int_{\Omega}{\|h(x)-m(x)\|^2\:dx}\right]=\int_{\Omega}{\operatorname{tr}\kappa(x,x)\:dx}<\infty
 \end{equation}
-so that $f-m\in\mathcal{L}^2(\mathcal{U},\mathbb{R}^{d_z})$ a.s.. Each $\langle f-m|\psi_i\rangle$ is thus well-defined and finite. This integrability also justifies the exchanges of expectation and integration below.
+so that $h-m\in\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$ a.s. Each $\langle h-m|\psi_i\rangle$ is thus well-defined and finite. This integrability also justifies the exchanges of expectation and integration below.
 
-Since any finite linear combination of $(\xi_i)_{i\in\mathbb{N}^*}$ is itself a linear combination of the values of $f$, they are jointly Gaussian. Let $j\in\mathbb{N}^*$. It comes that:
+Since any finite linear combination of $(\xi_i)_{i\in\mathbb{N}^*}$ is itself a linear combination of the values of $h$, they are jointly Gaussian. Let $j\in\mathbb{N}^*$. It comes that:
 \begin{equation}
-	\mathbb{E}[\xi_i]=\frac{1}{\sqrt{\lambda_i}}\int_{\mathcal{U}}{\mathbb{E}[f(x)-m(x)]^\top\psi_i(x)\:dx}=0
+	\mathbb{E}[\xi_i]=\frac{1}{\sqrt{\lambda_i}}\int_{\Omega}{\mathbb{E}[h(x)-m(x)]^\top\psi_i(x)\:dx}=0
 \end{equation}
 and:
 \begin{equation}
 	\begin{aligned}
-	\mathbb{E}[\xi_i\:\xi_j]&=\frac{1}{\sqrt{\lambda_i\:\lambda_j}}\iint_{\mathcal{U}\times\mathcal{U}}{\psi_i(x)^\top\mathbb{E}[(f(x)-m(x))(f(x')-m(x'))^\top]\:\psi_j(x')\:dx\:dx'}\\
-	&=\frac{1}{\sqrt{\lambda_i\:\lambda_j}}\iint_{\mathcal{U}\times\mathcal{U}}{\psi_i(x)^\top k(x,x')\:\psi_j(x')\:dx\:dx'}\\
-	&=\frac{1}{\sqrt{\lambda_i\:\lambda_j}}\int_{\mathcal{U}}{\psi_i(x)^\top\left(\int_{\mathcal{U}}{k(x,x')\:\psi_j(x')\:dx'}\right)\:dx}\\
-	&=\frac{\lambda_j}{\sqrt{\lambda_i\:\lambda_j}}\int_{\mathcal{U}}{\psi_i(x)^\top\psi_j(x)\:dx}\\
+	\mathbb{E}[\xi_i\:\xi_j]&=\frac{1}{\sqrt{\lambda_i\:\lambda_j}}\iint_{\Omega\times\Omega}{\psi_i(x)^\top\mathbb{E}[(h(x)-m(x))(h(x')-m(x'))^\top]\:\psi_j(x')\:dx\:dx'}\\
+	&=\frac{1}{\sqrt{\lambda_i\:\lambda_j}}\iint_{\Omega\times\Omega}{\psi_i(x)^\top \kappa(x,x')\:\psi_j(x')\:dx\:dx'}\\
+	&=\frac{1}{\sqrt{\lambda_i\:\lambda_j}}\int_{\Omega}{\psi_i(x)^\top\left(\int_{\Omega}{\kappa(x,x')\:\psi_j(x')\:dx'}\right)\:dx}\\
+	&=\frac{\lambda_j}{\sqrt{\lambda_i\:\lambda_j}}\int_{\Omega}{\psi_i(x)^\top\psi_j(x)\:dx}\\
 	&=\frac{\lambda_j}{\sqrt{\lambda_i\:\lambda_j}}\langle\psi_i|\psi_j\rangle\\
 	&=\delta_{i,j}
 	\end{aligned}
 \end{equation}
-using the fact that $\psi_i$ is an eigenfunction of the Mercer operator $\mathcal{K}$. Together with the jointly Gaussian nature of $(\xi_i)_{i\in\mathbb{N}^*}$, this proves that they are i.i.d standard Gaussian variables.
+using the fact that $\psi_i$ is an eigenfunction of the Mercer operator $\mathcal{K}$. Together with the jointly Gaussian nature of $(\xi_i)_{i\in\mathbb{N}^*}$, this proves that they are i.i.d. standard Gaussian variables.
 
 Finally, for $r\in\mathbb{N}^*$, let:
 \begin{equation}
-	f_r:\left\{\begin{aligned}
-	\mathcal{U}&\to\mathbb{R}^{d_z}\\
+	h_r:\left\{\begin{aligned}
+	\Omega&\to\mathbb{R}^{d_z}\\
 	x&\mapsto m(x)+\sum_{i=1}^r\sqrt{\lambda_i}\:\xi_i\:\psi_i(x)
 	\end{aligned}\right.
 \end{equation}
@@ -192,69 +192,69 @@ Finally, for $r\in\mathbb{N}^*$, let:
 Fubini's theorem can be used to compute the following cross-covariance:
 \begin{equation}
 	\begin{aligned}
-	\mathbb{E}\left[(f(x)-m(x))\:\xi_i\right]&=\frac{1}{\sqrt{\lambda_i}}\mathbb{E}[(f(x)-m(x))\langle f-m|\psi_i\rangle]\\
-	&=\frac{1}{\sqrt{\lambda_i}}\mathbb{E}\left[(f(x)-m(x))\int_{\mathcal{U}}{(f(y)-m(y))^\top\psi_i(y)\:dy}\right]\\
-	&=\frac{1}{\sqrt{\lambda_i}}\int_{\mathcal{U}}{\mathbb{E}\left[(f(x)-m(x))(f(y)-m(y))^\top\right]\psi_i(y)\:dy}\\
-	&=\frac{1}{\sqrt{\lambda_i}}\int_{\mathcal{U}}{k(x,y)\:\psi_i(y)\:dy}\\
+	\mathbb{E}\left[(h(x)-m(x))\:\xi_i\right]&=\frac{1}{\sqrt{\lambda_i}}\mathbb{E}[(h(x)-m(x))\langle h-m|\psi_i\rangle]\\
+	&=\frac{1}{\sqrt{\lambda_i}}\mathbb{E}\left[(h(x)-m(x))\int_{\Omega}{(h(y)-m(y))^\top\psi_i(y)\:dy}\right]\\
+	&=\frac{1}{\sqrt{\lambda_i}}\int_{\Omega}{\mathbb{E}\left[(h(x)-m(x))(h(y)-m(y))^\top\right]\psi_i(y)\:dy}\\
+	&=\frac{1}{\sqrt{\lambda_i}}\int_{\Omega}{\kappa(x,y)\:\psi_i(y)\:dy}\\
 	&=\sqrt{\lambda_i}\:\psi_i(x)
 	\end{aligned}
 \end{equation}
 which can be used to obtain:
 \begin{equation}
 	\begin{aligned}
-	\mathbb{E}\left[\|f(x)-f_r(x)\|^2\right]&=\mathbb{E}\left[\|f(x)-m(x)\|^2\right]-2\sum_{i=1}^r\sqrt{\lambda_i}\:\psi_i(x)^\top\mathbb{E}\left[(f(x)-m(x))\:\xi_i\right]\\
+	\mathbb{E}\left[\|h(x)-h_r(x)\|^2\right]&=\mathbb{E}\left[\|h(x)-m(x)\|^2\right]-2\sum_{i=1}^r\sqrt{\lambda_i}\:\psi_i(x)^\top\mathbb{E}\left[(h(x)-m(x))\:\xi_i\right]\\
 	&\phantom{{}={}}+\sum_{i=1}^r\sum_{j=1}^r\sqrt{\lambda_i\:\lambda_j}\:\mathbb{E}[\xi_i\:\xi_j]\:\psi_i(x)^\top\psi_j(x)\\
-	&=\operatorname{tr}k(x,x)-2\sum_{i=1}^r\lambda_i\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)+\sum_{i=1}^r\lambda_i\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)\hspace{-7pt}\\
-	&=\operatorname{tr}k(x,x)-\sum_{i=1}^r\lambda_i\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)\\
+	&=\operatorname{tr}\kappa(x,x)-2\sum_{i=1}^r\lambda_i\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)+\sum_{i=1}^r\lambda_i\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)\hspace{-8pt}\\
+	&=\operatorname{tr}\kappa(x,x)-\sum_{i=1}^r\lambda_i\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)\\
 	&=\sum_{i=r+1}^{+\infty}\lambda_i\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)
 	\end{aligned}
 \end{equation}
 
 By Mercer's theorem, this last sum is the tail of:
 \begin{equation}
-	\operatorname{tr}k(x,x)=\sum_{i=1}^{+\infty}\lambda_i\:\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)
+	\operatorname{tr}\kappa(x,x)=\sum_{i=1}^{+\infty}\lambda_i\:\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)
 \end{equation}
-and therefore converges to 0. The partial sums thus converge to $f$ in mean square, uniformly over $\mathcal{U}$.
+and therefore converges to 0. The partial sums thus converge to $h$ in mean square, uniformly over $\Omega$.
 
 \section[Proof of Proposition 3.20]{Proof of \Cref{th:KL_converse}}\label{sec:proof_KL_converse}
 
 For $r\in\mathbb{N}^*$, let:
 \begin{equation}
-	f_r:\left\{\begin{aligned}
-	\mathcal{U}&\to\mathbb{R}^{d_z}\\
+	h_r:\left\{\begin{aligned}
+	\Omega&\to\mathbb{R}^{d_z}\\
 	x&\mapsto m(x)+\sum_{i=1}^r\sqrt{\lambda_i}\:\xi_i\:\psi_i(x)
 	\end{aligned}\right.
 \end{equation}
 be the partial sum of the series.
 
-Let $r'\in\mathbb{N}^*$ such that $r'>r$ and $x\in\mathcal{U}$. Since the $(\xi_i)_{i\in\mathbb{N}^*}$ are i.i.d standard Gaussian variables, it follows that:
+Let $r'\in\mathbb{N}^*$ such that $r'>r$ and $x\in\Omega$. Since the $(\xi_i)_{i\in\mathbb{N}^*}$ are i.i.d. standard Gaussian variables, it follows that:
 \begin{equation}
 	\begin{aligned}
-	\mathbb{E}\left[\|f_r(x)-f_{r'}(x)\|^2\right]&=\sum_{i=r+1}^{r'}\lambda_i\:\|\psi_i(x)\|^2\\
+	\mathbb{E}\left[\|h_r(x)-h_{r'}(x)\|^2\right]&=\sum_{i=r+1}^{r'}\lambda_i\:\|\psi_i(x)\|^2\\
 	&=\sum_{i=r+1}^{r'}\lambda_i\:\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)
 	\end{aligned}
 \end{equation}
 
 As for \Cref{th:KL}, this sum is the tail of the convergent series:
 \begin{equation}
-	\operatorname{tr}k(x,x)=\sum_{i=1}^{+\infty}\lambda_i\:\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)
+	\operatorname{tr}\kappa(x,x)=\sum_{i=1}^{+\infty}\lambda_i\:\operatorname{tr}\left(\psi_i(x)\:\psi_i(x)^\top\right)
 \end{equation}
-and tends to 0. The sequence $(f_r(x))_{r\in\mathbb{N}^*}$ is thus a Cauchy sequence in the space of square-integrable $\mathbb{R}^{d_z}$-valued random variables, which is complete. The sequence thus converges, and $f(x)$ is well-defined as its limit.
+and tends to 0. The sequence $(h_r(x))_{r\in\mathbb{N}^*}$ is thus a Cauchy sequence in the space of square-integrable $\mathbb{R}^{d_z}$-valued random variables, which is complete. The sequence thus converges, and $h(x)$ is well-defined as its limit.
 
-Let $n\in\mathbb{N}^*$, $x_1,\dots,x_n\in\mathcal{U}$ and $a_1,\dots,a_n\in\mathbb{R}^{d_z}$. For every $r\in\mathbb{N}^*$, the sum:
+Let $n\in\mathbb{N}^*$, $x_1,\dots,x_n\in\Omega$ and $a_1,\dots,a_n\in\mathbb{R}^{d_z}$. For every $r\in\mathbb{N}^*$, the sum:
 \begin{equation}
-	\sum_{i=1}^na_i^\top f_r(x_i)
+	\sum_{i=1}^na_i^\top h_r(x_i)
 \end{equation}
 is affine in $\xi_1,\dots,\xi_r$, and is thus Gaussian. Passing to the limit, this proves that:
 \begin{equation}
-	\sum_{i=1}^na_i^\top f(x_i)
+	\sum_{i=1}^na_i^\top h(x_i)
 \end{equation}
-is also Gaussian, and so $f$ is a GP by \Cref{th:GP_definition}.
+is also Gaussian, and so $h$ is a GP by \Cref{th:GP_definition}.
 
-Since mean-square convergence carries the first two moments to the limit, the mean of $f$ is:
+Since mean-square convergence carries the first two moments to the limit, the mean of $h$ is:
 \begin{equation}
 	\begin{aligned}
-	\mathbb{E}[f(x)]&=\lim_{r\to+\infty}\mathbb{E}[f_r(x)]\\
+	\mathbb{E}[h(x)]&=\lim_{r\to+\infty}\mathbb{E}[h_r(x)]\\
 	&=m(x)+\lim_{r\to+\infty}\sum_{i=1}^r\sqrt{\lambda_i}\:\mathbb{E}[\xi_i]\:\psi_i(x)\\
 	&=m(x)
 	\end{aligned}
@@ -262,10 +262,10 @@ Since mean-square convergence carries the first two moments to the limit, the me
 and its covariance is:
 \begin{equation}
 	\begin{aligned}
-	\mathbb{E}\left[(f(x)-m(x))(f(x')-m(x'))^\top\right]&=\lim_{r\to+\infty}\sum_{i=1}^r\sum_{j=1}^r\sqrt{\lambda_i\:\lambda_j}\:\mathbb{E}[\xi_i\:\xi_j]\:\psi_i(x)\:\psi_j(x')^\top\\
+	\mathbb{E}\left[(h(x)-m(x))(h(x')-m(x'))^\top\right]&=\lim_{r\to+\infty}\sum_{i=1}^r\sum_{j=1}^r\sqrt{\lambda_i\:\lambda_j}\:\mathbb{E}[\xi_i\:\xi_j]\:\psi_i(x)\:\psi_j(x')^\top\\
 	&=\lim_{r\to+\infty}\sum_{i=1}^r\sum_{j=1}^r\sqrt{\lambda_i\:\lambda_j}\:\delta_{i,j}\:\psi_i(x)\:\psi_j(x')^\top\\
 	&=\sum_{i=1}^{+\infty}\lambda_i\:\psi_i(x)\:\psi_i(x')^\top\\
-	&=k(x,x')
+	&=\kappa(x,x')
 	\end{aligned}
 \end{equation}
 
@@ -273,186 +273,188 @@ and its covariance is:
 
 \textbf{Hilbert space.} Let:
 \begin{equation}
-	\mathcal{E}\triangleq\operatorname{span}\{k(x,\cdot),\:x\in\mathcal{U}\}
+	\mathcal{E}\triangleq\operatorname{span}\{\kappa(x,\cdot),\:x\in\Omega\}
 \end{equation}
-and let $\psi,\varphi\in\mathcal{E}$. There exist $n,n'\in\mathbb{N}^*$, $x_1,\dots,x_n,x'_1,\dots,x'_{n'}\in\mathcal{U}$ and $a_1,\dots,a_n,a'_1,\dots,a'_{n'}\in\mathbb{R}$ such that:
+and let $\psi,\varphi\in\mathcal{E}$. There exist $n,n'\in\mathbb{N}^*$, $x_1,\dots,x_n,x'_1,\dots,x'_{n'}\in\Omega$ and $a_1,\dots,a_n,a'_1,\dots,a'_{n'}\in\mathbb{R}$ such that:
 \begin{equation}
-	\psi=\sum_{i=1}^na_i\:k(x_i,\cdot)\quad\text{and}\quad\varphi=\sum_{j=1}^{n'}a'_j\:k(x'_j,\cdot)
+	\psi=\sum_{i=1}^na_i\:\kappa(x_i,\cdot)\quad\text{and}\quad\varphi=\sum_{j=1}^{n'}a'_j\:\kappa(x'_j,\cdot)
 \end{equation}
 
-Since $k$ is symmetric, extending $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$ to $\mathcal{E}$ by bilinearity gives:
+Since $\kappa$ is symmetric, extending $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_\kappa}$ to $\mathcal{E}$ by bilinearity gives:
 \begin{equation}
 	\begin{aligned}
-	\langle\psi\mid\varphi\rangle_{\mathcal{H}_k}&=\sum_{i=1}^n\sum_{j=1}^{n'}a_i\:a'_j\:k(x_i,x'_j)\\
+	\langle\psi\mid\varphi\rangle_{\mathcal{H}_\kappa}&=\sum_{i=1}^n\sum_{j=1}^{n'}a_i\:a'_j\:\kappa(x_i,x'_j)\\
 	&=\sum_{j=1}^{n'}a'_j\:\psi(x'_j)\\
 	&=\sum_{i=1}^na_i\:\varphi(x_i)
 	\end{aligned}
 \end{equation}
 
-The second expression only depends on $\psi$ through its values, and the third one only depends on $\varphi$ through its values. The result thus does not depend on the decompositions of $\psi$ and $\varphi$, which are not unique in general, and $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$ is well-defined on $\mathcal{E}$. It is symmetric and bilinear by construction. Since $k$ is SPSD, it is also positive semi-definite:
+The second expression only depends on $\psi$ through its values, and the third one only depends on $\varphi$ through its values. The result thus does not depend on the decompositions of $\psi$ and $\varphi$, which are not unique in general, and $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_\kappa}$ is well-defined on $\mathcal{E}$. It is symmetric and bilinear by construction. Since $\kappa$ is SPSD, it is also positive semi-definite:
 \begin{equation}
-	\langle\psi\mid\psi\rangle_{\mathcal{H}_k}=\sum_{i=1}^n\sum_{j=1}^na_i\:a_j\:k(x_i,x_j)\geq0
+	\langle\psi\mid\psi\rangle_{\mathcal{H}_\kappa}=\sum_{i=1}^n\sum_{j=1}^na_i\:a_j\:\kappa(x_i,x_j)\geq0
 \end{equation}
 
-Let $x\in\mathcal{U}$. In particular, for $\varphi=k(x,\cdot)$, it comes that:
+Let $x\in\Omega$. In particular, for $\varphi=\kappa(x,\cdot)$, it comes that:
 \begin{equation}
-	\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}_k}=\psi(x)
+	\langle\psi\mid \kappa(x,\cdot)\rangle_{\mathcal{H}_\kappa}=\psi(x)
 \end{equation}
 
 The Cauchy-Schwarz inequality, which holds for any symmetric positive semi-definite bilinear form, thus gives:
 \begin{equation}
 	\begin{aligned}
-	\psi(x)^2&=\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}_k}^2\\
-	&\leq\langle\psi\mid\psi\rangle_{\mathcal{H}_k}\:\langle k(x,\cdot)\mid k(x,\cdot)\rangle_{\mathcal{H}_k}\\
-	&=\langle\psi\mid\psi\rangle_{\mathcal{H}_k}\:k(x,x)
+	\psi(x)^2&=\langle\psi\mid \kappa(x,\cdot)\rangle_{\mathcal{H}_\kappa}^2\\
+	&\leq\langle\psi\mid\psi\rangle_{\mathcal{H}_\kappa}\:\langle \kappa(x,\cdot)\mid \kappa(x,\cdot)\rangle_{\mathcal{H}_\kappa}\\
+	&=\langle\psi\mid\psi\rangle_{\mathcal{H}_\kappa}\:\kappa(x,x)
 	\end{aligned}
 \end{equation}
 
-Consequently, $\langle\psi\mid\psi\rangle_{\mathcal{H}_k}=0$ implies $\psi=0$, and $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$ is thus an inner product on $\mathcal{E}$.
+Consequently, $\langle\psi\mid\psi\rangle_{\mathcal{H}_\kappa}=0$ implies $\psi=0$, and $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_\kappa}$ is thus an inner product on $\mathcal{E}$.
 
-The completion $\mathcal{H}_k$ of $\mathcal{E}$ is a Hilbert space in which $\mathcal{E}$ is dense by construction, and its inner product is the extension of $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_k}$ by continuity.
+The completion $\mathcal{H}_\kappa$ of $\mathcal{E}$ is a Hilbert space in which $\mathcal{E}$ is dense by construction, and its inner product is the extension of $\langle\cdot\mid\cdot\rangle_{\mathcal{H}_\kappa}$ by continuity.
 
-\textbf{Reproducing kernel.} We first identify the elements of $\mathcal{H}_k$ with functions from $\mathcal{U}$ to $\mathbb{R}$. Let $x\in\mathcal{U}$ and $\psi\in\mathcal{H}_k$, and let $(\psi_r)_{r\in\mathbb{N}^*}$ be a sequence of $\mathcal{E}$ that converges to $\psi$ in $\mathcal{H}_k$. By continuity of the inner product, it comes that:
+\textbf{Reproducing kernel.} We first identify the elements of $\mathcal{H}_\kappa$ with functions from $\Omega$ to $\mathbb{R}$. Let $x\in\Omega$ and $\psi\in\mathcal{H}_\kappa$, and let $(\psi_r)_{r\in\mathbb{N}^*}$ be a sequence of $\mathcal{E}$ that converges to $\psi$ in $\mathcal{H}_\kappa$. By continuity of the inner product, it comes that:
 \begin{equation}
-	\lim_{r\to+\infty}\psi_r(x)=\lim_{r\to+\infty}\langle\psi_r\mid k(x,\cdot)\rangle_{\mathcal{H}_k}=\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}_k}
+	\lim_{r\to+\infty}\psi_r(x)=\lim_{r\to+\infty}\langle\psi_r\mid \kappa(x,\cdot)\rangle_{\mathcal{H}_\kappa}=\langle\psi\mid \kappa(x,\cdot)\rangle_{\mathcal{H}_\kappa}
 \end{equation}
 
 The sequence $(\psi_r)_{r\in\mathbb{N}^*}$ thus converges pointwise to the function:
 \begin{equation}
-	x\in\mathcal{U}\mapsto\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}_k}
+	x\in\Omega\mapsto\langle\psi\mid \kappa(x,\cdot)\rangle_{\mathcal{H}_\kappa}
 \end{equation}
 which only depends on $\psi$, and coincides with it when $\psi\in\mathcal{E}$. Assume that this function is null. Then $\psi$ is orthogonal to $\mathcal{E}$, and thus:
 \begin{equation}
-	\langle\psi\mid\psi\rangle_{\mathcal{H}_k}=\lim_{r\to+\infty}\langle\psi\mid\psi_r\rangle_{\mathcal{H}_k}=0
+	\langle\psi\mid\psi\rangle_{\mathcal{H}_\kappa}=\lim_{r\to+\infty}\langle\psi\mid\psi_r\rangle_{\mathcal{H}_\kappa}=0
 \end{equation}
-so $\psi=0$. By linearity, two elements of $\mathcal{H}_k$ associated with the same function are therefore equal.
+so $\psi=0$. By linearity, two elements of $\mathcal{H}_\kappa$ associated with the same function are therefore equal.
 
-Each element of $\mathcal{H}_k$ can thus be identified with its associated function, and $\mathcal{H}_k$ is a Hilbert space of functions from $\mathcal{U}$ to $\mathbb{R}$ which verifies:
+Each element of $\mathcal{H}_\kappa$ can thus be identified with its associated function, and $\mathcal{H}_\kappa$ is a Hilbert space of functions from $\Omega$ to $\mathbb{R}$ which verifies:
 \begin{equation}
-	\forall x\in\mathcal{U},\:\forall\psi\in\mathcal{H}_k,\:\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}_k}=\psi(x)
+	\forall x\in\Omega,\:\forall\psi\in\mathcal{H}_\kappa,\:\langle\psi\mid \kappa(x,\cdot)\rangle_{\mathcal{H}_\kappa}=\psi(x)
 \end{equation}
 
-Since $k(x,\cdot)\in\mathcal{H}_k$ for every $x\in\mathcal{U}$, \Cref{th:RKHS} is satisfied, and $\mathcal{H}_k$ is an RKHS whose reproducing kernel is $k$.
+Since $\kappa(x,\cdot)\in\mathcal{H}_\kappa$ for every $x\in\Omega$, \Cref{th:RKHS} is satisfied, and $\mathcal{H}_\kappa$ is an RKHS whose reproducing kernel is $\kappa$.
 
-\textbf{Uniqueness.} Let $(\mathcal{H},\langle\cdot\mid\cdot\rangle_{\mathcal{H}})$ be an RKHS whose reproducing kernel is $k$. By \Cref{th:RKHS}, it contains $k(x,\cdot)$ for every $x\in\mathcal{U}$, and thus:
+\textbf{Uniqueness.} Let $(\mathcal{H},\langle\cdot\mid\cdot\rangle_{\mathcal{H}})$ be an RKHS whose reproducing kernel is $\kappa$. By \Cref{th:RKHS}, it contains $\kappa(x,\cdot)$ for every $x\in\Omega$, and thus:
 \begin{equation}
 	\mathcal{E}\subseteq\mathcal{H}
 \end{equation}
 
-Let $x,x'\in\mathcal{U}$. The reproducing property of $\mathcal{H}$ gives:
+Let $x,x'\in\Omega$. The reproducing property of $\mathcal{H}$ gives:
 \begin{equation}
-	\langle k(x,\cdot)\mid k(x',\cdot)\rangle_{\mathcal{H}}=k(x,x')=\langle k(x,\cdot)\mid k(x',\cdot)\rangle_{\mathcal{H}_k}
+	\langle \kappa(x,\cdot)\mid \kappa(x',\cdot)\rangle_{\mathcal{H}}=\kappa(x,x')=\langle \kappa(x,\cdot)\mid \kappa(x',\cdot)\rangle_{\mathcal{H}_\kappa}
 \end{equation}
 and the two inner products thus coincide on $\mathcal{E}$.
 
 Let $\psi\in\mathcal{H}$ be orthogonal to $\mathcal{E}$. Then:
 \begin{equation}
-	\psi(x)=\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}}=0
+	\psi(x)=\langle\psi\mid \kappa(x,\cdot)\rangle_{\mathcal{H}}=0
 \end{equation}
 so $\psi=0$, and $\mathcal{E}$ is dense in $\mathcal{H}$.
 
-Let $\psi\in\mathcal{H}$, and let $(\psi_r)_{r\in\mathbb{N}^*}$ be a sequence of $\mathcal{E}$ that converges to $\psi$ in $\mathcal{H}$. Since the two norms coincide on $\mathcal{E}$, $(\psi_r)_{r\in\mathbb{N}^*}$ is a Cauchy sequence of $\mathcal{E}$, which converges to some $\psi'\in\mathcal{H}_k$. By continuity of the two inner products, it comes that:
+Let $\psi\in\mathcal{H}$, and let $(\psi_r)_{r\in\mathbb{N}^*}$ be a sequence of $\mathcal{E}$ that converges to $\psi$ in $\mathcal{H}$. Since the two norms coincide on $\mathcal{E}$, $(\psi_r)_{r\in\mathbb{N}^*}$ is a Cauchy sequence of $\mathcal{E}$, which converges to some $\psi'\in\mathcal{H}_\kappa$. By continuity of the two inner products, it comes that:
 \begin{equation}
 	\begin{aligned}
-	\psi(x)&=\langle\psi\mid k(x,\cdot)\rangle_{\mathcal{H}}\\
-	&=\lim_{r\to+\infty}\langle\psi_r\mid k(x,\cdot)\rangle_{\mathcal{H}}\\
+	\psi(x)&=\langle\psi\mid \kappa(x,\cdot)\rangle_{\mathcal{H}}\\
+	&=\lim_{r\to+\infty}\langle\psi_r\mid \kappa(x,\cdot)\rangle_{\mathcal{H}}\\
 	&=\lim_{r\to+\infty}\psi_r(x)\\
-	&=\lim_{r\to+\infty}\langle\psi_r\mid k(x,\cdot)\rangle_{\mathcal{H}_k}\\
-	&=\langle\psi'\mid k(x,\cdot)\rangle_{\mathcal{H}_k}\\
+	&=\lim_{r\to+\infty}\langle\psi_r\mid \kappa(x,\cdot)\rangle_{\mathcal{H}_\kappa}\\
+	&=\langle\psi'\mid \kappa(x,\cdot)\rangle_{\mathcal{H}_\kappa}\\
 	&=\psi'(x)
 	\end{aligned}
 \end{equation}
 and:
 \begin{equation}
-	\|\psi\|_{\mathcal{H}}=\lim_{r\to+\infty}\|\psi_r\|_{\mathcal{H}}=\lim_{r\to+\infty}\|\psi_r\|_{\mathcal{H}_k}=\|\psi'\|_{\mathcal{H}_k}
+	\|\psi\|_{\mathcal{H}}=\lim_{r\to+\infty}\|\psi_r\|_{\mathcal{H}}=\lim_{r\to+\infty}\|\psi_r\|_{\mathcal{H}_\kappa}=\|\psi'\|_{\mathcal{H}_\kappa}
 \end{equation}
 
-Therefore, $\psi=\psi'\in\mathcal{H}_k$, and its norm is the same in both spaces. Since $\mathcal{H}$ is complete, exchanging the roles of $\mathcal{H}$ and $\mathcal{H}_k$ gives the converse inclusion. Consequently, $\mathcal{H}=\mathcal{H}_k$, and the two inner products are equal.
+Therefore, $\psi=\psi'\in\mathcal{H}_\kappa$, and its norm is the same in both spaces. Since $\mathcal{H}$ is complete, exchanging the roles of $\mathcal{H}$ and $\mathcal{H}_\kappa$ gives the converse inclusion. Consequently, $\mathcal{H}=\mathcal{H}_\kappa$, and the two inner products are equal.
 
 \begin{comment}
 \section[Proof of Proposition 4.4]{Proof of \Cref{th:errors_inverse_Gram}}\label{sec:proof_errors_inverse_Gram}
 
-As established in \cref{sec:proof_UK}, the weight matrix $W$ of the UK estimator and the Lagrange multiplier $\xi$ of the unbiasedness constraints verify:
+As established in \cref{sec:proof_UK}, the weight matrix $\mathbf{W}$ of the UK estimator and the Lagrange multiplier $\boldsymbol{\Xi}$ of the unbiasedness constraints verify:
 \begin{equation}
-	\mathcal{G}(\tilde{\mathbf{x}})\begin{bmatrix}W\\\xi\end{bmatrix}=\bar{k}(\tilde{\mathbf{x}},x)
+	\bar{\mathbf{G}}(\tilde{\mathbf{x}})\begin{bmatrix}\mathbf{W}\\\boldsymbol{\Xi}\end{bmatrix}=\bar{\kappa}(\tilde{\mathbf{x}},x)
 \end{equation}
-whose first block row is $G(\tilde{\mathbf{x}})\:W+g(\tilde{\mathbf{x}})\:\xi=k(\tilde{\mathbf{x}},x)$. Let $e_{\tilde{\mathbf{x}}}$ and $e_{\tilde{\mathbf{x}}^r}$ denote the errors of the full and subsampled estimators:
+whose first block row is $\mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{W}+g(\tilde{\mathbf{x}})\:\boldsymbol{\Xi}=\kappa(\tilde{\mathbf{x}},x)$. Let $\zeta_{\tilde{\mathbf{x}}}$ and $\zeta_{\tilde{\mathbf{x}}^r}$ denote the errors of the full and subsampled estimators:
 \begin{equation}
 	\left\{\begin{aligned}
-	e_{\tilde{\mathbf{x}}}&\triangleq z-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\\
-	e_{\tilde{\mathbf{x}}^r}&\triangleq z-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)
+	\zeta_{\tilde{\mathbf{x}}}&\triangleq z-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\\
+	\zeta_{\tilde{\mathbf{x}}^r}&\triangleq z-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)
 	\end{aligned}\right.
 \end{equation}
 
-Since $e_{\tilde{\mathbf{x}}}$ is centred whatever the value of $\beta$, and $\varepsilon$ is independent of $\tilde{\mathbf{z}}$, it comes that:
+Since $\zeta_{\tilde{\mathbf{x}}}$ is centred whatever the value of $\boldsymbol{\gamma}$, and $\varepsilon$ is independent of $\tilde{\mathbf{z}}$, it comes that:
 \begin{equation}
-	\mathbb{E}\left[\tilde{\mathbf{z}}\:e_{\tilde{\mathbf{x}}}^\top\right]=k(\tilde{\mathbf{x}},x)-G(\tilde{\mathbf{x}})\:W=g(\tilde{\mathbf{x}})\:\xi
+	\mathbb{E}\left[\tilde{\mathbf{z}}\:\zeta_{\tilde{\mathbf{x}}}^\top\right]=\kappa(\tilde{\mathbf{x}},x)-\mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{W}=g(\tilde{\mathbf{x}})\:\boldsymbol{\Xi}
 \end{equation}
 
-Therefore, $e_{\tilde{\mathbf{x}}}$ is uncorrelated with every linear combination $V^\top\tilde{\mathbf{z}}$ such that $V^\top g(\tilde{\mathbf{x}})=0$. The difference between the two interpolators can be decomposed as follows:
+Therefore, $\zeta_{\tilde{\mathbf{x}}}$ is uncorrelated with every linear combination $\mathbf{V}^\top\tilde{\mathbf{z}}$ such that $\mathbf{V}^\top g(\tilde{\mathbf{x}})=0$. The difference between the two interpolators can be decomposed as follows:
 \begin{equation}
-	\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)=e_{\tilde{\mathbf{x}}^r}-e_{\tilde{\mathbf{x}}}
+	\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)=\zeta_{\tilde{\mathbf{x}}^r}-\zeta_{\tilde{\mathbf{x}}}
 \end{equation}
 
 Thus:
 \begin{equation}
 	\begin{aligned}
-	e_r(x)&=\mathbb{E}\left[\left(e_{\tilde{\mathbf{x}}^r}-e_{\tilde{\mathbf{x}}}\right)\left(e_{\tilde{\mathbf{x}}^r}-e_{\tilde{\mathbf{x}}}\right)^\top\right]\\
-	&=\mathbb{E}\left[e_{\tilde{\mathbf{x}}^r}e_{\tilde{\mathbf{x}}^r}^\top\right]+\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}}^\top\right]-\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}^r}^\top\right]-\mathbb{E}\left[e_{\tilde{\mathbf{x}}^r}e_{\tilde{\mathbf{x}}}^\top\right]
+	\zeta_{\mathbf{R}}(x)&=\mathbb{E}\left[\left(\zeta_{\tilde{\mathbf{x}}^r}-\zeta_{\tilde{\mathbf{x}}}\right)\left(\zeta_{\tilde{\mathbf{x}}^r}-\zeta_{\tilde{\mathbf{x}}}\right)^\top\right]\\
+	&=\mathbb{E}\left[\zeta_{\tilde{\mathbf{x}}^r}\zeta_{\tilde{\mathbf{x}}^r}^\top\right]+\mathbb{E}\left[\zeta_{\tilde{\mathbf{x}}}\zeta_{\tilde{\mathbf{x}}}^\top\right]-\mathbb{E}\left[\zeta_{\tilde{\mathbf{x}}}\zeta_{\tilde{\mathbf{x}}^r}^\top\right]-\mathbb{E}\left[\zeta_{\tilde{\mathbf{x}}^r}\zeta_{\tilde{\mathbf{x}}}^\top\right]
 	\end{aligned}
 \end{equation}
 
 Since both interpolators are unbiased, their difference is such a linear combination, and so:
 \begin{equation}
-	\mathbb{E}\left[e_{\tilde{\mathbf{x}}}\left(e_{\tilde{\mathbf{x}}^r}-e_{\tilde{\mathbf{x}}}\right)^\top\right]=0
+	\mathbb{E}\left[\zeta_{\tilde{\mathbf{x}}}\left(\zeta_{\tilde{\mathbf{x}}^r}-\zeta_{\tilde{\mathbf{x}}}\right)^\top\right]=0
 \end{equation}
 
-The last two terms are thus both equal to $\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}}^\top\right]$. Moreover, the second moments of the errors of unbiased interpolators are their covariances. Therefore:
+The last two terms are thus both equal to $\mathbb{E}\left[\zeta_{\tilde{\mathbf{x}}}\zeta_{\tilde{\mathbf{x}}}^\top\right]$. Moreover, the second moments of the errors of unbiased interpolators are their covariances. Therefore:
 \begin{equation}
-	e_r(x)=\mathbb{E}\left[e_{\tilde{\mathbf{x}}^r}e_{\tilde{\mathbf{x}}^r}^\top\right]-\mathbb{E}\left[e_{\tilde{\mathbf{x}}}e_{\tilde{\mathbf{x}}}^\top\right]=R_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)-R_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)
+	\zeta_{\mathbf{R}}(x)=\mathbb{E}\left[\zeta_{\tilde{\mathbf{x}}^r}\zeta_{\tilde{\mathbf{x}}^r}^\top\right]-\mathbb{E}\left[\zeta_{\tilde{\mathbf{x}}}\zeta_{\tilde{\mathbf{x}}}^\top\right]=\mathbf{R}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,g)-\mathbf{R}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},g)
 \end{equation}
 
 Using \Cref{th:subsampled_kriging} yields:
 \begin{equation}
 	\begin{aligned}
-	e_r(x)&=\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{k}(\tilde{\mathbf{x}},x)-\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}_h(\tilde{\mathbf{x}}^r)^\dagger\:\bar{k}(\tilde{\mathbf{x}},x)\\
-	&=\bar{k}(x,\tilde{\mathbf{x}})\:\mathfrak{D}_G\bar{k}(\tilde{\mathbf{x}},x)
+	\zeta_{\mathbf{R}}(x)&=\bar{\kappa}(x,\tilde{\mathbf{x}})\:\bar{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\bar{\kappa}(\tilde{\mathbf{x}},x)-\bar{\kappa}(x,\tilde{\mathbf{x}})\:\bar{\mathbf{G}}_h(\tilde{\mathbf{x}}^r)^\dagger\:\bar{\kappa}(\tilde{\mathbf{x}},x)\\
+	&=\bar{\kappa}(x,\tilde{\mathbf{x}})\:\mathfrak{D}_G\bar{\kappa}(\tilde{\mathbf{x}},x)
 	\end{aligned}
 \end{equation}
 
-For $e_f(x)$, direct calculations give:
+For $\zeta_{\hat{z}}(x)$, direct calculations give:
 \begin{equation}
 	\begin{aligned}
-	e_f(x)&=\left\|\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)\right\|_2\\
-	&=\left\|\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}-\bar{k}(x,\tilde{\mathbf{x}})\:\mathcal{G}_h(\tilde{\mathbf{x}}^r)^\dagger\:\bar{\mathbf{z}}\right\|_2\\
-	&=\left\|\bar{k}(x,\tilde{\mathbf{x}})\:\mathfrak{D}_G\bar{\mathbf{z}}\right\|_2
+	\zeta_{\hat{z}}(x)&=\left\|\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)-\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)\right\|_2\\
+	&=\left\|\bar{\kappa}(x,\tilde{\mathbf{x}})\:\bar{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\bar{\mathbf{z}}-\bar{\kappa}(x,\tilde{\mathbf{x}})\:\bar{\mathbf{G}}_h(\tilde{\mathbf{x}}^r)^\dagger\:\bar{\mathbf{z}}\right\|_2\\
+	&=\left\|\bar{\kappa}(x,\tilde{\mathbf{x}})\:\mathfrak{D}_G\bar{\mathbf{z}}\right\|_2
 	\end{aligned}
 \end{equation}
 
 \end{comment}
 
+% Preuves de la 4.5 (lien avec le krigeage simple) et des bornes calculables, remises pour la v2
+\begin{comment}
 \section[Proof of Proposition 4.5]{Proof of \Cref{th:explicit_residuals}}\label{sec:proof_explicit_residuals}
 
-For the sake of brevity, we write $G_r$, $g_r$, $M_r$ and $\hat{m}_r$ for $G(\tilde{\mathbf{x}}^r)$, $g(\tilde{\mathbf{x}}^r)$, $M(\tilde{\mathbf{x}}^r)$ and $\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$. As in the proof of \Cref{th:block_kriging}, applied to $\tilde{\mathbf{x}}^r$, we have:
+For the sake of brevity, we write $\mathbf{G}_r$, $g_r$, $\mathbf{M}_r$ and $\hat{m}_r$ for $\mathbf{G}(\tilde{\mathbf{x}}^r)$, $g(\tilde{\mathbf{x}}^r)$, $\mathbf{M}(\tilde{\mathbf{x}}^r)$ and $\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$. As in the proof of \Cref{th:block_kriging}, applied to $\tilde{\mathbf{x}}^r$, we have:
 \begin{equation}
-	\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}\bar{k}(\tilde{\mathbf{x}}^r,x)=\begin{bmatrix}G_r^{-1}k(\tilde{\mathbf{x}}^r,x)+G_r^{-1}g_r\:M_r\:U(x)^\top\\-M_r\:U(x)^\top\end{bmatrix}
+	\bar{\mathbf{G}}(\tilde{\mathbf{x}}^r)^{-1}\bar{\kappa}(\tilde{\mathbf{x}}^r,x)=\begin{bmatrix}\mathbf{G}_r^{-1}\kappa(\tilde{\mathbf{x}}^r,x)+\mathbf{G}_r^{-1}g_r\:\mathbf{M}_r\:\mathbf{U}(x)^\top\\-\mathbf{M}_r\:\mathbf{U}(x)^\top\end{bmatrix}
 \end{equation}
 and thus, by \Cref{th:residual_covariance_function}:
 \begin{equation}
 	\begin{aligned}
-	k_{d|r}(x)&=k(\tilde{\mathbf{x}}^d,x)-\bar{k}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\begin{bmatrix}G_r^{-1}k(\tilde{\mathbf{x}}^r,x)+G_r^{-1}g_r\:M_r\:U(x)^\top\\-M_r\:U(x)^\top\end{bmatrix}\\
-	&=k(\tilde{\mathbf{x}}^d,x)-\begin{bmatrix}k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)&g(\tilde{\mathbf{x}}^d)\end{bmatrix}\begin{bmatrix}G_r^{-1}k(\tilde{\mathbf{x}}^r,x)+G_r^{-1}g_r\:M_r\:U(x)^\top\\-M_r\:U(x)^\top\end{bmatrix}\\
-	&=k(\tilde{\mathbf{x}}^d,x)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}k(\tilde{\mathbf{x}}^r,x)+\left(g(\tilde{\mathbf{x}}^d)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}g_r\right)M_r\:U(x)^\top\\
-	&=k^0_{d|r}(x)+U(\tilde{\mathbf{x}}^d)\:M_r\:U(x)^\top
+	\kappa_{d|r}(x)&=\kappa(\tilde{\mathbf{x}}^d,x)-\bar{\kappa}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\begin{bmatrix}\mathbf{G}_r^{-1}\kappa(\tilde{\mathbf{x}}^r,x)+\mathbf{G}_r^{-1}g_r\:\mathbf{M}_r\:\mathbf{U}(x)^\top\\-\mathbf{M}_r\:\mathbf{U}(x)^\top\end{bmatrix}\\
+	&=\kappa(\tilde{\mathbf{x}}^d,x)-\begin{bmatrix}\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)&g(\tilde{\mathbf{x}}^d)\end{bmatrix}\begin{bmatrix}\mathbf{G}_r^{-1}\kappa(\tilde{\mathbf{x}}^r,x)+\mathbf{G}_r^{-1}g_r\:\mathbf{M}_r\:\mathbf{U}(x)^\top\\-\mathbf{M}_r\:\mathbf{U}(x)^\top\end{bmatrix}\\
+	&=\kappa(\tilde{\mathbf{x}}^d,x)-\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\mathbf{G}_r^{-1}\kappa(\tilde{\mathbf{x}}^r,x)+\left(g(\tilde{\mathbf{x}}^d)-\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\mathbf{G}_r^{-1}g_r\right)\mathbf{M}_r\:\mathbf{U}(x)^\top\\
+	&=\kappa^0_{d|r}(x)+\mathbf{U}(\tilde{\mathbf{x}}^d)\:\mathbf{M}_r\:\mathbf{U}(x)^\top
 	\end{aligned}
 \end{equation}
 
-Applying the same computation to the columns of $\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)$ yields:
+Applying the same computation to the columns of $\bar{\kappa}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)$ yields:
 \begin{equation}
 	\begin{aligned}
-	S_{d|r}&=G(\tilde{\mathbf{x}}^d)-\bar{k}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\mathcal{G}(\tilde{\mathbf{x}}^r)^{-1}\bar{k}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\
-	&=G(\tilde{\mathbf{x}}^d)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)+U(\tilde{\mathbf{x}}^d)\:M_r\:U(\tilde{\mathbf{x}}^d)^\top\\
-	&=S^0_{d|r}+U(\tilde{\mathbf{x}}^d)\:M_r\:U(\tilde{\mathbf{x}}^d)^\top
+	\mathbf{S}_{d|r}&=\mathbf{G}(\tilde{\mathbf{x}}^d)-\bar{\kappa}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\bar{\mathbf{G}}(\tilde{\mathbf{x}}^r)^{-1}\bar{\kappa}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\
+	&=\mathbf{G}(\tilde{\mathbf{x}}^d)-\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\mathbf{G}_r^{-1}\kappa(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)+\mathbf{U}(\tilde{\mathbf{x}}^d)\:\mathbf{M}_r\:\mathbf{U}(\tilde{\mathbf{x}}^d)^\top\\
+	&=\mathbf{S}^0_{d|r}+\mathbf{U}(\tilde{\mathbf{x}}^d)\:\mathbf{M}_r\:\mathbf{U}(\tilde{\mathbf{x}}^d)^\top
 	\end{aligned}
 \end{equation}
 
@@ -460,166 +462,167 @@ Moreover, \Cref{th:residual_observation_vector} and \Cref{th:universal_kriging} 
 \begin{equation}
 	\begin{aligned}
 	\tilde{\mathbf{z}}_{d|r}&=\tilde{\mathbf{z}}^d-\hat{z}_{\mathrm{UK}}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)\\
-	&=\tilde{\mathbf{z}}^d-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}\left(\tilde{\mathbf{z}}^r-g_r\:\hat{m}_r\right)-g(\tilde{\mathbf{x}}^d)\:\hat{m}_r\\
-	&=\tilde{\mathbf{z}}^d-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}\tilde{\mathbf{z}}^r-\left(g(\tilde{\mathbf{x}}^d)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}g_r\right)\hat{m}_r\\
-	&=\tilde{\mathbf{z}}^0_{d|r}-U(\tilde{\mathbf{x}}^d)\:\hat{m}_r
+	&=\tilde{\mathbf{z}}^d-\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\mathbf{G}_r^{-1}\left(\tilde{\mathbf{z}}^r-g_r\:\hat{m}_r\right)-g(\tilde{\mathbf{x}}^d)\:\hat{m}_r\\
+	&=\tilde{\mathbf{z}}^d-\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\mathbf{G}_r^{-1}\tilde{\mathbf{z}}^r-\left(g(\tilde{\mathbf{x}}^d)-\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\mathbf{G}_r^{-1}g_r\right)\hat{m}_r\\
+	&=\tilde{\mathbf{z}}^0_{d|r}-\mathbf{U}(\tilde{\mathbf{x}}^d)\:\hat{m}_r
 	\end{aligned}
 \end{equation}
 
-Since $S^0_{d|r}$ is SPD, it is invertible, and \Cref{th:Schur} gives:
+Since $\mathbf{S}^0_{d|r}$ is SPD, it is invertible, and \Cref{th:Schur} gives:
 \begin{equation}
-	G(\tilde{\mathbf{x}})^{-1}=\begin{bmatrix}G_r^{-1}&0\\0&0\end{bmatrix}+\begin{bmatrix}-G_r^{-1}k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\I_{\tilde{N}^dd_z}\end{bmatrix}\left(S^0_{d|r}\right)^{-1}\begin{bmatrix}-G_r^{-1}k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\I_{\tilde{N}^dd_z}\end{bmatrix}^\top
+	\mathbf{G}(\tilde{\mathbf{x}})^{-1}=\begin{bmatrix}\mathbf{G}_r^{-1}&0\\0&0\end{bmatrix}+\begin{bmatrix}-\mathbf{G}_r^{-1}\kappa(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\\mathbf{I}_{\tilde{N}^dd_z}\end{bmatrix}\left(\mathbf{S}^0_{d|r}\right)^{-1}\begin{bmatrix}-\mathbf{G}_r^{-1}\kappa(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\\mathbf{I}_{\tilde{N}^dd_z}\end{bmatrix}^\top
 \end{equation}
 
 Splitting $g(\tilde{\mathbf{x}})$ in the same way gives:
 \begin{equation}
-	\begin{bmatrix}-G_r^{-1}k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\I_{\tilde{N}^dd_z}\end{bmatrix}^\top g(\tilde{\mathbf{x}})=\begin{bmatrix}-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}&I_{\tilde{N}^dd_z}\end{bmatrix}\begin{bmatrix}g_r\\g(\tilde{\mathbf{x}}^d)\end{bmatrix}=U(\tilde{\mathbf{x}}^d)
+	\begin{bmatrix}-\mathbf{G}_r^{-1}\kappa(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\\\mathbf{I}_{\tilde{N}^dd_z}\end{bmatrix}^\top g(\tilde{\mathbf{x}})=\begin{bmatrix}-\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\mathbf{G}_r^{-1}&\mathbf{I}_{\tilde{N}^dd_z}\end{bmatrix}\begin{bmatrix}g_r\\g(\tilde{\mathbf{x}}^d)\end{bmatrix}=\mathbf{U}(\tilde{\mathbf{x}}^d)
 \end{equation}
 and so:
 \begin{equation}
 	\begin{aligned}
-	M(\tilde{\mathbf{x}})^{-1}&=g(\tilde{\mathbf{x}})^\top G(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\\
-	&=g_r^\top G_r^{-1}g_r+U(\tilde{\mathbf{x}}^d)^\top\left(S^0_{d|r}\right)^{-1}U(\tilde{\mathbf{x}}^d)\\
-	&=M_r^{-1}+U(\tilde{\mathbf{x}}^d)^\top\left(S^0_{d|r}\right)^{-1}U(\tilde{\mathbf{x}}^d)
+	\mathbf{M}(\tilde{\mathbf{x}})^{-1}&=g(\tilde{\mathbf{x}})^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\\
+	&=g_r^\top \mathbf{G}_r^{-1}g_r+\mathbf{U}(\tilde{\mathbf{x}}^d)^\top\left(\mathbf{S}^0_{d|r}\right)^{-1}\mathbf{U}(\tilde{\mathbf{x}}^d)\\
+	&=\mathbf{M}_r^{-1}+\mathbf{U}(\tilde{\mathbf{x}}^d)^\top\left(\mathbf{S}^0_{d|r}\right)^{-1}\mathbf{U}(\tilde{\mathbf{x}}^d)
 	\end{aligned}
 \end{equation}
 
-Finally, adding $g(\tilde{\mathbf{x}})\:\beta_0$ to the observations replaces $\tilde{\mathbf{z}}^r$ and $\tilde{\mathbf{z}}^d$ with $\tilde{\mathbf{z}}^r+g_r\:\beta_0$ and $\tilde{\mathbf{z}}^d+g(\tilde{\mathbf{x}}^d)\:\beta_0$ respectively. Since $M_r^{-1}=g_r^\top G_r^{-1}g_r$, the estimated trend coefficients $\hat{m}_r=M_r\:g_r^\top G_r^{-1}\tilde{\mathbf{z}}^r$ become $\hat{m}_r+\beta_0$, and the third identity gives the new residual observation vector:
+Finally, adding $g(\tilde{\mathbf{x}})\:\boldsymbol{\gamma}_0$ to the observations replaces $\tilde{\mathbf{z}}^r$ and $\tilde{\mathbf{z}}^d$ with $\tilde{\mathbf{z}}^r+g_r\:\boldsymbol{\gamma}_0$ and $\tilde{\mathbf{z}}^d+g(\tilde{\mathbf{x}}^d)\:\boldsymbol{\gamma}_0$ respectively. Since $\mathbf{M}_r^{-1}=g_r^\top \mathbf{G}_r^{-1}g_r$, the estimated trend coefficients $\hat{m}_r=\mathbf{M}_r\:g_r^\top \mathbf{G}_r^{-1}\tilde{\mathbf{z}}^r$ become $\hat{m}_r+\boldsymbol{\gamma}_0$, and the third identity gives the new residual observation vector:
 \begin{equation}
 	\begin{aligned}
-	&\tilde{\mathbf{z}}^d+g(\tilde{\mathbf{x}}^d)\:\beta_0-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G_r^{-1}\left(\tilde{\mathbf{z}}^r+g_r\:\beta_0\right)-U(\tilde{\mathbf{x}}^d)\left(\hat{m}_r+\beta_0\right)\\
-	&\qquad=\tilde{\mathbf{z}}^0_{d|r}+U(\tilde{\mathbf{x}}^d)\:\beta_0-U(\tilde{\mathbf{x}}^d)\:\hat{m}_r-U(\tilde{\mathbf{x}}^d)\:\beta_0\\
+	&\tilde{\mathbf{z}}^d+g(\tilde{\mathbf{x}}^d)\:\boldsymbol{\gamma}_0-\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\mathbf{G}_r^{-1}\left(\tilde{\mathbf{z}}^r+g_r\:\boldsymbol{\gamma}_0\right)-\mathbf{U}(\tilde{\mathbf{x}}^d)\left(\hat{m}_r+\boldsymbol{\gamma}_0\right)\\
+	&\qquad=\tilde{\mathbf{z}}^0_{d|r}+\mathbf{U}(\tilde{\mathbf{x}}^d)\:\boldsymbol{\gamma}_0-\mathbf{U}(\tilde{\mathbf{x}}^d)\:\hat{m}_r-\mathbf{U}(\tilde{\mathbf{x}}^d)\:\boldsymbol{\gamma}_0\\
 	&\qquad=\tilde{\mathbf{z}}_{d|r}
 	\end{aligned}
 \end{equation}
 
 \section[Proof of Propositions 4.8 and 4.9]{Proof of \Cref{th:split_bound,th:computable_bound}}\label{sec:proof_split_bound}
 
-For the sake of brevity, we write $M$, $M_r$ and $U_d$ for $M(\tilde{\mathbf{x}})$, $M(\tilde{\mathbf{x}}^r)$ and $U(\tilde{\mathbf{x}}^d)$. By \Cref{th:explicit_residuals}, we have:
+For the sake of brevity, we write $\mathbf{M}$, $\mathbf{M}_r$ and $\mathbf{U}_d$ for $\mathbf{M}(\tilde{\mathbf{x}})$, $\mathbf{M}(\tilde{\mathbf{x}}^r)$ and $\mathbf{U}(\tilde{\mathbf{x}}^d)$. By \Cref{th:explicit_residuals}, we have:
 \begin{equation}
 	\left\{\begin{aligned}
-	k_{d|r}(x)&=k^0_{d|r}(x)+U_d\:M_r\:U(x)^\top\\
-	S_{d|r}&=S^0_{d|r}+U_d\:M_r\:U_d^\top\succeq S^0_{d|r}
+	\kappa_{d|r}(x)&=\kappa^0_{d|r}(x)+\mathbf{U}_d\:\mathbf{M}_r\:\mathbf{U}(x)^\top\\
+	\mathbf{S}_{d|r}&=\mathbf{S}^0_{d|r}+\mathbf{U}_d\:\mathbf{M}_r\:\mathbf{U}_d^\top\succeq \mathbf{S}^0_{d|r}
 	\end{aligned}\right.
 \end{equation}
-and thus $\|\cdot\|_{S_{d|r}}\leq\|\cdot\|_{S^0_{d|r}}$. Applying the triangle inequality to \Cref{th:errors_euclidean} gives:
+and thus $\|\cdot\|_{\mathbf{S}_{d|r}}\leq\|\cdot\|_{\mathbf{S}^0_{d|r}}$. Applying the triangle inequality to \Cref{th:errors_euclidean} gives:
 \begin{equation}
-	\sigma_r(x)\leq\|k^0_{d|r}(x)\|_{S^0_{d|r}}+\left\|U_d\:M_r\:U(x)^\top\right\|_{S_{d|r}}\label{eq:split_triangle}
+	\sigma_{\mathbf{R}}(x)\leq\|\kappa^0_{d|r}(x)\|_{\mathbf{S}^0_{d|r}}+\left\|\mathbf{U}_d\:\mathbf{M}_r\:\mathbf{U}(x)^\top\right\|_{\mathbf{S}_{d|r}}\label{eq:split_triangle}
 \end{equation}
-with equality when $k^0_{d|r}(x)=0$.
+with equality when $\kappa^0_{d|r}(x)=0$.
 
-By \eqref{eq:trend_information}, the Woodbury formula (see \Cref{th:Woodbury}) applied to $S_{d|r}$ yields:
+By \eqref{eq:trend_information}, the Woodbury formula (see \Cref{th:Woodbury}) applied to $\mathbf{S}_{d|r}$ yields:
 \begin{equation}
-	S_{d|r}^{-1}=\left(S^0_{d|r}\right)^{-1}-\left(S^0_{d|r}\right)^{-1}U_d\:M\:U_d^\top\left(S^0_{d|r}\right)^{-1}
+	\mathbf{S}_{d|r}^{-1}=\left(\mathbf{S}^0_{d|r}\right)^{-1}-\left(\mathbf{S}^0_{d|r}\right)^{-1}\mathbf{U}_d\:\mathbf{M}\:\mathbf{U}_d^\top\left(\mathbf{S}^0_{d|r}\right)^{-1}
 \end{equation}
 and thus, using \eqref{eq:trend_information} once more:
 \begin{equation}
 	\begin{aligned}
-	U_d^\top S_{d|r}^{-1}U_d&=\left(M^{-1}-M_r^{-1}\right)-\left(M^{-1}-M_r^{-1}\right)M\left(M^{-1}-M_r^{-1}\right)\\
-	&=\left(M^{-1}-M_r^{-1}\right)M\:M_r^{-1}\\
-	&=M_r^{-1}-M_r^{-1}M\:M_r^{-1}
+	\mathbf{U}_d^\top \mathbf{S}_{d|r}^{-1}\mathbf{U}_d&=\left(\mathbf{M}^{-1}-\mathbf{M}_r^{-1}\right)-\left(\mathbf{M}^{-1}-\mathbf{M}_r^{-1}\right)\mathbf{M}\left(\mathbf{M}^{-1}-\mathbf{M}_r^{-1}\right)\\
+	&=\left(\mathbf{M}^{-1}-\mathbf{M}_r^{-1}\right)\mathbf{M}\:\mathbf{M}_r^{-1}\\
+	&=\mathbf{M}_r^{-1}-\mathbf{M}_r^{-1}\mathbf{M}\:\mathbf{M}_r^{-1}
 	\end{aligned}
 \end{equation}
 
 The second term of \eqref{eq:split_triangle} is therefore:
 \begin{equation}
 	\begin{aligned}
-	\left\|U_d\:M_r\:U(x)^\top\right\|_{S_{d|r}}^2&=\left\|U(x)\:M_r\:U_d^\top S_{d|r}^{-1}U_d\:M_r\:U(x)^\top\right\|_{\mathrm{op}}\\
-	&=\left\|U(x)\left(M_r-M\right)U(x)^\top\right\|_{\mathrm{op}}
+	\left\|\mathbf{U}_d\:\mathbf{M}_r\:\mathbf{U}(x)^\top\right\|_{\mathbf{S}_{d|r}}^2&=\left\|\mathbf{U}(x)\:\mathbf{M}_r\:\mathbf{U}_d^\top \mathbf{S}_{d|r}^{-1}\mathbf{U}_d\:\mathbf{M}_r\:\mathbf{U}(x)^\top\right\|_{\mathrm{op}}\\
+	&=\left\|\mathbf{U}(x)\left(\mathbf{M}_r-\mathbf{M}\right)\mathbf{U}(x)^\top\right\|_{\mathrm{op}}
 	\end{aligned}
 \end{equation}
 which proves \Cref{th:split_bound}.
 
-For \Cref{th:computable_bound}, it must be noted that $S^0_{d|r}-I_{\tilde{N}^d}\otimes\tilde{R}$ is the Schur complement of:
+For \Cref{th:computable_bound}, it must be noted that $\mathbf{S}^0_{d|r}-\mathbf{I}_{\tilde{N}^d}\otimes\tilde{\mathbf{R}}$ is the Schur complement of:
 \begin{equation}
-	k(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\begin{bmatrix}I_{\tilde{N}^r}&0\\0&0\end{bmatrix}\otimes\tilde{R}\succeq0
+	\kappa(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\begin{bmatrix}\mathbf{I}_{\tilde{N}^r}&0\\0&0\end{bmatrix}\otimes\tilde{\mathbf{R}}\succeq0
 \end{equation}
-with respect to $G(\tilde{\mathbf{x}}^r)$. Since this matrix is SPSD, so is its Schur complement \cite{bib:matrix-analysis}, and thus:
+with respect to $\mathbf{G}(\tilde{\mathbf{x}}^r)$. Since this matrix is SPSD, so is its Schur complement \cite{bib:matrix-analysis}, and thus:
 \begin{equation}
-	S^0_{d|r}\succeq I_{\tilde{N}^d}\otimes\tilde{R}\succeq\tilde{\lambda}\:I_{\tilde{N}^dd_z}
+	\mathbf{S}^0_{d|r}\succeq \mathbf{I}_{\tilde{N}^d}\otimes\tilde{\mathbf{R}}\succeq\tilde{\lambda}\:\mathbf{I}_{\tilde{N}^dd_z}
 \end{equation}
 
 Consequently, we have:
 \begin{equation}
 	\left\{\begin{aligned}
-	\|k^0_{d|r}(x)\|_{S^0_{d|r}}&\leq\frac{\|k^0_{d|r}(x)\|_{\mathrm{op}}}{\sqrt{\tilde{\lambda}}}\\
-	M^{-1}&\preceq M_r^{-1}+\frac{U_d^\top U_d}{\tilde{\lambda}}
+	\|\kappa^0_{d|r}(x)\|_{\mathbf{S}^0_{d|r}}&\leq\frac{\|\kappa^0_{d|r}(x)\|_{\mathrm{op}}}{\sqrt{\tilde{\lambda}}}\\
+	\mathbf{M}^{-1}&\preceq \mathbf{M}_r^{-1}+\frac{\mathbf{U}_d^\top \mathbf{U}_d}{\tilde{\lambda}}
 	\end{aligned}\right.
 \end{equation}
 where the second inequality follows from \eqref{eq:trend_information}. Since the inversion reverses the order of SPD matrices, applying these inequalities to \Cref{th:split_bound} concludes the proof.
 
 \section[Proof of Proposition 4.11]{Proof of \Cref{th:entrywise_residual}}\label{sec:proof_entrywise}
 
-Let $N(K)$ denote the matrix of the operator norms of the blocks of a matrix $K$, and let $v$ be a vector whose blocks have Euclidean norms gathered in $u$. Since $\|Kv\|_2\leq\|N(K)\:u\|_2$, it comes that:
+Let $N(\mathbf{K})$ denote the matrix of the operator norms of the blocks of a matrix $\mathbf{K}$, and let $v$ be a vector whose blocks have Euclidean norms gathered in $u$. Since $\|\mathbf{K}v\|_2\leq\|N(\mathbf{K})\:u\|_2$, it comes that:
 \begin{equation}
-	\|K\|_{\mathrm{op}}\leq\|N(K)\|_{\mathrm{op}}\leq\sqrt{\|N(K)\|_1\:\|N(K)\|_\infty}
+	\|\mathbf{K}\|_{\mathrm{op}}\leq\|N(\mathbf{K})\|_{\mathrm{op}}\leq\sqrt{\|N(\mathbf{K})\|_1\:\|N(\mathbf{K})\|_\infty}
 \end{equation}
-where $\|N(K)\|_1$ and $\|N(K)\|_\infty$ are the largest column and row sums of $N(K)$ \cite{bib:matrix-analysis}. Applied to the symmetric matrix $G(\tilde{\mathbf{x}}^j)$, this inequality gives the blockwise Gershgorin bound:
+where $\|N(\mathbf{K})\|_1$ and $\|N(\mathbf{K})\|_\infty$ are the largest column and row sums of $N(\mathbf{K})$ \cite{bib:matrix-analysis}. Applied to the symmetric matrix $\mathbf{G}(\tilde{\mathbf{x}}^j)$, this inequality gives the blockwise Gershgorin bound:
 \begin{equation}
-	\lambda_{\max}\left(G(\tilde{\mathbf{x}}^j)\right)\leq\lambda_j^+
+	\lambda_{\max}\left(\mathbf{G}(\tilde{\mathbf{x}}^j)\right)\leq\lambda_j^+
 \end{equation}
 
 Similarly, applying it to \eqref{eq:entrywise_assumptions} gives:
 \begin{equation}
 	\left\{\begin{aligned}
-	\|k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\|_{\mathrm{op}}&\leq\sqrt{\tilde{N}^r\tilde{N}^d}\:\alpha\\
-	\|k(\tilde{\mathbf{x}}^r,x)\|_{\mathrm{op}}&\leq\sqrt{\tilde{N}^r}\:\kappa\\
-	\|k(\tilde{\mathbf{x}}^d,x)\|_{\mathrm{op}}&\leq\sqrt{\tilde{N}^d}\:\eta\\
+	\|\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\|_{\mathrm{op}}&\leq\sqrt{\tilde{N}^r\tilde{N}^d}\:\alpha\\
+	\|\kappa(\tilde{\mathbf{x}}^r,x)\|_{\mathrm{op}}&\leq\sqrt{\tilde{N}^r}\:\kappa\\
+	\|\kappa(\tilde{\mathbf{x}}^d,x)\|_{\mathrm{op}}&\leq\sqrt{\tilde{N}^d}\:\eta\\
 	\|g(\tilde{\mathbf{x}}^j)\|_{\mathrm{op}}&\leq\sqrt{\tilde{N}^j}\:g_{\max}\\
-	\|\tilde{\mathbf{z}}^j-g(\tilde{\mathbf{x}}^j)\:\beta_0\|_2&\leq\sqrt{\tilde{N}^j}\:\tilde{z}_{\max}
+	\|\tilde{\mathbf{z}}^j-g(\tilde{\mathbf{x}}^j)\:\boldsymbol{\gamma}_0\|_2&\leq\sqrt{\tilde{N}^j}\:\tilde{z}_{\max}
 	\end{aligned}\right.\label{eq:entrywise_norms}
 \end{equation}
 
-Since $G(\tilde{\mathbf{x}}^r)$ is SPD, it follows that:
+Since $\mathbf{G}(\tilde{\mathbf{x}}^r)$ is SPD, it follows that:
 \begin{equation}
 	\begin{aligned}
-	\|k^0_{d|r}(x)\|_{\mathrm{op}}&\leq\|k(\tilde{\mathbf{x}}^d,x)\|_{\mathrm{op}}+\frac{\|k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\|_{\mathrm{op}}\:\|k(\tilde{\mathbf{x}}^r,x)\|_{\mathrm{op}}}{\lambda_r^-}\\
+	\|\kappa^0_{d|r}(x)\|_{\mathrm{op}}&\leq\|\kappa(\tilde{\mathbf{x}}^d,x)\|_{\mathrm{op}}+\frac{\|\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\|_{\mathrm{op}}\:\|\kappa(\tilde{\mathbf{x}}^r,x)\|_{\mathrm{op}}}{\lambda_r^-}\\
 	&\leq\sqrt{\tilde{N}^d}\:\frac{\lambda_r^-\eta+\alpha\tilde{N}^r\kappa}{\lambda_r^-}
 	\end{aligned}
 \end{equation}
 
-The same steps, applied to $U(\tilde{\mathbf{x}}^d)$ and $U(x)$, give:
+The same steps, applied to $\mathbf{U}(\tilde{\mathbf{x}}^d)$ and $\mathbf{U}(x)$, give:
 \begin{equation}
 	\left\{\begin{aligned}
-	\|U(\tilde{\mathbf{x}}^d)\|_{\mathrm{op}}&\leq\sqrt{\tilde{N}^d}\:g_{\max}\:\rho_r\\
-	\|U(x)\|_{\mathrm{op}}&\leq g_{\max}\:\frac{\lambda_r^-+\tilde{N}^r\kappa}{\lambda_r^-}
+	\|\mathbf{U}(\tilde{\mathbf{x}}^d)\|_{\mathrm{op}}&\leq\sqrt{\tilde{N}^d}\:g_{\max}\:\rho_r\\
+	\|\mathbf{U}(x)\|_{\mathrm{op}}&\leq g_{\max}\:\frac{\lambda_r^-+\tilde{N}^r\kappa}{\lambda_r^-}
 	\end{aligned}\right.
 \end{equation}
 
 Furthermore, for every unit vector $v\in\mathbb{R}^{r_{\mathrm{UK}}d_z}$, the Rayleigh quotient \cite{bib:matrix-analysis} and the definitions of $\lambda_r^+$ and $\lambda_r^g$ give:
 \begin{equation}
-	v^\top M(\tilde{\mathbf{x}}^r)^{-1}v=\left(g(\tilde{\mathbf{x}}^r)\:v\right)^\top G(\tilde{\mathbf{x}}^r)^{-1}\left(g(\tilde{\mathbf{x}}^r)\:v\right)\geq\frac{\|g(\tilde{\mathbf{x}}^r)\:v\|_2^2}{\lambda_r^+}\geq\frac{\lambda_r^g}{\lambda_r^+}
+	v^\top \mathbf{M}(\tilde{\mathbf{x}}^r)^{-1}v=\left(g(\tilde{\mathbf{x}}^r)\:v\right)^\top \mathbf{G}(\tilde{\mathbf{x}}^r)^{-1}\left(g(\tilde{\mathbf{x}}^r)\:v\right)\geq\frac{\|g(\tilde{\mathbf{x}}^r)\:v\|_2^2}{\lambda_r^+}\geq\frac{\lambda_r^g}{\lambda_r^+}
 \end{equation}
-and thus $\|M(\tilde{\mathbf{x}}^r)\|_{\mathrm{op}}\leq\lambda_r^+/\lambda_r^g$. Applying the triangle inequality to the expression of $k_{d|r}(x)$ given by \Cref{th:explicit_residuals}, and combining these inequalities, yields the bound on $\|k_{d|r}(x)\|_{\mathrm{op}}$.
+and thus $\|\mathbf{M}(\tilde{\mathbf{x}}^r)\|_{\mathrm{op}}\leq\lambda_r^+/\lambda_r^g$. Applying the triangle inequality to the expression of $\kappa_{d|r}(x)$ given by \Cref{th:explicit_residuals}, and combining these inequalities, yields the bound on $\|\kappa_{d|r}(x)\|_{\mathrm{op}}$.
 
-Since $S_{d|r}\succeq S^0_{d|r}$ by \Cref{th:explicit_residuals}, we have $\lambda_{\min}(S_{d|r})\geq\lambda_{\min}(S^0_{d|r})$. Moreover, for every unit vector $v\in\mathbb{R}^{\tilde{N}^dd_z}$:
+Since $\mathbf{S}_{d|r}\succeq \mathbf{S}^0_{d|r}$ by \Cref{th:explicit_residuals}, we have $\lambda_{\min}(\mathbf{S}_{d|r})\geq\lambda_{\min}(\mathbf{S}^0_{d|r})$. Moreover, for every unit vector $v\in\mathbb{R}^{\tilde{N}^dd_z}$:
 \begin{equation}
 	\begin{aligned}
-	v^\top S^0_{d|r}\:v&=v^\top G(\tilde{\mathbf{x}}^d)\:v-\left(k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\:v\right)^\top G(\tilde{\mathbf{x}}^r)^{-1}\left(k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\:v\right)\\
-	&\geq\lambda_d^--\frac{\|k(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\|_{\mathrm{op}}^2}{\lambda_r^-}\\
+	v^\top \mathbf{S}^0_{d|r}\:v&=v^\top \mathbf{G}(\tilde{\mathbf{x}}^d)\:v-\left(\kappa(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\:v\right)^\top \mathbf{G}(\tilde{\mathbf{x}}^r)^{-1}\left(\kappa(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\:v\right)\\
+	&\geq\lambda_d^--\frac{\|\kappa(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d)\|_{\mathrm{op}}^2}{\lambda_r^-}\\
 	&\geq\frac{\lambda_r^-\lambda_d^--\alpha^2\tilde{N}^r\tilde{N}^d}{\lambda_r^-}
 	\end{aligned}
 \end{equation}
 
-Since this lower bound does not depend on $v$, it also bounds $\lambda_{\min}(S^0_{d|r})$. It is positive by assumption, and so:
+Since this lower bound does not depend on $v$, it also bounds $\lambda_{\min}(\mathbf{S}^0_{d|r})$. It is positive by assumption, and so:
 \begin{equation}
-	\|S_{d|r}^{-1}\|_{\mathrm{op}}=\frac{1}{\lambda_{\min}(S_{d|r})}\leq s_{\max}
+	\|\mathbf{S}_{d|r}^{-1}\|_{\mathrm{op}}=\frac{1}{\lambda_{\min}(\mathbf{S}_{d|r})}\leq s_{\max}
 \end{equation}
 
-Finally, since $\tilde{\mathbf{z}}_{d|r}$ is unchanged when a trend is added to the observations, \Cref{th:explicit_residuals} can be applied to the observations $\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\:\beta_0$:
+Finally, since $\tilde{\mathbf{z}}_{d|r}$ is unchanged when a trend is added to the observations, \Cref{th:explicit_residuals} can be applied to the observations $\tilde{\mathbf{z}}-g(\tilde{\mathbf{x}})\:\boldsymbol{\gamma}_0$:
 \begin{equation}
 	\begin{aligned}
-	\tilde{\mathbf{z}}_{d|r}&=\left(\tilde{\mathbf{z}}^d-g(\tilde{\mathbf{x}}^d)\:\beta_0\right)-k(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:G(\tilde{\mathbf{x}}^r)^{-1}\left(\tilde{\mathbf{z}}^r-g(\tilde{\mathbf{x}}^r)\:\beta_0\right)\\
-	&\qquad-U(\tilde{\mathbf{x}}^d)\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)-\beta_0\right)
+	\tilde{\mathbf{z}}_{d|r}&=\left(\tilde{\mathbf{z}}^d-g(\tilde{\mathbf{x}}^d)\:\boldsymbol{\gamma}_0\right)-\kappa(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^r)\:\mathbf{G}(\tilde{\mathbf{x}}^r)^{-1}\left(\tilde{\mathbf{z}}^r-g(\tilde{\mathbf{x}}^r)\:\boldsymbol{\gamma}_0\right)\\
+	&\qquad-\mathbf{U}(\tilde{\mathbf{x}}^d)\left(\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)-\boldsymbol{\gamma}_0\right)
 	\end{aligned}
 \end{equation}
 
-The steps used for $k^0_{d|r}(x)$ bound the norm of the first two terms by $\sqrt{\tilde{N}^d}\:\rho_r\:\tilde{z}_{\max}$. Moreover, \eqref{eq:entrywise_norms} gives:
+The steps used for $\kappa^0_{d|r}(x)$ bound the norm of the first two terms by $\sqrt{\tilde{N}^d}\:\rho_r\:\tilde{z}_{\max}$. Moreover, \eqref{eq:entrywise_norms} gives:
 \begin{equation}
 	\begin{aligned}
-	\left\|\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)-\beta_0\right\|_2&=\left\|M(\tilde{\mathbf{x}}^r)\:g(\tilde{\mathbf{x}}^r)^\top G(\tilde{\mathbf{x}}^r)^{-1}\left(\tilde{\mathbf{z}}^r-g(\tilde{\mathbf{x}}^r)\:\beta_0\right)\right\|_2\\
+	\left\|\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)-\boldsymbol{\gamma}_0\right\|_2&=\left\|\mathbf{M}(\tilde{\mathbf{x}}^r)\:g(\tilde{\mathbf{x}}^r)^\top \mathbf{G}(\tilde{\mathbf{x}}^r)^{-1}\left(\tilde{\mathbf{z}}^r-g(\tilde{\mathbf{x}}^r)\:\boldsymbol{\gamma}_0\right)\right\|_2\\
 	&\leq\frac{\lambda_r^+}{\lambda_r^g}\:\frac{\sqrt{\tilde{N}^r}\:g_{\max}\:\sqrt{\tilde{N}^r}\:\tilde{z}_{\max}}{\lambda_r^-}\\
 	&=\frac{\tilde{N}^rg_{\max}\:\lambda_r^+}{\lambda_r^g\:\lambda_r^-}\:\tilde{z}_{\max}
 	\end{aligned}
 \end{equation}
 which concludes the proof by the triangle inequality.
+\end{comment}

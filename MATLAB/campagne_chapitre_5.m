@@ -148,6 +148,10 @@ par.akkf.entree_carte = 0;           % entrée du RLS. 0 : l'estimée ; 1 : les 
                                      % moyennées sous N(x_hat, P_hat) ; 2 : leur moyenne
                                      % pondérée sur le nuage ; 3 : l'estimée prédite, qui n'a
                                      % pas encore lu l'observation
+par.akkf.obs_simulees = 0;           % (2026-10-20) observations simulées. 0 : la carte
+                                     % apprise et le bruit du capteur ; 1 : le champ vrai,
+                                     % soit l'AKKF sur carte connue ; 2 : la carte apprise et
+                                     % la variance prédictive R (1 + Psi' Pa Psi) du RLS
 
 % Le relevé n'est lu que par la borne 'ok'. Les valeurs sont celles du chapitre 4.
 par.krig.jitter       = 0.30;
@@ -373,6 +377,7 @@ opt = struct('n_part', par.mc.n_part, 'n_th', 0.5 * par.mc.n_part, ...
              'P_eval', P_eval, 'mem_max', par.slam.mem_max, 'akkf', par.akkf, ...
              'sigma_f2', par.slam.sigma_f^2, 'bloc_octets', par.slam.bloc_octets);
 opt.akkf.echelle_x = par.sigma_0(:);
+opt.h_vrai = @(P) krig.lire(map.h, map.step, P) - par.slam.moyenne;   % pour akkf.obs_simulees = 1
 
 % Le relevé et le modèle krigé ne servent qu'aux bornes du chapitre 4, et ne sont
 % construits que si l'une d'elles est demandée — la tabulation de 'ok' coûte plus cher que

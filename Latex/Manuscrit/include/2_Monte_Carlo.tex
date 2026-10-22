@@ -13,17 +13,17 @@ Let $X$ be a random variable taking values in $\mathbb{R}^{d_x}$ with probabilit
 	\mathbb{E}_p[\varphi(X)]=\int{\varphi(x)\:p(x)\:dx}\label{eq:varphi_expectation_p}
 \end{equation}
 
-Let $\mu(dx)\triangleq p(x)\:dx$ be the probability measure with density $p$ with respect to the Lebesgue measure. \eqref{eq:varphi_expectation_p} can be rewritten as:
+Let $\mu_p(dx)\triangleq p(x)\:dx$ be the probability measure with density $p$ with respect to the Lebesgue measure. \eqref{eq:varphi_expectation_p} can be rewritten as:
 \begin{equation}
-	\langle\mu,\varphi\rangle\triangleq\int{\varphi(x)\:\mu(dx)}=\mathbb{E}_p[\varphi(X)]\label{eq:varphi_expectation_mu}
+	\langle\mu_p,\varphi\rangle\triangleq\int{\varphi(x)\:\mu_p(dx)}=\mathbb{E}_p[\varphi(X)]\label{eq:varphi_expectation_mu}
 \end{equation}
 
-Since $\mu$ is a continuous measure, evaluating \eqref{eq:varphi_expectation_mu} exactly is intractable in most practical situations. The MC method aims to approximate $\mu$ by an empirical measure induced by $N$ independent samples, as presented by \Cref{th:empirical_measure} and \Cref{th:MC_estimator}.
+Since $\mu_p$ is a continuous measure, evaluating \eqref{eq:varphi_expectation_mu} exactly is intractable in most practical situations. The MC method aims to approximate $\mu_p$ by an empirical measure induced by $N$ independent samples, as presented by \Cref{th:empirical_measure} and \Cref{th:MC_estimator}.
 
 \begin{definition}[Empirical measure]\label{th:empirical_measure}
-	Let $N\in\mathbb{N}^*$ and $X^{(1)},\dots,X^{(N)}$ be independent and identically distributed (i.i.d.) random variables drawn from $\mu$. The empirical measure associated with $\left(X^{(i)}\right)_{i\in[\![1,N]\!]}$ is defined as:
+	Let $N\in\mathbb{N}^*$ and $X^{(1)},\dots,X^{(N)}$ be independent and identically distributed (i.i.d.) random variables drawn from $\mu_p$. The empirical measure associated with $\left(X^{(i)}\right)_{i\in[\![1,N]\!]}$ is defined as:
 	\begin{equation}
-		S^N(\mu)\triangleq\frac{1}{N}\sum_{i=1}^N\delta_{X^{(i)}}
+		S^N(\mu_p)\triangleq\frac{1}{N}\sum_{i=1}^N\delta_{X^{(i)}}
 	\end{equation}
 	where $\delta_x$ denotes the Dirac measure at $x$.
 \end{definition}
@@ -31,21 +31,21 @@ Since $\mu$ is a continuous measure, evaluating \eqref{eq:varphi_expectation_mu}
 \begin{proposition}[Monte Carlo estimator]\label{th:MC_estimator}
 	The MC estimator:
 	\begin{equation}
-		\left\langle S^N(\mu),\varphi\right\rangle=\frac{1}{N}\sum_{i=1}^N\langle\delta_{X^{(i)}},\varphi\rangle=\frac{1}{N}\sum_{i=1}^N\varphi\left(X^{(i)}\right)
+		\left\langle S^N(\mu_p),\varphi\right\rangle=\frac{1}{N}\sum_{i=1}^N\langle\delta_{X^{(i)}},\varphi\rangle=\frac{1}{N}\sum_{i=1}^N\varphi\left(X^{(i)}\right)
 	\end{equation}
 	is unbiased and consistent:
 	\begin{align}
-		\mathbb{E}_p\left[\left\langle S^N(\mu),\varphi\right\rangle\right]&=\mathbb{E}_p[\varphi(X)]=\langle\mu,\varphi\rangle\\
-		\left\langle S^N(\mu),\varphi\right\rangle&\overset{a.s.}{\longrightarrow}\langle\mu,\varphi\rangle
+		\mathbb{E}_p\left[\left\langle S^N(\mu_p),\varphi\right\rangle\right]&=\mathbb{E}_p[\varphi(X)]=\langle\mu_p,\varphi\rangle\\
+		\left\langle S^N(\mu_p),\varphi\right\rangle&\overset{a.s.}{\longrightarrow}\langle\mu_p,\varphi\rangle
 	\end{align}
 
 	If moreover $\varphi(X)$ is square-integrable, its mean squared error is:
 	\begin{equation}
-		\mathbb{E}_p\left[\left|\left\langle S^N(\mu)-\mu,\varphi\right\rangle\right|^2\right]=\frac{1}{N}\operatorname{tr}\mathbb{V}_\mu[\varphi]
+		\mathbb{E}_p\left[\left|\left\langle S^N(\mu_p)-\mu_p,\varphi\right\rangle\right|^2\right]=\frac{1}{N}\operatorname{tr}\mathbb{V}_p[\varphi]
 	\end{equation}
-	where $\mathbb{V}_\mu[\varphi]\triangleq\left\langle\mu,(\varphi-\langle\mu,\varphi\rangle)(\varphi-\langle\mu,\varphi\rangle)^\top\right\rangle$ is the covariance matrix of $\varphi$ under $\mu$, and its rescaled error converges in distribution to a centred Gaussian:
+	where $\mathbb{V}_p[\varphi]\triangleq\left\langle\mu_p,(\varphi-\langle\mu_p,\varphi\rangle)(\varphi-\langle\mu_p,\varphi\rangle)^\top\right\rangle$ is the covariance matrix of $\varphi$ under $\mu_p$, and its rescaled error converges in distribution to a centred Gaussian:
 	\begin{equation}
-		\sqrt{N}\left\langle S^N(\mu)-\mu,\varphi\right\rangle\overset{\mathcal{L}}{\longrightarrow}\mathcal{N}(0,\mathbb{V}_\mu[\varphi])
+		\sqrt{N}\left\langle S^N(\mu_p)-\mu_p,\varphi\right\rangle\overset{\mathcal{L}}{\longrightarrow}\mathcal{N}(0,\mathbb{V}_p[\varphi])
 	\end{equation}
 \end{proposition}
 
@@ -53,18 +53,18 @@ Since $\mu$ is a continuous measure, evaluating \eqref{eq:varphi_expectation_mu}
 	By linearity of the expectation and the transfer theorem, it comes that:
 	\begin{equation}
 		\begin{aligned}
-		\mathbb{E}_p\left[\left\langle S^N(\mu),\varphi\right\rangle\right]&=\frac{1}{N}\sum_{i=1}^N\mathbb{E}_p\left[\varphi\left(X^{(i)}\right)\right]\\
-		&=\frac{1}{N}\sum_{i=1}^N\langle\mu,\varphi\rangle\\
-		&=\langle\mu,\varphi\rangle
+		\mathbb{E}_p\left[\left\langle S^N(\mu_p),\varphi\right\rangle\right]&=\frac{1}{N}\sum_{i=1}^N\mathbb{E}_p\left[\varphi\left(X^{(i)}\right)\right]\\
+		&=\frac{1}{N}\sum_{i=1}^N\langle\mu_p,\varphi\rangle\\
+		&=\langle\mu_p,\varphi\rangle
 		\end{aligned}
 	\end{equation}
 	Furthermore, by independence of the $X^{(i)}$:
 	\begin{equation}
 		\begin{aligned}
-		\mathbb{E}_p\left[\left|\left\langle S^N(\mu)-\mu,\varphi\right\rangle\right|^2\right]&=\mathbb{E}_p\left[\left|\frac{1}{N}\sum_{i=1}^N\left(\varphi\left(X^{(i)}\right)-\langle\mu,\varphi\rangle\right)\right|^2\right]\\
-		&=\frac{1}{N^2}\sum_{i=1}^N\mathbb{E}_p\left[\left|\varphi\left(X^{(i)}\right)-\langle\mu,\varphi\rangle\right|^2\right]\\
-		&=\frac{1}{N^2}\sum_{i=1}^N\mathbb{E}\left[|\varphi(X)-\langle\mu,\varphi\rangle|^2\right]\\
-		&=\frac{1}{N}\operatorname{tr}\mathbb{V}_\mu[\varphi]
+		\mathbb{E}_p\left[\left|\left\langle S^N(\mu_p)-\mu_p,\varphi\right\rangle\right|^2\right]&=\mathbb{E}_p\left[\left|\frac{1}{N}\sum_{i=1}^N\left(\varphi\left(X^{(i)}\right)-\langle\mu_p,\varphi\rangle\right)\right|^2\right]\\
+		&=\frac{1}{N^2}\sum_{i=1}^N\mathbb{E}_p\left[\left|\varphi\left(X^{(i)}\right)-\langle\mu_p,\varphi\rangle\right|^2\right]\\
+		&=\frac{1}{N^2}\sum_{i=1}^N\mathbb{E}\left[|\varphi(X)-\langle\mu_p,\varphi\rangle|^2\right]\\
+		&=\frac{1}{N}\operatorname{tr}\mathbb{V}_p[\varphi]
 		\end{aligned}
 	\end{equation}
 
@@ -73,33 +73,37 @@ Since $\mu$ is a continuous measure, evaluating \eqref{eq:varphi_expectation_mu}
 
 Informally, this means that:
 \begin{equation}
-	S^N(\mu)=\frac{1}{N}\sum_{i=1}^N\delta_{X^{(i)}}\approx\mu
+	S^N(\mu_p)=\frac{1}{N}\sum_{i=1}^N\delta_{X^{(i)}}\approx\mu_p
 \end{equation}
 in the sense that, for any measurable function $\varphi$ such that $\varphi(X)$ is integrable:
 \begin{equation}
-	\left\langle S^N(\mu),\varphi\right\rangle=\frac{1}{N}\sum_{i=1}^N\varphi\left(X^{(i)}\right)\approx\langle\mu,\varphi\rangle
+	\left\langle S^N(\mu_p),\varphi\right\rangle=\frac{1}{N}\sum_{i=1}^N\varphi\left(X^{(i)}\right)\approx\langle\mu_p,\varphi\rangle
 \end{equation}
 
 \subsection{Importance Sampling}
 
-The standard MC method requires sampling directly from $\mu$, which can be complex in practice. Importance sampling \cite{bib:importance-sampling} circumvents this issue by drawing from a chosen importance, or proposal, distribution $\nu$ with density $q$.
+The standard MC method requires sampling directly from $\mu_p$, which can be complex in practice. Importance sampling \cite{bib:importance-sampling} circumvents this issue by drawing from a chosen importance, or proposal, distribution $\mu_q$ with density $q$.
 
-Assuming that $\operatorname{supp}(q)\subseteq\operatorname{supp}(p)$, and for $x\in\operatorname{supp}(q)$, it follows from the identity $p(x)=\frac{p(x)}{q(x)}\:q(x)$ and the transfer theorem that:
+Assuming that $\operatorname{supp}(p)\subseteq\operatorname{supp}(q)$, and for $x\in\operatorname{supp}(q)$, it follows from the identity $p(x)=\frac{p(x)}{q(x)}\:q(x)$ and the transfer theorem that:
 \begin{equation}
 	\mathbb{E}_p[\varphi(X)]=\int{\left(\varphi(x)\:\frac{p(x)}{q(x)}\right)\:q(x)\:dx}=\mathbb{E}_q\left[\varphi(X)\:\frac{p(X)}{q(X)}\right]
 \end{equation}
 
 Using measure theory notations, this is equivalent to writing:
 \begin{equation}
-	\langle\mu,\varphi\rangle=\left\langle\nu,\frac{d\mu}{d\nu}\:\varphi\right\rangle
+	\langle\mu_p,\varphi\rangle=\left\langle\mu_q,\frac{d\mu_p}{d\mu_q}\:\varphi\right\rangle
 \end{equation}
 
-The density $\frac{d\mu}{d\nu}$ is known as the Radon-Nikodym derivative. This motivates the introduction of the weighted empirical measure, given by \Cref{th:weighted_empirical}.
+The density $\frac{d\mu_p}{d\mu_q}$ is known as the Radon-Nikodym derivative. This motivates the introduction of the weighted empirical measure, given by \Cref{th:weighted_empirical}.
 
 \begin{definition}[Weighted empirical measure]\label{th:weighted_empirical}
-	Let $\nu(dx)=q(x)\:dx$ with $\operatorname{supp}(\mu)\subseteq\operatorname{supp}(\nu)$, and let $X^{(1)},\dots,X^{(N)}\overset{i.i.d.}{\sim}\nu$. The associated weighted empirical measure is:
+	Let $\mu_q(dx)=q(x)\:dx$ with:
 	\begin{equation}
-		S^N(\mu,\nu)\triangleq\frac{d\mu}{d\nu}\:S^N(\nu)=\frac{1}{N}\sum_{i=1}^N\frac{p(X^{(i)})}{q(X^{(i)})}\:\delta_{X^{(i)}}
+		\operatorname{supp}(\mu_p)\subseteq\operatorname{supp}(\mu_q)
+	\end{equation}
+	and let $X^{(1)},\dots,X^{(N)}\overset{i.i.d.}{\sim}\mu_q$. The associated weighted empirical measure is:
+	\begin{equation}
+		S^N(\mu_p,\mu_q)\triangleq\frac{d\mu_p}{d\mu_q}\:S^N(\mu_q)=\frac{1}{N}\sum_{i=1}^N\frac{p(X^{(i)})}{q(X^{(i)})}\:\delta_{X^{(i)}}
 	\end{equation}
 \end{definition}
 
@@ -108,18 +112,18 @@ Pairing this measure with a test function $\varphi$ yields the weighted MC estim
 \begin{proposition}[Weighted MC estimator]\label{th:weighted_MC}
 	The weighted MC estimator:
 	\begin{equation}
-		\left\langle S^N(\mu,\nu),\varphi\right\rangle=\frac{1}{N}\sum_{i=1}^N\frac{p\left(X^{(i)}\right)}{q\left(X^{(i)}\right)}\:\varphi\left(X^{(i)}\right)
+		\left\langle S^N(\mu_p,\mu_q),\varphi\right\rangle=\frac{1}{N}\sum_{i=1}^N\frac{p\left(X^{(i)}\right)}{q\left(X^{(i)}\right)}\:\varphi\left(X^{(i)}\right)
 	\end{equation}
 	is unbiased and consistent:
 	\begin{align}
-		\mathbb{E}_p\left[\left\langle S^N(\mu,\nu),\varphi\right\rangle\right]&=\mathbb{E}_p[\varphi(X)]\\
-		\left\langle S^N(\mu,\nu),\varphi\right\rangle&\overset{a.s.}{\longrightarrow}\mathbb{E}_p[\varphi(X)]
+		\mathbb{E}_p\left[\left\langle S^N(\mu_p,\mu_q),\varphi\right\rangle\right]&=\mathbb{E}_p[\varphi(X)]\\
+		\left\langle S^N(\mu_p,\mu_q),\varphi\right\rangle&\overset{a.s.}{\longrightarrow}\mathbb{E}_p[\varphi(X)]
 	\end{align}
 
-	Furthermore, when $\mathbb{V}_\nu\!\left[\frac{d\mu}{d\nu}\:\varphi\right]<\infty$, its mean squared error and rescaled error satisfy:
+	Furthermore, when $\mathbb{V}_q\!\left[\frac{d\mu_p}{d\mu_q}\:\varphi\right]<\infty$, its mean squared error and rescaled error satisfy:
 	\begin{align}
-		\mathbb{E}_q\left[\left|\left\langle S^N(\mu,\nu)-\mu,\varphi\right\rangle\right|^2\right]&=\frac{1}{N}\operatorname{tr}\mathbb{V}_\nu\left[\frac{d\mu}{d\nu}\:\varphi\right]\\
-		\sqrt{N}\left\langle S^N(\mu,\nu)-\mu,\varphi\right\rangle&\overset{\mathcal{L}}{\longrightarrow}\mathcal{N}\left(0,\mathbb{V}_\nu\left[\frac{d\mu}{d\nu}\:\varphi\right]\right)
+		\mathbb{E}_q\left[\left|\left\langle S^N(\mu_p,\mu_q)-\mu_p,\varphi\right\rangle\right|^2\right]&=\frac{1}{N}\operatorname{tr}\mathbb{V}_q\left[\frac{d\mu_p}{d\mu_q}\:\varphi\right]\\
+		\sqrt{N}\left\langle S^N(\mu_p,\mu_q)-\mu_p,\varphi\right\rangle&\overset{\mathcal{L}}{\longrightarrow}\mathcal{N}\left(0,\mathbb{V}_q\left[\frac{d\mu_p}{d\mu_q}\:\varphi\right]\right)
 	\end{align}
 \end{proposition}
 
@@ -129,48 +133,48 @@ Pairing this measure with a test function $\varphi$ yields the weighted MC estim
 
 For $\varphi\equiv1$, the total mass:
 \begin{equation}
-	\left\langle S^N(\mu,\nu),1\right\rangle=\frac{1}{N}\sum_{i=1}^N\frac{p\left(X^{(i)}\right)}{q\left(X^{(i)}\right)}
+	\left\langle S^N(\mu_p,\mu_q),1\right\rangle=\frac{1}{N}\sum_{i=1}^N\frac{p\left(X^{(i)}\right)}{q\left(X^{(i)}\right)}
 \end{equation}
-converges a.s. to $1$, but each finite sample is not necessarily normalised. Furthermore, $p$ and $q$ are often known only up to normalising constants $\tilde{p}=C_\mu p$ and $\tilde{q}=C_\nu q$. To alleviate these issues, \Cref{th:self_normalised_measure} introduces the self-normalised measure \cite{bib:self-normalised}, whose estimator remains consistent despite these unknown constants, as proven by \Cref{th:self_normalised_estimator}.
+converges a.s. to $1$, but each finite sample is not necessarily normalised. Furthermore, $p$ and $q$ are often known only up to normalising constants $\tilde{p}=C_p p$ and $\tilde{q}=C_q q$. To alleviate these issues, \Cref{th:self_normalised_measure} introduces the self-normalised measure \cite{bib:self-normalised}, whose estimator remains consistent despite these unknown constants, as proven by \Cref{th:self_normalised_estimator}.
 
 \begin{definition}[Self-normalised measure]\label{th:self_normalised_measure}
-	Let $X^{(1)}, \dots,X^{(N)}\overset{i.i.d.}{\sim}\nu$, with $\tilde{\mu}=C_\mu\mu$ and $\tilde{\nu}=C_\nu\nu$. The self-normalised measure is:
+	Let $X^{(1)}, \dots,X^{(N)}\overset{i.i.d.}{\sim}\mu_q$, with $\tilde{\mu}_p=C_p\mu_p$ and $\tilde{\mu}_q=C_q\mu_q$. The self-normalised measure is:
 	\begin{align}
-		\tilde{S}^N(\mu,\nu)&\triangleq\sum_{i=1}^Nw^{(i)}\:\delta_{X^{(i)}}\label{eq:self_normalised_estimator}\\
+		\tilde{S}^N(\mu_p,\mu_q)&\triangleq\sum_{i=1}^Nw^{(i)}\:\delta_{X^{(i)}}\label{eq:self_normalised_estimator}\\
 		w^{(i)}&\triangleq\left.\tilde{w}^{(i)}\middle/\sum_{j=1}^N\tilde{w}^{(j)}\right.\\
-		\tilde{w}^{(i)}&\triangleq\frac{\tilde{p}\left(X^{(i)}\right)}{\tilde{q}\left(X^{(i)}\right)}=\frac{d\tilde{\mu}}{d\tilde{\nu}}\left(X^{(i)}\right)
+		\tilde{w}^{(i)}&\triangleq\frac{\tilde{p}\left(X^{(i)}\right)}{\tilde{q}\left(X^{(i)}\right)}=\frac{d\tilde{\mu}_p}{d\tilde{\mu}_q}\left(X^{(i)}\right)
 	\end{align}
 \end{definition}
 
 \begin{proposition}[Self-normalised estimator]\label{th:self_normalised_estimator}
 	The self-normalised estimator:
 	\begin{equation}
-		\left\langle\tilde{S}^N(\mu,\nu),\varphi\right\rangle=\sum_{i=1}^Nw^{(i)}\:\varphi\left(X^{(i)}\right)=\frac{\displaystyle\left\langle S^N(\tilde{\mu},\tilde{\nu}),\varphi\right\rangle}{\displaystyle\left\langle S^N(\tilde{\mu},\tilde{\nu}),1\right\rangle}
+		\left\langle\tilde{S}^N(\mu_p,\mu_q),\varphi\right\rangle=\sum_{i=1}^Nw^{(i)}\:\varphi\left(X^{(i)}\right)=\frac{\displaystyle\left\langle S^N(\tilde{\mu}_p,\tilde{\mu}_q),\varphi\right\rangle}{\displaystyle\left\langle S^N(\tilde{\mu}_p,\tilde{\mu}_q),1\right\rangle}
 	\end{equation}
-	is biased at finite $N$, but consistent as soon as $\varphi(X)$ is integrable and $\operatorname{supp}(\mu)\subseteq\operatorname{supp}(\nu)$:
+	is biased at finite $N$, but consistent as soon as $\varphi(X)$ is integrable and $\operatorname{supp}(\mu_p)\subseteq\operatorname{supp}(\mu_q)$:
 	\begin{equation}
-		\left\langle\tilde{S}^N(\mu,\nu),\varphi\right\rangle\overset{a.s.}{\longrightarrow}\langle\mu,\varphi\rangle
+		\left\langle\tilde{S}^N(\mu_p,\mu_q),\varphi\right\rangle\overset{a.s.}{\longrightarrow}\langle\mu_p,\varphi\rangle
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	Although the bias of $\tilde{S}^N(\mu,\nu)$ admits no simple closed-form expression in general, it can be computed for $N=1$. In this situation, the self-normalisation forces the single weight to $1$, such that:
+	Although the bias of $\tilde{S}^N(\mu_p,\mu_q)$ admits no simple closed-form expression in general, it can be computed for $N=1$. In this situation, the self-normalisation forces the single weight to $1$, such that:
 	\begin{equation}
-		\left\langle\tilde{S}^1(\mu,\nu),\varphi\right\rangle=\varphi\left(X^{(1)}\right)
+		\left\langle\tilde{S}^1(\mu_p,\mu_q),\varphi\right\rangle=\varphi\left(X^{(1)}\right)
 	\end{equation}
 	and thus:
 	\begin{equation}
-		\mathbb{E}\left[\left\langle\tilde{S}^1(\mu,\nu),\varphi\right\rangle\right]=\langle\nu,\varphi\rangle\neq\langle\mu,\varphi\rangle
+		\mathbb{E}\left[\left\langle\tilde{S}^1(\mu_p,\mu_q),\varphi\right\rangle\right]=\langle\mu_q,\varphi\rangle\neq\langle\mu_p,\varphi\rangle
 	\end{equation}
 	in general.
 
 	Furthermore, applying the strong law of large numbers separately to both the numerator and denominator of the self-normalised estimator yields:
 	\begin{equation}
-		\left\langle S^N(\tilde{\mu},\tilde{\nu}),\varphi\right\rangle=\frac{1}{N}\sum_{i=1}^N\tilde{w}^{(i)}\varphi\left(X^{(i)}\right)\overset{a.s.}{\longrightarrow}\left\langle\nu,\frac{d\tilde{\mu}}{d\tilde{\nu}}\:\varphi\right\rangle=\frac{C_\mu}{C_\nu}\:\langle\mu,\varphi\rangle
+		\left\langle S^N(\tilde{\mu}_p,\tilde{\mu}_q),\varphi\right\rangle=\frac{1}{N}\sum_{i=1}^N\tilde{w}^{(i)}\varphi\left(X^{(i)}\right)\overset{a.s.}{\longrightarrow}\left\langle\mu_q,\frac{d\tilde{\mu}_p}{d\tilde{\mu}_q}\:\varphi\right\rangle=\frac{C_p}{C_q}\:\langle\mu_p,\varphi\rangle
 	\end{equation}
 	and:
 	\begin{equation}
-		\left\langle S^N(\tilde{\mu},\tilde{\nu}),1\right\rangle=\frac{1}{N}\sum_{j=1}^N\tilde{w}^{(j)}\overset{a.s.}{\longrightarrow}\left\langle\nu,\frac{d\tilde{\mu}}{d\tilde{\nu}}\right\rangle=\frac{C_\mu}{C_\nu}\:\langle\mu,1\rangle=\frac{C_\mu}{C_\nu}\neq0
+		\left\langle S^N(\tilde{\mu}_p,\tilde{\mu}_q),1\right\rangle=\frac{1}{N}\sum_{j=1}^N\tilde{w}^{(j)}\overset{a.s.}{\longrightarrow}\left\langle\mu_q,\frac{d\tilde{\mu}_p}{d\tilde{\mu}_q}\right\rangle=\frac{C_p}{C_q}\:\langle\mu_p,1\rangle=\frac{C_p}{C_q}\neq0
 	\end{equation}
 
 	Combining both expressions finally gives the desired result.
@@ -236,16 +240,16 @@ While the current formulation allows us to approximate the density of the full t
 \end{equation}
 and computing the self-normalised estimator for $\varphi=\pi_k$, which approximates the MMSE estimator of \cref{sec:state_estimation}:
 \begin{equation}
-	\hat{x}_k\triangleq\left\langle\tilde{S}^N(\mu_k,\nu_k),\pi_k\right\rangle=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}\approx\mathbb{E}_{p(\cdot|\mathbf{z}_{1:k})}[x_k]\label{eq:PF_MMSE}
+	\hat{x}_k\triangleq\left\langle\tilde{S}^N(\mu_{p,k},\mu_{q,k}),\pi_k\right\rangle=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}\approx\mathbb{E}_{p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}[x_k]\label{eq:PF_MMSE}
 \end{equation}
-where $\mu_k(dx)\triangleq\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$ and $\nu_k(dx)\triangleq\tilde{q}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$. The corresponding empirical covariance matrix is:
+where $\mu_{p,k}(dx)\triangleq\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$ and $\mu_{q,k}(dx)\triangleq\tilde{q}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$. The corresponding empirical covariance matrix is:
 \begin{equation}
-	\hat{P}_k\triangleq\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top
+	\hat{\mathbf{P}}_k\triangleq\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top
 \end{equation}
 
 The other estimators of \cref{sec:state_estimation} remain accessible, though they are not as immediate:
 \begin{itemize}
-	\item For a scalar state, the MMAE estimator only requires the cumulative distribution function, which $\tilde{S}^N(\mu_k,\nu_k)$ does define, and is obtained by accumulating the weights of the sorted particles until the total exceeds $\frac{1}{2}$. Its extension to a vector state is however not straightforward.
+	\item For a scalar state, the MMAE estimator only requires the cumulative distribution function, which $\tilde{S}^N(\mu_{p,k},\mu_{q,k})$ does define, and is obtained by accumulating the weights of the sorted particles until the total exceeds $\frac{1}{2}$. Its extension to a vector state is however not straightforward.
 	\item The MAP estimator, on the other hand, calls for a density, which the particle approximation does not possess. In particular, $\hat{\psi}_{\mathrm{MAP}}(\mathbf{z}_{1:k})$ cannot be computed using the weights, since they are importance ratios rather than density values. The heaviest particle maximises the Radon-Nikodym derivative rather than the PDF itself, and maximising $\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$ over the particles only locates a mode among the sampled locations.
 \end{itemize}
 
@@ -253,7 +257,7 @@ As for the optimal and Kalman filters, the SIS algorithm follows the prediction/
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim q\left(\cdot|x_{k-1}^{(i)},z_k\right)$}\Comment{Particle propagation}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim q\left(\cdot|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)$}\Comment{Particle propagation}
 	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\dfrac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}$}\Comment{Weight update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
 	\end{algorithmic}\caption{Sequential Importance Sampling}\label{alg:SIS}
@@ -269,9 +273,9 @@ As for the optimal and Kalman filters, the SIS algorithm follows the prediction/
 
 \subsubsection{Numerical correction of the covariance matrix}\label{sec:covariance_correction}
 
-For numerical reasons, the estimated covariance matrix $\hat{P}_k$ may not satisfy SPD properties in practice. While an analytic reformulation existed for the Kalman filter, the numerical nature of MC methods prevents a similar solution. Formally, we want to find the closest matrix $M_+^*\succ0$ to $\hat{P}_k$ in the sense of the Frobenius norm:
+For numerical reasons, the estimated covariance matrix $\hat{\mathbf{P}}_k$ may not satisfy SPD properties in practice. While an analytic reformulation exists for the Kalman filter, the numerical nature of MC methods prevents a similar solution. Formally, we want to find the closest matrix $\mathbf{M}_+^*\succ0$ to $\hat{\mathbf{P}}_k$ in the sense of the Frobenius norm:
 \begin{equation}
-	A\in\mathcal{M}_{d_x,d_x}(\mathbb{R})\mapsto\|A\|_F\triangleq\sqrt{\sum_{i=1}^{d_x}\sum_{j=1}^{d_x}{A_{i,j}}^2}
+	\mathbf{A}\in\mathcal{M}_{d_x,d_x}(\mathbb{R})\mapsto\|\mathbf{A}\|_F\triangleq\sqrt{\sum_{i=1}^{d_x}\sum_{j=1}^{d_x}{A_{i,j}}^2}
 \end{equation}
 
 If $d_x=1$, the positive real $m_+\in\mathbb{R}_+$ closest to some real $m\in\mathbb{R}$ is:
@@ -279,52 +283,55 @@ If $d_x=1$, the positive real $m_+\in\mathbb{R}_+$ closest to some real $m\in\ma
 	m_+=\frac{m+|m|}{2}
 \end{equation}
 
-While this only applies to scalars, a similar operation can be performed in higher dimensions by using the SPSD term of the polar decomposition. The singular values decomposition is used to simplify the computation of the polar decomposition.
+While this only applies to scalars, a similar operation can be performed in higher dimensions by using the SPSD term of the polar decomposition. The singular value decomposition (SVD) is used to simplify the computation of the polar decomposition.
 
 Formally, the correction algorithm \cite{bib:nearest-SPD} is as follows:
 \begin{itemize}
-	\item Symmetrisation of $\hat{P}_k$: $M\triangleq\dfrac{\hat{P}_k+\hat{P}_k^\top}{2}$
-	\item Singular values decomposition: $M=UDV^\top$
-	\item Polar decomposition: $M=\Omega\:\Sigma$ with $\Omega\triangleq U\:V^\top$ and $\Sigma\triangleq V\:D\:V^\top$
-	\item Computation of $M_+$: $M_+\triangleq\dfrac{M+\Sigma}{2}$
+	\item Symmetrisation of $\hat{\mathbf{P}}_k$: $\mathbf{M}\triangleq\dfrac{\hat{\mathbf{P}}_k+\hat{\mathbf{P}}_k^\top}{2}$
+	\item Singular value decomposition: $\mathbf{M}=\mathbf{U}\mathbf{D}\mathbf{V}^\top$
+	\item Polar decomposition: $\mathbf{M}=\boldsymbol{\Omega}\:\boldsymbol{\Upsilon}$ with $\boldsymbol{\Omega}\triangleq \mathbf{U}\:\mathbf{V}^\top$ and $\boldsymbol{\Upsilon}\triangleq \mathbf{V}\:\mathbf{D}\:\mathbf{V}^\top$
+	\item Computation of $\mathbf{M}_+$: $\mathbf{M}_+\triangleq\dfrac{\mathbf{M}+\boldsymbol{\Upsilon}}{2}$
 \end{itemize}
 
-With this algorithm, $M_+$ is ensured to be SPSD. However, we wish to achieve strict positive definiteness. To solve this issue, we recall that a symmetric matrix is SPD if and only if all its eigenvalues are strictly positive, and we introduce a small correction $\varepsilon>0$. Let $\lambda_{\min}$ denote the smallest eigenvalue of $M_+$. Let:
+With this algorithm, $\mathbf{M}_+$ is ensured to be SPSD. However, we wish to achieve strict positive definiteness. To solve this issue, we recall that a symmetric matrix is SPD if and only if all its eigenvalues are strictly positive, and we introduce a small correction $\epsilon>0$. Let $\lambda_{\min}$ denote the smallest eigenvalue of $\mathbf{M}_+$. Let:
 \begin{equation}
-	\delta\triangleq\max(0,-\lambda_{\min})+\varepsilon
+	\delta\triangleq\max(0,-\lambda_{\min})+\epsilon
 \end{equation}
 where the first term is introduced to compensate any numerical errors introduced during the symmetrisation and SVD steps.
 
-Since $M_+$ and $\delta I$ commute, they are simultaneously diagonalisable, and the eigenvalues of:
+Since $\mathbf{M}_+$ and $\delta \mathbf{I}$ commute, they are simultaneously diagonalisable, and the eigenvalues of:
 \begin{equation}
-	M_+^*\triangleq M_++\delta I
+	\mathbf{M}_+^*\triangleq \mathbf{M}_++\delta \mathbf{I}
 \end{equation}
 are thus:
 \begin{equation}
-	\lambda_i(M_+^*)=\lambda_i(M_+)+\delta\geq\lambda_{\min}+\delta>0
+	\lambda_i(\mathbf{M}_+^*)=\lambda_i(\mathbf{M}_+)+\delta\geq\lambda_{\min}+\delta>0
 \end{equation}
 
-For small enough values of $\varepsilon$, $M_+^*$ is the desired matrix.
+For small enough values of $\epsilon$, $\mathbf{M}_+^*$ is the desired matrix.
 
 \subsection{Weight Degeneracy}
 
 A fundamental limitation of SIS is that the variance of the importance weights accumulates along the trajectory \cite{bib:sequential-imputations} as shown by \Cref{th:variance_weights}.
 
 \begin{proposition}[Weight degeneracy]\label{th:variance_weights}
-	Let $\mathbf{x}_{0:k}\sim\nu_k$, and let $\tilde{w}_k$ denote the non-normalised weight associated with the entire trajectory:
+	Let $\mathbf{x}_{0:k}\sim\mu_{q,k}$, and let $\tilde{w}_k$ denote the non-normalised weight associated with the entire trajectory:
 	\begin{equation}
 		\tilde{w}_k\triangleq\frac{\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}{\tilde{q}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}
 	\end{equation}
 
 	Its variance decomposes as:
 	\begin{equation}
-		\mathbb{V}_{\nu_k}\left[\tilde{w}_k\right]=\mathbb{E}_{\nu_k}\left[\mathbb{V}_{\nu_k}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]\right]+\mathbb{V}_{\nu_k}\left[\mathbb{E}_{\nu_k}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]\right]\label{eq:weight_variance}
+		\begin{aligned}
+		\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\tilde{w}_k\right]&=\mathbb{E}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]\right]\\
+		&\qquad+\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\mathbb{E}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]\right]
+		\end{aligned}\label{eq:weight_variance}
 	\end{equation}
 	where the first term is non-negative, and vanishes if and only if $\tilde{w}_k$ is a.s. determined by $\mathbf{x}_{0:k-1}$.
 \end{proposition}
 
 \begin{proof}
-	\eqref{eq:weight_variance} is the law of total variance. Being the expectation of a non-negative quantity, its first term vanishes if and only if $\mathbb{V}_{\nu_k}[\tilde{w}_k|\mathbf{x}_{0:k-1}]$ is a.s. zero, that is if and only if $\tilde{w}_k$ is a.s. determined by $\mathbf{x}_{0:k-1}$.
+	\eqref{eq:weight_variance} is the law of total variance. Being the expectation of a non-negative quantity, its first term vanishes if and only if $\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}[\tilde{w}_k|\mathbf{x}_{0:k-1}]$ is a.s. zero, that is if and only if $\tilde{w}_k$ is a.s. determined by $\mathbf{x}_{0:k-1}$.
 \end{proof}
 
 Given $\mathbf{x}_{0:k-1}$, the only randomness remaining in \eqref{eq:weight_variance} is the draw of $x_k$. The inner variance measures its effect, while the inner expectation integrates it out and leaves a function of $\mathbf{x}_{0:k-1}$. The first term therefore corresponds to the variance injected by $x_k$ and the second is the variance inherited from the past.
@@ -338,7 +345,7 @@ As each step adds to the previous ones, the weight distribution typically concen
 	\end{equation}
 	the trajectory weight is determined by $\mathbf{x}_{0:k-1}$, so that the variance introduced at step $k$ vanishes:
 	\begin{equation}
-		\mathbb{V}_{\nu_k}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]=0
+		\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]=0
 	\end{equation}
 \end{proposition}
 

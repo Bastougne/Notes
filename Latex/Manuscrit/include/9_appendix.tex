@@ -8,200 +8,208 @@
 \section{Gaussian Conditioning Formula}
 
 \begin{proposition}[Gaussian conditioning \cite{bib:multivariate-normal}]\label{th:Gaussian_conditioning}
-	For $n,p\in\mathbb{N}$, let $U\in\mathbb{R}^n$ and $V\in\mathbb{R}^p$ be jointly Gaussian random variables, of respective means $\mu_U,\mu_V$ and covariance matrices $A\succ0$ and $D\succ0$. There exists $B\in\mathcal{M}_{n,p}(\mathbb{R})$ such that:
+	For $n,p\in\mathbb{N}$, let $U\in\mathbb{R}^n$ and $V\in\mathbb{R}^p$ be jointly Gaussian random variables, of respective means $\mu_U,\mu_V$ and covariance matrices $\mathbf{A}\succ0$ and $\mathbf{D}\succ0$. There exists $\mathbf{B}\in\mathcal{M}_{n,p}(\mathbb{R})$ such that:
 	\begin{equation}
-		\begin{bmatrix}U\\V\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}\mu_U\\\mu_V\end{bmatrix},\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}\right)
+		\begin{bmatrix}U\\V\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}\mu_U\\\mu_V\end{bmatrix},\begin{bmatrix}\mathbf{A}&\mathbf{B}\\\mathbf{B}^\top&\mathbf{D}\end{bmatrix}\right)
 	\end{equation}
 
-	We assume $B$ to be such that this joint covariance is SPD in the sense of \Cref{th:matrix_SPSD}. The conditional distribution of $U$ given $V=v$ is then:
+	We assume $\mathbf{B}$ to be such that this joint covariance is SPD in the sense of \Cref{th:matrix_SPSD}. The conditional distribution of $U$ given $V=y$ is then:
 	\begin{equation}
-		U|V=v\sim\mathcal{N}\left(\mu_U+BD^{-1}(v-\mu_V),P_{U|V}\right)
+		U|V=y\sim\mathcal{N}\left(\mu_U+\mathbf{B}\mathbf{D}^{-1}(y-\mu_V),\mathbf{P}_{U|V}\right)
 	\end{equation}
 	with:
 	\begin{equation}
-		P_{U|V}\triangleq A-BD^{-1}B^\top\succ0
+		\mathbf{P}_{U|V}\triangleq \mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{B}^\top\succ0
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	The existence of $B$ is direct by definition of jointly Gaussian random variables. As $D\succ0$ is invertible, $S\triangleq A-BD^{-1}B^\top$ the Schur complement with respect to $D$ is well-defined.
+	The existence of $\mathbf{B}$ is direct by definition of jointly Gaussian random variables. As $\mathbf{D}\succ0$ is invertible, $\mathbf{S}\triangleq \mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{B}^\top$, the Schur complement with respect to $\mathbf{D}$, is well-defined.
 
 	Let $u\neq0$:
 	\begin{equation}
-		\begin{bmatrix}u\\-D^{-1}B^\top u\end{bmatrix}^\top\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}\begin{bmatrix}u\\-D^{-1}B^\top u\end{bmatrix}=u^\top\left(A-BD^{-1}B^\top\right)u>0
+		\begin{bmatrix}u\\-\mathbf{D}^{-1}\mathbf{B}^\top u\end{bmatrix}^\top\begin{bmatrix}\mathbf{A}&\mathbf{B}\\\mathbf{B}^\top&\mathbf{D}\end{bmatrix}\begin{bmatrix}u\\-\mathbf{D}^{-1}\mathbf{B}^\top u\end{bmatrix}=u^\top\left(\mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{B}^\top\right)u>0
 	\end{equation}
-	by SPDness of the joint covariance, the left-hand vector being non-zero. $S$ is thus also invertible, and we can apply the inferior right Schur inversion formula (see \Cref{th:Schur}) to obtain:
-	\begin{equation}
-		\begin{bmatrix}\bar{A}&\bar{B}\\\bar{C}&\bar{D}\end{bmatrix}\triangleq\begin{bmatrix}A&B\\B^\top&D\end{bmatrix}^{-1}
-	\end{equation}
-
-	For some realisation $u$ of $U$ and $v$ of $V$, we define $\tilde{u}\triangleq u-\mu_U$ and $\tilde{v}\triangleq v-\mu_V$, and we compute:
+	by SPDness of the joint covariance, the left-hand vector being non-zero. $\mathbf{S}$ is thus also invertible, and we can apply the inferior right Schur inversion formula (see \Cref{th:Schur}) to obtain:
 	\begin{equation}
 		\begin{aligned}
-		\alpha&\triangleq\begin{bmatrix}\tilde{u}\\\tilde{v}\end{bmatrix}^\top\begin{bmatrix}\bar{A}&\bar{B}\\\bar{C}&\bar{D}\end{bmatrix}\begin{bmatrix}\tilde{u}\\\tilde{v}\end{bmatrix}\\
-		&=\tilde{u}^\top\bar{A}\tilde{u}+\tilde{u}^\top\bar{B}\tilde{v}+\tilde{v}^\top\bar{C}\tilde{u}+\tilde{v}^\top\bar{D}\tilde{v}\\
-		&=\tilde{u}^\top S^{-1}\tilde{u}+\tilde{u}^\top S^{-1}\left(-BD^{-1}\tilde{v}\right)+\left(-BD^{-1}\tilde{v}\right)^\top S^{-1}\tilde{u}+\\
-		&\qquad\left(-BD^{-1}\tilde{v}\right)^\top S^{-1}\left(-BD^{-1}\tilde{v}\right)+\tilde{v}^\top D^{-1}\tilde{v}\\
-		&=(\tilde{u}-BD^{-1}\tilde{v})^\top S^{-1}(\tilde{u}-BD^{-1}\tilde{v})+\tilde{v}^\top D^{-1}\tilde{v}
+			\begin{bmatrix}\bar{\mathbf{A}}&\bar{\mathbf{B}}\\\bar{\mathbf{C}}&\bar{\mathbf{D}}\end{bmatrix}&\triangleq\begin{bmatrix}\mathbf{A}&\mathbf{B}\\\mathbf{B}^\top&\mathbf{D}\end{bmatrix}^{-1}\\
+			&=\begin{bmatrix}\mathbf{S}^{-1}&-\mathbf{S}^{-1}\mathbf{B}\mathbf{D}^{-1}\\-\mathbf{D}^{-1}\mathbf{B}^\top \mathbf{S}^{-1}&\mathbf{D}^{-1}+\mathbf{D}^{-1}\mathbf{B}^\top \mathbf{S}^{-1}\mathbf{B}\mathbf{D}^{-1}\end{bmatrix}
+			\end{aligned}
+	\end{equation}
+
+	For some realisation $u$ of $U$ and $y$ of $V$, we define $\tilde{u}\triangleq u-\mu_U$ and $\tilde{y}\triangleq y-\mu_V$, and we compute:
+	\begin{equation}
+		\begin{aligned}
+		\alpha&\triangleq\begin{bmatrix}\tilde{u}\\\tilde{y}\end{bmatrix}^\top\begin{bmatrix}\bar{\mathbf{A}}&\bar{\mathbf{B}}\\\bar{\mathbf{C}}&\bar{\mathbf{D}}\end{bmatrix}\begin{bmatrix}\tilde{u}\\\tilde{y}\end{bmatrix}\\
+		&=\tilde{u}^\top\bar{\mathbf{A}}\tilde{u}+\tilde{u}^\top\bar{\mathbf{B}}\tilde{y}+\tilde{y}^\top\bar{\mathbf{C}}\tilde{u}+\tilde{y}^\top\bar{\mathbf{D}}\tilde{y}\\
+		&=\tilde{u}^\top \mathbf{S}^{-1}\tilde{u}+\tilde{u}^\top \mathbf{S}^{-1}\left(-\mathbf{B}\mathbf{D}^{-1}\tilde{y}\right)+\left(-\mathbf{B}\mathbf{D}^{-1}\tilde{y}\right)^\top \mathbf{S}^{-1}\tilde{u}+\\
+		&\qquad\left(-\mathbf{B}\mathbf{D}^{-1}\tilde{y}\right)^\top \mathbf{S}^{-1}\left(-\mathbf{B}\mathbf{D}^{-1}\tilde{y}\right)+\tilde{y}^\top \mathbf{D}^{-1}\tilde{y}\\
+		&=(\tilde{u}-\mathbf{B}\mathbf{D}^{-1}\tilde{y})^\top \mathbf{S}^{-1}(\tilde{u}-\mathbf{B}\mathbf{D}^{-1}\tilde{y})+\tilde{y}^\top \mathbf{D}^{-1}\tilde{y}
 		\end{aligned}
 	\end{equation}
 
 	The conditional density is thus:
 	\begin{equation}
 		\begin{aligned}
-		p\left(\tilde{u}|\tilde{v}\right)&\propto\frac{\displaystyle p\left(\tilde{u},\tilde{v}\right)}{\displaystyle p\left(\tilde{v}\right)}\\
-		&\propto\frac{\displaystyle\exp\left(-\frac{1}{2}\alpha\right)}{\displaystyle\exp\left(-\frac{1}{2}\tilde{v}^\top D^{-1}\tilde{v}\right)}\\
-		&\propto\exp\left(-\frac{1}{2}(\tilde{u}-BD^{-1}\tilde{v})^\top S^{-1}(\tilde{u}-BD^{-1}\tilde{v})\right)
+		p\left(\tilde{u}|\tilde{y}\right)&\propto\frac{\displaystyle p\left(\tilde{u},\tilde{y}\right)}{\displaystyle p\left(\tilde{y}\right)}\\
+		&\propto\frac{\displaystyle\exp\left(-\frac{1}{2}\alpha\right)}{\displaystyle\exp\left(-\frac{1}{2}\tilde{y}^\top \mathbf{D}^{-1}\tilde{y}\right)}\\
+		&\propto\exp\left(-\frac{1}{2}(\tilde{u}-\mathbf{B}\mathbf{D}^{-1}\tilde{y})^\top \mathbf{S}^{-1}(\tilde{u}-\mathbf{B}\mathbf{D}^{-1}\tilde{y})\right)
 		\end{aligned}
 	\end{equation}
 
-	With this formulation, it comes that $U|V=v$ is Gaussian with mean:
+	With this formulation, it comes that $U|V=y$ is Gaussian with mean:
 	\begin{equation}
-		\mu_{U|V}\triangleq\mu_U+BD^{-1}\left(v-\mu_V\right)
+		\mu_{U|V}\triangleq\mu_U+\mathbf{B}\mathbf{D}^{-1}\left(y-\mu_V\right)
 	\end{equation}
 	and covariance:
 	\begin{equation}
-		P_{U|V}\triangleq S=A-BD^{-1}B^\top\succ0
+		\mathbf{P}_{U|V}\triangleq \mathbf{S}=\mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{B}^\top\succ0
 	\end{equation}
 \end{proof}
 
 \section{Schur Inversion Formula}
 
 \begin{proposition}[Schur inversion formula \cite{bib:Schur-complement}]\label{th:Schur}
-	For $n,p\in\mathbb{N}$, let $A\in\mathcal{M}_{n,n}(\mathbb{R})$, $B\in\mathcal{M}_{n,p}(\mathbb{R})$, $C\in\mathcal{M}_{p,n}(\mathbb{R})$, and $D\in\mathcal{M}_{p,p}(\mathbb{R})$, with $A$ invertible. We define the matrix $M$ and its Schur complement with respect to $A$ as:
+	For $n,p\in\mathbb{N}$, let $\mathbf{A}\in\mathcal{M}_{n,n}(\mathbb{R})$, $\mathbf{B}\in\mathcal{M}_{n,p}(\mathbb{R})$, $\mathbf{C}\in\mathcal{M}_{p,n}(\mathbb{R})$, and $\mathbf{D}\in\mathcal{M}_{p,p}(\mathbb{R})$, with $\mathbf{A}$ invertible. We define the matrix $\mathbf{M}$ and its Schur complement with respect to $\mathbf{A}$ as:
 	\begin{equation}
-		M\triangleq\begin{bmatrix}A&B\\C&D\end{bmatrix},\qquad M/A\triangleq D-CA^{-1}B
+		\mathbf{M}\triangleq\begin{bmatrix}\mathbf{A}&\mathbf{B}\\\mathbf{C}&\mathbf{D}\end{bmatrix},\qquad \mathbf{M}/\mathbf{A}\triangleq \mathbf{D}-\mathbf{C}\mathbf{A}^{-1}\mathbf{B}
 	\end{equation}
 
-	If $M/A$ is invertible, then $M$ is invertible and:
+	If $\mathbf{M}/\mathbf{A}$ is invertible, then $\mathbf{M}$ is invertible and:
 	\begin{equation}
-		M^{-1}=\begin{bmatrix}A^{-1}+A^{-1}B(M/A)^{-1}CA^{-1}&-A^{-1}B(M/A)^{-1}\\-(M/A)^{-1}CA^{-1}&(M/A)^{-1}\end{bmatrix}
+		\mathbf{M}^{-1}=\begin{bmatrix}\mathbf{A}^{-1}+\mathbf{A}^{-1}\mathbf{B}(\mathbf{M}/\mathbf{A})^{-1}\mathbf{C}\mathbf{A}^{-1}&-\mathbf{A}^{-1}\mathbf{B}(\mathbf{M}/\mathbf{A})^{-1}\\-(\mathbf{M}/\mathbf{A})^{-1}\mathbf{C}\mathbf{A}^{-1}&(\mathbf{M}/\mathbf{A})^{-1}\end{bmatrix}
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	Let $\bar{M}$ be the matrix defined by the right-hand side of the formula, and write its blocks as:
+	Let $\bar{\mathbf{M}}$ be a matrix such that $\mathbf{M}\bar{\mathbf{M}}=\mathbf{I}$, and write its blocks as:
 	\begin{equation}
-		\begin{bmatrix}\bar{A}&\bar{B}\\\bar{C}&\bar{D}\end{bmatrix}=\bar{M}
+		\begin{bmatrix}\bar{\mathbf{A}}&\bar{\mathbf{B}}\\\bar{\mathbf{C}}&\bar{\mathbf{D}}\end{bmatrix}=\bar{\mathbf{M}}
 	\end{equation}
 
-	The identity $M\bar{M}=I$ yields:
+	The identity $\mathbf{M}\bar{\mathbf{M}}=\mathbf{I}$ yields:
 	\begin{equation}
 		\left\{\begin{aligned}
-		A\bar{A}+B\bar{C}&=I\\
-		A\bar{B}+B\bar{D}&=0\\
-		C\bar{A}+D\bar{C}&=0\\
-		C\bar{B}+D\bar{D}&=I\\
+		\mathbf{A}\bar{\mathbf{A}}+\mathbf{B}\bar{\mathbf{C}}&=\mathbf{I}\\
+		\mathbf{A}\bar{\mathbf{B}}+\mathbf{B}\bar{\mathbf{D}}&=0\\
+		\mathbf{C}\bar{\mathbf{A}}+\mathbf{D}\bar{\mathbf{C}}&=0\\
+		\mathbf{C}\bar{\mathbf{B}}+\mathbf{D}\bar{\mathbf{D}}&=\mathbf{I}\\
 		\end{aligned}\right.
 	\end{equation}
 
 	In particular, the second equation can be rewritten as:
 	\begin{equation}
-		\bar{B}=-A^{-1}B\bar{D}\label{eq:bar_B}
+		\bar{\mathbf{B}}=-\mathbf{A}^{-1}\mathbf{B}\bar{\mathbf{D}}\label{eq:bar_B}
 	\end{equation}
 	which can be plugged into the fourth equation to give:
 	\begin{equation}
 		\begin{aligned}
-		&C\bar{B}+D\bar{D}=I\\
-		\iff\quad&-CA^{-1}B\bar{D}+D\bar{D}=I\\
-		\iff\quad&(D-CA^{-1}B)\bar{D}=I\\
-		\iff\quad&(M/A)\bar{D}=I\\
-		\iff\quad&\bar{D}=(M/A)^{-1}
+		&\mathbf{C}\bar{\mathbf{B}}+\mathbf{D}\bar{\mathbf{D}}=\mathbf{I}\\
+		\iff\quad&-\mathbf{C}\mathbf{A}^{-1}\mathbf{B}\bar{\mathbf{D}}+\mathbf{D}\bar{\mathbf{D}}=\mathbf{I}\\
+		\iff\quad&(\mathbf{D}-\mathbf{C}\mathbf{A}^{-1}\mathbf{B})\bar{\mathbf{D}}=\mathbf{I}\\
+		\iff\quad&(\mathbf{M}/\mathbf{A})\bar{\mathbf{D}}=\mathbf{I}\\
+		\iff\quad&\bar{\mathbf{D}}=(\mathbf{M}/\mathbf{A})^{-1}
 		\end{aligned}
 	\end{equation}
 
 	\eqref{eq:bar_B} can then be solved:
 	\begin{equation}
-		\bar{B}=-A^{-1}B(M/A)^{-1}
+		\bar{\mathbf{B}}=-\mathbf{A}^{-1}\mathbf{B}(\mathbf{M}/\mathbf{A})^{-1}
 	\end{equation}
 
 	A similar operation can be performed on the two remaining equations to obtain:
 	\begin{equation}
-		\bar{A}=A^{-1}(I-B\bar{C})
+		\bar{\mathbf{A}}=\mathbf{A}^{-1}(\mathbf{I}-\mathbf{B}\bar{\mathbf{C}})
 	\end{equation}
 	and:
 	\begin{equation}
 		\begin{aligned}
-		&C\bar{A}+D\bar{C}=0\\
-		\iff\quad&CA^{-1}(I-B\bar{C})+D\bar{C}=0\\
-		\iff\quad&CA^{-1}+(D-CA^{-1}B)\bar{C}=0\\
-		\iff\quad&CA^{-1}+(M/A)\bar{C}=0\\
-		\iff\quad&\bar{C}=-(M/A)^{-1}CA^{-1}
+		&\mathbf{C}\bar{\mathbf{A}}+\mathbf{D}\bar{\mathbf{C}}=0\\
+		\iff\quad&\mathbf{C}\mathbf{A}^{-1}(\mathbf{I}-\mathbf{B}\bar{\mathbf{C}})+\mathbf{D}\bar{\mathbf{C}}=0\\
+		\iff\quad&\mathbf{C}\mathbf{A}^{-1}+(\mathbf{D}-\mathbf{C}\mathbf{A}^{-1}\mathbf{B})\bar{\mathbf{C}}=0\\
+		\iff\quad&\mathbf{C}\mathbf{A}^{-1}+(\mathbf{M}/\mathbf{A})\bar{\mathbf{C}}=0\\
+		\iff\quad&\bar{\mathbf{C}}=-(\mathbf{M}/\mathbf{A})^{-1}\mathbf{C}\mathbf{A}^{-1}
 		\end{aligned}
 	\end{equation}
 
 	Finally:
 	\begin{equation}
-		\bar{A}=A^{-1}(I-B\bar{C})=A^{-1}+A^{-1}B(M/A)^{-1}CA^{-1}
+		\bar{\mathbf{A}}=\mathbf{A}^{-1}(\mathbf{I}-\mathbf{B}\bar{\mathbf{C}})=\mathbf{A}^{-1}+\mathbf{A}^{-1}\mathbf{B}(\mathbf{M}/\mathbf{A})^{-1}\mathbf{C}\mathbf{A}^{-1}
 	\end{equation}
 
-	It can be verified by direct calculations that:
+	Conversely, the four blocks of $\bar{\mathbf{M}}$ satisfy:
 	\begin{equation}
-		M\bar{M}=\bar{M}M=I
+		\left\{\begin{aligned}
+		\mathbf{A}\bar{\mathbf{A}}+\mathbf{B}\bar{\mathbf{C}}&=\mathbf{I}+\mathbf{B}(\mathbf{M}/\mathbf{A})^{-1}\mathbf{C}\mathbf{A}^{-1}-\mathbf{B}(\mathbf{M}/\mathbf{A})^{-1}\mathbf{C}\mathbf{A}^{-1}=\mathbf{I}\\
+		\mathbf{A}\bar{\mathbf{B}}+\mathbf{B}\bar{\mathbf{D}}&=-\mathbf{B}(\mathbf{M}/\mathbf{A})^{-1}+\mathbf{B}(\mathbf{M}/\mathbf{A})^{-1}=0\\
+		\mathbf{C}\bar{\mathbf{A}}+\mathbf{D}\bar{\mathbf{C}}&=\mathbf{C}\mathbf{A}^{-1}-(\mathbf{D}-\mathbf{C}\mathbf{A}^{-1}\mathbf{B})(\mathbf{M}/\mathbf{A})^{-1}\mathbf{C}\mathbf{A}^{-1}=\mathbf{C}\mathbf{A}^{-1}-\mathbf{C}\mathbf{A}^{-1}=0\\
+		\mathbf{C}\bar{\mathbf{B}}+\mathbf{D}\bar{\mathbf{D}}&=-\mathbf{C}\mathbf{A}^{-1}\mathbf{B}(\mathbf{M}/\mathbf{A})^{-1}+\mathbf{D}(\mathbf{M}/\mathbf{A})^{-1}=(\mathbf{D}-\mathbf{C}\mathbf{A}^{-1}\mathbf{B})(\mathbf{M}/\mathbf{A})^{-1}=\mathbf{I}
+		\end{aligned}\right.
 	\end{equation}
-	which proves that $M$ is indeed invertible with inverse $\bar{M}$.
+	so that $\mathbf{M}\bar{\mathbf{M}}=\mathbf{I}$. Since $\mathbf{M}$ is a square matrix, it is invertible with inverse $\bar{\mathbf{M}}$.
 \end{proof}
 
-\begin{remark}[Inversion with respect to $D$]
-	If $D$ is invertible, one can instead introduce the Schur complement with respect to $D$:
+\begin{remark}[Inversion with respect to $\mathbf{D}$]
+	If $\mathbf{D}$ is invertible, one can instead introduce the Schur complement with respect to $\mathbf{D}$:
 	\begin{equation}
-		M/D\triangleq A-BD^{-1}C
+		\mathbf{M}/\mathbf{D}\triangleq \mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{C}
 	\end{equation}
 
-	When $M/D$ is also invertible, an analogous block inversion formula holds:
+	When $\mathbf{M}/\mathbf{D}$ is also invertible, an analogous block inversion formula holds:
 	\begin{equation}
-		M^{-1}=\begin{bmatrix}(M/D)^{-1}&-(M/D)^{-1}BD^{-1}\\-D^{-1}C(M/D)^{-1}&D^{-1}+D^{-1}C(M/D)^{-1}BD^{-1}\end{bmatrix}
+		\mathbf{M}^{-1}=\begin{bmatrix}(\mathbf{M}/\mathbf{D})^{-1}&-(\mathbf{M}/\mathbf{D})^{-1}\mathbf{B}\mathbf{D}^{-1}\\-\mathbf{D}^{-1}\mathbf{C}(\mathbf{M}/\mathbf{D})^{-1}&\mathbf{D}^{-1}+\mathbf{D}^{-1}\mathbf{C}(\mathbf{M}/\mathbf{D})^{-1}\mathbf{B}\mathbf{D}^{-1}\end{bmatrix}
 	\end{equation}
 \end{remark}
 
 \begin{remark}[Combining both formulations]
-	When both $A$ and $D$ are invertible, the Woodbury lemma proves that the two formulations give the same matrices for each block. In particular, they can be combined block by block at will.
+	When both $\mathbf{A}$ and $\mathbf{D}$ are invertible, the Woodbury lemma proves that the two formulations give the same matrices for each block. In particular, they can be combined block by block at will.
 \end{remark}
 
 \section{Woodbury Inversion Formula}
 
 \begin{proposition}[Inversion identity]\label{th:simplified_Woodbury}
-	For $n\in\mathbb{N}$, let $P\in\mathcal{M}_{n,n}(\mathbb{R})$ such that $I+P$ is invertible. Then:
+	For $n\in\mathbb{N}$, let $\mathbf{P}\in\mathcal{M}_{n,n}(\mathbb{R})$ such that $\mathbf{I}+\mathbf{P}$ is invertible. Then:
 	\begin{equation}
-		(I+P)^{-1}=I-(I+P)^{-1}P
+		(\mathbf{I}+\mathbf{P})^{-1}=\mathbf{I}-(\mathbf{I}+\mathbf{P})^{-1}\mathbf{P}
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
 	This result is direct from:
 	\begin{equation}
-		I=(I+P)^{-1}(I+P)=(I+P)^{-1}+(I+P)^{-1}P
+		\mathbf{I}=(\mathbf{I}+\mathbf{P})^{-1}(\mathbf{I}+\mathbf{P})=(\mathbf{I}+\mathbf{P})^{-1}+(\mathbf{I}+\mathbf{P})^{-1}\mathbf{P}
 	\end{equation}
 \end{proof}
 
 \begin{proposition}[Push-through identity \cite{bib:matrix-cookbook}]\label{th:push_through}
-	For $n,p\in\mathbb{N}$, let $P\in\mathcal{M}_{n,p}(\mathbb{R})$ and $Q\in\mathcal{M}_{p,n}(\mathbb{R})$ such that $I_n+PQ$ is invertible. Then $I_p+QP$ is also invertible and:
+	For $n,p\in\mathbb{N}$, let $\mathbf{P}\in\mathcal{M}_{n,p}(\mathbb{R})$ and $\mathbf{Q}\in\mathcal{M}_{p,n}(\mathbb{R})$ such that $\mathbf{I}_n+\mathbf{P}\mathbf{Q}$ is invertible. Then $\mathbf{I}_p+\mathbf{Q}\mathbf{P}$ is also invertible and:
 	\begin{equation}
-		(I_n+PQ)^{-1}P=P(I_p+QP)^{-1}
+		(\mathbf{I}_n+\mathbf{P}\mathbf{Q})^{-1}\mathbf{P}=\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})^{-1}
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
 	We start by using the identity:
 	\begin{equation}
-		P+PQP=P(I_p+QP)=(I_n+PQ)P
+		\mathbf{P}+\mathbf{P}\mathbf{Q}\mathbf{P}=\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})=(\mathbf{I}_n+\mathbf{P}\mathbf{Q})\mathbf{P}
 	\end{equation}
 
 	Thus:
 	\begin{equation}
 		\begin{aligned}
-		&P(I_p+QP)=(I_n+PQ)P\\
-		\iff&P=(I_n+PQ)P(I_p+QP)^{-1}\\
-		\iff&(I_n+PQ)^{-1}P=P(I_p+QP)^{-1}
+		&\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})=(\mathbf{I}_n+\mathbf{P}\mathbf{Q})\mathbf{P}\\
+		\iff&\mathbf{P}=(\mathbf{I}_n+\mathbf{P}\mathbf{Q})\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})^{-1}\\
+		\iff&(\mathbf{I}_n+\mathbf{P}\mathbf{Q})^{-1}\mathbf{P}=\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})^{-1}
 		\end{aligned}
 	\end{equation}
-	with $I_p+QP$ admitting a right inverse, hence being invertible.
+	with $\mathbf{I}_p+\mathbf{Q}\mathbf{P}$ admitting a right inverse, hence being invertible.
 \end{proof}
 
 \begin{proposition}[Generalised Woodbury formula \cite{bib:Woodbury}]\label{th:Woodbury}
-	For $n,p\in\mathbb{N}$, let $A\in\mathcal{M}_{n,n}(\mathbb{R})$, $B\in\mathcal{M}_{n,p}(\mathbb{R})$, $C\in\mathcal{M}_{p,n}(\mathbb{R})$, and $D\in\mathcal{M}_{p,p}(\mathbb{R})$. We assume that $A$, $D$, and $D+CA^{-1}B$ are invertible. Then $A+BD^{-1}C$ is also invertible, and:
+	For $n,p\in\mathbb{N}$, let $\mathbf{A}\in\mathcal{M}_{n,n}(\mathbb{R})$, $\mathbf{B}\in\mathcal{M}_{n,p}(\mathbb{R})$, $\mathbf{C}\in\mathcal{M}_{p,n}(\mathbb{R})$, and $\mathbf{D}\in\mathcal{M}_{p,p}(\mathbb{R})$. We assume that $\mathbf{A}$, $\mathbf{D}$, and $\mathbf{D}+\mathbf{C}\mathbf{A}^{-1}\mathbf{B}$ are invertible. Then $\mathbf{A}+\mathbf{B}\mathbf{D}^{-1}\mathbf{C}$ is also invertible, and:
 	\begin{equation}
-		\left(A+BD^{-1}C\right)^{-1}=A^{-1}-A^{-1}B\left(D+CA^{-1}B\right)^{-1}CA^{-1}
+		\left(\mathbf{A}+\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)^{-1}=\mathbf{A}^{-1}-\mathbf{A}^{-1}\mathbf{B}\left(\mathbf{D}+\mathbf{C}\mathbf{A}^{-1}\mathbf{B}\right)^{-1}\mathbf{C}\mathbf{A}^{-1}
 	\end{equation}
 \end{proposition}
 
@@ -209,30 +217,30 @@
 	We first factorise:
 	\begin{equation}
 		\begin{aligned}
-		\left(A+BD^{-1}C\right)^{-1}&=\left(A(I+A^{-1}BD^{-1}C)\right)^{-1}\\
-		&=\left(I+A^{-1}BD^{-1}C\right)^{-1}A^{-1}
+		\left(\mathbf{A}+\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)^{-1}&=\left(\mathbf{A}(\mathbf{I}+\mathbf{A}^{-1}\mathbf{B}\mathbf{D}^{-1}\mathbf{C})\right)^{-1}\\
+		&=\left(\mathbf{I}+\mathbf{A}^{-1}\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)^{-1}\mathbf{A}^{-1}
 		\end{aligned}
 	\end{equation}
 
-	Applying \Cref{th:simplified_Woodbury} to $A^{-1}BD^{-1}C$ yields:
+	Applying \Cref{th:simplified_Woodbury} to $\mathbf{A}^{-1}\mathbf{B}\mathbf{D}^{-1}\mathbf{C}$ yields:
 	\begin{equation}
 		\begin{aligned}
-		\left(A+BD^{-1}C\right)^{-1}&=\left(I-\left(I+A^{-1}BD^{-1}C\right)^{-1}A^{-1}BD^{-1}C\right)A^{-1}\\
-		&=A^{-1}-\left(I+A^{-1}BD^{-1}C\right)^{-1}A^{-1}BD^{-1}CA^{-1}
+		\left(\mathbf{A}+\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)^{-1}&=\left(\mathbf{I}-\left(\mathbf{I}+\mathbf{A}^{-1}\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)^{-1}\mathbf{A}^{-1}\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)\mathbf{A}^{-1}\\
+		&=\mathbf{A}^{-1}-\left(\mathbf{I}+\mathbf{A}^{-1}\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)^{-1}\mathbf{A}^{-1}\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\mathbf{A}^{-1}
 		\end{aligned}
 	\end{equation}
 
-	Using \Cref{th:push_through} with $P=A^{-1}B$ and $Q=D^{-1}C$ further gives:
+	Using \Cref{th:push_through} with $\mathbf{P}=\mathbf{A}^{-1}\mathbf{B}$ and $\mathbf{Q}=\mathbf{D}^{-1}\mathbf{C}$ further gives:
 	\begin{equation}
-		\left(I+A^{-1}BD^{-1}C\right)^{-1}A^{-1}B=A^{-1}B\left(I+D^{-1}CA^{-1}B\right)^{-1}
+		\left(\mathbf{I}+\mathbf{A}^{-1}\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)^{-1}\mathbf{A}^{-1}\mathbf{B}=\mathbf{A}^{-1}\mathbf{B}\left(\mathbf{I}+\mathbf{D}^{-1}\mathbf{C}\mathbf{A}^{-1}\mathbf{B}\right)^{-1}
 	\end{equation}
 
 	Therefore:
 	\begin{equation}
 		\begin{aligned}
-		\left(A+BD^{-1}C\right)^{-1}&=A^{-1}-A^{-1}B\left(I+D^{-1}CA^{-1}B\right)^{-1}D^{-1}CA^{-1}\\
-		&=A^{-1}-A^{-1}B\left(D(I+D^{-1}CA^{-1}B)\right)^{-1}CA^{-1}\\
-		&=A^{-1}-A^{-1}B\left(D+CA^{-1}B\right)^{-1}CA^{-1}
+		\left(\mathbf{A}+\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)^{-1}&=\mathbf{A}^{-1}-\mathbf{A}^{-1}\mathbf{B}\left(\mathbf{I}+\mathbf{D}^{-1}\mathbf{C}\mathbf{A}^{-1}\mathbf{B}\right)^{-1}\mathbf{D}^{-1}\mathbf{C}\mathbf{A}^{-1}\\
+		&=\mathbf{A}^{-1}-\mathbf{A}^{-1}\mathbf{B}\left(\mathbf{D}(\mathbf{I}+\mathbf{D}^{-1}\mathbf{C}\mathbf{A}^{-1}\mathbf{B})\right)^{-1}\mathbf{C}\mathbf{A}^{-1}\\
+		&=\mathbf{A}^{-1}-\mathbf{A}^{-1}\mathbf{B}\left(\mathbf{D}+\mathbf{C}\mathbf{A}^{-1}\mathbf{B}\right)^{-1}\mathbf{C}\mathbf{A}^{-1}
 		\end{aligned}
 	\end{equation}
 \end{proof}

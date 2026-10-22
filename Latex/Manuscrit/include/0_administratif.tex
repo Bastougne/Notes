@@ -33,7 +33,7 @@
 	\textsc{\textbf{\LARGE Docteur\\de l'Université de Bordeaux}}\\[0.55cm]
 
 	\textsc{\Large École doctorale Sciences Physiques \& de l'Ingénieur}\\
-	\textsc{Automatique, Productique, Signal et Image, Ingénierie cognique}\\[0.55cm]
+	\textsc{Automatique, Productique, Signal et Image, Ingénierie cognitique}\\[0.55cm]
 
 	{\Large Par \textbf{Bastien HUBERT}}\\[0.55cm]
 
@@ -165,30 +165,33 @@
 	\lignetoc{AK}{Adaptive Kriging}
 	\lignetoc{AKKF}{Adaptive Kernel Kalman Filter}
 	\lignetoc{APF}{Auxiliary Particle Filter}
-	\lignetoc{ARMSE}{Averaged Root Mean Squared Error}
+	\lignetoc{ARMSE}{Average Root Mean Squared Error}
 	\lignetoc{a.s.}{almost surely}
 	\lignetoc{BLUE}{Best Linear Unbiased Estimator}
-	\lignetoc{CAK}{Clustered Adaptive Kriging}
 	\lignetoc{CDF}{Cumulative Distribution Function}
 	\lignetoc{DBSCAN}{Density-Based Spatial Clustering of Applications with Noise}
 	\lignetoc{EKF}{Extended Kalman Filter}
-	\lignetoc{flop}{Floating-Point Operations}
+	\lignetoc{EnKF}{Ensemble Kalman Filter}
+	\lignetoc{flop}{floating-point operations}
+	\lignetoc{GNSS}{Global Navigation Satellite System}
 	\lignetoc{GP}{Gaussian Process}
 	\lignetoc{HCA}{Hierarchical Clustering Analysis}
-	\lignetoc{ICAK}{Independently Clustered Adaptive Kriging}
+	\lignetoc{HP}{Hyperparameter}
+	\lignetoc{ICAK}{Independent Clustering Adaptive Kriging}
 	\lignetoc{IEKF}{Iterative Extended Kalman Filter}
 	\lignetoc{i.i.d.}{independent and identically distributed}
 	\lignetoc{KKF}{Kernel Kalman Filter}
 	\lignetoc{KL}{Karhunen-Loève}
 	\lignetoc{KME}{Kernel Mean Embedding}
-	\lignetoc{MC}{Monte Carlo}
-	\lignetoc{MCAK}{Merged Clustered Adaptive Kriging}
 	\lignetoc{MAP}{Maximum \textit{A Posteriori}}
+	\lignetoc{MC}{Monte Carlo}
+	\lignetoc{MCAK}{Merged Clustering Adaptive Kriging}
 	\lignetoc{MISE}{Mean Integrated Squared Error}
 	\lignetoc{ML}{Maximum Likelihood}
 	\lignetoc{MMAE}{Minimum Mean Absolute Error}
 	\lignetoc{MMSE}{Minimum Mean Squared Error}
-	\lignetoc{NNAK}{Nearest-Neighbour Adaptive Kriging}
+	\lignetoc{NEES}{Normalised Estimation Error Squared}
+	\lignetoc{NNAK}{Nearest Neighbour Adaptive Kriging}
 	\lignetoc{OK}{Ordinary Kriging}
 	\lignetoc{PDF}{Posterior Probability Density Function}
 	\lignetoc{PF}{Particle Filter}
@@ -203,146 +206,200 @@
 	\lignetoc{SIR}{Sampling Importance Resampling}
 	\lignetoc{SIS}{Sequential Importance Sampling}
 	\lignetoc{SK}{Simple Kriging}
-	\lignetoc{SLAM}{Simultaneous Localisation and Mapping}
+	\lignetoc{SLAM}{Simultaneous Localisation And Mapping}
+	\lignetoc{SO-EKF}{Second-Order Extended Kalman Filter}
 	\lignetoc{SPD}{Symmetric Positive Definite}
 	\lignetoc{SPSD}{Symmetric/Self-adjoint Positive Semi-Definite}
+	\lignetoc{SVD}{Singular Value Decomposition}
 	\lignetoc{UK}{Universal Kriging}
+	\lignetoc{UKF}{Unscented Kalman Filter}
 
 	\section*{Symbols}
 
-	\lignetoc{$\triangleq$}{Equality by definition}
-	\lignetoc{$\propto$}{Proportionality}
-	\lignetoc{$\sim$}{"is distributed according to"}
-	\lignetoc{$\overset{i.i.d.}{\sim}$}{Independently and identically distributed according to}
-	\lignetoc{$\overset{a.s.}{\longrightarrow}$}{Almost sure convergence}
-	\lignetoc{$\overset{\mathcal{L}}{\longrightarrow}$}{Convergence in law}
-	\lignetoc{$\cdot\succeq0$}{Symmetric positive semi-definite}
-	\lignetoc{$\cdot\succ0$}{Symmetric positive definite}
-	\lignetoc{$\langle\cdot|\cdot\rangle,\langle\cdot|\cdot\rangle_{\mathcal{E}}$}{Inner product, subscript: of the space $\mathcal{E}$}
-	\lignetoc{$\langle\cdot,\cdot\rangle$}{Measure/function duality pairing, $\langle\mu,\varphi\rangle=\int{\varphi\:d\mu}$}
-	\lignetoc{$\|\cdot\|,\|\cdot\|_2,\|\cdot\|_F,\|\cdot\|_{\mathrm{op}}$}{Generic, Euclidean, Frobenius and operator norms}
-	\lignetoc{$\cdot^\top$}{Transpose of a matrix}
-	\lignetoc{$\cdot^{-1}$}{Inverse of a matrix}
-	\lignetoc{$\cdot^\dagger$}{Moore-Penrose pseudo-inverse of a matrix}
-	\lignetoc{$*$}{Convolution operator}
-	\lignetoc{$\circ$}{Function composition operator}
+	\lignetoc{$\cdot^\top,\cdot^{-1}$}{Transpose and inverse of a matrix}
+	\lignetoc{$*,\circ$}{Convolution and function composition operators}
 	\lignetoc{$\otimes$}{Kronecker product, tensor product of Hilbert spaces}
 	\lignetoc{$\mathbbm{1}$}{Indicator function}
-	\lignetoc{$[\![\cdot,\cdot]\!]$}{Discrete interval}
-	\lignetoc{$\cdot_{m|n}$}{"at time $m$ conditioned on the observations from $1$ to $n$"}
-	\lignetoc{$\alpha,\hat{\alpha}_k$}{Map coefficients and their estimate}
-	\lignetoc{$\alpha_{\mathrm{reg}},\alpha_{\mathrm{cov}}$}{Regularisation and window dilation coefficients}
-	\lignetoc{$\beta$}{Forgetting factor}
+	\lignetoc{$\triangleq$}{Equality by definition}
+	\lignetoc{$\propto$}{Proportionality}
+	\lignetoc{$\sim,\overset{i.i.d.}{\sim}$}{Distributed according to, i.i.d. according to}
+	\lignetoc{$\overset{a.s.}{\longrightarrow},\overset{\mathcal{L}}{\longrightarrow}$}{Almost sure convergence, convergence in law}
+	\lignetoc{$\cdot\succeq0,\cdot\succ0$}{Symmetric positive semi-definite, definite}
+	\lignetoc{$\langle\cdot,\cdot\rangle$}{Measure/function duality pairing}
+	\lignetoc{$\langle\cdot|\cdot\rangle,\langle\cdot|\cdot\rangle_{\mathcal{E}}$}{Inner product, subscript: of the space $\mathcal{E}$}
+	\lignetoc{$\|\cdot\|,\|\cdot\|_2,\|\cdot\|_F,\|\cdot\|_{\mathrm{op}}$}{Generic, Euclidean, Frobenius and operator norms}
+	\lignetoc{$[\![\cdot,\cdot]\!],[\cdot,\cdot],(\cdot,\cdot]$}{Discrete, closed and left-open intervals}
+	\lignetoc{$\partial$}{Partial derivative}
+	\lignetoc{$\mathbf{1}_n$}{Vector of ones of size $n$}
+	\lignetoc{$\alpha_{\mathrm{AK}}$}{AK window dilation factor}
+	\lignetoc{$\alpha_{\mathrm{RKHS}},\alpha_{\mathrm{RKHS},x},\alpha_{\mathrm{RKHS},z},\alpha_{\mathrm{RLS}},\alpha_{\mathrm{RPF}}$}{Regularisation coefficients}
+	\lignetoc{$\beta_{\mathrm{RLS}}$}{RLS forgetting factor}
+	\lignetoc{$\gamma_i,\boldsymbol{\gamma},\hat{\boldsymbol{\gamma}}_k$}{Trend and map coefficients}
 	\lignetoc{$\Gamma$}{Gamma function}
 	\lignetoc{$\delta_x$}{Dirac measure at $x$}
-	\lignetoc{$\varepsilon,\varepsilon_i$}{Query and training noises}
-	\lignetoc{$\theta$}{Kernel hyperparameters}
-	\lignetoc{$\lambda_k^{(i)}$}{Auxiliary weights}
-	\lignetoc{$\lambda_{\min},\lambda_{\max},\lambda_i$}{Smallest, largest and $i$-th eigenvalues of a matrix}
-	\lignetoc{$\lambda_x,\lambda_z,\lambda_{\mathrm{RLS}}$}{Regularisation coefficients}
-	\lignetoc{$\mu$}{Target probability measure, of density $p$}
-	\lignetoc{$\mu_k^{(i)}$}{Auxiliary particle}
-	\lignetoc{$\mu_X,\mu_{XZ},\mu_{Z|x}$}{KME, joint KME and conditional KME}
-	\lignetoc{$\mu_{Z|X}$}{Conditional embedding operator}
-	\lignetoc{$\mu_{k|k-1},\mu_{k|k}$}{Embeddings of the predicted and filtering densities}
-	\lignetoc{$\nu$}{Proposal (importance) measure, of density $q$}
+	\lignetoc{$\Delta_g,\Delta_t$}{Grid resolution and sampling period}
+	\lignetoc{$\epsilon$}{Arbitrarily small positive real}
+	\lignetoc{$\varepsilon,\varepsilon_k,\tilde{\varepsilon}_i,\boldsymbol{\varepsilon}_{1:k}$}{Observation noises}
+	\lignetoc{$\varepsilon^{(j)}$}{Regularisation draws of the RPF}
+	\lignetoc{$\zeta_\varepsilon,\zeta_h,\zeta_{\mathbf{R}},\zeta_{\hat{z}}$}{Kriging and subsampling errors}
+	\lignetoc{$\eta_k,\eta_k^l,\eta_k^n,\overline{\eta}_k^l$}{Evolution noises}
+	\lignetoc{$\theta,\hat{\theta}_k,\hat{\theta}_{\mathrm{ML}},\theta_{\mathrm{init}},\Theta$}{Kernel hyperparameters and their admissible set}
+	\lignetoc{$\kappa(\cdot,\cdot),\bar{\kappa},\kappa_\theta,\kappa_\nu,\kappa_{\mathbf{B}},\kappa_{\mathrm{MS}},\kappa_{|\mathrm{old}},\kappa_{|r},\kappa_{r_{\mathrm{KL}}},\kappa_{\mathrm{SE}},\kappa_{\mathrm{sep}},\kappa_{\mathrm{UK}|\mathrm{old}}$}{Covariance kernels}
+	\lignetoc{$\kappa_{d|r}$}{Residual covariance function}
+	\lignetoc{$\kappa_X,\kappa_Z$}{Kernels on the value sets of $X$ and $Z$}
+	\lignetoc{$\kappa_{\mathrm{rad}}$}{Radial profile of a kernel}
+	\lignetoc{$\lambda_{\min},\lambda_{\max},\lambda_i,\boldsymbol{\Lambda}$}{Eigenvalues of a matrix}
+	\lignetoc{$\mu_p,\mu_q,\tilde{\mu}_p,\tilde{\mu}_q$}{Target, proposal and unnormalised measures}
+	\lignetoc{$\mu_X,\hat{\mu}_X,\mu_Z$}{Kernel mean embeddings and their estimates}
+	\lignetoc{$\mu_{XX},\hat{\mu}_{XX},\mu_{XZ},\mu_{ZX},\hat{\mu}_{ZX}$}{Joint embeddings and their estimates}
+	\lignetoc{$\mu_{Z|X},\hat{\mu}_{Z|X},\mu_{Z|x},\hat{\mu}_{Z|x}$}{Conditional embeddings and their estimates}
+	\lignetoc{$\mu_{x_k|x_{k-1}},\hat{\mu}_{x_k|x_{k-1}},\mu_{z_k|x_k},\hat{\mu}_{z_k|x_k}$}{Transition and likelihood embedding operators}
+	\lignetoc{$\mu_{k|k-1},\mu_{k|k},\hat{\mu}_{k|k}$}{Predicted, corrected and estimated embeddings}
+	\lignetoc{$\nu$}{Matérn smoothness}
+	\lignetoc{$\xi_i$}{Standardised KL coefficients}
+	\lignetoc{$\boldsymbol{\Xi}$}{Lagrange multiplier}
 	\lignetoc{$\pi_k$}{Projection of a trajectory onto its last component}
-	\lignetoc{$\Pi_{\mathrm{pos}}$}{Projection matrix onto the position subspace}
+	\lignetoc{$\boldsymbol{\Pi}_{\mathrm{pos}}$}{Projection matrix onto the position subspace}
 	\lignetoc{$\rho$}{Distance on a space of estimators}
-	\lignetoc{$\Sigma_{k|k-1},\Sigma_{k|k}$}{Covariances of the embedded weights}
-	\lignetoc{$\varphi$}{Mapping of the state}
+	\lignetoc{$\sigma_h,\sigma_{\mathbf{R}}$}{Kernel and subsampling standard deviations}
+	\lignetoc{$\boldsymbol{\Sigma},\boldsymbol{\Sigma}_i$}{Separable and multi-scale kernel shape matrices}
+	\lignetoc{$\boldsymbol{\Sigma}_{k|k-1},\boldsymbol{\Sigma}_{k|k},\boldsymbol{\Sigma}_{k|k}^+$}{Covariances of the embedded weights}
+	\lignetoc{$\tau$}{Gradient ascent step size}
+	\lignetoc{$\boldsymbol{\Upsilon}$}{SPSD factor of a polar decomposition}
+	\lignetoc{$\varphi,\hat{\varphi}$}{Mapping of the state and its unscented estimate}
+	\lignetoc{$\phi$}{Generic element of $\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$}
+	\lignetoc{$\Phi,\Phi_X,\Phi_Z$}{Feature maps of RKHSs}
+	\lignetoc{$\chi^2_d(\cdot)$}{Quantile function of the $\chi^2$ law with $d$ degrees of freedom}
+	\lignetoc{$\psi$}{Generic estimator, generic element of an RKHS}
+	\lignetoc{$\psi_i,\boldsymbol{\Psi}$}{Map basis functions and their matrix form}
 	\lignetoc{$\hat{\psi}_{\mathrm{MMSE}},\hat{\psi}_{\mathrm{MMAE}},\hat{\psi}_{\mathrm{MAP}},\hat{\psi}_{\mathrm{ML}}$}{State estimators}
-	\lignetoc{$\psi_i,\Psi,\Lambda$}{Mercer eigenfunctions and eigenvalue matrix}
-	\lignetoc{$\Phi$}{Feature map of an RKHS}
-	\lignetoc{$\omega_j,b_j$}{Frequencies and phases of the basis functions}
+	\lignetoc{$\hat{\psi}_{\mathrm{RKHS}}$}{Regularised least-squares estimator in an RKHS}
+	\lignetoc{$\omega_j$}{Frequencies of the map basis functions}
+	\lignetoc{$\Omega,\Omega_X,\Omega_Z$}{Input set of a stochastic process, value sets of $X$, $Z$}
+	\lignetoc{$\boldsymbol{\Omega}$}{Orthogonal factor of a polar decomposition}
+	\lignetoc{$a_k^{(i)}$}{Auxiliary particles}
+	\lignetoc{$\mathbf{A},\mathbf{A}_k$}{Cholesky factors}
 	\lignetoc{$\operatorname{argmin}$, $\operatorname{argmax}$}{Argument of the minimum, of the maximum}
+	\lignetoc{$b_j$}{Phases of the RFF}
 	\lignetoc{$b_k^{(e)},b_k^{(o)}$}{Evolution and observation bias vectors}
-	\lignetoc{$C_\mu,C_\nu$}{Normalising constants of $\mu$ and $\nu$}
+	\lignetoc{$\mathbf{B}$}{Prior covariance of the trend coefficients}
+	\lignetoc{$\mathcal{B}(x,r)$}{Indices of the particles within distance $r$ of $x$}
+	\lignetoc{$c_d$}{Volume of the unit ball of $\mathbb{R}^d$}
+	\lignetoc{$C_p,C_q$}{Normalising constants of $\mu_p$ and $\mu_q$}
+	\lignetoc{$\mathbf{C}$}{Trend matrix of a constant mean}
+	\lignetoc{$\mathcal{C}^{(c)}$}{Particle cluster}
+	\lignetoc{$\operatorname{Card}$}{Cardinality of a set}
 	\lignetoc{$\operatorname{cdf}$}{Cumulative distribution function}
-	\lignetoc{$d_x,d_z,d_{\varphi}$}{Dimensions of the state, observation, and mapping}
-	\lignetoc{$d_w,d_n$}{Dimensions of the evolution and observation noises}
-	\lignetoc{$d_{\mathrm{pos}}$}{Dimension of the position subspace}
-	\lignetoc{$D,D_k$}{Residual weights of the embedded transition}
-	\lignetoc{$\mathfrak{D}_G$}{Gram inverse difference matrix}
+	\lignetoc{$d_x,d_z,d_{\varphi},d_\eta,d_\varepsilon,d_\theta,d_{\mathrm{pos}}$}{Dimensions of $x$, $z$, $\varphi(x)$, $\eta$, $\varepsilon$, $\theta$ and $\boldsymbol{\Pi}_{\mathrm{pos}}x$}
+	\lignetoc{$\mathbf{D},\mathbf{D}_k$}{Residual weights of the embedded transition}
 	\lignetoc{$\det$}{Determinant of a matrix}
-	\lignetoc{$e_r,e_f,\sigma_r$}{Subsampling errors and largest standard deviation}
+	\lignetoc{$\operatorname{dim}$}{Dimension of a vector space}
+	\lignetoc{$e_i$}{Canonical basis vectors}
+	\lignetoc{$E_{\mathrm{in}},E_{\mathrm{gap}},E_{\mathrm{out}}$}{Subsets of the example kriging domain}
 	\lignetoc{$\mathbb{E}[\cdot]$, $\mathbb{E}_p[\cdot]$}{Expectation, subscript: under the law $p$}
+	\lignetoc{$\operatorname{erf}$}{Gauss error function}
+	\lignetoc{$\operatorname{ev}_x$}{Evaluation functional at $x$}
 	\lignetoc{$\exp$}{Exponential function}
-	\lignetoc{$f_k,f_k^l,f_k^n,\overline{f}_k^l$}{Evolution functions}
-	\lignetoc{$F_k,F_k^l,F_k^n,\overline{F}_k^l$}{Evolution matrices}
-	\lignetoc{$g,g_l$}{Trend functions}
-	\lignetoc{$\mathcal{GP}(m,k)$}{Gaussian process}
-	\lignetoc{$G,G_\theta$}{Gram matrix}
-	\lignetoc{$\mathcal{G},\bar{k},\bar{\mathbf{z}}$}{Gram matrix, covariances and observations in block form}
-	\lignetoc{$h_k$}{Observation function}
-	\lignetoc{$H_k$}{Observation matrix}
-	\lignetoc{$I,I_n$}{Identity matrix, subscript: of size $n$}
-	\lignetoc{$\mathbf{1}_n$}{Vector of ones of size $n$}
-	\lignetoc{$J_f$}{Jacobian matrix of a function $f$}
-	\lignetoc{$k(\cdot,\cdot),k_{\mathrm{SE}},k_\nu,k_{\mathrm{sep}},k_{\mathrm{MS}},k_B,k_{|\mathrm{old}},k_{\mathrm{UK}|\mathrm{old}},k_{|r},k_{r_{\mathrm{KL}}}$}{Covariance kernels}
-	\lignetoc{$K,K_h,K_{\mathrm{Epa}},K_{\mathrm{Gauss}}$}{Regularisation kernels}
+	\lignetoc{$f_k,f_k^l,f_k^n,\overline{f}_k^l,\mathbf{F}_k,\mathbf{F}_k^l,\mathbf{F}_k^n,\overline{\mathbf{F}}_k^l,\tilde{\mathbf{F}}_k$}{Evolution functions and matrices}
+	\lignetoc{$\mathcal{F}$}{Function space}
+	\lignetoc{$g,g_i$}{Trend functions}
+	\lignetoc{$\mathcal{GP}$}{Gaussian process}
+	\lignetoc{$\mathbf{G},\mathbf{G}_\theta,\tilde{\mathbf{G}},\bar{\mathbf{G}},\mathbf{G}^z,\mathbf{G}_k^x,\mathbf{G}_k^z$}{Gram matrices}
+	\lignetoc{$h,h_k,\mathbf{H}_k,\tilde{\mathbf{H}}_k$}{Observation functions and matrices}
+	\lignetoc{$\mathcal{H},\mathcal{H}_\kappa$}{Hilbert space of functions, native RKHS of $\kappa$}
+	\lignetoc{$i^{(j)}$}{Parent index of the $j$-th resampled particle}
+	\lignetoc{$\mathbf{I},\mathbf{I}_n$}{Identity matrix, subscript: of size $n$}
+	\lignetoc{$\operatorname{id}$}{Identity operator}
+	\lignetoc{$\mathbf{J}_f$}{Jacobian matrix of a function $f$}
+	\lignetoc{$k$}{Time step}
+	\lignetoc{$K,K_\ell,\tilde{K}_\ell,K_{\mathrm{Epa}},K_{\mathrm{Gauss}}$}{Regularisation kernels}
 	\lignetoc{$K_\nu$}{Modified Bessel function of the second kind}
-	\lignetoc{$k_{d|r},\tilde{\mathbf{z}}_{d|r},S_{d|r}$}{Residual covariance function, observation vector and its covariance}
-	\lignetoc{$K_k$}{Kalman gain}
-	\lignetoc{$\mathcal{K},\mathcal{K}_{r_{\mathrm{KL}}}$}{Mercer operator and its reduced-rank truncation}
-	\lignetoc{$\mathcal{L}^0(E,F),\mathcal{L}^p(E,F)$}{Sets of measurable and $p$-integrable functions from $E$ to $F$}
-	\lignetoc{$m$}{Mean function of a Gaussian process}
-	\lignetoc{$\hat{m}_{\mathrm{OK}},\hat{m}_{\mathrm{UK}}$}{Estimated ordinary and universal-kriging means}
-	\lignetoc{$M$}{Covariance of the estimated trend coefficients}
+	\lignetoc{$\mathbf{K}_k,\hat{\mathbf{K}}_k,\mathbf{K}_k^\gamma$}{Kalman gains}
+	\lignetoc{$\mathcal{K},\mathcal{K}_{r_{\mathrm{KL}}}$}{Mercer operator and its truncation}
+	\lignetoc{$\ell,\ell_i,\ell_{\mathrm{Epa}},\ell_{\mathrm{Gauss}},\ell_{\mathrm{MS}},\ell_{\mathrm{UKF}}$}{Correlation lengths and bandwidths}
+	\lignetoc{$L$}{Log-likelihood}
+	\lignetoc{$\lim$}{Limit}
+	\lignetoc{$\ln$}{Natural logarithm}
+	\lignetoc{$\mathcal{L}^0(E,F),\mathcal{L}^p(E,F)$}{Measurable and $p$-integrable function spaces}
+	\lignetoc{$m,\hat{m}_{\mathrm{OK}},\hat{m}_{\mathrm{UK}},\hat{m}_{\mathrm{ML}}$}{Mean function and its OK, UK and ML estimates}
+	\lignetoc{$\mathbf{M}$}{Covariance of the estimated trend coefficients}
 	\lignetoc{$\mathcal{M}_{m,n}(\mathbb{R})$}{Set of real $m\times n$ matrices}
-	\lignetoc{$n_k$}{Observation noise}
-	\lignetoc{$N,\tilde{N}$}{Number of particles, of training points}
-	\lignetoc{$\tilde{N}^r,\tilde{N}_{\min}$}{Number of retained training points and its floor}
-	\lignetoc{$\hat{N}_{\mathrm{eff}},N_{\mathrm{eff}}$}{Estimated and real effective sample size}
-	\lignetoc{$N_{\mathrm{th}}$}{Resampling threshold}
-	\lignetoc{$\mathbb{N},\mathbb{N}^*$}{Sets of natural and strictly positive natural integers}
-	\lignetoc{$\mathcal{N}(m,P)$}{Gaussian distribution}
-	\lignetoc{$o(\cdot)$}{Landau symbol for asymptotic negligibility}
-	\lignetoc{$O$}{Observation matrix of the embedded weights}
-	\lignetoc{$\mathcal{O}(\cdot)$}{Landau symbol for asymptotic boundedness}
-	\lignetoc{$p$}{Target probability density}
-	\lignetoc{$p_0$}{Probability density of the initial state}
-	\lignetoc{$p_k^{(e)},p_k^{(o)}$}{Probability densities of the evolution and observation noises}
-	\lignetoc{$p_{A|B}(a|b)$}{Conditional density of $A$ given $B$}
-	\lignetoc{$P_0,P_{k|k-1},P_{k|k}$}{State covariance matrices}
-	\lignetoc{$P_k^\alpha$}{Covariance of the map coefficients}
+	\lignetoc{$\max,\min$}{Maximum and minimum}
+	\lignetoc{$N,\tilde{N},N_{\mathrm{cl}},N_{\mathrm{cl},k},\tilde{N}^r,\tilde{N}_{\min}$}{Numbers of particles, training points and clusters}
+	\lignetoc{$\tilde{N}^d,\tilde{N}_{\mathrm{new}}$}{Numbers of discarded and new training points}
+	\lignetoc{$\tilde{N}_{\mathrm{RS},k}^r,\tilde{N}_{\mathrm{AK},k}^r$}{Numbers of training points retained by RS and AK}
+	\lignetoc{$\hat{N}_{\mathrm{eff}},N_{\mathrm{eff}},N_{\mathrm{th}}$}{Effective sample size and resampling threshold}
+	\lignetoc{$N_{\mathrm{MC}},N_{\mathrm{steps}}$}{Numbers of Monte Carlo simulations and time steps}
+	\lignetoc{$\mathbb{N},\mathbb{N}^*$}{Natural and positive integers}
+	\lignetoc{$\mathcal{N}$}{Gaussian distribution}
+	\lignetoc{$o,\mathcal{O}$}{Landau symbols for asymptotic negligibility and boundedness}
+	\lignetoc{$\mathbf{O}$}{Observation matrix of the embedded weights}
+	\lignetoc{$p,\tilde{p},p_0$}{Target probability density and initial state density}
+	\lignetoc{$p_k^{(e)},p_k^{(o)}$}{Evolution and observation noise densities}
+	\lignetoc{$p_k^{(x)},p_k^{(y)},\dot{p}_k^{(x)},\dot{p}_k^{(y)}$}{Horizontal position and velocity components}
+	\lignetoc{$p_{A|B}(a|b)$}{Conditional density of $A=a$ given $B=b$}
+	\lignetoc{$p_{\mathrm{RS}}$}{Random subsampling rate}
+	\lignetoc{$p_{\mathrm{pos}}$}{Density estimate of the particle positions}
+	\lignetoc{$p_\nu$}{Normalised spectral density of $\kappa_\nu$}
+	\lignetoc{$\mathbf{P}_0,\mathbf{P}_{k|k-1},\mathbf{P}_{k|k},\hat{\mathbf{P}}_k$}{State covariance matrices and their estimates}
+	\lignetoc{$\hat{\mathbf{P}}_{\mathrm{pos},k|k-1}$}{Covariance estimate of the predicted position}
+	\lignetoc{$\hat{\mathbf{P}}_{\mathbf{XZ}}$}{Sample cross-covariance of $\mathbf{X}$ and $\mathbf{Z}$}
+	\lignetoc{$\mathbf{P}_k^\gamma$}{Covariance of the map coefficients}
 	\lignetoc{$\mathbb{P}$}{Probability of an event}
-	\lignetoc{$q$}{Proposal (importance) density}
-	\lignetoc{$Q_k,Q_k^n,Q_k^l,Q_k^{nl},\overline{Q}_k^l$}{Evolution noise covariances}
-	\lignetoc{$r_{\mathrm{UK}},r_{\mathrm{KL}},r_{\mathrm{RFF}}$}{Number of trend functions, KL rank and number of features}
-	\lignetoc{$r_{\mathrm{cov},k},r_{\min,k}$}{Covariance and minimum-count window radii}
+	\lignetoc{$q,\tilde{q}$}{Proposal (importance) density}
+	\lignetoc{$\mathbf{Q}_k,\mathbf{Q}_k^n,\mathbf{Q}_k^l,\mathbf{Q}_k^{nl},\overline{\mathbf{Q}}_k^l$}{Evolution noise covariances}
+	\lignetoc{$\mathcal{Q}_k$}{Kalman gain operator}
+	\lignetoc{$r_{\mathrm{UK}},r_{\mathrm{KL}},r_{\mathrm{RFF}}$}{UK trend, KL and RFF ranks}
+	\lignetoc{$r_{\mathrm{cov},k},r_{\min,k},r_{\mathrm{DB}}$}{Covariance, minimum-count and DBSCAN radii}
 	\lignetoc{$\operatorname{rank}$}{Rank of a kernel or operator}
-	\lignetoc{$R,R_k,\tilde{R}$}{Observation and training noise covariances}
-	\lignetoc{$R_{\mathrm{SK}},R_{\mathrm{OK}},R_{\mathrm{UK}},R_{\mathrm{K}},R_{\hat{m}}$}{Kriging error covariances}
-	\lignetoc{$\mathbb{R},\mathbb{R}_+,\mathbb{R}_+^*$}{Sets of real, positive real, and strictly positive real numbers}
-	\lignetoc{$S^N(\mu),S^N(\mu,\nu),\tilde{S}^N,S^N_{K_h}$}{Monte Carlo measures}
-	\lignetoc{$S_k$}{Innovation covariance}
-	\lignetoc{$S_\nu,p_\nu$}{Spectral density of $k_\nu$ and its normalisation}
+	\lignetoc{$\mathbf{R},\mathbf{R}_k,\tilde{\mathbf{R}}$}{Observation and training noise covariances}
+	\lignetoc{$\mathbf{R}_{\hat{m}},\mathbf{R}_{\hat{m}_{\mathrm{OK}}},\mathbf{R}_{\hat{m}_{\mathrm{UK}}},\mathbf{R}_{\mathrm{SK}},\mathbf{R}_{\mathrm{OK}},\mathbf{R}_{\mathrm{UK}},\mathbf{R}_{\mathrm{K}},\mathbf{R}_{\mathrm{SK},\mathbf{B}},\mathbf{R}_{\mathrm{SK}|\mathrm{old}},\mathbf{R}_{\mathrm{SK}|r}$}{Kriging covariances}
+	\lignetoc{$\mathbb{R},\mathbb{R}_+,\mathbb{R}_+^*$}{Real, positive and strictly positive real numbers}
+	\lignetoc{$S^N(\mu_p),S^N(\mu_p,\mu_q),\tilde{S}^N,S^N_{K_\ell}$}{Monte Carlo measures}
+	\lignetoc{$\mathbf{S}_k$}{Innovation covariance}
+	\lignetoc{$\mathbf{S}_{d|r}$}{Residual covariance}
+	\lignetoc{$\mathbf{S}_{\mathrm{new}|\mathrm{old}},\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$}{Batch innovation covariances, superscript: for UK}
+	\lignetoc{$S_\nu$}{Spectral density of $\kappa_\nu$}
 	\lignetoc{$\mathcal{S}_d^+,\mathcal{S}_d^{++}$}{Sets of SPSD and SPD matrices}
+	\lignetoc{$\operatorname{span}$}{Linear span}
 	\lignetoc{$\operatorname{supp}$}{Support of a measure or function}
 	\lignetoc{$\operatorname{tr}$}{Trace of a matrix}
-	\lignetoc{$T,T_k$}{Transition matrices of the embedded weights}
-	\lignetoc{$U$}{Weights of the estimated trend coefficients}
-	\lignetoc{$\mathcal{U}$}{Input set of a stochastic process}
-	\lignetoc{$\mathcal{U}_X,\mathcal{U}_Z$}{Sets of values of the random variables $X$ and $Z$}
+	\lignetoc{$\mathbf{T},\mathbf{T}_k$}{Transition matrices of the embedded weights}
+	\lignetoc{$\mathbf{U}$}{Weights of the estimated trend coefficients}
 	\lignetoc{$\mathcal{U}([a,b])$}{Uniform distribution}
-	\lignetoc{$V$}{Residual covariance of the embedded transition}
-	\lignetoc{$\mathbb{V}[\cdot]$, $\mathbb{V}_\mu[\cdot]$}{Variance, subscript: under the measure $\mu$}
-	\lignetoc{$w_k,w_k^l,w_k^n,\overline{w}_k^l$}{Evolution noises}
-	\lignetoc{$w_k^{(i)},\tilde{w}_k^{(i)}$}{Normalised and unnormalised particle weights}
+	\lignetoc{$v_k^{(i)},\tilde{v}_k^{(i)}$}{Normalised and unnormalised auxiliary weights}
+	\lignetoc{$\mathbf{V}$}{Residual covariance of the embedded transition}
+	\lignetoc{$\mathbb{V}[\cdot]$, $\mathbb{V}_p[\cdot]$}{Variance, subscript: under the law $p$}
+	\lignetoc{$w_k^{(i)},\tilde{w}_k^{(i)},w_k^{(i,c)}$}{Normalised, unnormalised and within-cluster particle weights}
+	\lignetoc{$w_{\min}$}{DBSCAN weight threshold}
 	\lignetoc{$\mathbf{w}_{k|k-1},\mathbf{w}_{k|k},\mathbf{w}_k^+$}{Predicted, corrected and resampled embedded weights}
+	\lignetoc{$W^{(i)},\mathbf{W}$}{UKF weights and kriging weights}
 	\lignetoc{$x_k,x_k^n,x_k^l,\mathbf{x}_{0:k}$}{System states and trajectory}
-	\lignetoc{$\mathbf{x},\mathbf{x}',\tilde{\mathbf{x}},\tilde{\mathbf{x}}_k^r$}{Input tuples, training inputs and their retained subset}
+	\lignetoc{$\mathbf{x},\mathbf{x}',\tilde{x}_i,\tilde{\mathbf{x}}$}{Input tuples and training inputs}
+	\lignetoc{$\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d$}{Retained and discarded training inputs}
+	\lignetoc{$\tilde{\mathbf{x}}_{\mathrm{RS},k}^r,\tilde{\mathbf{x}}_{\mathrm{AK},k}^r,\tilde{\mathbf{x}}_{\mathrm{NNAK},k}^r,\tilde{\mathbf{x}}_{\mathrm{MCAK},k}^r$}{Training inputs retained by each method}
+	\lignetoc{$\tilde{\mathbf{x}}_{\mathrm{NNAK},k}^{r,(i)},\tilde{\mathbf{x}}_{\mathrm{ICAK},k}^{r,(c)}$}{Windows of a particle and of a cluster}
 	\lignetoc{$\tilde{\mathbf{x}}^-$}{Training states preceding $\tilde{\mathbf{x}}$}
 	\lignetoc{$\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{x}}_{\mathrm{new}}$}{Previous and new batches of training inputs}
-	\lignetoc{$x_k^{(i)}$}{Particle}
-	\lignetoc{$\mathbf{x}_k,\mathbf{x}_k^+,\mathbf{z}_k$}{Propagated and resampled particle sets, simulated observations}
-	\lignetoc{$x_{k|k-1},x_{k|k},\hat{x}_k$}{Predicted, corrected and estimated state}
+	\lignetoc{$x_k^{(i)},x_k^{+(i)}$}{Particle, before and after resampling}
+	\lignetoc{$\mathbf{x}_k,\mathbf{x}_k^+$}{Propagated and resampled particle sets}
+	\lignetoc{$\breve{x}^{(c)}$}{Cluster centres}
+	\lignetoc{$\overline{x}_0$}{Initial state mean}
+	\lignetoc{$\hat{x}_{k|k-1},\hat{x}_{k|k},\hat{x}_k$}{Predicted, corrected and estimated state}
+	\lignetoc{$X,\mathbf{X},\hat{X}$}{State random variable, sample set and sample mean}
+	\lignetoc{$\mathcal{X}^{(i)}$}{UKF sigma points}
 	\lignetoc{$y_k$}{Innovation vector}
 	\lignetoc{$z_k,\mathbf{z}_{1:k}$}{Observation vector and sequence}
-	\lignetoc{$z,\tilde{\mathbf{z}}$}{Query and training observations}
-	\lignetoc{$\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}},S_{\mathrm{new}|\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}},S_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$}{Innovation of a new batch of observations and its covariance, superscript: for universal kriging}
-	\lignetoc{$\hat{z},\hat{z}_{\mathrm{SK}},\hat{z}_{\mathrm{OK}},\hat{z}_{\mathrm{UK}},\hat{z}_{\mathrm{K}}$}{Kriging estimators}
+	\lignetoc{$\mathbf{z}_k$}{Simulated observations}
+	\lignetoc{$z,\tilde{z}_i,\tilde{\mathbf{z}}$}{Query and training observations}
+	\lignetoc{$\tilde{\mathbf{z}}^r,\tilde{\mathbf{z}}^d$}{Retained and discarded training observations}
+	\lignetoc{$\tilde{\mathbf{z}}_{\mathrm{AK},k}^r,\tilde{\mathbf{z}}_{\mathrm{NNAK},k}^r,\tilde{\mathbf{z}}_{\mathrm{MCAK},k}^r,\tilde{\mathbf{z}}_{\mathrm{ICAK},k}^{r,(c)}$}{Observations retained by each method}
+	\lignetoc{$\tilde{\mathbf{z}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{new}}$}{Previous and new batches of training observations}
+	\lignetoc{$\bar{\mathbf{z}}$}{Block observation vector}
+	\lignetoc{$\tilde{\mathbf{z}}_{d|r}$}{Residual observation vector}
+	\lignetoc{$\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$}{Batch innovations, superscript: for UK}
+	\lignetoc{$\hat{z},\hat{z}_{\mathrm{SK}},\hat{z}_{\mathrm{OK}},\hat{z}_{\mathrm{UK}},\hat{z}_{\mathrm{K}},\hat{z}_{\mathrm{SK},\mathbf{B}},\hat{z}_{\mathrm{SK}|\mathrm{old}},\hat{z}_{\mathrm{SK}|r}$}{Kriging estimators}
+	\lignetoc{$Z,\mathbf{Z},\hat{Z}$}{Observation random variable, sample set and sample mean}
 \end{section_titre}
 
 \mainmatter % numéros de pages en chiffres arabes
