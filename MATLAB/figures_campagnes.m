@@ -107,9 +107,14 @@ n_it = size(res(1).err, 1);
 kk   = (1:n_it)';
 fin  = n_it - par.conv.n_fin + 1 : n_it;
 maha = chi2inv(par.conv.confiance, d_x);
+% LA NEES EST NORMALISEE PAR LA MEDIANE DE chi2_{d_x} (2026-10-26, Bastien), et non plus par
+% d_x : elle est une mediane sur les essais, et un filtre coherent vaut alors 1 au lieu de
+% 0,84. Meme normalisation pour les courbes, le panneau final et la bande.
+m_chi = chi2inv(0.5, d_x);
 
 RMSE = nan(n_it, numel(pas), numel(modeles));
 NEES = nan(n_it, numel(pas), numel(modeles));
+NEES_moy = nan(n_it, numel(pas), numel(modeles));
 CONV = nan(numel(pas), numel(modeles), 2);        % (:,:,1) seuil, (:,:,2) Mahalanobis
 FIN  = nan(numel(pas), numel(modeles), 2);        % moyenne sur les essais des criteres
 for e = 1:numel(res)
@@ -121,9 +126,9 @@ for e = 1:numel(res)
     % Les deux criteres, essai par essai : ce sont eux que CONV seuille, et dont FIN
     % moyenne les valeurs. Medianer les courbes agregees donnerait autre chose.
     crit_e = median(E(fin, :), 1);
-    crit_d = median(D(fin, :), 1) / d_x;
+    crit_d = median(D(fin, :), 1) / m_chi;
     CONV(ip, im, 1) = 100 * mean(crit_e <= par.conv.seuil);
-    CONV(ip, im, 2) = 100 * mean(crit_d * d_x <= maha, 'omitnan');
+    CONV(ip, im, 2) = 100 * mean(crit_d * m_chi <= maha, 'omitnan');
     % MEDIANE SUR TOUS LES ESSAIS, divergés compris. Une moyenne aurait exige de les
     % ecarter — un nuage effondre rend une distance de Mahalanobis astronomique, et
     % quelques essais suffisent alors a emporter la moyenne, jusqu'a 7,6e15 sur la carte
@@ -137,10 +142,22 @@ for e = 1:numel(res)
     % se rejoignent vers 4 km, y compris celle de la carte connue, qui finit pourtant a
     % 102 m. Combien d'essais survivent est la question du tableau, a quelle precision
     % celle de la figure.
+    %
+    % LA NEES EST UNE MEDIANE SUR TOUS LES ESSAIS depuis le 2026-10-26 (choix de Bastien),
+    % et la definition du manuscrit est une mediane. La moyenne, essayee le 2026-10-25
+    % (notes_depouillement_ch4.md), saute de dizaines d'ordres de grandeur meme sur les
+    % essais convergents : 3,65e38 au pas 42 sur la carte connue, pour une mediane de 0,079.
+    % Un seul essai au nuage effondre suffit a l'emporter. La mediane n'a pas besoin du
+    % filtre de convergence : sur tous les essais, elle est identique la ou presque tout
+    % converge (2,5 a 4,5 km) et monte aux mailles laches, ou les essais perdus sont
+    % sur-confiants (0,67 -> 1,2 pour l'AK a 7,5 km, avant la normalisation par m_chi). Un
+    % filtre coherent vaut 1. NEES_moy garde la moyenne pour le controle.
     ok = median(E(fin, :), 1) <= par.conv.seuil;
     RMSE(:, ip, im) = sqrt(mean(E(:, ok).^2, 2));
-    NEES(:, ip, im) = median(D(:, ok), 2, 'omitnan') / d_x;
+    NEES(:, ip, im) = median(D, 2, 'omitnan') / m_chi;
+    NEES_moy(:, ip, im) = mean(D, 2, 'omitnan') / m_chi;
 end
+controle_nees('par maille', NEES_moy, NEES, pas, etiq);
 
 % La carte connue ne depend pas de la maille : une seule courbe, reprise dans chaque case.
 ref_rmse = RMSE(:, 1, 1);
@@ -262,10 +279,18 @@ exporter(fig, 'Carte anomalie magnetique', carte_w, carte_h, img_dir);
 
 %% Les bornes communes aux grilles
 %
-% La bande du chi2 ou une NEES honnete doit tomber, et le sous-echantillonnage des pas
-% traces : a 150 pas la NEES est trop bruitee pour qu'on distingue les modeles.
-bas  = chi2inv((1 - par.conv.confiance) / 2, d_x) / d_x;
-haut = chi2inv(1 - (1 - par.conv.confiance) / 2, d_x) / d_x;
+% La bande ou une NEES honnete doit tomber, et le sous-echantillonnage des pas traces : a
+% 150 pas la NEES est trop bruitee pour qu'on distingue les modeles.
+%
+% LA BANDE EST CELLE D'UN SEUL ESSAI, [chi2inv(0,005) ; chi2inv(0,995)] / m_chi = [0,06 ;
+% 4,4], choix de Bastien le 2026-10-26 : la NEES tracee est un « essai median », qu'on
+% compare a l'intervalle d'un essai. La bande de la mediane de n essais, essayee le meme jour
+% (loi Beta((n+1)/2, (n+1)/2) de la statistique d'ordre centrale, ramenee par chi2inv),
+% valait [0,776 ; 0,906] pour n = 1000 avec la normalisation par d : aucune courbe n'y
+% entrait, pas meme la carte connue.
+q    = (1 - par.conv.confiance) / 2;
+bas  = chi2inv(q, d_x) / m_chi;
+haut = chi2inv(1 - q, d_x) / m_chi;
 kd   = 1 : pas_trace : n_it;
 
 % Le premier virage, trace sur les grilles de RMSE : c'est lui qui leve l'ambiguite le long
@@ -557,7 +582,7 @@ end
 % ON MEDIANE LES COURBES DEJA CALCULEES, et non les erreurs brutes. La RMSE du manuscrit
 % est une racine prise sur les essais A PAS FIXE ; medianer directement le nuage des
 % couples (pas, essai) donnerait une mediane d'erreurs, qui n'est pas une RMSE et que
-% l'axe ne pourrait pas appeler ainsi. Meme raison pour le NEES, moyenne sur les essais a
+% l'axe ne pourrait pas appeler ainsi. Meme raison pour le NEES, mediane sur les essais a
 % pas fixe. Les deux figures portent donc exactement les grandeurs des grilles.
 
 % Les rapports bilineaire / krigeage, que l'analyse cite : c'est l'ecart entre les deux
@@ -715,6 +740,11 @@ CNE  = nan(n_it, numel(pas), n_mod);       % NEES par pas
 CCV  = nan(numel(pas), n_mod, 2);          % convergence, seuil et Mahalanobis
 CNU  = nan(numel(pas), n_mod);             % echantillons retenus, moyenne sur la mission
 CNT  = nan(n_it, numel(pas), n_mod);       % les memes, pas par pas
+CNM  = nan(n_it, numel(pas), n_mod);       % nombre de clusters par pas, moyenne sur les essais
+CNM_ok = nan(n_it, numel(pas), n_mod);     % le meme sur les essais converges, pour le controle
+CFM  = nan(numel(pas), n_mod, 2);          % part des couples (pas, essai) a plusieurs clusters
+                                           % apres le premier virage : tous, converges
+CNE_moy = nan(n_it, numel(pas), n_mod);    % la NEES en moyenne, pour le controle
 CGF  = nan(numel(pas), n_mod);             % cout par essai, en flops
 CGP  = nan(numel(pas), n_mod, 3);          % le meme, par poste : krigeage, hyperparametres,
                                            % clusterisation. Le krigeage reunit la
@@ -733,10 +763,24 @@ for im = 1:n_mod
         crit_d = median(D(fin, :), 1);
         CCV(ip, im, 1) = 100 * mean(crit_e <= par.conv.seuil);
         CCV(ip, im, 2) = 100 * mean(crit_d <= maha, 'omitnan');
-        ok = crit_e <= par.conv.seuil;     % memes essais converges pour toutes les courbes
+        ok = crit_e <= par.conv.seuil;     % essais converges, pour la seule RMSE
         CRB(:, ip, im) = sqrt(mean(E(:, ok).^2, 2));
-        CNE(:, ip, im) = median(D(:, ok), 2, 'omitnan') / d_x;
+        CNE(:, ip, im) = median(D, 2, 'omitnan') / m_chi;   % mediane sur tous, voir plus haut
+        CNE_moy(:, ip, im) = mean(D, 2, 'omitnan') / m_chi;
         CNU(ip, im)    = mean(pool(e).n_used, 'all');
+        % LE NOMBRE DE CLUSTERS PAS PAR PAS, moyenne sur tous les essais comme les points
+        % retenus (2026-10-25, TODO du manuscrit en 4.4.3) : il dit a quel point le nuage est
+        % multimodal, donc ce que le clustering peut apporter. Seuls l'ICAK et le MCAK
+        % partitionnent le nuage ; les autres modeles enregistrent un mode.
+        if isfield(pool, 'n_modes') && ~isempty(pool(e).n_modes)
+            CNM(:, ip, im) = mean(pool(e).n_modes, 2);
+            % LE CONTROLE SUR LES ESSAIS CONVERGES : la figure moyenne sur tous les essais, et
+            % les essais perdus des mailles laches, au nuage encore large, pourraient a eux
+            % seuls porter les clusters restants apres le premier virage.
+            CNM_ok(:, ip, im) = mean(pool(e).n_modes(:, ok), 2);
+            CFM(ip, im, 1) = 100 * mean(pool(e).n_modes(k_vir:end, :) > 1, 'all');
+            CFM(ip, im, 2) = 100 * mean(pool(e).n_modes(k_vir:end, ok) > 1, 'all');
+        end
         % LES POINTS RETENUS PAS PAR PAS, moyennes sur les essais. C'EST n_used ET NON LA
         % PREMIERE LIGNE DU COUT : les deux different chez l'ICAK, seul modele a resoudre
         % plusieurs systemes par pas. Son cout(1) est la SOMME de ses fenetres, doublons
@@ -787,6 +831,8 @@ if ~isempty(iv)
     end
 end
 
+controle_nees('series comparees', CNE_moy, CNE, pas, cand(:, 1)');
+
 % LES QUATRE COMPARAISONS DU CHAPITRE. Chaque ligne donne les modeles a superposer, le nom
 % des deux grilles, celui de la figure de convergence et celui du tableau de cout. Les
 % legendes viennent de style_modele. La premiere sort sous les noms de fichier historiques,
@@ -836,6 +882,30 @@ for s = 1:size(etapes, 1)
         grille_deux_echelles(kk, CNT(:, :, sel_n), pas, cand(sel_n, 1)', '$\tilde{N}_k^r$', ...
                k_vir, SE.par.krig.n_min, pdf_w, pdf_h, fontsize, linewidth, img_dir, ...
                ['Echantillons ' etapes{s, 2}]);
+    end
+    % LE NOMBRE MOYEN DE CLUSTERS au cours du vol (2026-10-25, TODO de 4.4.3), pour les seules
+    % methodes qui partitionnent le nuage, avec les deux echelles de la figure des points
+    % retenus : la vingtaine de modes de l'acquisition ecraserait le mode unique de la
+    % poursuite. Le trait pointille marque un seul cluster.
+    sel_c = sel(ismember(cand(sel, 1)', {'cak', 'mcak'}));
+    if ~isempty(sel_c) && any(isfinite(CNM(:, :, sel_c)), 'all')
+        grille_deux_echelles(kk, CNM(:, :, sel_c), pas, cand(sel_c, 1)', '$N_{\mathrm{cl},k}$', ...
+               k_vir, 1, pdf_w, pdf_h, fontsize, linewidth, img_dir, ['Clusters ' etapes{s, 2}]);
+        for ip = 1:numel(pas)
+            for im = sel_c
+                y  = CNM(:, ip, im);
+                yo = CNM_ok(:, ip, im);
+                fprintf(['Clusters %-5s %.1f km : moyenne %.2f, max %.1f au pas %d, %.2f apres ' ...
+                         'le pas %d, dernier pas au-dessus de 1,05 : %d\n'], cand{im, 1}, pas(ip), ...
+                        mean(y), max(y), find(y == max(y), 1), mean(y(k_vir:end)), k_vir, ...
+                        find(y > 1.05, 1, 'last'));
+                fprintf(['   sous 10 / 2 / 1,1 aux pas %d / %d / %d ; converges : %.2f apres le ' ...
+                         'pas %d ; plusieurs clusters apres ce pas : %.1f %% des couples, %.1f %% ' ...
+                         'sur les converges\n'], min([find(y < 10, 1), NaN]), ...
+                        min([find(y < 2, 1), NaN]), min([find(y < 1.1, 1), NaN]), ...
+                        mean(yo(k_vir:end)), k_vir, CFM(ip, im, 1), CFM(ip, im, 2));
+            end
+        end
     end
 
     f2 = figure('Color', 'w', 'Units', 'points', 'Position', [40 40 textwidth 230]);
@@ -1364,6 +1434,14 @@ function C = cout_e(r, par, n_opt)
     nmk = mean(r.n_modes, 2)';                   % modes par pas, moyennes sur les essais
     if isempty(nmk), nmk = ones(size(sn)); end   % un modele qui n'enregistre pas ses modes
     nmk = max(nmk, 1);
+    % LE MCAK KRIGE CHAQUE PARTICULE SUR L'UNION (2026-10-25, notes_depouillement_ch4.md) :
+    % son cout(1) est deja la taille de cette fenetre unique, alors que celui de l'ICAK est la
+    % somme de ses fenetres de mode. Diviser par le nombre de modes, juste pour l'ICAK,
+    % sous-estimait les requetes et les ajustements du MCAK d'un facteur proche de n_modes^2,
+    % qui atteint quelques centaines pendant l'acquisition.
+    if contains(char(r.model), 'MCAK')
+        nmk = ones(size(sn));
+    end
     nc  = sn ./ nmk;                             % taille moyenne d'une fenetre de mode
     C   = [sum(sn3) / 3, ...
            sum(nf) * n_opt * min(mean(nc), par.krig.n_ml_win)^3 / 3, ...
@@ -1794,9 +1872,12 @@ function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w,
     kR   = k_vir:n_it;
     yL   = Y(kL, :, :);  yL = yL(isfinite(yL) & yL > 0);
     yR   = Y(kR, :, :);  yR = yR(isfinite(yR));
-    limL = [10^floor(log10(min(yL))), 2 * max(yL)];
+    % La borne basse descend sous la plus petite valeur quand celle-ci tombe sur une decade,
+    % sans quoi la courbe d'un seul cluster se confondrait avec l'axe.
+    limL = [min(10^floor(log10(min(yL))), min(yL) / 1.5), 2 * max(yL)];
     marge_y = 0.08 * (max(yR) - min(yR));
     limR = [min(yR) - marge_y, max(yR) + marge_y];
+    if diff(limR) <= 0, limR = limR + [-0.5 0.5]; end   % une courbe plate
     dec  = ceil(log10(limL(1))):floor(log10(limL(2)));
 
     fig = figure('Color', 'w', 'Units', 'points', 'Position', [40 40 pdf_w pdf_h]);
@@ -1826,9 +1907,12 @@ function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w,
         % echantillons de l'AK : c'est la valeur que les courbes rejoignent, et aucune
         % decade ne la donne. Les etiquettes sont ecrites a la main pour que les decades
         % gardent leur forme 10^n.
-        [yt, ordre] = sort([10.^dec, n_min]);
+        % Un plancher qui tombe sur une decade (un seul cluster, 10^0) n'est pas gradue deux
+        % fois : YTick refuse les doublons.
+        plancher = n_min(~ismember(n_min, 10.^dec));
+        [yt, ordre] = sort([10.^dec, plancher]);
         yt_lab = [arrayfun(@(d) sprintf('$10^{%d}$', d), dec, 'UniformOutput', false), ...
-                  {sprintf('$%g$', n_min)}];
+                  arrayfun(@(v) sprintf('$%g$', v), plancher, 'UniformOutput', false)];
         yt_lab = yt_lab(ordre);
         set(axL(ip), 'YScale', 'log', 'YTick', yt, 'XTick', 10:20:k_vir, ...
                      'YMinorTick', 'off', 'YMinorGrid', 'off');
@@ -1900,4 +1984,26 @@ function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w,
         yl.Position(2) = m_bas + (1 - m_bas - m_haut) / 2 - yl.Position(4) / 2;
     end
     exporter(fig, nom_fig, pdf_w, pdf_h, img_dir);
+end
+
+function controle_nees(serie, M, Md, pas, cles)
+% LE CONTROLE DE LA NEES MOYENNE (2026-10-25). Le passage de la mediane a la moyenne sur les
+% essais convergents ne devait pas faire sauter une courbe de plusieurs ordres de grandeur : le
+% filtre de convergence porte sur l'erreur, pas sur la covariance, et un essai converge au
+% nuage effondre emporte la moyenne. Imprime, par methode et par maille, le pire rapport
+% moyenne / mediane au cours du vol et sa mediane. Le 2026-10-25, ce rapport a atteint 4,6e39
+% sur la carte connue et 8450 au statique a 5,5 km : les courbes sont restees des medianes,
+% annoncees dans le texte (notes_depouillement_ch4.md). Depuis le 2026-10-26, les deux sont
+% prises sur tous les essais.
+    for im = 1:size(M, 3)
+        for ip = 1:size(M, 2)
+            r = M(:, ip, im) ./ Md(:, ip, im);
+            r = r(isfinite(r));
+            if isempty(r), continue, end
+            [rmax, k] = max(r);
+            fprintf(['NEES %-16s %-9s %.1f km : moyenne/mediane max %6.2f au pas %3d ' ...
+                     '(moyenne %.3g, mediane %.3g), rapport median %.2f\n'], serie, cles{im}, ...
+                    pas(ip), rmax, k, M(k, ip, im), Md(k, ip, im), median(r));
+        end
+    end
 end

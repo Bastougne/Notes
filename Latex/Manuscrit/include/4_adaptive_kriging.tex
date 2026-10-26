@@ -1,6 +1,6 @@
 \section{Adaptive Kriging}\label{sec:AK_PF}
 
-In this section, we propose to use training data subsampling, \textit{i.e.} selecting a subset $\tilde{\mathbf{x}}^r$ of $\tilde{N}^r$ training points and using only these points for regression, as a way to alleviate the computational issues raised above. Since the computational and memory costs of kriging scale quadratically with the number of training points, discarding half the data reduces the computational load by a factor of $4$ and requires $4$ times less storage.
+In this section, we propose to use training data subsampling, \textit{i.e.} selecting a subset $\tilde{\mathbf{x}}^r$ of $\tilde{N}^r$ training points and using only these points for regression \cite{bib:Rasmussen-approximation,bib:sparse-GP}, as a way to alleviate the computational issues raised above. Since the computational and memory costs of kriging scale quadratically with the number of training points, discarding half the data reduces the computational load by a factor of $4$ and requires $4$ times less storage.
 
 However, this method comes at a cost. In the following, we describe two subsampling strategies, each requiring to perform a subsampling step at each time step. This means that no precomputation can be done before the mission, and in particular that inverting $\mathbf{G}(\tilde{\mathbf{x}}^r)\in\mathcal{S}_{\tilde{N}^r\:d_z}^{++}(\mathbb{R})$ and $\mathbf{C}^\top \mathbf{G}(\tilde{\mathbf{x}}^r)^{-1}\mathbf{C}\in\mathcal{S}_{d_z}^{++}(\mathbb{R})$ must be done online.
 
@@ -55,12 +55,12 @@ Finally, \Cref{tab:cout_eclairci} illustrates the only advantage of random subsa
 
 The above results show that, while subsampling does reduce the computational cost of the algorithm, indiscriminately discarding training points is detrimental to the navigation performance. A more suitable strategy should therefore retain only a limited number of training points while selecting those that are most relevant to the current situation.
 
-Since, at each time step, the filter only queries the map where its particles lie, this suggests retaining the points surrounding the particle set. Beyond reducing the computational cost, a local selection also relaxes a second limitation of static kriging. Indeed, the estimators introduced in \cref{sec:kriging} assume the use of a single kernel over the entire domain, and \cref{th:kriging_navigation_assumptions} inherits that hypothesis. In \cref{sec:HP_estimation}, we estimated the hyperparameters of the kernel once before the mission, meaning that they are assumed to be independent of the inputs:
+Since, at each time step, the filter only queries the map where its particles lie, this suggests retaining the points surrounding the particle set \cite{bib:screening-effect,bib:kriging-neighbourhood,bib:moving-neighbourhood,bib:local-GP}. Beyond reducing the computational cost, a local selection also relaxes a second limitation of static kriging. Indeed, the estimators introduced in \cref{sec:kriging} assume the use of a single kernel over the entire domain, and \Cref{th:kriging_navigation_assumptions} inherits that hypothesis. In \cref{sec:HP_estimation}, we estimated the hyperparameters of the kernel once before the mission, meaning that they are assumed to be independent of the inputs:
 \begin{equation}
 	\kappa_{3/2}:x,x'\mapsto\sigma_h^2\left(1+\frac{\sqrt{3}\:\|x-x'\|_2}{\ell}\right)\exp\left(-\frac{\sqrt{3}\:\|x-x'\|_2}{\ell}\right)
 \end{equation}
 
-The considered kernel is thus radial, and the resulting GP is therefore stationary. This is unrealistic for a physical field, especially at large spatial scales. However, stationarity cannot be simply dropped, as the hyperparameters of such a kernel would have to be fitted at every point of the domain, where a single sample is available. We therefore assume the field to be non-stationary, but its hyperparameters to vary over a scale much larger than the grid resolution of the training data. Under this hypothesis, the hyperparameters must be estimated over a region large enough to provide sufficient data for accurate estimation, while remaining small enough to avoid averaging them over distances on which they vary significantly.
+The considered kernel is thus radial, and the resulting GP is therefore stationary. This is unrealistic for a physical field, especially at large spatial scales \cite{bib:non-stationary-GP}. However, stationarity cannot be simply dropped, as the hyperparameters of such a kernel would have to be fitted at every point of the domain, where a single sample is available. We therefore assume the field to be non-stationary, but its hyperparameters to vary over a scale much larger than the grid resolution of the training data. Under this hypothesis, the hyperparameters must be estimated over a region large enough to provide sufficient data for accurate estimation, while remaining small enough to avoid averaging them over distances on which they vary significantly.
 
 In this section, we propose an adaptive subsampling strategy to optimise the kriging performance of the filter according to four criteria:
 \begin{itemize}
@@ -90,7 +90,7 @@ where $d_{\mathrm{pos}}\in\mathbb{N}^*$ is the dimension of the position subspac
 	\hat{\mathbf{P}}_{\mathrm{pos},k|k-1}\triangleq\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{\mathbf{P}}_{k|k-1}\:\boldsymbol{\Pi}_{\mathrm{pos}}^\top
 \end{equation}
 
-This means that the particles are likely to be contained in an ellipsoid centred on $\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_{k|k-1}$, and whose shape is given by the eigenvectors of $\hat{\mathbf{P}}_{\mathrm{pos},k|k-1}$. However, this geometry is tied to the particle set, and does not directly translate into the physical position space. Furthermore, when $\hat{\mathbf{P}}_{\mathrm{pos},k|k-1}$ is highly anisotropic, the resulting ellipsoid may provide insufficient coverage along directions of lower uncertainty, leading to extrapolation. To solve this issue, we use the Rayleigh quotient \cite{bib:matrix-cookbook} to convert the Mahalanobis inequality into a Euclidean one:
+This means that the particles are likely to be contained in an ellipsoid centred on $\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_{k|k-1}$, and whose shape is given by the eigenvectors of $\hat{\mathbf{P}}_{\mathrm{pos},k|k-1}$. However, this geometry is tied to the particle set, and does not directly translate into the physical position space. Furthermore, when $\hat{\mathbf{P}}_{\mathrm{pos},k|k-1}$ is highly anisotropic, the resulting ellipsoid may provide insufficient coverage along directions of lower uncertainty, leading to extrapolation. To solve this issue, we use the Rayleigh quotient \cite{bib:matrix-hermitian} to convert the Mahalanobis inequality into a Euclidean one:
 \begin{equation}
 	\begin{aligned}
 	\left\|\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\boldsymbol{\Pi}_{\mathrm{pos}}\:x_k^{(i)}\right\|_2^2&\leq\lambda_{\max}\left(\hat{\mathbf{P}}_{\mathrm{pos},k|k-1}\right)\left\|\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\boldsymbol{\Pi}_{\mathrm{pos}}\:x_k^{(i)}\right\|_{\hat{\mathbf{P}}_{\mathrm{pos},k|k-1}}^2\\
@@ -106,7 +106,7 @@ and centred on $\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_{k|k-1}$, where $\alpha
 
 However, when the particle set collapses on a small region of space, the ball may not contain enough training points to satisfy the second criterion. We thus introduce a second radius to ensure that at least $\tilde{N}_{\min}$ training points are retained:
 \begin{equation}
-	r_{\min,k}\triangleq\min_{r\in\mathbb{R}^+}\left(\operatorname{Card}\left\{i\in[\![1,\tilde{N}]\!]\:\middle|\:\left\|\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\tilde{x}_i\right\|_2\leq r\right\}\geq\tilde{N}_{\min}\right)\label{eq:r_min}
+	r_{\min,k}\triangleq\underset{r\in\mathbb{R}^+}{\min}\left\{r\:\middle|\:\operatorname{Card}\left\{i\in[\![1,\tilde{N}]\!]\:\middle|\:\left\|\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_{k|k-1}-\tilde{x}_i\right\|_2\leq r\right\}\geq\tilde{N}_{\min}\right\}\label{eq:r_min}
 \end{equation}
 
 The retained training set is thus defined at each time step $k$ as:
@@ -203,7 +203,7 @@ The first point to note is the strong similarity between the RMSE curves obtaine
 
 Since discarded points are far from the particle cloud, they have negligible contributions to the map reconstruction at the particle locations. Their removal thus has little effect on the relative particle likelihoods. While this is only shown numerically here, its theoretical analysis is the subject of \cref{sec:subsampling_error}.
 
-On the other hand, the NEES curves of both algorithms are significantly different. Although both remain within the $\chi^2$ confidence bounds throughout the trajectory, the NEES of static kriging rises above $2$ around $k=70$ for every resolution but the finest, before decreasing again around $k=125$. In contrast, the NEES of AK remains below $1$ throughout the mission and for all grid resolutions. This may be explained by the non-stationarity of the field. The global kernel would provide a poor description of this portion of the field, whereas the local estimation of the hyperparameters would allow AK to adapt to it. It must also be noted that the RMSE of AK is lower precisely around $k=70$, which further illustrates this explanation.
+On the other hand, the NEES curves of both algorithms are significantly different. Although both remain within the $\chi^2$ confidence bounds throughout the trajectory, the NEES of static kriging rises to between $2.2$ and $3.2$ around $k=70$ for every resolution, before decreasing again around $k=125$. In contrast, the NEES of AK remains below $1$ throughout the mission and for all grid resolutions. This may be explained by the non-stationarity of the field. The global kernel would provide a poor description of this portion of the field, whereas the local estimation of the hyperparameters would allow AK to adapt to it. It must also be noted that the RMSE of AK is lower precisely around $k=70$, which further illustrates this explanation.
 
 Regarding convergence, the two filters exhibit the same overall trend, with a drop in convergence for both criteria from $\Delta_g=5.5$ km onward. Since its NEES is generally more conservative, AK achieves convergence for $87\%$ of the runs at $7.5$ km according to the Mahalanobis criterion, compared with $81\%$ for static kriging. Their convergence rates remain similar for the threshold criterion, with the same drop at grid resolutions greater than $5.5$ km.
 
@@ -235,7 +235,7 @@ A simple way to do this is to define, for each particle, a spherical selection w
 \end{equation}
 where:
 \begin{equation}
-	r_{\min,k}^{(i)}\triangleq\min_{r\in\mathbb{R}^+}\left(\operatorname{Card}\left\{j\in[\![1,\tilde{N}]\!]\:\middle|\:\left\|\boldsymbol{\Pi}_{\mathrm{pos}}\:x_k^{(i)}-\tilde{x}_j\right\|_2\leq r\right\}\geq\tilde{N}_{\min}\right)
+	r_{\min,k}^{(i)}\triangleq\underset{r\in\mathbb{R}^+}{\min}\left\{r\:\middle|\:\operatorname{Card}\left\{j\in[\![1,\tilde{N}]\!]\:\middle|\:\left\|\boldsymbol{\Pi}_{\mathrm{pos}}\:x_k^{(i)}-\tilde{x}_j\right\|_2\leq r\right\}\geq\tilde{N}_{\min}\right\}
 \end{equation}
 
 Each individual selection window thus contains at least the $\tilde{N}_{\min}$ training points closest to the corresponding particle, with exactly $\tilde{N}_{\min}$ points unless several of them are equidistant from the considered particle. The global subsampling window is then defined as the union of the individual windows:
@@ -277,7 +277,7 @@ Regarding the parameters of this method, NNAK does not rely on the covariance-ba
 
 \subsection{Clustering}\label{sec:clustering}
 
-The main difference between AK and NNAK lies in the scale at which the particle set is considered. While AK views the particle set as a whole from a macroscopic perspective, NNAK adopts a microscopic point of view by treating each particle individually. In this section, we introduce an intermediate, mesoscopic perspective by partitioning the particle set into clusters.
+The main difference between AK and NNAK lies in the scale at which the particle set is considered. While AK views the particle set as a whole from a macroscopic perspective, NNAK adopts a microscopic point of view by treating each particle individually. In this section, we introduce an intermediate, mesoscopic perspective by partitioning the particle set into clusters \cite{bib:mixture-RBPF-TAN}.
 
 Since this partition is recomputed at each time step, and determines the subsampling windows, the clustering method must satisfy four criteria:
 \begin{itemize}
@@ -316,7 +316,7 @@ However, HCA requires the dissimilarities between all pairs of clusters. This re
 
 Instead of building a hierarchy, the $k$-means algorithm \cite{bib:k-means} searches for a partition into a given number $N_{\mathrm{cl}}$ of clusters. Each cluster is represented by a centre $\breve{x}^{(c)}\in\mathbb{R}^{d_{\mathrm{pos}}}$, and both the partition and the centres are chosen to minimise the weighted dispersion of the particles around the centre of their cluster:
 \begin{equation}
-	\underset{\mathcal{C}^{(1)},\dots,\mathcal{C}^{(N_{\mathrm{cl}})},\:\breve{x}^{(1)},\dots,\breve{x}^{(N_{\mathrm{cl}})}}{\operatorname{argmin}}\left(\sum_{c=1}^{N_{\mathrm{cl}}}\sum_{i\in\mathcal{C}^{(c)}}w^{(i)}\left\|x^{(i)}-\breve{x}^{(c)}\right\|_2^2\right)\label{eq:kmeans}
+	\underset{\mathcal{C}^{(1)},\dots,\mathcal{C}^{(N_{\mathrm{cl}})},\:\breve{x}^{(1)},\dots,\breve{x}^{(N_{\mathrm{cl}})}}{\operatorname{argmin}}\left\{\sum_{c=1}^{N_{\mathrm{cl}}}\sum_{i\in\mathcal{C}^{(c)}}w^{(i)}\left\|x^{(i)}-\breve{x}^{(c)}\right\|_2^2\right\}\label{eq:kmeans}
 \end{equation}
 
 In practice, this problem is addressed by Lloyd's algorithm \cite{bib:lloyd}, which starts from $N_{\mathrm{cl}}$ initial centres, and alternates between two steps:
@@ -409,7 +409,7 @@ Applying \eqref{eq:r_cov} and \eqref{eq:r_min} to these moments respectively giv
 \end{equation}
 and:
 \begin{equation}
-	r_{\min,k}^{(c)}\triangleq\min_{r\in\mathbb{R}^+}\left(\operatorname{Card}\left\{i\in[\![1,\tilde{N}]\!]\:\middle|\:\left\|\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_{k|k-1}^{(c)}-\tilde{x}_i\right\|_2\leq r\right\}\geq\tilde{N}_{\min}\right)
+	r_{\min,k}^{(c)}\triangleq\underset{r\in\mathbb{R}^+}{\min}\left\{r\:\middle|\:\operatorname{Card}\left\{i\in[\![1,\tilde{N}]\!]\:\middle|\:\left\|\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_{k|k-1}^{(c)}-\tilde{x}_i\right\|_2\leq r\right\}\geq\tilde{N}_{\min}\right\}
 \end{equation}
 
 Each cluster thus defines its own subsampling window:
@@ -531,7 +531,7 @@ training points for each particle. Finally, mean shift is performed with a bandw
 	\ell_{\mathrm{MS}}=1\text{ km}
 \end{equation}
 
-\Cref{fig:fenetres_RMSE,fig:fenetres_NEES} compare the RMSE and NEES curves for the four methods. The associated convergence rates are given by \Cref{fig:convergence_fenetres}, while \Cref{fig:fenetres_echantillons} shows the number of training points retained by each method throughout the mission. Finally, \Cref{tab:cout_fenetres} presents their average computational cost.
+\Cref{fig:fenetres_RMSE,fig:fenetres_NEES} compare the RMSE and NEES curves for the four methods. The associated convergence rates are given by \Cref{fig:convergence_fenetres}, while \Cref{fig:fenetres_echantillons} shows the number of training points retained by each method throughout the mission. Finally, \Cref{tab:cout_fenetres} presents their average computational cost and \Cref{fig:fenetres_clusters} shows the evolution of the number of clusters computed by ICAK and MCAK throughout the mission.
 
 \begin{figure}[!p]
 	\centering
@@ -545,27 +545,38 @@ training points for each particle. Finally, mean shift is performed with a bandw
 	\caption{Comparative NEES of the navigation algorithms using AK, NNAK, MCAK and ICAK across the six grid resolutions. The shaded area corresponds to that of the previous NEES figures.}\label{fig:fenetres_NEES}
 \end{figure}
 
-\begin{figure}[!htb]
+\begin{figure}[!p]
 	\centering\includegraphics[width=\textwidth]{../../Images/Convergence fenetres.pdf}
 	\caption{Convergence rates of the AK-RPF, NNAK-RPF, MCAK-RPF and ICAK-RPF as a function of grid resolution, using the threshold and the Mahalanobis criteria.}\label{fig:convergence_fenetres}
 \end{figure}
 
-\begin{table}[!htb]
+\begin{table}[!p]
 	\centering\input{include/cout_fenetres.tex}
 	\caption{Total computational cost, in flops, of the four windowing strategies for each grid resolution. Each cost is split between kriging, hyperparameter estimation (HP), and clustering or nearest neighbour search (NN) when applicable.}\label{tab:cout_fenetres}
 \end{table}
 
-\begin{figure}[!htb]
+\begin{figure}[!p]
 	\centering\includegraphics[width=\textwidth]{../../Images/Echantillons fenetres par maille.pdf}
 	\caption{Evolution of the average number of training points retained by each windowing strategy during the mission, for each grid resolution. The two scales are those of \Cref{fig:AK_echantillons}.}\label{fig:fenetres_echantillons}
 \end{figure}
 
-The RMSE curves of AK, NNAK and MCAK are indistinguishable at every grid resolution. Following the shape of the particle set, whether through one window per particle or one window per mode, therefore costs nothing in accuracy compared with the single window of AK. ICAK, on the other hand, achieves significantly higher RMSEs on grid resolutions $\Delta_g=6.5$ and $\Delta_g=7.5$ km during the first $50$ iterations, before rejoining them once the particle set has collapsed to a single mode.
+\begin{figure}[!p]
+	\centering\includegraphics[width=\textwidth]{../../Images/Clusters fenetres par maille.pdf}
+	\caption{Evolution of the average number of clusters computed by ICAK and MCAK during the mission, for each grid resolution. The two scales are those of \Cref{fig:AK_echantillons}.}\label{fig:fenetres_clusters}
+\end{figure}
+
+The RMSE curves of AK, NNAK and MCAK are indistinguishable at every grid resolution. Following the shape of the particle set, whether through one window per particle or one window per mode, therefore costs nothing in accuracy compared with the single window of AK. ICAK, on the other hand, achieves significantly higher RMSEs on grid resolutions $\Delta_g=6.5$ and $\Delta_g=7.5$ km during the first $50$ iterations, before rejoining them once the particle set has collapsed to a single mode. The difference in RMSE between ICAK and the other strategies is most likely due to the hyperparameter estimation, which is performed on a smaller training set and is therefore less robust.
 
 Similarly, all four strategies exhibit almost identical NEES curves and convergence rates. Adapting the shape of the window thus preserves both the consistency and the robustness of AK.
 
-\textbf{TODO: à reprendre} \Cref{fig:fenetres_echantillons} explains where the differences lie. Once the particle set has concentrated, AK sits exactly at its floor $\tilde{N}_{\min}$, while MCAK and ICAK sit slightly above it, their window being the union of one disc per mode. NNAK remains below this floor, as announced in \cref{sec:NNAK}, since the floor is applied to each individual ball rather than to their union. The ordering is reversed during acquisition, where the spread of the particle set drives the window of AK and those of the clusters to a thousand points at $\Delta_g=2.5$ km, against a few hundred for the union of the balls.
+Regarding the number of retained training points, \Cref{fig:fenetres_echantillons} shows that each strategy behaves differently. Since no global floor is applied to NNAK, it naturally achieves a lower number of retained training points, especially when the particle set is concentrated into a single cluster. Conversely, ICAK and MCAK apply the floor to each cluster, which results in a higher total number of retained training points than AK once the particle set has concentrated. This order is reversed at the beginning of the mission, when the particle set is widely spread. Indeed, the single AK window is a ball that must encompass the entire particle set, including regions without particles, and therefore retains more training points than its clustered counterparts.
 
-These selections are reflected in the computational costs. At $\Delta_g=2.5$ km, the kriging of AK costs $46$ Gflop per run, against $4.3$ G for NNAK, $2.26$ G for ICAK and $2.47$ G for MCAK, so that adapting the shape of the window divides the dominant term by more than ten, for a clustering step or a neighbour search of about $0.1$ G. As the grid coarsens, this term collapses faster than the partition that produces it: at $\Delta_g=7.5$ km, MCAK pays $150$ M of kriging for $274$ M of clustering. ICAK is also the only strategy whose hyperparameter estimation grows with the grid resolution, from $87.3$ M to $131$ M, as it fits one set of hyperparameters per cluster, whereas that of MCAK falls from $25.3$ M to $3.4$ M.
+These differences in selection strategies are reflected in the computational costs of the four methods. At $\Delta_g=2.5$ km, kriging accounts for $46$ Gflop per run for AK, compared with $4.3$ Gflop for NNAK, $2.26$ Gflop for ICAK and $24.3$ Gflop for MCAK. NNAK and ICAK thus reduce the dominant kriging cost by at least one order of magnitude, with additional costs of only about $0.1$ Gflop for neighbour search and clustering, respectively.
 
-Merging the clustered windows therefore retains the accuracy, the consistency and the convergence of AK for $6$ to $27\%$ of its cost, and is the cheapest of the four strategies at every grid resolution but the finest, where ICAK is marginally below it. Resolving each cluster separately, on the other hand, buys nothing: it degrades the acquisition, and costs more than the merged variant as soon as the clusters multiply.
+As the grid resolution decreases, the kriging cost decreases faster than that of the selection step. At $\Delta_g=7.5$ km, for instance, ICAK pays $499$ Mflop for kriging and $270$ Mflop for clustering. ICAK is also the only method whose hyperparameter estimation cost increases as the grid resolution decreases, rising from $87.3$ to $131$ Mflop. This reflects the estimation of a separate set of hyperparameters for each cluster, whereas the corresponding cost for MCAK decreases from $340$ to $62.4$ Mflop.
+
+Merging the clustered windows therefore retains the accuracy, the consistency and the convergence of AK for $53$ to $99\%$ of its cost, but is the most expensive of the three variants at every grid resolution. Resolving each cluster separately, on the other hand, is the cheapest strategy, but it degrades the estimation at the beginning of the mission.
+
+The lack of improvement brought by the clustering step can be explained by \Cref{fig:fenetres_clusters}. At $k=1$, the particle set still covers the initial uncertainty, whose standard deviation of $8$ km is eight times larger than $\ell_{\mathrm{MS}}$, and mean shift divides it into about $54$ clusters. This number then decreases quickly, and a single cluster remains in almost every run after about $15$ time steps at $\Delta_g=2.5$ km.
+
+The posterior density is thus only multimodal at the beginning of the mission. Since ICAK and MCAK reduce to AK whenever a single cluster is found, both their accuracy and their computational cost per time step tend towards those of AK once the particle set has concentrated. The clustering step therefore brings no benefit in accuracy, and its savings in cost are limited to the first time steps. In \cite{bib:AK-PF-clustered}, on the contrary, the clustering step improved both the accuracy and the computational cost of AK on a more multimodal scenario, whose observation and training noises had a standard deviation of $80$ nT, against $5$ and $10$ nT in \Cref{tab:scenario}. Furthermore, the studied trajectory covers a smaller area, following a single straight line for $300$ s against $750$ s along the mower pattern of \cref{sec:scenario}, and thus had access to less information about the field.

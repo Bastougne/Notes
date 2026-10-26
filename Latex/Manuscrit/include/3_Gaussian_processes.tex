@@ -7,24 +7,24 @@
 
 \section{Introduction}
 
-The analytical and Monte Carlo methods of \cref{sec:Bayesian_estimation} all assume the observation function $h_k$ to be fully known. However, many navigation scenarios depend on a physical field that is either unavailable or known only through scarce and noisy measurements.
+The analytical and Monte Carlo methods of \cref{sec:Bayesian_estimation} all assume the observation function $h_k$ to be fully known. However, many navigation scenarios depend on a physical field, such as terrain elevation, sea floor depth, or anomalies in the ambient magnetic or gravitational field, that is either unavailable or known only through scarce and noisy measurements.
 
-A first way to fill this gap is to reconstruct the field directly from the measurements: \textbf{TODO: j'avais oublié, mais à reprendre + présenter des cas d'application au krigeage}
+A first way to fill this gap is to reconstruct the field from these measurements. Several approaches have been proposed in the literature:
 \begin{itemize}
-	\item Deterministic interpolation, through nearest-neighbour selection, multilinear interpolation over a regular grid, or spline fitting;
-	\item Linear regression on a fixed basis, such as polynomials or sinusoids;
+	\item Deterministic interpolation through multilinear interpolation over a regular grid \cite{bib:MPF-TAN,bib:bathymetry-gravimetry}, or spline fitting.
+	\item Linear regression on a fixed basis, such as polynomials, sinusoids, or the spherical harmonics of global geomagnetic models \cite{bib:IGRF}.
 	\item More expressive models, such as neural networks.
 \end{itemize}
-All of them return a single value at the queried location, without quantifying how much it can be trusted. Their use in the filters of \cref{sec:Bayesian_estimation}, however, requires the observation likelihood $p(z_k|x_k)$, a full distribution rather than a point prediction. The reconstruction error must then be absorbed into the observation noise, usually as a covariance held constant over the whole domain, although this error is almost zero next to a measurement and grows in sparsely sampled regions.
+All these methods return a point prediction at the queried location, without quantifying its uncertainty. However, their use within the filters introduced in \cref{sec:Bayesian_estimation} requires the observation likelihood $p(z_k\mid x_k)$, which describes a distribution rather than a single predicted value. The reconstruction error must therefore be accounted for in the observation noise, typically through a covariance assumed constant over the entire domain.  Since this error varies with the local density of training samples, this covariance may overestimate the error in some regions, unnecessarily discarding information, and underestimate it in others, making the filter overconfident.
 
-This chapter instead models such fields as a Gaussian process (GP), an adaptable framework that encodes both a prior expectation of the field and its spatial correlation structure. Together with its uncertainty, the resulting estimator can then serve as a surrogate observation model \cite{bib:GP-BayesFilters,bib:SLAM-GP-terrain} for the filters of \cref{sec:Bayesian_estimation}.
+This chapter instead models such fields as a Gaussian process (GP), an adaptable framework that encodes both a prior expectation of the field and its spatial correlation structure. Conditioned on the measurements, it yields an estimate of the field and an error covariance which, together, form a surrogate observation model \cite{bib:GP-BayesFilters,bib:magnetic-GP-PF} for the filters of \cref{sec:Bayesian_estimation}.
 
 The rest of this chapter is organised as follows:
 \begin{itemize}
 	\item\Cref{sec:GP_definition} defines GPs through their mean functions and covariance kernels. It discusses the choice of kernel.
-	\item\Cref{sec:kriging} then introduces kriging as a map reconstruction tool in situations where we are given pre-existing data samples.
-	\item\Cref{sec:reduced_rank} addresses the cost of inverting large Gram matrices in kriging by approximating $\kappa$ with a reduced-rank kernel, therefore lowering the effective complexity of kriging methods.
-	\item Finally, \cref{sec:RKHS} derives two representations of the mean function over a dictionary of functions, used to reconstruct the field when no prior knowledge is available.
+	\item\Cref{sec:kriging} then introduces kriging as a map reconstruction tool in situations where we are given pre-existing data samples, as well as its sequential update.
+	\item\Cref{sec:reduced_rank} addresses the cost of inverting large Gram matrices in kriging by approximating the covariance kernel with a reduced-rank kernel, therefore lowering the effective complexity of kriging methods.
+	\item Finally, \cref{sec:RKHS} presents reproducing kernel Hilbert spaces, which give a deterministic interpretation of kriging and allow the embedding of probability distributions, leading to kernel formulations of Kalman filters.
 \end{itemize}
 
 \section{Definition and Properties}\label{sec:GP_definition}

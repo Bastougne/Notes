@@ -426,7 +426,7 @@ for f = 1:nF
         res(e).model  = models{m}.name;
         res(e).balayage = valeurs(b);      % la valeur qui a produit cette ligne
         res(e).rmse   = sqrt(mean(E.^2, 2));
-        res(e).nees   = mean(D, 2, 'omitnan') / d_x;
+        res(e).nees   = median(D, 2, 'omitnan') / chi2inv(0.5, d_x);   % la NEES du manuscrit
         res(e).track  = track(:, :, f, m);
         res(e).n_used = nu(:, :, f, m);    % par pas et par essai : c'est la QUEUE de cette
                                            % distribution qui sépare l'AK du CA-OK
@@ -517,16 +517,16 @@ xlabel('t (s)'); ylabel('RMSE (m)'); legend(noms, 'Location', 'northeast', 'Font
 title('Erreur de position selon la reconstruction de carte');
 
 figure('Color', 'w', 'Name', 'NEES'); hold on;
-lo = chi2inv(0.025, par.mc.n_runs * d_x) / (par.mc.n_runs * d_x);
-hi = chi2inv(0.975, par.mc.n_runs * d_x) / (par.mc.n_runs * d_x);
+lo = chi2inv(0.005, d_x) / chi2inv(0.5, d_x);   % la bande d'un essai, comme au manuscrit
+hi = chi2inv(0.995, d_x) / chi2inv(0.5, d_x);
 fill([t, fliplr(t)], [lo * ones(size(t)), hi * ones(size(t))], [0.9 0.9 0.9], ...
      'EdgeColor', 'none');
 for i = 1:numel(res)
     plot(t, res(i).nees, 'Color', colours(mod(i-1, size(colours,1)) + 1, :), 'LineWidth', 1.2);
 end
 hold off; grid on; box on; set(gca, 'YScale', 'log');
-xlabel('t (s)'); ylabel('NEES / d_x');
-legend([{'bande de cohérence 95 %'}, res.name], 'Location', 'southwest');
+xlabel('t (s)'); ylabel('NEES');
+legend([{'bande de cohérence 99 %'}, res.name], 'Location', 'southwest');
 title('Cohérence : l''erreur dans les unités que le filtre déclare');
 
 figure('Color', 'w', 'Name', 'Trajectoires');

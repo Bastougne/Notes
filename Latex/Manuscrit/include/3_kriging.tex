@@ -543,7 +543,7 @@ This is again a Kalman correction, this time on the coefficients rather than on 
 \end{equation}
 The two terms separate what the new batch teaches about the field from what it teaches about the trend, and the second is exactly the uncertainty the update consumes. In information form, $\mathbf{M}_{\mathrm{new}}^{-1}=\mathbf{M}^{-1}+\mathbf{U}_{\mathrm{new}}^\top \mathbf{R}_{\mathrm{SK}}(\tilde{\mathbf{x}}_{\mathrm{new}})^{-1}\mathbf{U}_{\mathrm{new}}$, so each batch adds to the information on the trend and never removes any.
 
-\Cref{eq:universal_kriging_update} has a reading of its own. The trend coefficients are learnt as the mission proceeds, rather than fitted once on a prior survey, and the pair $\left(\hat{m}_{\mathrm{UK}},\mathbf{M}\right)$ is then a map being built while the vehicle moves, which is the promise of simultaneous localisation and mapping.
+\eqref{eq:universal_kriging_update} has a reading of its own. The trend coefficients are learnt as the mission proceeds, rather than fitted once on a prior survey, and the pair $\left(\hat{m}_{\mathrm{UK}},\mathbf{M}\right)$ is then a map being built while the vehicle moves, which is the promise of simultaneous localisation and mapping.
 
 \begin{remark}[Why this is not yet SLAM]
 	The recursion above assumes the training inputs to be known, as every kriging estimator of this section does. A navigating vehicle does not know them. It would feed the update the pair $\left(\hat{x}_k,z_k\right)$, its current state estimate and its current observation, which breaks the assumption twice over.

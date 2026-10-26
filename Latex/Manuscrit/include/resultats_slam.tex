@@ -2,20 +2,18 @@
 % Scenario boucle, 100 runs, 500 particles. Position errors are averaged over
 % three thirds of the mission, the NEES over the last one, and the field
 % error over the evaluation points within 8 km of the trajectory.
-% carte read from 20260927_032929_ch5_boucle_A_100runs.mat
-% akkf_carte read from ch5_lots\20261020_121849_ch5_boucle_libre_100runs.mat
-% ok read from 20260927_032929_ch5_boucle_A_100runs.mat
-% inertiel read from 20260927_032929_ch5_boucle_A_100runs.mat
-% rbpf read from 20260927_032929_ch5_boucle_A_100runs.mat
-% akkf read from ch5_lots\20261013_194404_ch5_boucle_libre_100runs.mat
+% carte read from lot principal
+% akkf_carte read from lot akkf_carte_lz1
+% inertiel read from lot principal
+% rbpf read from lot principal
+% akkf read from lot akkf_lz1
 
 \begin{tabular}{|l|ccc|c|c|}\hline
-\multirow{2}{*}{Filter} & \multicolumn{3}{c|}{$\mathrm{ARMSE}_{\hat{x}}$ (m)} & \multirow{2}{*}{NEES} & Field ARMSE\\\cline{2-4}
+\multirow{2}{*}{Filter} & \multicolumn{3}{c|}{$\mathrm{ARMSE}_{\hat{x}}$ (m)} & \multirow{2}{*}{NEES} & $\mathrm{ARMSE}_{\hat{h}}$\\\cline{2-4}
  & $[\![1,100]\!]$ & $[\![101,200]\!]$ & $[\![201,300]\!]$ & & (nT)\\\hline
-Known map & $184$ & $173$ & $163$ & $0.28$ & --\\\hline
-Known map (AKKF) & $285$ & $137$ & $130$ & $0.22$ & --\\\hline
-Static kriging & $223$ & $206$ & $208$ & $0.10$ & --\\\hline
-Inertial navigation & $1581$ & $2598$ & $3935$ & $0.04$ & $103.7$\\\hline
-RBPF-SLAM & $1543$ & $1733$ & $1952$ & $13$ & $78.4$\\\hline
-AKKF-SLAM & $2319$ & $2352$ & $2363$ & $45$ & $85.5$\\\hline
+Known map & $180$ & $159$ & $152$ & $0.22$ & --\\\hline
+Known map (AKKF) & $365$ & $101$ & $96$ & $0.06$ & --\\\hline
+Inertial navigation & $1581$ & $2598$ & $3935$ & $0.04$ & $102.5$\\\hline
+RBPF-SLAM & $1538$ & $1827$ & $2085$ & $12$ & $78.9$\\\hline
+AKKF-SLAM & $1691$ & $1854$ & $1808$ & $11$ & $79.8$\\\hline
 \end{tabular}

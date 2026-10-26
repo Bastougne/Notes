@@ -30,7 +30,8 @@ function sl = slam()
 % carte, pas de gradient de potentiel. La base est scalaire, l'innovation est un nombre,
 % et la covariance d'innovation aussi — ce qui permet de vectoriser la correction de
 % Kalman des N cartes en divisions terme à terme.
-    sl = struct('base', @build_base, 'run', @run_slam, 'densite', @densite_spectrale);
+    sl = struct('base', @build_base, 'run', @run_slam, 'densite', @densite_spectrale, ...
+                'flops', @flops_pas);
 end
 
 %% ---------------------------------------------------------------------- bases
@@ -320,9 +321,9 @@ function out = run_rbpf(base, z_obs, scen, opt)
 
         e = scen.x_true(:, k + 1) - x_hat;
         % Le coût d'un pas : N corrections de rang r, chacune quadratique en r. Linéaire
-        % en le nombre de particules, quadratique en le rang de la carte — l'inverse de
-        % l'AKKF, dont le rang n'entre pas dans le coût du filtre.
-        out = consigner(out, k, e, P_hat, x_hat, resampled, [n; 3 * n * r^2; r; 0]);
+        % en le nombre de particules, quadratique en le rang de la carte. Voir flops_pas.
+        out = consigner(out, k, e, P_hat, x_hat, resampled, ...
+                        [n; flops_pas('rbpf', n, r, resampled); r; 0]);
     end
 
     % La carte rendue est la moyenne des cartes des particules sous les poids finaux,
@@ -424,9 +425,15 @@ function out = run_akkf(base, z_obs, scen, opt)
     % régression bayésienne, qui porte l'incertitude de la carte jusque dans la correction.
     obs_sim = valeur_option(opt.akkf, 'obs_simulees', 0);
 
+    % LE NOYAU D'ÉTAT (2026-10-26, question de Bastien), neutre par défaut. Dans l'article,
+    % le RFF approchait le noyau d'état lui-même et la carte vivait dans son RKHS, mais les
+    % matrices de Gram de la prédiction et du rééchantillonnage gardaient le noyau exact. Voir
+    % noyau_etat pour les quatre choix à l'essai.
+    k_x = noyau_etat(valeur_option(opt.akkf, 'noyau_etat', 0), base, opt, ech_x, d_x);
+
     X  = scen.x_true(:, 1) + Lp * randn(d_x, 1) + Lp * randn(d_x, n);
     Xp = X;                                                  % le nuage de proposition
-    Gp = gram(Xp ./ ech_x, Xp ./ ech_x, opt.akkf.gamma_x);
+    Gp = k_x(Xp, Xp);
     w  = ones(n, 1) / n;
     C  = eye(n) / n;
 
@@ -505,29 +512,60 @@ function out = run_akkf(base, z_obs, scen, opt)
             otherwise
                 phi = base.eval(x_hat(1:2));
         end
+        % (phi' * Pa) D'ABORD : MATLAB évalue de gauche à droite, et g * phi' * Pa formait
+        % la matrice r x r de g * phi' avant de la multiplier par Pa, en O(r^3) au lieu des
+        % O(r^2) du RLS.
         g   = Pa * phi / (opt.akkf.oubli + phi' * Pa * phi);
         alpha = alpha + g * (z_obs(k) - phi' * alpha);
-        Pa    = (Pa - g * phi' * Pa) / opt.akkf.oubli;
+        Pa    = (Pa - g * (phi' * Pa)) / opt.akkf.oubli;
 
         % Rééchantillonnage inconditionnel, puis reprojection des poids et de leur
         % covariance sur le nouveau nuage. P_hat peut n'être que semi-définie, les poids
         % étant signés, d'où le facteur de Cholesky tronqué plutôt que mvnrnd.
         Xp = x_hat + chol_psd(P_hat) * randn(d_x, n);
-        Gp = gram(Xp ./ ech_x, Xp ./ ech_x, opt.akkf.gamma_x);
-        T  = (Gp + lam_x * eye(n)) \ gram(Xp ./ ech_x, X ./ ech_x, opt.akkf.gamma_x);
+        Gp = k_x(Xp, Xp);
+        T  = (Gp + lam_x * eye(n)) \ k_x(Xp, X);
         w  = T * w;
         C  = symetriser(T * C * T');
 
         e = scen.x_true(:, k + 1) - x_hat;
         % Trois systèmes n x n par pas, plus les produits qui les accompagnent : c'est le
         % coût de l'AKKF, cubique en le nombre de particules là où celui du RBPF est
-        % linéaire. Le rang de la carte n'y entre pas.
-        out = consigner(out, k, e, P_hat, x_hat, true, [n; 4 * n^3; r; ech_z]);
+        % linéaire. Le rang de la carte n'y entre que par la variance prédictive et le RLS.
+        % Voir flops_pas.
+        out = consigner(out, k, e, P_hat, x_hat, true, ...
+                        [n; flops_pas('akkf', n, r, true, obs_sim == 2); r; ech_z]);
     end
 
     out.alpha  = alpha;
     out.h_eval = base.eval(opt.P_eval)' * alpha;
     out.n_eff  = NaN;                        % sans objet : les poids ne sont pas des masses
+end
+
+function f = flops_pas(kind, n, r, resampled, var_pred)
+% LE COÛT D'UN PAS EN FLOPS, ANALYTIQUE ET NON MESURÉ, termes dominants seulement. Chaque
+% quantité est calculée une fois par pas, dans l'ordre le moins coûteux, avec les
+% conventions de figures_chapitre_4.m : 2mnp flops pour le produit d'une matrice m x n par
+% une n x p, n^3/3 pour une factorisation de Cholesky, 2n^3/3 pour une LU, et 2n^2 par
+% second membre pour les deux substitutions triangulaires. Les évaluations de features et
+% de matrices de Gram, en O(N r) et O(N^2), sont omises : moins d'un pour cent ici.
+%
+%   rbpf  par particule, P Psi' (2r^2) puis la correction de rang un de P (2r^2), Psi P
+%         étant la transposée de P Psi' ; plus P Psi' de nouveau aux particules
+%         régularisées quand le pas rééchantillonne (2r^2). RESAMPLED peut être une
+%         fraction des pas, le coût étant linéaire en lui.
+%   akkf  17 N^3 pour l'AKKF : D_k (4, la factorisation de G_{k-1}^x + alpha I étant celle
+%         de T_{k-1}), K_k (14/3, dont G^z Sigma), Sigma_k|k (2, G^z Sigma réutilisé),
+%         T_k (7/3) et T Sigma T' (4). Plus 2 N r^2 pour la variance prédictive des
+%         observations simulées si VAR_PRED, et 5 r^2 pour le RLS.
+    switch kind
+        case 'rbpf'
+            f = (4 + 2 * resampled) * n * r^2;
+        case 'akkf'
+            f = 17 * n^3 + 2 * n * r^2 * var_pred + 5 * r^2;
+        otherwise
+            f = 0;
+    end
 end
 
 function v = valeur_option(s, champ, defaut)
@@ -536,6 +574,51 @@ function v = valeur_option(s, champ, defaut)
         v = s.(champ);
     else
         v = defaut;
+    end
+end
+
+function k_x = noyau_etat(choix, base, opt, ech_x, d_x)
+% La fonction (A, B) -> matrice de Gram du noyau d'état entre les nuages A et B (d_x x n).
+%
+%   0  le gaussien exact sur l'état normalisé, celui du chapitre ;
+%   1  son approximation par autant de features de Fourier aléatoires que la carte en a,
+%      tirées dans un flux à part, pour que les essais restent appariés avec ceux de 0 ;
+%   2  le noyau exact de la carte, sur la position seule et de variance unité ;
+%   3  son approximation par les features de la carte elles-mêmes, Psi' Psi : l'état et la
+%      carte vivent alors dans le même espace de dimension finie, et le noyau exact de la
+%      carte n'apparaît plus nulle part.
+    switch choix
+        case 0
+            k_x = @(A, B) gram(A ./ ech_x, B ./ ech_x, opt.akkf.gamma_x);
+        case 1
+            g   = rng;                         % la graine de l'essai, sans tirer dans son flux
+            fl  = RandStream('mt19937ar', 'Seed', mod(g.Seed + 7919, 2^32));
+            r   = base.r;
+            W   = randn(fl, d_x, r) / opt.akkf.gamma_x;
+            b   = 2 * pi * rand(fl, r, 1);
+            phi = @(A) sqrt(2 / r) * cos(W' * (A ./ ech_x) + b);
+            k_x = @(A, B) phi(A)' * phi(B);
+        case 2
+            k_x = @(A, B) noyau_carte(pdist2(A(1:2, :)', B(1:2, :)'), opt.carte);
+        case 3
+            k_x = @(A, B) base.eval(A(1:2, :))' * base.eval(B(1:2, :));
+        otherwise
+            error('slam:noyau_etat', 'Noyau d''état inconnu : %g.', choix);
+    end
+end
+
+function K = noyau_carte(d, carte)
+% Le noyau exact de la carte à la distance d, de variance unité.
+    u = d / carte.ell;
+    switch carte.noyau
+        case 'se'
+            K = exp(-u.^2 / 2);
+        case 'matern32'
+            K = (1 + sqrt(3) * u) .* exp(-sqrt(3) * u);
+        case 'matern52'
+            K = (1 + sqrt(5) * u + 5 * u.^2 / 3) .* exp(-sqrt(5) * u);
+        otherwise
+            error('slam:noyau', 'Noyau inconnu : %s.', carte.noyau);
     end
 end
 

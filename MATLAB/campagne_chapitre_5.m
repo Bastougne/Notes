@@ -76,7 +76,11 @@ par.conv.k_acq     = 30;
 % STRUCTURE du champ sans en mesurer les valeurs, ce qui est l'hypothèse la plus favorable
 % qu'on puisse faire au SLAM. Les dégrader est un balayage à part (campagne D).
 par.slam.noyau   = 'matern32';   % le même qu'au chapitre 4
-par.slam.sigma_f = 124;          % nT, écart-type a priori du champ
+par.slam.sigma_f = 125;          % nT, écart-type a priori du champ. UNE VALEUR RONDE (2026-10-22,
+                                 % demande de Bastien) : les entrées du problème ne doivent pas
+                                 % avoir l'air ajustées sur les données. Le champ analytique a un
+                                 % écart-type de 122,8 nT, l'ancienne valeur était les 124 nT de
+                                 % l'anomalie du chapitre 4.
 par.slam.ell     = 4e3;          % m, longueur de corrélation. Pour le champ analytique,
                                  % dont l'autocorrélation tombe à un demi vers lambda/6 ;
                                  % sur l'anomalie du chapitre 4, mettre les 5,5 km que
@@ -152,6 +156,9 @@ par.akkf.obs_simulees = 0;           % (2026-10-20) observations simulées. 0 : 
                                      % apprise et le bruit du capteur ; 1 : le champ vrai,
                                      % soit l'AKKF sur carte connue ; 2 : la carte apprise et
                                      % la variance prédictive R (1 + Psi' Pa Psi) du RLS
+par.akkf.noyau_etat   = 0;           % (2026-10-26) noyau des Gram d'état. 0 : le gaussien
+                                     % exact ; 1 : son RFF ; 2 : le noyau exact de la carte,
+                                     % sur la position ; 3 : son RFF, celui de la carte
 
 % Le relevé n'est lu que par la borne 'ok'. Les valeurs sont celles du chapitre 4.
 par.krig.jitter       = 0.30;
@@ -185,17 +192,28 @@ par.krig.noyau        = 'matern32';
 %                 ALGORITHMES plutôt que la troncature. C'est le champ sur lequel les deux
 %                 méthodes ont été mises au point, et le point de départ raisonnable.
 %
-% La remise à l'échelle est le seul ajustement. Le champ de l'article vit sur dix unités
-% avec des longueurs d'onde de cinq à onze ; il est ici dilaté pour que sa longueur d'onde
-% principale vaille par.map.lambda, et son amplitude pour que son écart-type vaille celui
-% de l'anomalie. Tout le reste du pilote le lit comme une carte tabulée ordinaire.
-par.map.source = 'analytique';   % 'analytique' ou 'fichier'
-par.map.lambda = 25e3;           % m, longueur d'onde principale du champ analytique
-par.map.sigma  = 124;            % nT, son écart-type
+% DES COEFFICIENTS RONDS (2026-10-22, demande de Bastien) : le champ de l'article, remis à
+% l'échelle du vol, avait une amplitude de 151,5 nT et des longueurs d'onde de 25, 14,58 et
+% 43,75 km, valeurs qui avaient l'air ajustées. Il s'écrit désormais directement
+%
+%   h(x,y) = A [ w1 sin(2 pi x / L1) + w2 cos(2 pi y / L2) + w3 sin(2 pi (x+y) / L3) ]
+%
+% avec A = 150 nT, w = (1 ; 0,5 ; 0,3) et L = (25 ; 15 ; 45) km, soit un écart-type de
+% 150 sqrt((1 + 0,25 + 0,09) / 2) = 122,8 nT. Tout le reste du pilote le lit comme une carte
+% tabulée ordinaire.
+par.map.source    = 'analytique';      % 'analytique' ou 'fichier'
+par.map.amplitude = 150;               % nT, amplitude A du champ analytique
+par.map.poids     = [1, 0.5, 0.3];     % poids des trois sinusoïdes
+par.map.longueurs = [25e3, 15e3, 45e3];   % m, leurs longueurs d'onde L1, L2, L3
 par.map.name   = 'carte_magnetometrie_anomalie_mexique.mat';
 par.map.file   = fullfile(here, '..', '..', 'MATLAB 2A - sauvegarde', 'Cartes', par.map.name);
 par.path.cache = fullfile(here, 'cache');
 par.path.out   = fullfile(here, 'resultats');
+par.suivi      = '';                % (2026-10-22) fichier d'avancement partagé : une ligne
+                                    % horodatée par méthode et tous les dix essais, lisible
+                                    % pendant que la file tourne. Vide, rien n'est écrit.
+par.etiquette  = '';                % nom du lot, recopié en tête de ces lignes
+par.eval.n     = 100;               % points par côté de la grille d'évaluation des cartes
 
 par = surcharge(par);               % pour que `over.scenario` soit lu avant le switch
 
@@ -345,8 +363,8 @@ fprintf('Vol %s : %d pas, parcouru %.0f km, marge %.0f km\n', ...
 % n'est qu'une moyenne spatiale.
 domaine = [min(scen.x_true(1, :)) - par.slam.marge, max(scen.x_true(1, :)) + par.slam.marge, ...
            min(scen.x_true(2, :)) - par.slam.marge, max(scen.x_true(2, :)) + par.slam.marge];
-[Ex, Ey] = meshgrid(linspace(domaine(1), domaine(2), 60), ...
-                    linspace(domaine(3), domaine(4), 60));
+[Ex, Ey] = meshgrid(linspace(domaine(1), domaine(2), par.eval.n), ...
+                    linspace(domaine(3), domaine(4), par.eval.n));
 P_eval   = [Ex(:), Ey(:)]';
 h_eval   = krig.lire(map.h, map.step, P_eval) - par.slam.moyenne;
 
@@ -377,6 +395,7 @@ opt = struct('n_part', par.mc.n_part, 'n_th', 0.5 * par.mc.n_part, ...
              'P_eval', P_eval, 'mem_max', par.slam.mem_max, 'akkf', par.akkf, ...
              'sigma_f2', par.slam.sigma_f^2, 'bloc_octets', par.slam.bloc_octets);
 opt.akkf.echelle_x = par.sigma_0(:);
+opt.carte = struct('noyau', par.slam.noyau, 'ell', par.slam.ell);   % pour akkf.noyau_etat = 2
 opt.h_vrai = @(P) krig.lire(map.h, map.step, P) - par.slam.moyenne;   % pour akkf.obs_simulees = 1
 
 % Le relevé et le modèle krigé ne servent qu'aux bornes du chapitre 4, et ne sont
@@ -396,14 +415,21 @@ err  = zeros(n_iter, par.mc.n_runs, nM);
 d2   = zeros(n_iter, par.mc.n_runs, nM);
 emap = zeros(numel(pres_traj), par.mc.n_runs, nM);
 hmap = zeros(numel(pres_traj), nM);        % la carte moyenne, pour la figure
+hex  = zeros(numel(pres_traj), nM);        % la carte du premier essai, pour l'exemple
 co   = zeros(4, n_iter, par.mc.n_runs, nM);
 nres = zeros(par.mc.n_runs, nM);
 track = zeros(2, n_iter, nM);
 wall  = zeros(1, nM);
+if isempty(par.balayage.champ)
+    valeur_txt = '';
+else
+    valeur_txt = sprintf(' (%s = %g)', par.balayage.champ, valeurs(b));
+end
 
 for m = 1:nM
     kind = par.compare.methodes{m};
     t0   = tic;
+    t_suivi = tic;
 
     % La base de Laplace est déterministe et se construit une fois. Celle du RFF est un
     % tirage : elle est refaite à chaque essai (par.slam.rff_par_essai), après le bruit
@@ -442,7 +468,20 @@ for m = 1:nM
         hmap(:, m)     = hmap(:, m) + out.h_eval / par.mc.n_runs;
         co(:, :, r, m) = out.cout;
         nres(r, m)     = out.n_res;
-        if r == 1, track(:, :, m) = out.track; end
+        if r == 1
+            track(:, :, m) = out.track;
+            hex(:, m)      = out.h_eval;
+        end
+
+        % L'avancement, dans le fichier que la file et Bastien lisent pendant le calcul.
+        if ~isempty(par.suivi) && (r == 1 || r == par.mc.n_runs || mod(r, 10) == 0 || ...
+                                   toc(t_suivi) > 600)
+            t_essai = toc(t0) / r;
+            suivre(par.suivi, sprintf('%s | %s%s : essai %d/%d, %.1f s par essai, reste %s', ...
+                   par.etiquette, kind, valeur_txt, r, par.mc.n_runs, t_essai, ...
+                   duree_txt((par.mc.n_runs - r) * t_essai)));
+            t_suivi = tic;
+        end
     end
     wall(m) = toc(t0);
 end
@@ -455,7 +494,7 @@ for m = 1:nM
     res(e).methode  = par.compare.methodes{m};
     res(e).balayage = valeurs(b);
     res(e).rmse     = sqrt(mean(E.^2, 2));
-    res(e).nees     = mean(D, 2, 'omitnan') / d_x;
+    res(e).nees     = median(D, 2, 'omitnan') / chi2inv(0.5, d_x);   % la NEES du manuscrit
     res(e).track    = track(:, :, m);
     res(e).cout     = mean(co(:, :, :, m), 3);
     res(e).n_res    = mean(nres(:, m)) / n_iter;
@@ -470,6 +509,7 @@ for m = 1:nM
     res(e).armse_map      = mean(res(e).rmse_map);
     res(e).armse_map_traj = mean(res(e).rmse_map(pres_traj));
     res(e).h_map          = hmap(:, m);
+    res(e).h_exemple      = hex(:, m);
 
     [c_s, c_m] = converges(E, D, d_x, par);
     fprintf(['%-8s ARMSE %6.0f m | seuil %6.0f (%3.0f %%) | méd. acq %5.0f, fin %5.0f' ...
@@ -478,6 +518,12 @@ for m = 1:nM
             mean(sqrt(mean(E(:, c_s).^2, 2))), 100 * mean(c_s), ...
             median(E(min(par.conv.k_acq, end), :)), median(E(end, :)), ...
             res(e).armse_map, par.unit, res(e).armse_map_traj, res(e).wall);
+    if ~isempty(par.suivi)
+        suivre(par.suivi, sprintf(['%s | %s%s FINI : ARMSE %.0f m, %.0f %% sous le seuil, ' ...
+               'NEES médiane %.1f, carte le long du vol %.1f %s, %.1f s par essai'], ...
+               par.etiquette, res(e).name, valeur_txt, mean(res(e).rmse), 100 * mean(c_s), ...
+               median(res(e).nees), res(e).armse_map_traj, par.unit, res(e).wall / par.mc.n_runs));
+    end
 end
 end                                        % fin du balayage
 
@@ -504,9 +550,21 @@ if ~exist(par.path.out, 'dir')
 end
 stamp = sprintf('%s_ch5_%s_%s_%druns', char(datetime('now', 'Format', 'yyyyMMdd_HHmmss')), ...
                 par.scenario, par.campagne, par.mc.n_runs);
+if ~isempty(par.etiquette)
+    stamp = [stamp '_' par.etiquette];
+end
 save(fullfile(par.path.out, [stamp '.mat']), 'par', 'res', 'scen', 'P_eval', 'h_eval', ...
      'pres_traj', '-v7.3');
-fprintf('\nSauvegardé dans resultats/%s.mat\n', stamp);
+fprintf('\nSauvegardé dans %s\n', fullfile(par.path.out, [stamp '.mat']));
+if ~isempty(par.suivi)
+    suivre(par.suivi, sprintf('%s | sauvegardé dans %s.mat', par.etiquette, stamp));
+end
+
+% Sans JVM, comme dans les lots de la file, les figures ne peuvent pas être tracées : le
+% script s'arrête ici, après la sauvegarde, et MATLAB sort sans erreur.
+if ~usejava('jvm')
+    return
+end
 
 %% Figures
 colours = [0.00 0.00 0.00; 0.15 0.35 0.70; 0.95 0.60 0.00; 0.85 0.00 0.75
@@ -522,16 +580,16 @@ xlabel('t (s)'); ylabel('RMSE (m)'); legend(etiq, 'Location', 'northeast');
 title('Erreur de position');
 
 figure('Color', 'w', 'Name', 'NEES'); hold on;
-lo = chi2inv(0.025, par.mc.n_runs * d_x) / (par.mc.n_runs * d_x);
-hi = chi2inv(0.975, par.mc.n_runs * d_x) / (par.mc.n_runs * d_x);
+lo = chi2inv(0.005, d_x) / chi2inv(0.5, d_x);   % la bande d'un essai, comme au manuscrit
+hi = chi2inv(0.995, d_x) / chi2inv(0.5, d_x);
 fill([t, fliplr(t)], [lo * ones(size(t)), hi * ones(size(t))], [0.9 0.9 0.9], ...
      'EdgeColor', 'none');
 for i = 1:numel(res)
     plot(t, res(i).nees, 'Color', colours(mod(i-1, size(colours,1)) + 1, :), 'LineWidth', 1.2);
 end
 hold off; grid on; box on; set(gca, 'YScale', 'log');
-xlabel('t (s)'); ylabel('NEES / d_x');
-legend([{'bande de cohérence 95 %'}, etiq], 'Location', 'southwest');
+xlabel('t (s)'); ylabel('NEES');
+legend([{'bande de cohérence 99 %'}, etiq], 'Location', 'southwest');
 title('Cohérence');
 
 % LA CARTE RECONSTRUITE, qui n'a pas d'équivalent au chapitre 4. Une colonne par méthode
@@ -585,19 +643,14 @@ function map = carte(par)
 % LE CHAMP, tabulé sur la même grille dans les deux cas pour que rien en aval n'ait à
 % savoir d'où il vient.
 %
-% Le champ analytique est celui du code RKHS, dilaté d'un facteur `s` mètres par unité :
+% Le champ analytique est celui du code RKHS, écrit avec des coefficients ronds :
 %
-%   h(x,y) = A [ sin(k1 x) + 0.5 cos(k2 y) + 0.3 sin(k3 (x+y)) ],   ki = ci / s
+%   h(x,y) = A [ w1 sin(2 pi x / L1) + w2 cos(2 pi y / L2) + w3 sin(2 pi (x+y) / L3) ]
 %
-% avec c = [0.7, 1.2, 0.4]. `s` est fixé par la longueur d'onde principale demandée,
-% 2 pi / c1 unités valant par.map.lambda, et A par l'écart-type demandé — celui de la
-% somme vaut sqrt(1/2 + 0.5^2/2 + 0.3^2/2) = 0.8185 fois A.
-%
-% LES TROIS RAIES SONT CE QUI COMPTE. Le champ n'a d'énergie qu'aux fréquences
-% ||omega|| = c1/s, c2/s et c3 sqrt(2)/s, soit ici des longueurs d'onde de 25, 15 et 31
-% km. Une base dont le spectre les couvre le représente à la précision de ses conditions
-% au bord près, là où l'anomalie magnétique en demande dix fois plus.
-    c = [0.7, 1.2, 0.4];
+% LES TROIS RAIES SONT CE QUI COMPTE. Le champ n'a d'énergie qu'à trois fréquences, de
+% longueurs d'onde 25, 15 et 45 / sqrt(2) = 31,8 km. Une base dont le spectre les couvre le
+% représente à la précision de ses conditions au bord près, là où l'anomalie magnétique en
+% demande dix fois plus.
 
     switch par.map.source
         case 'fichier'
@@ -611,10 +664,9 @@ function map = carte(par)
             n    = 201;
             [Gx, Gy] = meshgrid((1:n) * step(1), (1:n) * step(2));
 
-            s = par.map.lambda * c(1) / (2 * pi);
-            A = par.map.sigma / sqrt(0.5 * (1 + 0.5^2 + 0.3^2));
-            h = A * (sin(c(1) * Gx / s) + 0.5 * cos(c(2) * Gy / s) + ...
-                     0.3 * sin(c(3) * (Gx + Gy) / s));
+            A = par.map.amplitude;  w = par.map.poids;  L = par.map.longueurs;
+            h = A * (w(1) * sin(2 * pi * Gx / L(1)) + w(2) * cos(2 * pi * Gy / L(2)) + ...
+                     w(3) * sin(2 * pi * (Gx + Gy) / L(3)));
             map = struct('h', h, 'step', step);
 
         otherwise
@@ -825,4 +877,26 @@ function [c_seuil, c_mahal] = converges(err, d2, d_x, par)
     k       = size(err, 1) - par.conv.n_fin + 1 : size(err, 1);
     c_seuil = median(err(k, :), 1) <= par.conv.seuil;
     c_mahal = median(d2(k, :),  1) <= chi2inv(par.conv.confiance, d_x);
+end
+
+function suivre(fichier, texte)
+% Une ligne horodatée dans le fichier d'avancement partagé (par.suivi). Un fichier qu'on ne
+% peut pas ouvrir n'arrête pas la campagne.
+    fid = fopen(fichier, 'a', 'n', 'UTF-8');
+    if fid < 0
+        return
+    end
+    fprintf(fid, '[%s] %s\n', char(datetime('now', 'Format', 'yyyy-MM-dd HH:mm:ss')), texte);
+    fclose(fid);
+end
+
+function s = duree_txt(sec)
+% Une durée lisible : secondes, minutes, ou heures et minutes.
+    if sec < 90
+        s = sprintf('%.0f s', sec);
+    elseif sec < 5400
+        s = sprintf('%.0f min', sec / 60);
+    else
+        s = sprintf('%d h %02d', floor(sec / 3600), round(mod(sec, 3600) / 60));
+    end
 end

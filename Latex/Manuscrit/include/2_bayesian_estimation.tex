@@ -53,12 +53,12 @@ This thesis focuses on the filtering problem. The rest of this chapter is organi
 
 The first issue to tackle is to define precisely the meaning of ``best estimator'' of $\varphi(x_k)$ given $\mathbf{z}_{1:k}$ \cite{bib:Bayesian-estimators}. Formally, given a functional metric space $(\mathcal{F},\rho)$, it amounts to finding a measurable function $\psi\in\mathcal{F}$ that minimises the expected loss:
 \begin{equation}
-	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}(\rho(\psi(\mathbf{z}_{1:k}),\varphi(x_k)))\label{eq:loss_function_with_k}
+	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}\{\rho(\psi(\mathbf{z}_{1:k}),\varphi(x_k))\}\label{eq:loss_function_with_k}
 \end{equation}
 
 Depending on the considered space and distance, different optimal estimators arise. We present three classical ones below. For the sake of simplicity, we write $Z$ for a generic observation vector and $X$ for the underlying state, as opposed to the time-indexed processes $x_k$ and $z_k$. At a fixed time step $k$, \eqref{eq:loss_function_with_k} thus becomes:
 \begin{equation}
-	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}(\rho(\psi(Z),\varphi(X)))\label{eq:loss_function}
+	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}\{\rho(\psi(Z),\varphi(X))\}\label{eq:loss_function}
 \end{equation}
 
 For the remainder of this document, we let, for $p\in\mathbb{N}^*$, $E$ be a measure space with measure $m$ and $F$ a normed vector space:
@@ -84,7 +84,7 @@ where $\mathbb{E}[X]$ denotes the expectation of the random variable $X$.
 
 Let $\|\cdot\|$ be the norm associated with $\langle\cdot|\cdot\rangle$. When $\varphi(X)$ is square-integrable, that is $\mathbb{E}\left[\|\varphi(X)\|^2\right]<\infty$, the minimisation problem \eqref{eq:loss_function} is equivalent to:
 \begin{equation}
-	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}\left(\mathbb{E}\left[\|\psi(Z)-\varphi(X)\|^2\right]\right)\label{eq:MMSE_problem}
+	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}\left\{\mathbb{E}\left[\|\psi(Z)-\varphi(X)\|^2\right]\right\}\label{eq:MMSE_problem}
 \end{equation}
 
 An estimator solving \eqref{eq:MMSE_problem} is called a minimum mean squared error (MMSE) estimator.
@@ -153,7 +153,7 @@ As previously, $\mathcal{F}$ is identified as a subspace of $\mathcal{L}^1\left(
 
 The minimisation problem \eqref{eq:loss_function} thus becomes:
 \begin{equation}
-	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}(\mathbb{E}[|\psi(Z)-\varphi(X)|])\label{eq:median_problem}
+	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}\{\mathbb{E}[|\psi(Z)-\varphi(X)|]\}\label{eq:median_problem}
 \end{equation}
 
 While the terminology is less standard than MMSE, an estimator solving \eqref{eq:median_problem} is often called a minimum mean absolute error (MMAE) estimator.
@@ -207,17 +207,17 @@ As they produce a single point estimate that may lie in a low-probability region
 
 Let $\mathcal{F}\triangleq\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)$, with no integrability constraint. The maximum \textit{a posteriori} (MAP) estimator is defined as the global mode of the posterior density of $\varphi(X)$:
 \begin{equation}
-	\hat{\psi}_{\mathrm{MAP}}\triangleq\underset{\psi\in\mathcal{F}}{\operatorname{argmax}}\left(\mathbb{E}\left[p_{\varphi(X)|Z}(\psi(Z)|Z)\right]\right)
+	\hat{\psi}_{\mathrm{MAP}}\triangleq\underset{\psi\in\mathcal{F}}{\operatorname{argmax}}\left\{\mathbb{E}\left[p_{\varphi(X)|Z}(\psi(Z)|Z)\right]\right\}
 \end{equation}
 
 As the objective is separable over $z$, the maximisation can be carried out pointwise, yielding for each $z$:
 \begin{equation}
-	\hat{\psi}_{\mathrm{MAP}}(z)=\underset{u\in\mathbb{R}^{d_{\varphi}}}{\operatorname{argmax}}\left(p_{\varphi(X)|Z}(u|z)\right)
+	\hat{\psi}_{\mathrm{MAP}}(z)=\underset{u\in\mathbb{R}^{d_{\varphi}}}{\operatorname{argmax}}\left\{p_{\varphi(X)|Z}(u|z)\right\}
 \end{equation}
 
 Using Bayes' theorem, this is equivalent to:
 \begin{equation}
-	\hat{\psi}_{\mathrm{MAP}}(z)=\underset{u\in\mathbb{R}^{d_{\varphi}}}{\operatorname{argmax}}\left(p_{Z|\varphi(X)}(z|u)\:p_{\varphi(X)}(u)\right)\label{eq:MAP_Bayes}
+	\hat{\psi}_{\mathrm{MAP}}(z)=\underset{u\in\mathbb{R}^{d_{\varphi}}}{\operatorname{argmax}}\left\{p_{Z|\varphi(X)}(z|u)\:p_{\varphi(X)}(u)\right\}\label{eq:MAP_Bayes}
 \end{equation}
 since the normalising constant $p_Z(z)$ is independent of $u$.
 
@@ -230,7 +230,7 @@ Although the MAP estimator avoids low-density regions, it still reduces the post
 	\end{equation}
 	in the limit $\epsilon\to0^+$:
 	\begin{equation}
-		\hat{\psi}_{\mathrm{MAP}}=\lim_{\epsilon\to0^+}\ \underset{\psi\in\mathcal{F}}{\operatorname{argmin}}(\rho_\epsilon(\psi(Z),\varphi(X)))
+		\hat{\psi}_{\mathrm{MAP}}=\lim_{\epsilon\to0^+}\ \underset{\psi\in\mathcal{F}}{\operatorname{argmin}}\{\rho_\epsilon(\psi(Z),\varphi(X))\}
 	\end{equation}
 \end{remark}
 
@@ -238,7 +238,7 @@ Although the MAP estimator avoids low-density regions, it still reduces the post
 
 In the special case where no prior distribution on $\varphi(X)$ is assumed, \eqref{eq:MAP_Bayes} reduces to the maximum likelihood (ML) estimator:
 \begin{equation}
-	\hat{\psi}_{\mathrm{ML}}(z)\triangleq\underset{u\in\mathbb{R}^{d_{\varphi}}}{\operatorname{argmax}}\left(p_{Z|\varphi(X)}(z|u)\right)
+	\hat{\psi}_{\mathrm{ML}}(z)\triangleq\underset{u\in\mathbb{R}^{d_{\varphi}}}{\operatorname{argmax}}\left\{p_{Z|\varphi(X)}(z|u)\right\}
 \end{equation}
 
 As it does not take any prior information on $\varphi(X)$ into account, this estimator is not a Bayesian estimator and may be poorly suited when the available data are scarce. While it coincides with the MAP estimator under a uniform prior, it will not be considered in the rest of this document.

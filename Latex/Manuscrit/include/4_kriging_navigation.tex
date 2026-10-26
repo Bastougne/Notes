@@ -16,7 +16,7 @@ Assume a navigation scenario similar to that of \cref{sec:Bayesian_estimation}:
 \end{equation}
 with the exception that $h_k$ is unknown, and the observation noise is additive for the sake of simplicity. Since the likelihood density cannot be evaluated without an observation model, Bayesian data fusion is no longer applicable. The state $x_k$ must then be estimated from inertial measurements alone. However, inertial navigation is subject to drift and therefore cannot provide a reliable state estimate for longer missions.
 
-In our scenarios, the observation function describes the measurement of a physical field, whose spatial distribution does not change over the course of the mission, by an embedded sensor at each time step. Furthermore, we assume that the environment has been sampled beforehand, whether during a previous reconnaissance mission, or using a known but deteriorated map. This is formally modelled by \cref{th:kriging_navigation_assumptions}.
+In our scenarios, the observation function describes the measurement of a physical field, whose spatial distribution does not change over the course of the mission, by an embedded sensor at each time step. Furthermore, we assume that the environment has been sampled beforehand, whether during a previous reconnaissance mission, or using a known but deteriorated map. GP regression has already been used to build magnetic maps from such samples, both indoors \cite{bib:magnetic-GP,bib:magnetic-interpolation} and at a regional scale \cite{bib:KED-geomagnetic}. This is formally modelled by \Cref{th:kriging_navigation_assumptions}.
 
 \begin{assumption}[Observation model]\label{th:kriging_navigation_assumptions}
 	The observation function is a time-invariant GP, and its noise is an additive Gaussian white noise of covariance matrix $\mathbf{R}_k\succeq0$:
@@ -42,7 +42,7 @@ This chapter is organised as follows:
 
 \section{Kriging the Observation Model}\label{sec:kriging_PF}
 
-Using \cref{th:kriging_navigation_assumptions}, the likelihood can be expressed as:
+Using \Cref{th:kriging_navigation_assumptions}, the likelihood can be expressed as \cite{bib:GP-BayesFilters,bib:magnetic-GP-PF}:
 \begin{equation}
 	z_k|x_k,\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{K}}(x_k,\tilde{\mathbf{x}},\tilde{\mathbf{z}};m,g),\mathbf{R}_{\mathrm{K}}(x_k,\tilde{\mathbf{x}};g)\right)\label{eq:kriged_likelihood}
 \end{equation}
@@ -79,7 +79,7 @@ In a particle filter, evaluating \eqref{eq:kriged_likelihood} separately for eac
 
 This approximation is accurate when the distance travelled during a single time step exceeds the correlation length of the map error. Otherwise, the same error is counted at several successive steps, which can introduce a systematic bias in the state estimation and make the filter overconfident.
 
-To account for these correlations, the map error can either be modelled as a Gauss-Markov process along the trajectory and appended to the state \cite{bib:correlated-map-error}, or the map reconstruction itself can be updated using observations collected in flight. Both approaches yield conditionally linear-Gaussian models given the trajectory, and can thus be estimated by a Rao-Blackwellised filter, as in \Cref{alg:RBPF}.
+To account for these correlations, the map error can either be modelled as a Gauss-Markov process along the trajectory \cite{bib:correlated-map-error} and appended to the state \cite{bib:colored-noise}, or the map reconstruction itself can be updated using observations collected in flight. Both approaches yield conditionally linear-Gaussian models given the trajectory, and can thus be estimated by a Rao-Blackwellised filter, as in \Cref{alg:RBPF}.
 
 \subsection{Choosing the Kriging Method}\label{sec:kriging_method}
 
@@ -185,7 +185,7 @@ Furthermore, every estimator requires the $\mathcal{O}(\tilde{N}^3)$ inversion o
 
 From $7$ to $1600$ training points, the setup cost of simple kriging rises from $114$ flops to $1.37$ Gflop, and its per-query cost from $49$ to $2.56$ Mflop. In our scenarios, every particle is a query point at each time step, so real-time constraints rule out a training set of that size. The other end of the table is no more comfortable: on seven points, the affine basis costs twice the reconstruction of the field, $255$ flops against $114$, and the degree $5$ basis ten times.
 
-Ordinary kriging is thus retained for the remainder of this chapter. Estimating a constant mean from the observations is robust to misinformation, its ARMSE staying within $10\%$ of a correctly informed simple kriging everywhere, when a wrong mean triples the error in the gap. It also reports that estimation, the term $\mathbf{R}_{\hat{m}_{\mathrm{OK}}}$ of \cref{th:ordinary_simple_kriging_link} rising from $0.4\%$ of the covariance near the samples to $8.9\%$ in the gap, so its confidence interval widens exactly where its accuracy degrades. Finally, the additional $d_z\times d_z$ inversion it requires is the smallest trend a kriging estimator can carry, and remains affordable at both ends of \cref{tab:kriging_cost}.
+Ordinary kriging is thus retained for the remainder of this chapter. Estimating a constant mean from the observations is robust to misinformation, its ARMSE staying within $10\%$ of a correctly informed simple kriging everywhere, when a wrong mean triples the error in the gap. It also reports that estimation, the term $\mathbf{R}_{\hat{m}_{\mathrm{OK}}}$ of \Cref{th:ordinary_simple_kriging_link} rising from $0.4\%$ of the covariance near the samples to $8.9\%$ in the gap, so its confidence interval widens exactly where its accuracy degrades. Finally, the additional $d_z\times d_z$ inversion it requires is the smallest trend a kriging estimator can carry, and remains affordable at both ends of \Cref{tab:kriging_cost}.
 
 \subsection{Hyperparameter Estimation}\label{sec:HP_estimation}
 
@@ -217,7 +217,7 @@ be the corresponding log-likelihood.
 
 Since the logarithm is increasing, the maximum likelihood estimators of $m$ and $\theta$ are:
 \begin{equation}
-	\left(\hat{m}_{\mathrm{ML}},\hat{\theta}_{\mathrm{ML}}\right)\triangleq\underset{m\in\mathbb{R}^{d_z},\:\theta\in\Theta}{\operatorname{argmax}}\left(L(m,\theta)\right)\label{eq:MLE_problem}
+	\left(\hat{m}_{\mathrm{ML}},\hat{\theta}_{\mathrm{ML}}\right)\triangleq\underset{m\in\mathbb{R}^{d_z},\:\theta\in\Theta}{\operatorname{argmax}}\left\{L(m,\theta)\right\}\label{eq:MLE_problem}
 \end{equation}
 
 \Cref{th:MLE} gives the derivatives of $L$, and shows that the mean can be eliminated from \eqref{eq:MLE_problem}.
@@ -280,7 +280,7 @@ According to \Cref{th:MLE}, the maximum likelihood estimator of the mean is the 
 \end{equation}
 and \eqref{eq:MLE_problem} reduces to a maximisation over $\theta$ alone. However, the derivatives of $L$ with respect to the hyperparameters cannot be cancelled analytically in general, and so $\hat{\theta}_{\mathrm{ML}}$ is computed by a gradient ascent.
 
-To ensure that the hyperparameters remain strictly positive, as the Matérn kernels of \cref{th:Matérn} require, this ascent is performed on their logarithm, with a step size $\tau>0$. Since the derivative of $L$ with respect to $\ln\theta_i$ is $\theta_i$ times its derivative with respect to $\theta_i$, each hyperparameter is multiplied by a positive factor at each iteration. One iteration of the resulting algorithm is presented by \Cref{alg:MLE}.
+To ensure that the hyperparameters remain strictly positive, as the Matérn kernels of \Cref{th:Matérn} require, this ascent is performed on their logarithm, with a step size $\tau>0$. Since the derivative of $L$ with respect to $\ln\theta_i$ is $\theta_i$ times its derivative with respect to $\theta_i$, each hyperparameter is multiplied by a positive factor at each iteration. One iteration of the resulting algorithm is presented by \Cref{alg:MLE}.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
@@ -385,13 +385,23 @@ in the same units, to prevent the particle cloud from being centred on the true 
 	\caption{Simulation parameters for the navigation scenario. For improved readability, covariance matrices are represented by their diagonal coefficients only.}\label{tab:scenario}
 \end{table}
 
-Each configuration is run over $N_\mathrm{MC}=1000$ Monte Carlo realisations, redrawing the initial state and white noises. The training data are also redrawn every $10$ runs so that the metrics are averaged over the reconstruction as well as the trajectory. The chosen estimator is the MMSE estimator from \eqref{eq:PF_MMSE}. The performance of each compared approach is read through two quantities:
+Each configuration is run over $N_\mathrm{MC}=1000$ Monte Carlo realisations, redrawing the initial state and white noises. The training data are also redrawn every $10$ runs so that the metrics are averaged over the reconstruction as well as the trajectory. The chosen estimator is the MMSE estimator from \eqref{eq:PF_MMSE}. A run is declared convergent under two different criteria, as each describes a different behaviour:
+\begin{itemize}
+	\item A fixed threshold of $2000$ m, under which the median of the position error over the last ten steps of a filter must be. This metric is simple to read and ensures that the estimation is relatively close to the true state. However, the threshold value is arbitrary.
+	\item A Mahalanobis criterion, where the median over the last ten steps of the squared Mahalanobis norm of the error:
+	\begin{equation}
+		\left\|\hat{x}_k^{(i)}-x_k\right\|_{\hat{\mathbf{P}}_k^{(i)}}^2\triangleq\left(\hat{x}_k^{(i)}-x_k\right)^\top\left(\hat{\mathbf{P}}_k^{(i)}\right)^{-1}\left(\hat{x}_k^{(i)}-x_k\right)\label{eq:Mahalanobis_norm}
+	\end{equation}
+	must remain under the $99\%$ quantile of a $\chi^2$ law with $d_x$ degrees of freedom, written $\chi_{d_x}^2(99\%)$. Here, $\hat{x}_k^{(i)}$ and $\hat{\mathbf{P}}_k^{(i)}$ are the state and error covariance estimated by the $i$-th filter at time $k$, and $x_k$ is the corresponding true state. While this criterion follows the property of a Gaussian error, it primarily assesses the consistency between the estimation error and the uncertainty reported by the filter. Consequently, a filter with a large estimation error may still satisfy this criterion if it reports a sufficiently large uncertainty.
+\end{itemize}
+
+Similarly, the performance of the compared approach at each time step is read through two quantities:
 \begin{itemize}
 	\item The estimation RMSE, defined as:
 	\begin{equation}
-		\mathrm{RMSE}_{\hat{x}}:k\mapsto\sqrt{\frac{1}{N_\mathrm{MC}}\sum_{i=1}^{N_\mathrm{MC}}\left\|\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_k^{(i)}-\boldsymbol{\Pi}_{\mathrm{pos}}\:x_k\right\|_2^2}\label{eq:estimation_RMSE}
+		\mathrm{RMSE}_{\hat{x}}:k\mapsto\sqrt{\frac{1}{N_{\mathrm{conv}}}\sum_{\substack{i=1\\i\text{ is convergent}}}^{N_\mathrm{MC}}\left\|\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_k^{(i)}-\boldsymbol{\Pi}_{\mathrm{pos}}\:x_k\right\|_2^2}\label{eq:estimation_RMSE}
 	\end{equation}
-	where $\hat{x}_k^{(i)}$ is the state estimated by the $i$-th filter at time $k$, $x_k$ is the corresponding true state, and $\boldsymbol{\Pi}_{\mathrm{pos}}$ is the projection matrix onto the position subspace:
+	where $N_{\mathrm{conv}}$ is the number of runs that converge under the threshold criterion, and $\boldsymbol{\Pi}_{\mathrm{pos}}$ is the projection matrix onto the position subspace:
 	\begin{equation}
 		\boldsymbol{\Pi}_{\mathrm{pos}}\triangleq\begin{bmatrix}
 		1&0&0&0\\
@@ -399,24 +409,16 @@ Each configuration is run over $N_\mathrm{MC}=1000$ Monte Carlo realisations, re
 		\end{bmatrix}
 	\end{equation}
 
-	This metric gives an absolute value for the average error made by the filter.
-	\item The normalised estimation error squared (NEES):
+	This metric gives an absolute value for the average error made by the filter. For the sake of readability, it is only computed on the convergent runs, whereas other metrics are computed over the $N_\mathrm{MC}$ runs. This is done to ensure that diverged runs do not dominate or skew this average, which is sensitive to outliers \cite{bib:estimation-evaluation}.
+	\item The median normalised estimation error squared (NEES):
 	\begin{equation}
-		\mathrm{NEES}_{\hat{x}}:k\mapsto\frac{1}{N_\mathrm{MC}\:d_x}\sum_{i=1}^{N_\mathrm{MC}}\left\|\hat{x}_k^{(i)}-x_k\right\|_{\hat{\mathbf{P}}_k^{(i)}}^2
-	\end{equation}
-	where $\|\cdot\|_{\hat{\mathbf{P}}_k^{(i)}}$ is the Mahalanobis norm associated with the error covariance:
-	\begin{equation}
-		\left\|\hat{x}_k^{(i)}-x_k\right\|_{\hat{\mathbf{P}}_k^{(i)}}^2\triangleq\left(\hat{x}_k^{(i)}-x_k\right)^\top\left(\hat{\mathbf{P}}_k^{(i)}\right)^{-1}\left(\hat{x}_k^{(i)}-x_k\right)\label{eq:Mahalanobis_norm}
+		\mathrm{NEES}_{\hat{x}}:k\mapsto\underset{i\in[\![1,N_\mathrm{MC}]\!]}{\operatorname{median}}\left\{\frac{1}{\chi_{d_x}^2(50\%)}\left\|\hat{x}_k^{(i)}-x_k\right\|_{\hat{\mathbf{P}}_k^{(i)}}^2\right\}\label{eq:estimation_NEES}
 	\end{equation}
 
-	This metric detects overconfident filters by using the Mahalanobis norm associated with the error covariance matrix rather than the standard Euclidean distance.
+	This metric detects overconfident filters by using the Mahalanobis norm associated with the error covariance matrix rather than the standard Euclidean distance. Since a single run whose particle set has collapsed can dominate an average over the $N_\mathrm{MC}$ runs by several orders of magnitude, the median is used here instead. It is normalised by the median $\chi_{d_x}^2(50\%)$ of a $\chi^2$ law with $d_x$ degrees of freedom, so that the NEES of a consistent filter is close to $1$.
 \end{itemize}
 
-Similarly, a run is declared convergent under two different criteria, as each describes a different behaviour:
-\begin{itemize}
-	\item A fixed threshold of $2000$ m, under which the median of the error over the last ten steps of a filter must be. This metric is simple to read and ensures that the estimation is relatively close to the true state. However, the threshold value is arbitrary.
-	\item A Mahalanobis criterion, where the median of \eqref{eq:Mahalanobis_norm} over the last ten steps must remain under the $99\%$ quantile of a $\chi^2$ law with $d_x$ degrees of freedom, written $\chi_{d_x}^2(99\%)$. While this criterion follows the property of a Gaussian error, it primarily assesses the consistency between the estimation error and the uncertainty reported by the filter. Consequently, a filter with a large estimation error may still satisfy this criterion if it reports a sufficiently large uncertainty.
-\end{itemize}
+Alternative metrics, such as the circular error probable (CEP) \cite{bib:CEP} or the posterior Cramér-Rao bound (PCRB) \cite{bib:PCRB}-based NEES \cite{bib:statistical-efficiency}, are not considered in this document.
 
 \subsection{Numerical Results}
 
@@ -441,7 +443,7 @@ Before analysing the filters themselves, it is important to assess the quality o
 
 As one could have expected, denser grids lead to better reconstructions, the ARMSE evolving as the logarithm of $\Delta_g$. However, kriging and bilinear interpolation exhibit similar errors, within $3$ nT of each other at every resolution. Thus, the advantage of kriging cannot be primarily attributed to the reconstruction accuracy alone.
 
-Focusing now on the filter performance, \Cref{fig:kriging_RMSE,fig:kriging_NEES} respectively compare the RMSE and NEES of the filter using the true map, kriging and bilinear interpolation on each of the six grid resolutions. For the sake of readability, both metrics are only computed on the converged runs with respect to the threshold criterion.
+Focusing now on the filter performance, \Cref{fig:kriging_RMSE,fig:kriging_NEES} respectively compare the RMSE and NEES of the filter using the true map, kriging and bilinear interpolation on each of the six grid resolutions.
 
 \begin{figure}[!p]
 	\centering
@@ -452,7 +454,7 @@ Focusing now on the filter performance, \Cref{fig:kriging_RMSE,fig:kriging_NEES}
 \begin{figure}[!p]
 	\centering
 	\includegraphics[width=\textwidth]{../../Images/NEES par maille.pdf}
-	\caption{Estimation NEES of the navigation algorithms using the known map, bilinear interpolation and static kriging. The shaded area delimits the quantiles of a $\chi^2$ law with $d_x$ degrees of freedom, within which the NEES of a consistent filter falls with probability $0.99$.}\label{fig:kriging_NEES}
+	\caption{Estimation NEES of the navigation algorithms using the known map, bilinear interpolation and static kriging. The shaded area delimits the quantiles of a $\chi^2$ law with $d_x$ degrees of freedom, within which the NEES of a single run of a consistent filter falls with probability $0.99$.}\label{fig:kriging_NEES}
 \end{figure}
 
 Three main results can be drawn from the RMSE curves. First, filters with access to more training points from a denser grid achieve better performance, with the limit case of the filter using the true map outperforming every other configuration. Second, kriging-based filters consistently achieve lower RMSEs than their bilinear counterparts despite having similar map reconstruction accuracy. This result, combined with \Cref{fig:reconstruction_ARMSE}, indicates that the advantage of kriging lies in its ability to quantify reconstruction uncertainty through its covariance matrix. Finally, the time required to reach a stable estimation error increases from $13$ to $25$ steps as the grid resolution decreases from $2.5$ to $7.5$ km. In particular, the vehicle begins its first turn at $k=33$, so any potential information gained from this turn does not affect this result.
@@ -461,17 +463,17 @@ The NEES curves further highlight the superiority of kriging methods by taking t
 
 In terms of convergence rates, \Cref{fig:erreur_maille} starts by extracting the relevant median errors from the previous curves, and \Cref{fig:convergence_maille} computes the associated convergence rates using the two metrics introduced at the beginning of this section.
 
-\begin{figure}[!htb]
+\begin{figure}[!p]
 	\centering\includegraphics[width=\textwidth]{../../Images/Erreur finale par maille.pdf}
-	\caption{Average median RMSE and NEES at the end of the flight using the known map, bilinear interpolation and static kriging as a function of grid resolution.}\label{fig:erreur_maille}
+	\caption{Median position error and NEES at the end of the flight using the known map, bilinear interpolation and static kriging as a function of grid resolution.}\label{fig:erreur_maille}
 \end{figure}
 
-\begin{figure}[!htb]
+\begin{figure}[!p]
 	\centering\includegraphics[width=\textwidth]{../../Images/Convergence par maille.pdf}
 	\caption{Percentage of converged runs for the known map, bilinear interpolation and static kriging against the grid resolution for the two metrics. The true map does not depend on the resolution, and has a convergence rate of $98\%$ under both criteria.}\label{fig:convergence_maille}
 \end{figure}
 
-\Cref{fig:erreur_maille} shows that the bilinear to kriging RMSE ratio ranges from $1.4$ to $1.9$, and increases to $9$ to $56$ for the NEES. Furthermore, while the RMSE ratio tends to decrease at lower grid resolutions, the NEES ratio follows the opposite trend. Bilinear interpolation thus completely fails to measure its accuracy at lower resolutions, while kriging degrades in step with its announced accuracy.
+\Cref{fig:erreur_maille} shows that the bilinear to kriging error ratio ranges from $1.4$ to $1.9$, and increases to $9$ to $56$ for the NEES. Furthermore, while the error ratio tends to decrease at lower grid resolutions, the NEES ratio follows the opposite trend. Bilinear interpolation thus completely fails to measure its accuracy at lower resolutions, while kriging degrades in step with its announced accuracy.
 
 The convergence rates follow the same pattern. Under the threshold criterion, the rate for kriging decreases from $100\%$ to $60\%$ as the grid resolution decreases, while that of bilinear interpolation decreases from $99$ to $42\%$. The two thus remain comparable. For the Mahalanobis criterion, however, kriging only falls to $81\%$ while bilinear interpolation collapses to $1\%$, having lost every run whose reported uncertainty is consistent with its error.
 

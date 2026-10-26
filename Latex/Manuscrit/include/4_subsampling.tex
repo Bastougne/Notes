@@ -12,7 +12,7 @@ In particular, we write:
 for the covariance of the estimated trend coefficients $\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)$.
 \end{comment}
 
-\subsection{Subsampling Error Metrics}\label{sec:subsampling_errors}
+\subsection{Subsampling Error Metrics}\label{sec:errors_metrics}
 
 Formally, subsampling is achieved by splitting
 \begin{equation}
@@ -89,55 +89,7 @@ The residual quantities admit a probabilistic interpretation, in terms of the pa
 \end{proposition}
 
 \begin{proof}
-	For the sake of clarity, we let $\mathbf{G}_r$, $g_r$ and $\hat{z}_r$ respectively denote $\mathbf{G}(\tilde{\mathbf{x}}^r)$, $g(\tilde{\mathbf{x}}^r)$ and $\hat{z}_{\mathrm{UK}}(\cdot,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$. As established in \cref{sec:proof_UK}, the weight matrix $\mathbf{W}(x)$ of the subsampled estimator and the Lagrange multiplier $\boldsymbol{\Xi}(x)$ of its unbiasedness constraints verify:
-	\begin{equation}
-		\bar{\mathbf{G}}(\tilde{\mathbf{x}}^r)\begin{bmatrix}\mathbf{W}(x)\\\boldsymbol{\Xi}(x)\end{bmatrix}=\bar{\kappa}(\tilde{\mathbf{x}}^r,x)
-	\end{equation}
-	whose block rows are $\mathbf{G}_r\:\mathbf{W}(x)+g_r\:\boldsymbol{\Xi}(x)=\kappa(\tilde{\mathbf{x}}^r,x)$ and $g_r^\top \mathbf{W}(x)=g(x)^\top$.
-
-	Since $\hat{z}_r(x)=\mathbf{W}(x)^\top\tilde{\mathbf{z}}^r$ and $m=g\:\boldsymbol{\gamma}$, the second block row gives:
-	\begin{equation}
-		\begin{aligned}
-		h(x)-\hat{z}_r(x)&=h(x)-m(x)+g(x)\:\boldsymbol{\gamma}-\mathbf{W}(x)^\top\tilde{\mathbf{z}}^r\\
-		&=h(x)-m(x)+\mathbf{W}(x)^\top g_r\:\boldsymbol{\gamma}-\mathbf{W}(x)^\top\tilde{\mathbf{z}}^r\\
-		&=h(x)-m(x)-\mathbf{W}(x)^\top\left(\tilde{\mathbf{z}}^r-m(\tilde{\mathbf{x}}^r)\right)
-		\end{aligned}
-	\end{equation}
-
-	Since $h-m\sim\mathcal{GP}(0,\kappa)$ and the noise of $\tilde{\mathbf{z}}^r$ is independent of $h$, the residual process is thus a centred GP, whose law does not depend on $\boldsymbol{\gamma}$. Moreover, the first block row at $x'\in\Omega$ and the second one at $x$ give the identity:
-	\begin{equation}
-		\begin{aligned}
-		\mathbf{W}(x)^\top \mathbf{G}_r\:\mathbf{W}(x')&=\mathbf{W}(x)^\top\left(\kappa(\tilde{\mathbf{x}}^r,x')-g_r\:\boldsymbol{\Xi}(x')\right)\\
-		&=\mathbf{W}(x)^\top \kappa(\tilde{\mathbf{x}}^r,x')-g(x)\:\boldsymbol{\Xi}(x')
-		\end{aligned}
-	\end{equation}
-
-	By independence of $h$ and of the noise of $\tilde{\mathbf{z}}^r$, combining these results yields the covariance of the residual process between $x$ and $x'$:
-	\begin{equation}
-		\begin{aligned}
-		&\mathbb{E}\left[\left(h(x)-\hat{z}_r(x)\right)\left(h(x')-\hat{z}_r(x')\right)^\top\right]\\
-		&\qquad=\kappa(x,x')-\kappa(x,\tilde{\mathbf{x}}^r)\:\mathbf{W}(x')-\mathbf{W}(x)^\top \kappa(\tilde{\mathbf{x}}^r,x')+\mathbf{W}(x)^\top \mathbf{G}_r\:\mathbf{W}(x')\\
-		&\qquad=\kappa(x,x')-\kappa(x,\tilde{\mathbf{x}}^r)\:\mathbf{W}(x')-g(x)\:\boldsymbol{\Xi}(x')\\
-		&\qquad=\kappa(x,x')-\bar{\kappa}(x,\tilde{\mathbf{x}}^r)\:\bar{\mathbf{G}}(\tilde{\mathbf{x}}^r)^{-1}\bar{\kappa}(\tilde{\mathbf{x}}^r,x')\\
-		&\qquad=\kappa_{|r}(x,x')
-		\end{aligned}
-	\end{equation}
-
-	Finally, \Cref{th:residual_observation_vector} gives:
-	\begin{equation}
-		\tilde{\mathbf{z}}_{d|r}=\tilde{\mathbf{z}}^d-\hat{z}_r(\tilde{\mathbf{x}}^d)=\tilde{\mathbf{z}}^d-\mathbf{W}(\tilde{\mathbf{x}}^d)^\top\tilde{\mathbf{z}}^r
-	\end{equation}
-
-	This vector differs from the residual process at $\tilde{\mathbf{x}}^d$ by the noise of $\tilde{\mathbf{z}}^d$, which is independent of $h$ and of $\tilde{\mathbf{z}}^r$. It is thus a centred Gaussian vector, of covariance:
-	\begin{equation}
-		\begin{aligned}
-		\mathbb{V}\left[\tilde{\mathbf{z}}_{d|r}\right]&=\kappa_{|r}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^d)+\mathbf{I}_{\tilde{N}^d}\otimes\tilde{\mathbf{R}}\\
-		&=\kappa_{d|r}(\tilde{\mathbf{x}}^d)+\mathbf{I}_{\tilde{N}^d}\otimes\tilde{\mathbf{R}}\\
-		&=\mathbf{S}_{d|r}
-		\end{aligned}
-	\end{equation}
-
-	Since $\tilde{\mathbf{z}}_{d|r}$ is a non-degenerate linear combination of $\tilde{\mathbf{z}}$, whose covariance $\mathbf{G}(\tilde{\mathbf{x}})$ is SPD, $\mathbf{S}_{d|r}$ is SPD as well.
+	See \cref{sec:proof_residual_process}.
 \end{proof}
 
 For simple kriging, \Cref{th:conditional_GP}, with $\tilde{\mathbf{x}}^r$ in place of $\tilde{\mathbf{x}}_{\mathrm{old}}$, shows that the residual process defined with $\hat{z}_{\mathrm{SK}}$ in place of $\hat{z}_{\mathrm{UK}}$ has the law of $h$ conditioned on $\tilde{\mathbf{z}}^r$, recentred on its conditional expectation, and that its kernel is the conditional kernel \eqref{eq:conditional_kernel}. The proof of \Cref{th:universal_kriging_update} extends this interpretation to universal kriging, in the limit of a vague trend prior, which motivates the notation $d|r$, read as ``at the discarded data, conditioned on the retained ones''.
@@ -507,7 +459,7 @@ This section introduces two relations between $\sigma_{\mathbf{R}}(x)$ and $\zet
 \end{proposition}
 
 \begin{proof}
-	Applying the Cauchy-Schwarz inequality \cite{bib:matrix-analysis} to \Cref{th:errors_euclidean} proves the relation.
+	Applying the Cauchy-Schwarz inequality \cite{bib:matrix-norms} to \Cref{th:errors_euclidean} proves the relation.
 \end{proof}
 
 It must be noted that, by \Cref{th:residual_process}, $\mathbf{S}_{d|r}^{-\frac{1}{2}}\tilde{\mathbf{z}}_{d|r}$ is a standard Gaussian vector, so that $\|\tilde{\mathbf{z}}_{d|r}\|_{\mathbf{S}_{d|r}}^2$ follows a $\chi^2$ distribution with $\tilde{N}^dd_z$ degrees of freedom. Its expectation $\tilde{N}^dd_z$ grows with the number of discarded data, and \Cref{th:Cauchy-Schwarz_inequality} is thus looser than \Cref{th:concentration_inequality} by a factor of the order of $\sqrt{\tilde{N}^dd_z/\chi^2_{d_z}(1-\delta)}$. On the other hand, it holds for every realisation of the observations, including when the GP model misrepresents the field, whereas \Cref{th:concentration_inequality} relies on this model.
@@ -614,7 +566,7 @@ The previous bounds are evaluated on the data at hand. Bounds on the residual qu
 \end{equation}
 for all the indices involved, where $\boldsymbol{\gamma}_0\in\mathbb{R}^{r_{\mathrm{UK}}d_z}$ defines an arbitrary reference trend. The trend functions are also assumed to verify $\|g(x')\|_{\mathrm{op}}\leq g_{\max}$ for $x'=x$ and for every element $x'$ of $\tilde{\mathbf{x}}$.
 
-In \eqref{eq:entrywise_assumptions}, $\kappa$ bounds the covariances within $\tilde{\mathbf{x}}^r$, within $\tilde{\mathbf{x}}^d$, and between $\tilde{\mathbf{x}}^r$ and $x$, while $\alpha$ and $\eta$ respectively bound the covariances between $\tilde{\mathbf{x}}^r$ and $\tilde{\mathbf{x}}^d$, and between $\tilde{\mathbf{x}}^d$ and $x$. The constants $\kappa_{\max}$ and $\tilde{z}_{\max}$ respectively bound the prior covariances of the training data and the deviation of the observations from the reference trend. Since $\tilde{\mathbf{z}}_{d|r}$ is unchanged when a trend is added to the observations, $\boldsymbol{\gamma}_0$ can be chosen to minimise $\tilde{z}_{\max}$. The subsampling strategy described in \cref{sec:subsampling_errors}, which retains the data close to $x$ and discards the farther ones, aims at the regime:
+In \eqref{eq:entrywise_assumptions}, $\kappa$ bounds the covariances within $\tilde{\mathbf{x}}^r$, within $\tilde{\mathbf{x}}^d$, and between $\tilde{\mathbf{x}}^r$ and $x$, while $\alpha$ and $\eta$ respectively bound the covariances between $\tilde{\mathbf{x}}^r$ and $\tilde{\mathbf{x}}^d$, and between $\tilde{\mathbf{x}}^d$ and $x$. The constants $\kappa_{\max}$ and $\tilde{z}_{\max}$ respectively bound the prior covariances of the training data and the deviation of the observations from the reference trend. Since $\tilde{\mathbf{z}}_{d|r}$ is unchanged when a trend is added to the observations, $\boldsymbol{\gamma}_0$ can be chosen to minimise $\tilde{z}_{\max}$. The subsampling strategy described in \cref{sec:errors_metrics}, which retains the data close to $x$ and discards the farther ones, aims at the regime:
 \begin{equation}
 	0<\eta,\alpha\ll\kappa\leq \kappa_{\max}
 \end{equation}
@@ -627,7 +579,7 @@ We further define:
 	\lambda_r^g&\triangleq\lambda_{\min}\left(g(\tilde{\mathbf{x}}^r)^\top g(\tilde{\mathbf{x}}^r)\right)
 	\end{aligned}\right.
 \end{equation}
-where $\lambda_j^+$ bounds $\lambda_{\max}\left(\mathbf{G}(\tilde{\mathbf{x}}^j)\right)$ by the blockwise Gershgorin circle theorem \cite{bib:matrix-analysis}, recalled in \cref{sec:proof_entrywise}, and $\lambda_r^g$ measures the conditioning of the trend on the retained data. For ordinary kriging, $g_{\max}=1$ and $\lambda_r^g=\tilde{N}^r$. \Cref{th:entrywise_residual} bounds the residual quantities, from which \Cref{th:entrywise_bounds} deduces bounds on the two errors.
+where $\lambda_j^+$ bounds $\lambda_{\max}\left(\mathbf{G}(\tilde{\mathbf{x}}^j)\right)$ by the blockwise Gershgorin circle theorem \cite{bib:matrix-eigenvalues}, recalled in \cref{sec:proof_entrywise}, and $\lambda_r^g$ measures the conditioning of the trend on the retained data. For ordinary kriging, $g_{\max}=1$ and $\lambda_r^g=\tilde{N}^r$. \Cref{th:entrywise_residual} bounds the residual quantities, from which \Cref{th:entrywise_bounds} deduces bounds on the two errors.
 
 \begin{proposition}[Entrywise bounds on the residual quantities]\label{th:entrywise_residual}
 	Assume that \eqref{eq:entrywise_assumptions} holds and that $\lambda_r^-\lambda_d^->\alpha^2\tilde{N}^r\tilde{N}^d$, and let $\rho_r\triangleq(\lambda_r^-+\alpha\tilde{N}^r)/\lambda_r^-$. Then:

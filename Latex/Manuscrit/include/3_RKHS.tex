@@ -98,7 +98,7 @@ In this section, we let $\kappa$ be an SPD kernel on $\Omega$, and $(\mathcal{H}
 
 	If the minimisation problem:
 	\begin{equation}
-		\underset{\psi\in\mathcal{H}_\kappa}{\operatorname{argmin}}(E(\psi(\tilde{x}_1),\dots,\psi(\tilde{x}_{\tilde{N}}))+G(\|\psi\|_{\mathcal{H}_\kappa}))\label{eq:RKHS_minimisation}
+		\underset{\psi\in\mathcal{H}_\kappa}{\operatorname{argmin}}\{E(\psi(\tilde{x}_1),\dots,\psi(\tilde{x}_{\tilde{N}}))+G(\|\psi\|_{\mathcal{H}_\kappa})\}\label{eq:RKHS_minimisation}
 	\end{equation}
 	admits a solution, then it admits a solution in the set spanned by the features of $\tilde{\mathbf{x}}$:
 	\begin{equation}
@@ -146,7 +146,7 @@ In this section, we let $\kappa$ be an SPD kernel on $\Omega$, and $(\mathcal{H}
 \begin{proposition}[Regularised least-squares in an RKHS]\label{th:RKHS_regularisation}
 	Let $\tilde{N}\in\mathbb{N}^*$, $\tilde{\mathbf{x}}\triangleq(\tilde{x}_1,\dots,\tilde{x}_{\tilde{N}})\in\Omega^{\tilde{N}}$ pairwise distinct, $\tilde{\mathbf{z}}\triangleq(\tilde{z}_1,\dots,\tilde{z}_{\tilde{N}})\in\mathbb{R}^{\tilde{N}}$ and $\alpha_{\mathrm{RKHS}}\geq0$. The regularised least-squares problem:
 	\begin{equation}
-		\underset{\psi\in\mathcal{H}_\kappa}{\operatorname{argmin}}\left(\frac{1}{\tilde{N}}\sum_{i=1}^{\tilde{N}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\alpha_{\mathrm{RKHS}}\|\psi\|_{\mathcal{H}_\kappa}^2\right)\label{eq:RKHS_LS}
+		\underset{\psi\in\mathcal{H}_\kappa}{\operatorname{argmin}}\left\{\frac{1}{\tilde{N}}\sum_{i=1}^{\tilde{N}}\left(\psi(\tilde{x}_i)-\tilde{z}_i\right)^2+\alpha_{\mathrm{RKHS}}\|\psi\|_{\mathcal{H}_\kappa}^2\right\}\label{eq:RKHS_LS}
 	\end{equation}
 	admits a solution, unique for $\alpha_{\mathrm{RKHS}}>0$, and given by:
 	\begin{equation}
@@ -223,7 +223,7 @@ In this section, we let $\kappa$ be an SPD kernel on $\Omega$, and $(\mathcal{H}
 	\begin{equation}
 		\left|\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\psi(\tilde{\mathbf{x}}),0)-\psi(x)\right|\leq\|\psi\|_{\mathcal{H}_\kappa}\:\sqrt{\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})}
 	\end{equation}
-	where $\sqrt{\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})}$ is known as the power function \cite{bib:Wendland}.
+	where $\sqrt{\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})}$ is known as the power function \cite{bib:Wendland-error}.
 \end{proposition}
 
 \begin{proof}

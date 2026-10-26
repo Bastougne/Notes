@@ -52,42 +52,7 @@ which suggests replacing $\mu_{ZX}$ and $\mu_{XX}$ with their empirical counterp
 \end{proposition}
 
 \begin{proof}
-	Let $u\in\mathcal{H}_{\kappa_X}$. By definition of the operator associated with a tensor, and by the reproducing property, we have:
-	\begin{equation}
-		\left\{\begin{aligned}
-		\hat{\mu}_{XX}\:u&=\frac{1}{N}\sum_{i=1}^Nu\left(X^{(i)}\right)\Phi_X\left(X^{(i)}\right)=\frac{1}{N}\:u(\mathbf{x})^\top\Phi_X(\mathbf{x})\\
-		\hat{\mu}_{ZX}\:u&=\frac{1}{N}\sum_{i=1}^Nu\left(X^{(i)}\right)\Phi_Z\left(Z^{(i)}\right)=\frac{1}{N}\:u(\mathbf{x})^\top\Phi_Z(\mathbf{z})
-		\end{aligned}\right.
-	\end{equation}
-	In particular:
-	\begin{equation}
-		\langle u\mid\left(\hat{\mu}_{XX}+\alpha_{\mathrm{RKHS}} \operatorname{id}\right)u\rangle_{\mathcal{H}_{\kappa_X}}=\frac{1}{N}\|u(\mathbf{x})\|_2^2+\alpha_{\mathrm{RKHS}}\|u\|_{\mathcal{H}_{\kappa_X}}^2\geq\alpha_{\mathrm{RKHS}}\|u\|_{\mathcal{H}_{\kappa_X}}^2
-	\end{equation}
-	and thus $\hat{\mu}_{XX}+\alpha_{\mathrm{RKHS}} \operatorname{id}$ is injective.
-
-	Let $\varphi\in\mathcal{H}_{\kappa_X}$. Since $\kappa_X(\mathbf{x},\mathbf{x})\succeq0$ and $\alpha_{\mathrm{RKHS}}>0$, the matrix $\kappa_X(\mathbf{x},\mathbf{x})+\alpha_{\mathrm{RKHS}} N\mathbf{I}_N$ is SPD, hence invertible, and we can define:
-	\begin{equation}
-		\left\{\begin{aligned}
-		c&\triangleq\left(\kappa_X(\mathbf{x},\mathbf{x})+\alpha_{\mathrm{RKHS}} N\mathbf{I}_N\right)^{-1}\varphi(\mathbf{x})\\
-		u&\triangleq\frac{1}{\alpha_{\mathrm{RKHS}}}\left(\varphi-c^\top\Phi_X(\mathbf{x})\right)
-		\end{aligned}\right.
-	\end{equation}
-
-	By the kernel trick, it comes that:
-	\begin{equation}
-		u(\mathbf{x})=\frac{1}{\alpha_{\mathrm{RKHS}}}\left(\varphi(\mathbf{x})-\kappa_X(\mathbf{x},\mathbf{x})\:c\right)=Nc
-	\end{equation}
-	and thus:
-	\begin{equation}
-		\left(\hat{\mu}_{XX}+\alpha_{\mathrm{RKHS}} \operatorname{id}\right)u=c^\top\Phi_X(\mathbf{x})+\varphi-c^\top\Phi_X(\mathbf{x})=\varphi
-	\end{equation}
-
-	Therefore, $\hat{\mu}_{XX}+\alpha_{\mathrm{RKHS}} \operatorname{id}$ is invertible, and $u=\left(\hat{\mu}_{XX}+\alpha_{\mathrm{RKHS}} \operatorname{id}\right)^{-1}\varphi$, which finally gives:
-	\begin{equation}
-		\hat{\mu}_{Z|X}\:\varphi=\hat{\mu}_{ZX}\:u=c^\top\Phi_Z(\mathbf{z})
-	\end{equation}
-
-	The expression of the weights is obtained by taking $\varphi=\Phi_X(x)$, whose values at $\mathbf{x}$ are $\kappa_X(\mathbf{x},x)$.
+	See \cref{sec:proof_conditional_KME_MC}.
 \end{proof}
 
 \begin{remark}[Conditional KME as a regression]

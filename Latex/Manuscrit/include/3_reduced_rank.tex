@@ -67,7 +67,7 @@ For the sake of brevity, the space of the square-integrable matrix-valued kernel
 	\mathcal{F}\triangleq\mathcal{L}^2\left(\Omega\times\Omega,\mathcal{M}_{d_z,d_z}(\mathbb{R})\right)
 \end{equation}
 
-\Cref{th:reduced_rank} shows that truncating the decomposition of \Cref{th:Mercer} to its first $r_{\mathrm{KL}}$ terms gives the best approximation of $\kappa$ among the kernels of rank at most $r_{\mathrm{KL}}$.\textbf{TODO: à relire}
+\Cref{th:reduced_rank} presents an approximation of $\kappa$ by truncating its Mercer decomposition to $r_{\mathrm{KL}}\in\mathbb{N}^*$ terms and shows that it is the best approximation of $\kappa$ among all kernels of rank at most $r_{\mathrm{KL}}$.
 
 \begin{proposition}[Reduced-rank approximation]\label{th:reduced_rank}
 	For a continuous SPD kernel $\kappa$, we define the rank of $\kappa$ as the dimension of the image of $\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$ by its associated Mercer operator:
@@ -94,7 +94,7 @@ For the sake of brevity, the space of the square-integrable matrix-valued kernel
 
 	Finally, applying the Eckart-Young-Mirsky theorem \cite{bib:Eckart-Young,bib:Mirsky} to $\mathcal{K}$ and using the orthonormality of $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ yields:
 	\begin{equation}
-		\underset{\tilde{\kappa}\in\mathcal{F}\mid\operatorname{rank}(\tilde{\kappa})\leq r_{\mathrm{KL}}}{\min}\|\kappa-\tilde{\kappa}\|_{\mathcal{F}}^2=\sum_{j>r_{\mathrm{KL}}}\lambda_j^2=\|\kappa-\kappa_{r_{\mathrm{KL}}}\|_{\mathcal{F}}^2
+		\underset{\tilde{\kappa}\in\mathcal{F}\mid\operatorname{rank}(\tilde{\kappa})\leq r_{\mathrm{KL}}}{\min}\left\{\|\kappa-\tilde{\kappa}\|_{\mathcal{F}}^2\right\}=\sum_{j>r_{\mathrm{KL}}}\lambda_j^2=\|\kappa-\kappa_{r_{\mathrm{KL}}}\|_{\mathcal{F}}^2
 	\end{equation}
 \end{proof}
 
@@ -102,7 +102,7 @@ In compact form, the eigenfunctions are collected into:
 \begin{equation}
 	\boldsymbol{\Psi}(x)\triangleq\begin{bmatrix}
 	\psi_1(x)&\cdots&\psi_{r_{\mathrm{KL}}}(x)
-	\end{bmatrix}\in\mathcal{M}_{d_z,r_{\mathrm{KL}}}(\mathbb{R})
+	\end{bmatrix}\in\mathcal{M}_{d_z,r_{\mathrm{KL}}}(\mathbb{R})\label{eq:psi_gras}
 \end{equation}
 and the corresponding eigenvalues are gathered as:
 \begin{equation}
@@ -117,17 +117,23 @@ By \Cref{th:Mercer}, the eigenvalues $\lambda_i$ are strictly positive, so that 
 \end{equation}
 and then:
 \begin{equation}
-	\mathbf{G}(\tilde{\mathbf{x}})\approx\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top+\mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}},\qquad\boldsymbol{\Psi}(\tilde{\mathbf{x}})=\begin{bmatrix}\boldsymbol{\Psi}(\tilde{x}_1)\\\vdots\\\boldsymbol{\Psi}(\tilde{x}_{\tilde{N}})\end{bmatrix}\label{eq:reduced_rank_Gram}
+	\mathbf{G}(\tilde{\mathbf{x}})\approx\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top+\mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}},\qquad\boldsymbol{\Psi}(\tilde{\mathbf{x}})=\begin{bmatrix}\boldsymbol{\Psi}(\tilde{x}_1)\\\vdots\\\boldsymbol{\Psi}(\tilde{x}_{\tilde{N}})\end{bmatrix}
 \end{equation}
 
-\Cref{th:reduced_rank_kriging} derives the centred SK estimator and its error covariance under this approximation.\textbf{TODO: à relire}
+Since this esquation is a rank $r_{\mathrm{KL}}$ perturbation of $\mathbf{A}\triangleq \mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{N}d_z\times\tilde{N}d_z$ inversion of $\mathbf{G}(\tilde{\mathbf{x}})$ to an $r_{\mathrm{KL}}\times r_{\mathrm{KL}}$ one:
+\begin{equation}
+	\mathbf{G}(\tilde{\mathbf{x}})^{-1}\approx \mathbf{A}^{-1}-\mathbf{A}^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}\label{eq:reduced_rank_Gram}
+\end{equation}
+where:
+\begin{equation}
+	\tilde{\mathbf{G}}(\tilde{\mathbf{x}})\triangleq\boldsymbol{\Lambda}^{-1}+\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\left(\mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}}\right)^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})\in\mathcal{M}_{r_{\mathrm{KL}},r_{\mathrm{KL}}}(\mathbb{R})
+\end{equation}
+is the reduced-rank Gram matrix. This approximation is valid as long as $\tilde{\mathbf{G}}(\tilde{\mathbf{x}})$ exists, which requires $\tilde{\mathbf{R}}\succ0$.
+
+Finally, \Cref{th:reduced_rank_kriging} uses this reformulation to derive an approximate formula for the centred SK estimator and its error covariance.
 
 \begin{proposition}[Reduced-rank simple kriging]\label{th:reduced_rank_kriging}
-	Let:
-	\begin{equation}
-		\tilde{\mathbf{G}}(\tilde{\mathbf{x}})\triangleq\boldsymbol{\Lambda}^{-1}+\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\left(\mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}}\right)^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})\in\mathcal{M}_{r_{\mathrm{KL}},r_{\mathrm{KL}}}(\mathbb{R})
-	\end{equation}
-	be the reduced-rank Gram matrix. Under the reduced-rank approximation of \eqref{eq:reduced_rank_Gram}, the centred SK estimator of \Cref{th:simple_kriging} and its error covariance matrix reduce to:
+	Under the approximation of \eqref{eq:reduced_rank_Gram}, the centred SK estimator of \Cref{th:simple_kriging} and its error covariance matrix reduce to:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&\approx\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top\left(\mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}}\right)^{-1}\tilde{\mathbf{z}}\\
@@ -144,7 +150,7 @@ and then:
 		\end{aligned}\right.
 	\end{equation}
 
-	These expressions remain valid at $\sigma=0$ provided $\boldsymbol{\Psi}(\tilde{\mathbf{x}})$ has full column rank.
+	These expressions remain valid at $\sigma=0$, provided $\boldsymbol{\Psi}(\tilde{\mathbf{x}})$ has full column rank.
 \end{proposition}
 
 \begin{proof}
@@ -198,7 +204,7 @@ Conversely, the KL decomposition can be used to generate, from a family $(\xi_i)
 \end{proof}
 
 \begin{remark}[Finite-dimensional parametrisation]\label{th:KL_parametrisation}
-	As for \cref{sec:efficient_kriging}, Mercer's theorem can be used to represent the field by a finite approximation. Indeed, for $r_{\mathrm{KL}}\in\mathbb{N}^*$, $\boldsymbol{\Psi}$ defined as in \eqref{eq:reduced_rank_Gram} and:
+	As for \cref{sec:efficient_kriging}, Mercer's theorem can be used to represent the field by a finite approximation. Indeed, for $r_{\mathrm{KL}}\in\mathbb{N}^*$, $\boldsymbol{\Psi}$ defined as in \eqref{eq:psi_gras} and:
 	\begin{equation}
 		\boldsymbol{\gamma}\triangleq\begin{bmatrix}\sqrt{\lambda_1}\xi_1&\cdots&\sqrt{\lambda_{r_{\mathrm{KL}}}}\xi_{r_{\mathrm{KL}}}\end{bmatrix}^\top
 	\end{equation}

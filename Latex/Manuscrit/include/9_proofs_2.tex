@@ -99,12 +99,7 @@ whose Gram matrices have rank at most $r_0$ and are thus singular at any $n$ dis
 
 \section[Proof of Proposition 3.18]{Proof of \Cref{th:reduced_rank_kriging}}\label{sec:proof_reduced_rank_kriging}
 
-As \eqref{eq:reduced_rank_Gram} is a rank $r_{\mathrm{KL}}$ perturbation of $\mathbf{A}\triangleq \mathbf{I}_{\tilde{N}}\otimes\tilde{\mathbf{R}}$, the Woodbury inversion formula (see \Cref{th:Woodbury}) can be used to reduce the $\tilde{N}d_z\times\tilde{N}d_z$ inversion of $\mathbf{G}(\tilde{\mathbf{x}})$ to an $r_{\mathrm{KL}}\times r_{\mathrm{KL}}$ one:
-\begin{equation}
-	\mathbf{G}(\tilde{\mathbf{x}})^{-1}\approx \mathbf{A}^{-1}-\mathbf{A}^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}
-\end{equation}
-
-Computing the centred SK estimator from \Cref{th:simple_kriging} using this approximation and the push-through identity (see \Cref{th:push_through}) yields:
+Computing the centred SK estimator from \Cref{th:simple_kriging} using \eqref{eq:reduced_rank_Gram} and the push-through identity (see \Cref{th:push_through}) yields:
 \begin{equation}
 	\begin{aligned}
 	\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},0)&=\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\tilde{\mathbf{z}}\\
@@ -369,6 +364,97 @@ and:
 
 Therefore, $\psi=\psi'\in\mathcal{H}_\kappa$, and its norm is the same in both spaces. Since $\mathcal{H}$ is complete, exchanging the roles of $\mathcal{H}$ and $\mathcal{H}_\kappa$ gives the converse inclusion. Consequently, $\mathcal{H}=\mathcal{H}_\kappa$, and the two inner products are equal.
 
+\section[Proof of Proposition 3.29]{Proof of \Cref{th:conditional_KME_MC}}\label{sec:proof_conditional_KME_MC}
+
+Let $u\in\mathcal{H}_{\kappa_X}$. By definition of the operator associated with a tensor, and by the reproducing property, we have:
+\begin{equation}
+	\left\{\begin{aligned}
+	\hat{\mu}_{XX}\:u&=\frac{1}{N}\sum_{i=1}^Nu\left(X^{(i)}\right)\Phi_X\left(X^{(i)}\right)=\frac{1}{N}\:u(\mathbf{x})^\top\Phi_X(\mathbf{x})\\
+	\hat{\mu}_{ZX}\:u&=\frac{1}{N}\sum_{i=1}^Nu\left(X^{(i)}\right)\Phi_Z\left(Z^{(i)}\right)=\frac{1}{N}\:u(\mathbf{x})^\top\Phi_Z(\mathbf{z})
+	\end{aligned}\right.
+\end{equation}
+In particular:
+\begin{equation}
+	\langle u\mid\left(\hat{\mu}_{XX}+\alpha_{\mathrm{RKHS}} \operatorname{id}\right)u\rangle_{\mathcal{H}_{\kappa_X}}=\frac{1}{N}\|u(\mathbf{x})\|_2^2+\alpha_{\mathrm{RKHS}}\|u\|_{\mathcal{H}_{\kappa_X}}^2\geq\alpha_{\mathrm{RKHS}}\|u\|_{\mathcal{H}_{\kappa_X}}^2
+\end{equation}
+and thus $\hat{\mu}_{XX}+\alpha_{\mathrm{RKHS}} \operatorname{id}$ is injective.
+
+Let $\varphi\in\mathcal{H}_{\kappa_X}$. Since $\kappa_X(\mathbf{x},\mathbf{x})\succeq0$ and $\alpha_{\mathrm{RKHS}}>0$, the matrix $\kappa_X(\mathbf{x},\mathbf{x})+\alpha_{\mathrm{RKHS}} N\mathbf{I}_N$ is SPD, hence invertible, and we can define:
+\begin{equation}
+	\left\{\begin{aligned}
+	c&\triangleq\left(\kappa_X(\mathbf{x},\mathbf{x})+\alpha_{\mathrm{RKHS}} N\mathbf{I}_N\right)^{-1}\varphi(\mathbf{x})\\
+	u&\triangleq\frac{1}{\alpha_{\mathrm{RKHS}}}\left(\varphi-c^\top\Phi_X(\mathbf{x})\right)
+	\end{aligned}\right.
+\end{equation}
+
+By the kernel trick, it comes that:
+\begin{equation}
+	u(\mathbf{x})=\frac{1}{\alpha_{\mathrm{RKHS}}}\left(\varphi(\mathbf{x})-\kappa_X(\mathbf{x},\mathbf{x})\:c\right)=Nc
+\end{equation}
+and thus:
+\begin{equation}
+	\left(\hat{\mu}_{XX}+\alpha_{\mathrm{RKHS}} \operatorname{id}\right)u=c^\top\Phi_X(\mathbf{x})+\varphi-c^\top\Phi_X(\mathbf{x})=\varphi
+\end{equation}
+
+Therefore, $\hat{\mu}_{XX}+\alpha_{\mathrm{RKHS}} \operatorname{id}$ is invertible, and $u=\left(\hat{\mu}_{XX}+\alpha_{\mathrm{RKHS}} \operatorname{id}\right)^{-1}\varphi$, which finally gives:
+\begin{equation}
+	\hat{\mu}_{Z|X}\:\varphi=\hat{\mu}_{ZX}\:u=c^\top\Phi_Z(\mathbf{z})
+\end{equation}
+
+The expression of the weights is obtained by taking $\varphi=\Phi_X(x)$, whose values at $\mathbf{x}$ are $\kappa_X(\mathbf{x},x)$.
+
+\section[Proof of Proposition 4.2]{Proof of \Cref{th:residual_process}}\label{sec:proof_residual_process}
+
+For the sake of clarity, we let $\mathbf{G}_r$, $g_r$ and $\hat{z}_r$ respectively denote $\mathbf{G}(\tilde{\mathbf{x}}^r)$, $g(\tilde{\mathbf{x}}^r)$ and $\hat{z}_{\mathrm{UK}}(\cdot,\tilde{\mathbf{x}}^r,\tilde{\mathbf{z}}^r,g)$. As established in \cref{sec:proof_UK}, the weight matrix $\mathbf{W}(x)$ of the subsampled estimator and the Lagrange multiplier $\boldsymbol{\Xi}(x)$ of its unbiasedness constraints verify:
+\begin{equation}
+	\bar{\mathbf{G}}(\tilde{\mathbf{x}}^r)\begin{bmatrix}\mathbf{W}(x)\\\boldsymbol{\Xi}(x)\end{bmatrix}=\bar{\kappa}(\tilde{\mathbf{x}}^r,x)
+\end{equation}
+whose block rows are $\mathbf{G}_r\:\mathbf{W}(x)+g_r\:\boldsymbol{\Xi}(x)=\kappa(\tilde{\mathbf{x}}^r,x)$ and $g_r^\top \mathbf{W}(x)=g(x)^\top$.
+
+Since $\hat{z}_r(x)=\mathbf{W}(x)^\top\tilde{\mathbf{z}}^r$ and $m=g\:\boldsymbol{\gamma}$, the second block row gives:
+\begin{equation}
+	\begin{aligned}
+	h(x)-\hat{z}_r(x)&=h(x)-m(x)+g(x)\:\boldsymbol{\gamma}-\mathbf{W}(x)^\top\tilde{\mathbf{z}}^r\\
+	&=h(x)-m(x)+\mathbf{W}(x)^\top g_r\:\boldsymbol{\gamma}-\mathbf{W}(x)^\top\tilde{\mathbf{z}}^r\\
+	&=h(x)-m(x)-\mathbf{W}(x)^\top\left(\tilde{\mathbf{z}}^r-m(\tilde{\mathbf{x}}^r)\right)
+	\end{aligned}
+\end{equation}
+
+Since $h-m\sim\mathcal{GP}(0,\kappa)$ and the noise of $\tilde{\mathbf{z}}^r$ is independent of $h$, the residual process is thus a centred GP, whose law does not depend on $\boldsymbol{\gamma}$. Moreover, the first block row at $x'\in\Omega$ and the second one at $x$ give the identity:
+\begin{equation}
+	\begin{aligned}
+	\mathbf{W}(x)^\top \mathbf{G}_r\:\mathbf{W}(x')&=\mathbf{W}(x)^\top\left(\kappa(\tilde{\mathbf{x}}^r,x')-g_r\:\boldsymbol{\Xi}(x')\right)\\
+	&=\mathbf{W}(x)^\top \kappa(\tilde{\mathbf{x}}^r,x')-g(x)\:\boldsymbol{\Xi}(x')
+	\end{aligned}
+\end{equation}
+
+By independence of $h$ and of the noise of $\tilde{\mathbf{z}}^r$, combining these results yields the covariance of the residual process between $x$ and $x'$:
+\begin{equation}
+	\begin{aligned}
+	&\mathbb{E}\left[\left(h(x)-\hat{z}_r(x)\right)\left(h(x')-\hat{z}_r(x')\right)^\top\right]\\
+	&\qquad=\kappa(x,x')-\kappa(x,\tilde{\mathbf{x}}^r)\:\mathbf{W}(x')-\mathbf{W}(x)^\top \kappa(\tilde{\mathbf{x}}^r,x')+\mathbf{W}(x)^\top \mathbf{G}_r\:\mathbf{W}(x')\\
+	&\qquad=\kappa(x,x')-\kappa(x,\tilde{\mathbf{x}}^r)\:\mathbf{W}(x')-g(x)\:\boldsymbol{\Xi}(x')\\
+	&\qquad=\kappa(x,x')-\bar{\kappa}(x,\tilde{\mathbf{x}}^r)\:\bar{\mathbf{G}}(\tilde{\mathbf{x}}^r)^{-1}\bar{\kappa}(\tilde{\mathbf{x}}^r,x')\\
+	&\qquad=\kappa_{|r}(x,x')
+	\end{aligned}
+\end{equation}
+
+Finally, \Cref{th:residual_observation_vector} gives:
+\begin{equation}
+	\tilde{\mathbf{z}}_{d|r}=\tilde{\mathbf{z}}^d-\hat{z}_r(\tilde{\mathbf{x}}^d)=\tilde{\mathbf{z}}^d-\mathbf{W}(\tilde{\mathbf{x}}^d)^\top\tilde{\mathbf{z}}^r
+\end{equation}
+
+This vector differs from the residual process at $\tilde{\mathbf{x}}^d$ by the noise of $\tilde{\mathbf{z}}^d$, which is independent of $h$ and of $\tilde{\mathbf{z}}^r$. It is thus a centred Gaussian vector, of covariance:
+\begin{equation}
+	\begin{aligned}
+	\mathbb{V}\left[\tilde{\mathbf{z}}_{d|r}\right]&=\kappa_{|r}(\tilde{\mathbf{x}}^d,\tilde{\mathbf{x}}^d)+\mathbf{I}_{\tilde{N}^d}\otimes\tilde{\mathbf{R}}\\
+	&=\kappa_{d|r}(\tilde{\mathbf{x}}^d)+\mathbf{I}_{\tilde{N}^d}\otimes\tilde{\mathbf{R}}\\
+	&=\mathbf{S}_{d|r}
+	\end{aligned}
+\end{equation}
+
+Since $\tilde{\mathbf{z}}_{d|r}$ is a non-degenerate linear combination of $\tilde{\mathbf{z}}$, whose covariance $\mathbf{G}(\tilde{\mathbf{x}})$ is SPD, $\mathbf{S}_{d|r}$ is SPD as well.
+
 \begin{comment}
 \section[Proof of Proposition 4.4]{Proof of \Cref{th:errors_inverse_Gram}}\label{sec:proof_errors_inverse_Gram}
 
@@ -556,7 +642,7 @@ Let $N(\mathbf{K})$ denote the matrix of the operator norms of the blocks of a m
 \begin{equation}
 	\|\mathbf{K}\|_{\mathrm{op}}\leq\|N(\mathbf{K})\|_{\mathrm{op}}\leq\sqrt{\|N(\mathbf{K})\|_1\:\|N(\mathbf{K})\|_\infty}
 \end{equation}
-where $\|N(\mathbf{K})\|_1$ and $\|N(\mathbf{K})\|_\infty$ are the largest column and row sums of $N(\mathbf{K})$ \cite{bib:matrix-analysis}. Applied to the symmetric matrix $\mathbf{G}(\tilde{\mathbf{x}}^j)$, this inequality gives the blockwise Gershgorin bound:
+where $\|N(\mathbf{K})\|_1$ and $\|N(\mathbf{K})\|_\infty$ are the largest column and row sums of $N(\mathbf{K})$ \cite{bib:matrix-norms}. Applied to the symmetric matrix $\mathbf{G}(\tilde{\mathbf{x}}^j)$, this inequality gives the blockwise Gershgorin bound:
 \begin{equation}
 	\lambda_{\max}\left(\mathbf{G}(\tilde{\mathbf{x}}^j)\right)\leq\lambda_j^+
 \end{equation}
@@ -588,7 +674,7 @@ The same steps, applied to $\mathbf{U}(\tilde{\mathbf{x}}^d)$ and $\mathbf{U}(x)
 	\end{aligned}\right.
 \end{equation}
 
-Furthermore, for every unit vector $v\in\mathbb{R}^{r_{\mathrm{UK}}d_z}$, the Rayleigh quotient \cite{bib:matrix-analysis} and the definitions of $\lambda_r^+$ and $\lambda_r^g$ give:
+Furthermore, for every unit vector $v\in\mathbb{R}^{r_{\mathrm{UK}}d_z}$, the Rayleigh quotient \cite{bib:matrix-hermitian} and the definitions of $\lambda_r^+$ and $\lambda_r^g$ give:
 \begin{equation}
 	v^\top \mathbf{M}(\tilde{\mathbf{x}}^r)^{-1}v=\left(g(\tilde{\mathbf{x}}^r)\:v\right)^\top \mathbf{G}(\tilde{\mathbf{x}}^r)^{-1}\left(g(\tilde{\mathbf{x}}^r)\:v\right)\geq\frac{\|g(\tilde{\mathbf{x}}^r)\:v\|_2^2}{\lambda_r^+}\geq\frac{\lambda_r^g}{\lambda_r^+}
 \end{equation}
