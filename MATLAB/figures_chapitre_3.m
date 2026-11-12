@@ -23,14 +23,24 @@
 % plutôt que par exportgraphics : ce dernier recadre au contenu, donc la page varierait
 % d'une figure à l'autre et la police apparente avec elle. À 348 x 280 points inclus à
 % 0.7\textwidth, une police de 14 pt en donne 12,0 dans le manuscrit.
+%
+% LA VERSION DIAPO DE LA SOUTENANCE (2026-11-08) du krigeage 3D sort du même code quand
+% figures_soutenance.m appelle ce script avec la structure diapo : même page à l'échelle
+% près, à la largeur où Latex/Soutenance/main.tex l'insère, graduations à diapo.fs. Les
+% figures du manuscrit partent alors dans diapo.controle, où figures_soutenance les compare
+% à celles d'Images/.
 
-clear; close all; clc;
+clearvars -except diapo; close all; clc;
 rng(123456789);                  % reproductibilité de la partie krigée
 
 %% Ce que les deux figures partagent
 img_dir   = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'Images');
                                  % le manuscrit et les notes y lisent leurs figures,
                                  % résolu depuis le script et non depuis pwd
+en_diapo  = exist('diapo', 'var') && isstruct(diapo);
+if en_diapo
+    img_dir = diapo.controle;
+end
 linewidth = 1;
 fontsize  = 14;
 pdf_w     = 348;                 % page figée, en points
@@ -131,6 +141,16 @@ fprintf('\nMoyenne estimée m_ok = %.2f sur %d échantillons\n', m_ok, n_train);
 figure_krigeage_3d(P1, P2, f_star, Z_ok, S_ok, X_train, z_train, z_lim, ...
                    linewidth, fontsize, alpha_band, alpha_field, pdf_w, pdf_h, ...
                    vector_pdf, img_dir);
+if en_diapo
+    % Colonne de droite de la diapo du krigeage, à 0.37\textwidth, la page du manuscrit
+    % réduite au tiers. Les croix passent de 8 à 5 pt, et le maillage de la moyenne krigée
+    % à 21 lignes par côté au lieu de 60 : à cette taille, ses lignes seraient espacées de
+    % 1,5 pt et couvriraient la surface de rouge.
+    w_d = 0.37 * diapo.textwidth;  h_d = w_d * pdf_h / pdf_w;
+    figure_krigeage_3d(P1, P2, f_star, Z_ok, S_ok, X_train, z_train, z_lim, ...
+                       linewidth, diapo.fs, alpha_band, alpha_field, w_d, h_d, ...
+                       vector_pdf, diapo.img, struct('croix', 5, 'maillage', 21));
+end
 
 %% ------------------------------------------------------------ fonctions locales
 
@@ -189,7 +209,7 @@ end
 
 function figure_krigeage_3d(P1, P2, F, Z, S, X_train, z_train, z_lim, ...
                             linewidth, fontsize, alpha_band, alpha_field, ...
-                            pdf_w, pdf_h, vector_pdf, img_dir)
+                            pdf_w, pdf_h, vector_pdf, img_dir, gab)
 % Surfaces du champ vrai, de la moyenne krigée et de son enveloppe à +/- 3 sigma, avec
 % les échantillons. Pas de titre : la légende LaTeX porte le nommage.
 %
@@ -198,6 +218,15 @@ function figure_krigeage_3d(P1, P2, F, Z, S, X_train, z_train, z_lim, ...
 % supérieure est entre la caméra et le champ, donc une opacité totale masquerait tout ce
 % qu'elle est censée encadrer. alpha_band est le plus proche de l'aplat rose de ces
 % figures qui reste lisible.
+%
+% gab (soutenance, 2026-11-08), facultatif : la taille des croix (croix) et le nombre de
+% lignes par côté du maillage de la moyenne krigée (maillage), extrémités comprises.
+    croix = 8;  im = 1:size(P1, 1);  jm = 1:size(P1, 2);
+    if nargin >= 17
+        croix = gab.croix;
+        im = unique(round(linspace(1, size(P1, 1), gab.maillage)));
+        jm = unique(round(linspace(1, size(P1, 2), gab.maillage)));
+    end
     pink = [1 0.85 0.88];
     fig  = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 pdf_w pdf_h]);
 
@@ -208,9 +237,9 @@ function figure_krigeage_3d(P1, P2, F, Z, S, X_train, z_train, z_lim, ...
     lower.Annotation.LegendInformation.IconDisplayStyle = 'off';  % une seule entrée
 
     surf(P1, P2, F, 'FaceColor', 'b', 'FaceAlpha', alpha_field, 'EdgeColor', 'none');
-    mesh(P1, P2, Z, 'EdgeColor', 'r', 'FaceColor', 'none', ...
+    mesh(P1(im, jm), P2(im, jm), Z(im, jm), 'EdgeColor', 'r', 'FaceColor', 'none', ...
          'LineWidth', 0.5 * linewidth);
-    plot3(X_train(:,1), X_train(:,2), z_train, 'kx', 'MarkerSize', 8, ...
+    plot3(X_train(:,1), X_train(:,2), z_train, 'kx', 'MarkerSize', croix, ...
           'LineWidth', linewidth);
     hold off;
 

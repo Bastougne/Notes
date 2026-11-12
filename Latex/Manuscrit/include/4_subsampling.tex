@@ -2,7 +2,7 @@
 
 The goal of this section is to quantify the loss of accuracy introduced by the subsampling strategies of \cref{sec:AK_PF,sec:window_shape}. We first define two metrics for this error, and express them as functions of residual quantities that describe the information carried by the discarded data alone. We then derive bounds that do not require inverting any matrix of the size of these data.
 
-In this section, we use the setting and notations of \Cref{th:universal_kriging}, and we recall that ordinary kriging retained in this chapter corresponds to the special case $r_{\mathrm{UK}}=1$ and $g_1\equiv1$.
+In this section, we use the setting and notation of \Cref{th:universal_kriging}, and we recall that ordinary kriging retained in this chapter corresponds to the special case $r_{\mathrm{UK}}=1$ and $g_1\equiv1$.
 % Remis pour la v2 avec les bornes calculables, seules à utiliser M
 \begin{comment}
 In particular, we write:
@@ -16,9 +16,9 @@ for the covariance of the estimated trend coefficients $\hat{m}_{\mathrm{UK}}(\t
 
 Formally, subsampling is achieved by splitting
 \begin{equation}
-	\tilde{\mathbf{x}}=\begin{bmatrix}\tilde{\mathbf{x}}^r&\tilde{\mathbf{x}}^d\end{bmatrix}^\top\label{eq:subsampling_decomposition}
+	\tilde{\mathbf{x}}=\left(\tilde{\mathbf{x}}^r,\tilde{\mathbf{x}}^d\right)\label{eq:subsampling_decomposition}
 \end{equation}
-where $\tilde{\mathbf{x}}^r$ are the $\tilde{N}^r\in\mathbb{N}^*$ retained data, usually close to the considered kriging location $x\in\Omega$, and $\tilde{\mathbf{x}}^d$ are the $\tilde{N}^d\in\mathbb{N}^*$ discarded data, usually far from $x$. A similar operation is performed on $\tilde{\mathbf{z}}$. This decomposition provides the foundation for all subsequent error bounds, as it explicitly isolates the predictive contribution of the discarded points from that of the retained training set. We assume that $g(\tilde{\mathbf{x}}^r)$ has full column rank, which requires $\tilde{N}^r\geq r_{\mathrm{UK}}$, so that the subsampled estimator is well defined.
+where, up to a permutation of the training points, $\tilde{\mathbf{x}}^r$ are the $\tilde{N}^r\in\mathbb{N}^*$ retained data, usually close to the considered kriging location $x\in\Omega$, and $\tilde{\mathbf{x}}^d$ are the $\tilde{N}^d\in\mathbb{N}^*$ discarded data, usually far from $x$. A similar operation is performed on $\tilde{\mathbf{z}}$. This decomposition provides the foundation for all subsequent error bounds, as it explicitly isolates the predictive contribution of the discarded points from that of the retained training set. We assume that $g(\tilde{\mathbf{x}}^r)$ has full column rank, which requires $\tilde{N}^r\geq r_{\mathrm{UK}}$, so that the subsampled estimator is well defined.
 
 The retained and discarded data play the roles of $\tilde{\mathbf{x}}_{\mathrm{old}}$ and $\tilde{\mathbf{x}}_{\mathrm{new}}$ in \Cref{th:universal_kriging_update}, which obtains the full estimator by updating the subsampled one with the discarded batch. The error introduced by subsampling is therefore exactly the correction brought by this update.
 
@@ -335,18 +335,18 @@ where $\mathbf{S}_{d|r}$ is the Schur complement of $\bar{\mathbf{G}}(\tilde{\ma
 %Finally, \Cref{th:explicit_residuals} relates these quantities to their simple kriging counterparts.
 
 \begin{proposition}[Errors as Mahalanobis norms]\label{th:errors_euclidean}
-	Let $\langle\cdot|\cdot\rangle_{\mathbf{S}_{d|r}}$ be the Mahalanobis inner product weighted by the inverse of $\mathbf{S}_{d|r}$:
+	Let $\langle\cdot\mid\cdot\rangle_{\mathbf{S}_{d|r}}$ be the Mahalanobis inner product weighted by the inverse of $\mathbf{S}_{d|r}$:
 	\begin{equation}
-		\forall u,y\in\mathbb{R}^{\tilde{N}^dd_z},\:\langle u|y\rangle_{\mathbf{S}_{d|r}}\triangleq u^\top \mathbf{S}_{d|r}^{-1}y
+		\forall u,y\in\mathbb{R}^{\tilde{N}^dd_z},\:\langle u\mid y\rangle_{\mathbf{S}_{d|r}}\triangleq u^\top \mathbf{S}_{d|r}^{-1}y
 	\end{equation}
 	and $\|\cdot\|_{\mathbf{S}_{d|r}}$ the associated norm. By abuse of notation, we extend this definition to matrices whose columns lie in $\mathbb{R}^{\tilde{N}^dd_z}$, and extend $\|\cdot\|_{\mathbf{S}_{d|r}}$ to the operator norm induced by $\|\cdot\|_2$ and $\|\cdot\|_{\mathbf{S}_{d|r}}$ \cite{bib:matrix-norms}.
 
-	The kriging errors can be interpreted as metrics in the Euclidean space to which the columns of $\kappa_{d|r}(x)$ and $\tilde{\mathbf{z}}_{d|r}$ belong, namely $(\mathbb{R}^{\tilde{N}^dd_z},\:\langle\cdot|\cdot\rangle_{\mathbf{S}_{d|r}})$:
+	The kriging errors can be interpreted as metrics in the Euclidean space to which the columns of $\kappa_{d|r}(x)$ and $\tilde{\mathbf{z}}_{d|r}$ belong, namely $(\mathbb{R}^{\tilde{N}^dd_z},\:\langle\cdot\mid\cdot\rangle_{\mathbf{S}_{d|r}})$:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\zeta_{\mathbf{R}}(x)&=\langle \kappa_{d|r}(x)|\kappa_{d|r}(x)\rangle_{\mathbf{S}_{d|r}}\\
+		\zeta_{\mathbf{R}}(x)&=\langle \kappa_{d|r}(x)\mid\kappa_{d|r}(x)\rangle_{\mathbf{S}_{d|r}}\\
 		\sigma_{\mathbf{R}}(x)&=\|\kappa_{d|r}(x)\|_{\mathbf{S}_{d|r}}\\
-		\zeta_{\hat{z}}(x)&=\left\|\langle \kappa_{d|r}(x)|\tilde{\mathbf{z}}_{d|r}\rangle_{\mathbf{S}_{d|r}}\right\|_2
+		\zeta_{\hat{z}}(x)&=\left\|\langle \kappa_{d|r}(x)\mid\tilde{\mathbf{z}}_{d|r}\rangle_{\mathbf{S}_{d|r}}\right\|_2
 		\end{aligned}\right.
 	\end{equation}
 \end{proposition}
@@ -445,7 +445,7 @@ This section introduces two relations between $\sigma_{\mathbf{R}}(x)$ and $\zet
 \end{proof}
 
 \begin{remark}[Scalar field]
-	For a scalar field, a simpler, albeit more pessimistic, version of \Cref{th:concentration_inequality} can be derived from the inverse form of Mill's inequality \cite{bib:proba-course}:
+	For a scalar field, a simpler, albeit more pessimistic, version of \Cref{th:concentration_inequality} can be derived from the inverse form of Mills' inequality \cite{bib:proba-course}:
 	\begin{equation}
 		\forall\delta\in(0,1],\:\mathbb{P}\left(\zeta_{\hat{z}}(x)\leq\sqrt{2\ln\left(\frac{2}{\delta}\right)}\:\sigma_{\mathbf{R}}(x)\right)\geq1-\delta
 	\end{equation}

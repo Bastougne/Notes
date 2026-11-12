@@ -1,6 +1,6 @@
 \section{Monte Carlo Methods}\label{sec:Monte_Carlo}
 
-While Kalman-based extensions can alleviate some of the limitations of the original Kalman filter, they all enforce the PDF to be Gaussian at each time step. This assumption is often violated in practice, as navigation problems frequently involve highly non-linear and non-injective functions. In turn, these functions induce multimodal or heavy-tailed distributions, which cannot be adequately characterised by Gaussian hypotheses.
+While Kalman-based extensions can alleviate some of the limitations of the original Kalman filter, they all constrain the PDF to be Gaussian at each time step. This assumption is often violated in practice, as navigation problems frequently involve highly non-linear and non-injective functions. In turn, these functions induce multimodal or heavy-tailed distributions, which cannot be adequately characterised by Gaussian hypotheses.
 
 Monte Carlo (MC) methods \cite{bib:Metropolis,bib:SOD333-MC} offer an alternative approach that remains consistent under very mild assumptions. Their accuracy improves asymptotically with the number of samples, at the expense of an increased computational cost. This section introduces the main concepts for MC-based algorithms to solve the navigation problem \eqref{eq:navigation_problem}.
 
@@ -50,7 +50,7 @@ Since $\mu_p$ is a continuous measure, evaluating \eqref{eq:varphi_expectation_m
 \end{proposition}
 
 \begin{proof}
-	By linearity of the expectation and the transfer theorem, it comes that:
+	By linearity of the expectation and the law of the unconscious statistician, it comes that:
 	\begin{equation}
 		\begin{aligned}
 		\mathbb{E}_p\left[\left\langle S^N(\mu_p),\varphi\right\rangle\right]&=\frac{1}{N}\sum_{i=1}^N\mathbb{E}_p\left[\varphi\left(X^{(i)}\right)\right]\\
@@ -84,12 +84,12 @@ in the sense that, for any measurable function $\varphi$ such that $\varphi(X)$ 
 
 The standard MC method requires sampling directly from $\mu_p$, which can be complex in practice. Importance sampling \cite{bib:importance-sampling} circumvents this issue by drawing from a chosen importance, or proposal, distribution $\mu_q$ with density $q$.
 
-Assuming that $\operatorname{supp}(p)\subseteq\operatorname{supp}(q)$, and for $x\in\operatorname{supp}(q)$, it follows from the identity $p(x)=\frac{p(x)}{q(x)}\:q(x)$ and the transfer theorem that:
+Assuming that $\operatorname{supp}(p)\subseteq\operatorname{supp}(q)$, and for $x\in\operatorname{supp}(q)$, it follows from the identity $p(x)=\frac{p(x)}{q(x)}\:q(x)$ and the law of the unconscious statistician that:
 \begin{equation}
 	\mathbb{E}_p[\varphi(X)]=\int{\left(\varphi(x)\:\frac{p(x)}{q(x)}\right)\:q(x)\:dx}=\mathbb{E}_q\left[\varphi(X)\:\frac{p(X)}{q(X)}\right]
 \end{equation}
 
-Using measure theory notations, this is equivalent to writing:
+Using measure theory notation, this is equivalent to writing:
 \begin{equation}
 	\langle\mu_p,\varphi\rangle=\left\langle\mu_q,\frac{d\mu_p}{d\mu_q}\:\varphi\right\rangle
 \end{equation}
@@ -116,7 +116,7 @@ Pairing this measure with a test function $\varphi$ yields the weighted MC estim
 	\end{equation}
 	is unbiased and consistent:
 	\begin{align}
-		\mathbb{E}_p\left[\left\langle S^N(\mu_p,\mu_q),\varphi\right\rangle\right]&=\mathbb{E}_p[\varphi(X)]\\
+		\mathbb{E}_q\left[\left\langle S^N(\mu_p,\mu_q),\varphi\right\rangle\right]&=\mathbb{E}_p[\varphi(X)]\\
 		\left\langle S^N(\mu_p,\mu_q),\varphi\right\rangle&\overset{a.s.}{\longrightarrow}\mathbb{E}_p[\varphi(X)]
 	\end{align}
 
@@ -182,56 +182,56 @@ converges a.s. to $1$, but each finite sample is not necessarily normalised. Fur
 
 \subsection{Sequential Importance Sampling}
 
-In the filtering context, the target distribution is the joint posterior $p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$ over the entire state trajectory. As new observations arrive, this distribution grows in dimension, making a static importance sampling approach impractical. Sequential importance sampling (SIS) \cite{bib:SMC-Bayesian,bib:intro-SMC} addresses this by updating the weights recursively rather than re-approximating the full trajectory at every time step.
+In the filtering context, the target distribution is the joint posterior $p(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})$ over the entire state trajectory. As new observations arrive, this distribution grows in dimension, making a static importance sampling approach impractical. Sequential importance sampling (SIS) \cite{bib:SMC-Bayesian,bib:intro-SMC} addresses this by updating the weights recursively rather than re-approximating the full trajectory at every time step.
 
 \begin{assumption}[SIS hypotheses]\label{th:SIS_hypotheses}
 	In addition to \Cref{th:Markov,th:observation_independence}, we assume that the proposal density of the previous state does not depend on the current observation:
 	\begin{equation}
-		q(\mathbf{x}_{0:k-1}|\mathbf{z}_{1:k})=q(\mathbf{x}_{0:k-1}|\mathbf{z}_{1:k-1})
+		q(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k})=q(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})
 	\end{equation}
 \end{assumption}
 
 This assumption enables the following factorisation:
 \begin{equation}
 	\begin{aligned}
-	q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})&=q(x_k,\mathbf{x}_{0:k-1}|\mathbf{z}_{1:k})\\
-	&=q(x_k|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})\:q(\mathbf{x}_{0:k-1}|\mathbf{z}_{1:k})\\
-	&=q(x_k|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})\:q(\mathbf{x}_{0:k-1}|\mathbf{z}_{1:k-1})
+	q(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})&=q(x_k,\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k})\\
+	&=q(x_k\mid\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})\:q(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k})\\
+	&=q(x_k\mid\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})\:q(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})
 	\end{aligned}
 \end{equation}
 
 While \Cref{th:SIS_hypotheses} is sufficient to derive the SIS algorithm, an additional assumption is often considered:
 \begin{equation}
-	q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})=q(x_k|x_{k-1},z_k)\:q(\mathbf{x}_{0:k-1}|\mathbf{z}_{1:k-1})\label{eq:simplification_q}
+	q(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})=q(x_k\mid x_{k-1},z_k)\:q(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})\label{eq:simplification_q}
 \end{equation}
 so that a new particle $x_k^{(i)}$ can be propagated from $x_{k-1}^{(i)}$ and $z_k$ alone.
 
 Using \Cref{th:Markov,th:observation_independence} at time $k$, the PDF factorises as:
 \begin{equation}
 	\begin{aligned}
-		p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})&=p(\mathbf{x}_{0:k}|z_k,\mathbf{z}_{1:k-1})\\
-		&=\frac{p(z_k|\mathbf{x}_{0:k},\mathbf{z}_{1:k-1})\:p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k-1})}{p(z_k|\mathbf{z}_{1:k-1})}\\
-		&=\frac{p(z_k|\mathbf{x}_{0:k},\mathbf{z}_{1:k-1})\:p(x_k,\mathbf{x}_{0:k-1}|\mathbf{z}_{1:k-1})}{p(z_k|\mathbf{z}_{1:k-1})}\\
-		&=\frac{p(z_k|\mathbf{x}_{0:k},\mathbf{z}_{1:k-1})\:p(x_k|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1})\:p(\mathbf{x}_{0:k-1}|\mathbf{z}_{1:k-1})}{p(z_k|\mathbf{z}_{1:k-1})}\\
-		&=\frac{p(z_k|x_k)\:p(x_k|x_{k-1})\:p(\mathbf{x}_{0:k-1}|\mathbf{z}_{1:k-1})}{p(z_k|\mathbf{z}_{1:k-1})}\\
-		&\propto p(z_k|x_k)\:p(x_k|x_{k-1})\:p(\mathbf{x}_{0:k-1}|\mathbf{z}_{1:k-1})
+		p(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})&=p(\mathbf{x}_{0:k}\mid z_k,\mathbf{z}_{1:k-1})\\
+		&=\frac{p(z_k\mid\mathbf{x}_{0:k},\mathbf{z}_{1:k-1})\:p(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k-1})}{p(z_k\mid\mathbf{z}_{1:k-1})}\\
+		&=\frac{p(z_k\mid\mathbf{x}_{0:k},\mathbf{z}_{1:k-1})\:p(x_k,\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})}{p(z_k\mid\mathbf{z}_{1:k-1})}\\
+		&=\frac{p(z_k\mid\mathbf{x}_{0:k},\mathbf{z}_{1:k-1})\:p(x_k\mid\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1})\:p(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})}{p(z_k\mid\mathbf{z}_{1:k-1})}\\
+		&=\frac{p(z_k\mid x_k)\:p(x_k\mid x_{k-1})\:p(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})}{p(z_k\mid\mathbf{z}_{1:k-1})}\\
+		&\propto p(z_k\mid x_k)\:p(x_k\mid x_{k-1})\:p(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})
 	\end{aligned}\label{eq:recursive_p}
 \end{equation}
 
 Let $\mathbf{x}_{0:k}^{(i)}$ denote the sequence $\left(x_0^{(i)},\dots,x_k^{(i)}\right)$. The recursive weight update is obtained by combining \eqref{eq:recursive_p} with \Cref{th:SIS_hypotheses}:
 \begin{equation}
 	\begin{aligned}
-	w_k^{(i)}&\propto\frac{\tilde{p}\left(\mathbf{x}_{0:k}^{(i)}|\mathbf{z}_{1:k}\right)}{\tilde{q}\left(\mathbf{x}_{0:k}^{(i)}|\mathbf{z}_{1:k}\right)}\\
-	&\propto\frac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)\:\tilde{p}\left(\mathbf{x}_{0:k-1}^{(i)}|\mathbf{z}_{1:k-1}\right)}{\tilde{q}\left(x_k^{(i)}|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)\:\tilde{q}\left(\mathbf{x}_{0:k-1}^{(i)}|\mathbf{z}_{1:k-1}\right)}\\
-	&\propto w_{k-1}^{(i)}\:\frac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}
+	w_k^{(i)}&\propto\frac{\tilde{p}\left(\mathbf{x}_{0:k}^{(i)}\:\middle|\:\mathbf{z}_{1:k}\right)}{\tilde{q}\left(\mathbf{x}_{0:k}^{(i)}\:\middle|\:\mathbf{z}_{1:k}\right)}\\
+	&\propto\frac{\tilde{p}\left(z_k\:\middle|\:x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}\:\middle|\:x_{k-1}^{(i)}\right)\:\tilde{p}\left(\mathbf{x}_{0:k-1}^{(i)}\:\middle|\:\mathbf{z}_{1:k-1}\right)}{\tilde{q}\left(x_k^{(i)}\:\middle|\:\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)\:\tilde{q}\left(\mathbf{x}_{0:k-1}^{(i)}\:\middle|\:\mathbf{z}_{1:k-1}\right)}\\
+	&\propto w_{k-1}^{(i)}\:\frac{\tilde{p}\left(z_k\:\middle|\:x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}\:\middle|\:x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}\:\middle|\:\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}
 	\end{aligned}\label{eq:weight_update}
 \end{equation}
 with the further simplification under the hypothesis of \eqref{eq:simplification_q}:
 \begin{equation}
-	w_k^{(i)}\propto w_{k-1}^{(i)}\:\frac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|x_{k-1}^{(i)},z_k\right)}
+	w_k^{(i)}\propto w_{k-1}^{(i)}\:\frac{\tilde{p}\left(z_k\:\middle|\:x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}\:\middle|\:x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}\:\middle|\:x_{k-1}^{(i)},z_k\right)}
 \end{equation}
 
-While the current formulation allows us to approximate the density of the full trajectory $p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$ through the self-normalised measure of \Cref{th:self_normalised_measure}, we often only want to estimate the current state $x_k$. This can be done naturally by letting $\pi_k$ denote the projection of a $(k+1)$-tuple onto its last element:
+While the current formulation allows us to approximate the density of the full trajectory $p(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})$ through the self-normalised measure of \Cref{th:self_normalised_measure}, we often only want to estimate the current state $x_k$. This can be done naturally by letting $\pi_k$ denote the projection of a $(k+1)$-tuple onto its last element:
 \begin{equation}
 	\pi_k:\left\{\begin{aligned}
 	\left(\mathbb{R}^{d_x}\right)^{k+1}&\to\mathbb{R}^{d_x}\\
@@ -242,7 +242,7 @@ and computing the self-normalised estimator for $\varphi=\pi_k$, which approxima
 \begin{equation}
 	\hat{x}_k\triangleq\left\langle\tilde{S}^N(\mu_{p,k},\mu_{q,k}),\pi_k\right\rangle=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}\approx\mathbb{E}_{p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}[x_k]\label{eq:PF_MMSE}
 \end{equation}
-where $\mu_{p,k}(dx)\triangleq\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$ and $\mu_{q,k}(dx)\triangleq\tilde{q}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$. The corresponding empirical covariance matrix is:
+where $\mu_{p,k}(dx)\triangleq\tilde{p}(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})\:dx$ and $\mu_{q,k}(dx)\triangleq\tilde{q}(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})\:dx$. The corresponding empirical covariance matrix is:
 \begin{equation}
 	\hat{\mathbf{P}}_k\triangleq\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\hat{x}_k\right)\left(x_k^{(i)}-\hat{x}_k\right)^\top
 \end{equation}
@@ -250,15 +250,15 @@ where $\mu_{p,k}(dx)\triangleq\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\:dx$ 
 The other estimators of \cref{sec:state_estimation} remain accessible, though they are not as immediate:
 \begin{itemize}
 	\item For a scalar state, the MMAE estimator only requires the cumulative distribution function, which $\tilde{S}^N(\mu_{p,k},\mu_{q,k})$ does define, and is obtained by accumulating the weights of the sorted particles until the total exceeds $\frac{1}{2}$. Its extension to a vector state is however not straightforward.
-	\item The MAP estimator, on the other hand, calls for a density, which the particle approximation does not possess. In particular, $\hat{\psi}_{\mathrm{MAP}}(\mathbf{z}_{1:k})$ cannot be computed using the weights, since they are importance ratios rather than density values. The heaviest particle maximises the Radon-Nikodym derivative rather than the PDF itself, and maximising $\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})$ over the particles only locates a mode among the sampled locations.
+	\item The MAP estimator, on the other hand, calls for a density, which the particle approximation does not possess. In particular, $\hat{\psi}_{\mathrm{MAP}}(\mathbf{z}_{1:k})$ cannot be computed using the weights, since they are importance ratios rather than density values. The heaviest particle maximises the Radon-Nikodym derivative rather than the PDF itself, and maximising $\tilde{p}(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})$ over the particles only locates a mode among the sampled locations.
 \end{itemize}
 
 As for the optimal and Kalman filters, the SIS algorithm follows the prediction/correction loop. The prediction step corresponds to the sampling of the new particle set through the proposal density, and is often called particle propagation. Conversely, the correction step is the weight update of \eqref{eq:weight_update}. The SIS algorithm is given by \Cref{alg:SIS}.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim q\left(\cdot|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)$}\Comment{Particle propagation}
-	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\dfrac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}$}\Comment{Weight update}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim q\left(\cdot\:\middle|\:\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)$}\Comment{Particle propagation}
+	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\dfrac{\tilde{p}\left(z_k\:\middle|\:x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}\:\middle|\:x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}\:\middle|\:\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}$}\Comment{Weight update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
 	\end{algorithmic}\caption{Sequential Importance Sampling}\label{alg:SIS}
 \end{algorithm}
@@ -266,19 +266,19 @@ As for the optimal and Kalman filters, the SIS algorithm follows the prediction/
 \begin{remark}[Feynman-Kac distribution]
 	The recurrence \eqref{eq:recursive_p} can be expanded:
 	\begin{equation}
-		p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})\propto p(x_0)\prod_{j=1}^kp(x_j|x_{j-1})\times\prod_{j=1}^kp(z_j|x_j)
+		p(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})\propto p(x_0)\prod_{j=1}^kp(x_j\mid x_{j-1})\times\prod_{j=1}^kp(z_j\mid x_j)
 	\end{equation}
-	to show that the PDF is a Feynman-Kac distribution \cite{bib:Feynman-Kac,bib:SOD333-FK}, with the transitions $p(x_j|x_{j-1})$ acting as the mutation and the likelihoods $p(z_j|x_j)$ as the selection function. Rather than being an artifice used to cancel the unknown constants, the self-normalisation introduced in \Cref{th:self_normalised_measure} is thus, more fundamentally, the normalisation of this distribution.
+	to show that the PDF is a Feynman-Kac distribution \cite{bib:Feynman-Kac,bib:SOD333-FK}, with the transitions $p(x_j\mid x_{j-1})$ acting as the mutation and the likelihoods $p(z_j\mid x_j)$ as the selection function. Rather than being an artifice used to cancel the unknown constants, the self-normalisation introduced in \Cref{th:self_normalised_measure} is thus, more fundamentally, the normalisation of this distribution.
 \end{remark}
 
-\subsubsection{Numerical correction of the covariance matrix}\label{sec:covariance_correction}
+\subsubsection{Numerical Correction of the Covariance Matrix}\label{sec:covariance_correction}
 
 For numerical reasons, the estimated covariance matrix $\hat{\mathbf{P}}_k$ may not satisfy SPD properties in practice. While an analytic reformulation exists for the Kalman filter, the numerical nature of MC methods prevents a similar solution. Formally, we want to find the closest matrix $\mathbf{M}_+^*\succ0$ to $\hat{\mathbf{P}}_k$ in the sense of the Frobenius norm:
 \begin{equation}
 	\mathbf{A}\in\mathcal{M}_{d_x,d_x}(\mathbb{R})\mapsto\|\mathbf{A}\|_F\triangleq\sqrt{\sum_{i=1}^{d_x}\sum_{j=1}^{d_x}{A_{i,j}}^2}
 \end{equation}
 
-If $d_x=1$, the positive real $m_+\in\mathbb{R}_+$ closest to some real $m\in\mathbb{R}$ is:
+Since the set of SPD matrices is open in the space of symmetric matrices, the infimum is reached by a matrix that is only SPSD. We thus first compute this matrix, and then make it SPD by shifting its eigenvalues by a small positive value. If $d_x=1$, the non-negative real $m_+\in\mathbb{R}_+$ closest to some real $m\in\mathbb{R}$ is:
 \begin{equation}
 	m_+=\frac{m+|m|}{2}
 \end{equation}
@@ -312,40 +312,70 @@ For small enough values of $\epsilon$, $\mathbf{M}_+^*$ is the desired matrix.
 
 \subsection{Weight Degeneracy}
 
-A fundamental limitation of SIS is that the variance of the importance weights accumulates along the trajectory \cite{bib:sequential-imputations} as shown by \Cref{th:variance_weights}.
+A fundamental limitation of SIS is that the variance of the importance weights can only increase over time when the observations are interpreted as random variables \cite{bib:sequential-imputations}, as shown by \Cref{th:variance_weights}.
 
 \begin{proposition}[Weight degeneracy]\label{th:variance_weights}
-	Let $\mathbf{x}_{0:k}\sim\mu_{q,k}$, and let $\tilde{w}_k$ denote the non-normalised weight associated with the entire trajectory:
+	Under \Cref{th:SIS_hypotheses}, let $\mathbf{z}_{1:k}$ and $\mathbf{x}_{0:k}$ be distributed according to $p(\mathbf{z}_{1:k})$ and $q(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})$ respectively. Let $\tilde{w}_k$ denote the non-normalised weight associated with the entire trajectory, taken with $C_p=C_q=1$ and assumed square-integrable:
 	\begin{equation}
-		\tilde{w}_k\triangleq\frac{\tilde{p}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}{\tilde{q}(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}
+		\tilde{w}_k\triangleq\frac{p(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})}{q(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})}
 	\end{equation}
 
-	Its variance decomposes as:
+	Then $(\tilde{w}_k)_{k\in\mathbb{N}}$ is a martingale:
 	\begin{equation}
-		\begin{aligned}
-		\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\tilde{w}_k\right]&=\mathbb{E}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]\right]\\
-		&\qquad+\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\mathbb{E}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]\right]
-		\end{aligned}\label{eq:weight_variance}
+		\mathbb{E}\left[\tilde{w}_k\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]=\tilde{w}_{k-1}
 	\end{equation}
-	where the first term is non-negative, and vanishes if and only if $\tilde{w}_k$ is a.s. determined by $\mathbf{x}_{0:k-1}$.
+	and its variance can only increase:
+	\begin{equation}
+		\mathbb{V}\left[\tilde{w}_k\right]=\mathbb{V}\left[\tilde{w}_{k-1}\right]+\mathbb{E}\left[\mathbb{V}\left[\tilde{w}_k\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]\right]\geq\mathbb{V}\left[\tilde{w}_{k-1}\right]\label{eq:weight_variance}
+	\end{equation}
+	where $\mathbb{E}$ and $\mathbb{V}$ denote the expectation and the variance taken under the joint density $q(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})\:p(\mathbf{z}_{1:k})$.
 \end{proposition}
 
 \begin{proof}
-	\eqref{eq:weight_variance} is the law of total variance. Being the expectation of a non-negative quantity, its first term vanishes if and only if $\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}[\tilde{w}_k|\mathbf{x}_{0:k-1}]$ is a.s. zero, that is if and only if $\tilde{w}_k$ is a.s. determined by $\mathbf{x}_{0:k-1}$.
+	Given $(\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1})$, $z_k$ is drawn from $p(z_k\mid\mathbf{z}_{1:k-1})$, and then $x_k$ from $q(x_k\mid\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})$. Thus:
+	\begin{equation}
+		\begin{aligned}
+		\mathbb{E}\left[\tilde{w}_k\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]&=\iint{\frac{p(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})\:p(z_k\mid\mathbf{z}_{1:k-1})}{q(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})}\:dx_k\:dz_k}\\
+		&=\frac{1}{q(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})}\iint{p(\mathbf{x}_{0:k},z_k\mid\mathbf{z}_{1:k-1})\:dx_k\:dz_k}\\
+		&=\frac{p(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})}{q(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})}\\
+		&=\tilde{w}_{k-1}
+		\end{aligned}
+	\end{equation}
+
+	By \Cref{th:SIS_hypotheses}, integrating out $(x_k,z_k)$ leaves the joint density $q(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})\:p(\mathbf{z}_{1:k-1})$, so that $\mathbb{V}[\tilde{w}_{k-1}]$ is the same at times $k-1$ and $k$. Conditioning on $(\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1})$, the law of total variance then gives:
+	\begin{equation}
+		\begin{aligned}
+		\mathbb{V}\left[\tilde{w}_k\right]&=\mathbb{E}\left[\mathbb{V}\left[\tilde{w}_k\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]\right]+\mathbb{V}\left[\mathbb{E}\left[\tilde{w}_k\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]\right]\\
+		&=\mathbb{E}\left[\mathbb{V}\left[\tilde{w}_k\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]\right]+\mathbb{V}\left[\tilde{w}_{k-1}\right]
+		\end{aligned}
+	\end{equation}
+
+	The first term being the expectation of a non-negative quantity, it is non-negative.
 \end{proof}
 
-Given $\mathbf{x}_{0:k-1}$, the only randomness remaining in \eqref{eq:weight_variance} is the draw of $x_k$. The inner variance measures its effect, while the inner expectation integrates it out and leaves a function of $\mathbf{x}_{0:k-1}$. The first term therefore corresponds to the variance injected by $x_k$ and the second is the variance inherited from the past.
+Taking $C_p=C_q=1$ is without loss of generality, since these constants do not depend on $\mathbf{x}_{0:k}$, and thus cancel in the normalised weights. The increment of \eqref{eq:weight_variance} comes from the draws of $z_k$ and $x_k$, which the law of total variance separates:
+\begin{equation}
+	\begin{aligned}
+	\mathbb{V}\left[\tilde{w}_k\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]&=\mathbb{E}\left[\mathbb{V}\left[\tilde{w}_k\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k}\right]\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]\\
+	&\qquad+\mathbb{V}\left[\mathbb{E}\left[\tilde{w}_k\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k}\right]\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]
+	\end{aligned}\label{eq:weight_variance_increment}
+\end{equation}
 
-As each step adds to the previous ones, the weight distribution typically concentrates on a small number of particles, and so \eqref{eq:self_normalised_estimator} becomes a poor approximation of the PDF. While degeneracy occurs in most cases, \Cref{th:optimal_proposal} exhibits a proposal density that eliminates the additional variance introduced at the current step.
+The first term corresponds to the variance injected by $x_k$, and the second to the variance injected by $z_k$. The latter does not depend on the proposal density, since:
+\begin{equation}
+	\mathbb{E}\left[\tilde{w}_k\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k}\right]=\frac{p(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k})}{q(\mathbf{x}_{0:k-1}\mid\mathbf{z}_{1:k-1})}=\tilde{w}_{k-1}\:\frac{p(z_k\mid x_{k-1})}{p(z_k\mid\mathbf{z}_{1:k-1})}
+\end{equation}
+
+As this variance can only increase, the weight distribution typically concentrates on a small number of particles, and so \eqref{eq:self_normalised_estimator} becomes a poor approximation of the PDF. While degeneracy occurs in most cases, \Cref{th:optimal_proposal} exhibits a proposal density that eliminates the variance injected by $x_k$, that is the first term of \eqref{eq:weight_variance_increment}.
 
 \begin{proposition}[Optimal proposal density]\label{th:optimal_proposal}
 	When the proposal density is the posterior transition:
 	\begin{equation}
-		q(x_k|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})=p(x_k|x_{k-1},z_k)\label{eq:optimal_proposal}
+		q(x_k\mid\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})=p(x_k\mid x_{k-1},z_k)\label{eq:optimal_proposal}
 	\end{equation}
-	the trajectory weight is determined by $\mathbf{x}_{0:k-1}$, so that the variance introduced at step $k$ vanishes:
+	the trajectory weight is determined by $\mathbf{x}_{0:k-1}$, so that the variance induced by $x_k$ vanishes:
 	\begin{equation}
-		\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\tilde{w}_k|\mathbf{x}_{0:k-1}\right]=0
+		\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\tilde{w}_k\:\middle|\:\mathbf{x}_{0:k-1}\right]=0
 	\end{equation}
 \end{proposition}
 
@@ -353,35 +383,35 @@ As each step adds to the previous ones, the weight distribution typically concen
 	Plugging \eqref{eq:optimal_proposal} into \eqref{eq:weight_update} yields:
 	\begin{equation}
 		\begin{aligned}
-		\tilde{w}_k&\propto\tilde{w}_{k-1}\:\frac{\tilde{p}(z_k|x_k)\:\tilde{p}(x_k|x_{k-1})}{\tilde{q}(x_k|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})}\\
-		&\propto\tilde{w}_{k-1}\:\frac{\tilde{p}(z_k|x_k)\:\tilde{p}(x_k|x_{k-1})}{\tilde{p}(x_k|x_{k-1},z_k)}\\
-		&\propto\tilde{w}_{k-1}\:\frac{\tilde{p}(z_k|x_k)\:\tilde{p}(x_k|x_{k-1})}{\dfrac{\tilde{p}(z_k|x_k,x_{k-1})\:\tilde{p}(x_k|x_{k-1})}{\tilde{p}(z_k|x_{k-1})}}\\
-		&\propto\tilde{w}_{k-1}\:\tilde{p}(z_k|x_{k-1})\:\frac{\tilde{p}(z_k|x_k)}{\tilde{p}(z_k|x_k,x_{k-1})}\\
-		&\propto\tilde{w}_{k-1}\:\tilde{p}(z_k|x_{k-1})
+		\tilde{w}_k&\propto\tilde{w}_{k-1}\:\frac{\tilde{p}(z_k\mid x_k)\:\tilde{p}(x_k\mid x_{k-1})}{\tilde{q}(x_k\mid\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})}\\
+		&\propto\tilde{w}_{k-1}\:\frac{\tilde{p}(z_k\mid x_k)\:\tilde{p}(x_k\mid x_{k-1})}{\tilde{p}(x_k\mid x_{k-1},z_k)}\\
+		&\propto\tilde{w}_{k-1}\:\frac{\tilde{p}(z_k\mid x_k)\:\tilde{p}(x_k\mid x_{k-1})}{\dfrac{\tilde{p}(z_k\mid x_k,x_{k-1})\:\tilde{p}(x_k\mid x_{k-1})}{\tilde{p}(z_k\mid x_{k-1})}}\\
+		&\propto\tilde{w}_{k-1}\:\tilde{p}(z_k\mid x_{k-1})\:\frac{\tilde{p}(z_k\mid x_k)}{\tilde{p}(z_k\mid x_k,x_{k-1})}\\
+		&\propto\tilde{w}_{k-1}\:\tilde{p}(z_k\mid x_{k-1})
 		\end{aligned}
 	\end{equation}
 
 	Both factors being functions of $\mathbf{x}_{0:k-1}$ alone, $\tilde{w}_k$ is determined by the conditioning, and its conditional variance is therefore zero.
 \end{proof}
 
-Using \Cref{th:optimal_proposal}, the draw of $x_k$ thus leaves $\tilde{w}_k$ untouched, but reaches $\tilde{w}_{k+1}$ through $\tilde{p}(z_{k+1}|x_k)$. Its contribution is deferred by one step rather than suppressed, and so this density delays the degeneracy rather than completely removing it. Furthermore, sampling from the posterior transition requires computing the marginal likelihood:
+Using \Cref{th:optimal_proposal}, the draw of $x_k$ thus leaves $\tilde{w}_k$ untouched, but reaches $\tilde{w}_{k+1}$ through $\tilde{p}(z_{k+1}\mid x_k)$. Its contribution is deferred by one step rather than suppressed, and so this density delays the degeneracy rather than completely removing it. Furthermore, sampling from the posterior transition requires computing the marginal likelihood:
 \begin{equation}
-	p\left(z_k|x_{k-1}^{(i)}\right)=\int{p\left(z_k|x_k^{(i)}\right)p\left(x_k^{(i)}|x_{k-1}^{(i)}\right)\:dx_k^{(i)}}
+	p\left(z_k\:\middle|\:x_{k-1}^{(i)}\right)=\int{p\left(z_k\:\middle|\:x_k^{(i)}\right)p\left(x_k^{(i)}\:\middle|\:x_{k-1}^{(i)}\right)\:dx_k^{(i)}}
 \end{equation}
 which is generally intractable.
 
 A common alternative is to use the prior, or transition, density:
 \begin{equation}
-	q(x_k|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})=p(x_k|x_{k-1})\label{eq:prior_proposal}
+	q(x_k\mid\mathbf{x}_{0:k-1},\mathbf{z}_{1:k})=p(x_k\mid x_{k-1})\label{eq:prior_proposal}
 \end{equation}
 which is easier to compute, but ignores the current observation during propagation.
 
 The prior density also simplifies the weight update \eqref{eq:weight_update} to:
 \begin{equation}
-	w_k^{(i)}\propto w_{k-1}^{(i)}\:\tilde{p}\left(z_k|x_k^{(i)}\right)\label{eq:weight_update_prior}
+	w_k^{(i)}\propto w_{k-1}^{(i)}\:\tilde{p}\left(z_k\:\middle|\:x_k^{(i)}\right)\label{eq:weight_update_prior}
 \end{equation}
 
-However, because the particles are propagated without regard to $z_k$, their incremental weight is simply the likelihood $\tilde{p}\left(z_k|x_k^{(i)}\right)$. When this likelihood is peaked, most particles land where it is negligible. Only a few particles then carry most of the weight, which causes the degeneracy to accelerate. The prior is thus a less effective proposal in highly informative observation regimes.
+However, because the particles are propagated without regard to $z_k$, their incremental weight is simply the likelihood $\tilde{p}\left(z_k\:\middle|\:x_k^{(i)}\right)$. When this likelihood is peaked, most particles land where it is negligible. Only a few particles then carry most of the weight, which causes the degeneracy to accelerate. The prior is thus a less effective proposal in highly informative observation regimes.
 
 \subsection{Sampling Importance Resampling}
 
@@ -392,14 +422,14 @@ Weight degeneracy is intrinsic to SIS and worsens with time unless the proposal 
 
 It also uses the transition density as proposal \eqref{eq:prior_proposal}, which further reduces \eqref{eq:weight_update_prior} to:
 \begin{equation}
-	w_k^{(i)}\propto\tilde{p}\left(z_k|x_k^{(i)}\right)
+	w_k^{(i)}\propto\tilde{p}\left(z_k\:\middle|\:x_k^{(i)}\right)
 \end{equation}
-since all weights are reset to $1/N$ after resampling. This makes the SIR applicable under very weak assumptions, only requiring the ability to sample from $p(\cdot|x_{k-1})$ and compute the likelihood $p(z_k|x_k)$. Its pseudo-code is given by \Cref{alg:SIR}.
+since all weights are reset to $1/N$ after resampling. This makes the SIR applicable under very weak assumptions, only requiring the ability to sample from $p(\cdot\mid x_{k-1})$ and compute the likelihood $p(z_k\mid x_k)$. Its pseudo-code is given by \Cref{alg:SIR}.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{(i)}\right)$}\Comment{Particle propagation}
-	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=\tilde{p}\left(z_k|x_k^{(i)}\right)$}\Comment{Weight update}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot\:\middle|\:x_{k-1}^{(i)}\right)$}\Comment{Particle propagation}
+	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=\tilde{p}\left(z_k\:\middle|\:x_k^{(i)}\right)$}\Comment{Weight update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
 	\State{$\left\{x_k^{(j)},w_k^{(j)},-\right\}_{j=1}^N\gets\operatorname{Resampling}\left(\left\{x_k^{(i)},w_k^{(i)}\right\}_{i=1}^N\right)$}\Comment{Resampling}
 	\end{algorithmic}\caption{Sampling Importance Resampling}\label{alg:SIR}
@@ -409,7 +439,7 @@ since all weights are reset to $1/N$ after resampling. This makes the SIR applic
 
 Several resampling algorithms \cite{bib:resampling-methods,bib:resampling-comparison} can be used in \eqref{eq:resampling}. We present three algorithms, which all select a new particle set from the particle approximation of the PDF:
 \begin{equation}
-	p(x_k|\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{(i)}\:\delta_{x_k^{(i)}}
+	p(x_k\mid\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{(i)}\:\delta_{x_k^{(i)}}
 \end{equation}
 
 Drawing a particle from this discrete measure amounts to drawing its index $i\in[\![1,N]\!]$ from the categorical distribution of the weights $\left(w_k^{(i)}\right)_{i\in[\![1,N]\!]}$ through its cumulative distribution function (CDF):
@@ -445,7 +475,7 @@ The main difference between the three algorithms lies in how the $N$ samples $(u
 		\end{aligned}\right.
 	\end{equation}
 	This significantly reduces the variance of the resampling step and is generally preferred in practice.
-	\item \textbf{Deterministic resampling.} All samples are deterministic such that, for some $m\in[0,1]$:
+	\item \textbf{Deterministic resampling.} All samples are deterministic such that, for some $m\in(0,1]$:
 	\begin{equation}
 		u_j=(j-m)/N,\:j\in[\![1,N]\!]
 	\end{equation}
@@ -473,5 +503,5 @@ Some advanced filters, such as the auxiliary particle filter, presented in \cref
 \end{algorithm}
 
 \begin{remark}[Loss of independence]\label{th:loss_independence}
-	Because resampling duplicates particles, the resulting set is no longer independent, and the i.i.d. results of \Cref{th:MC_estimator,th:weighted_MC} no longer apply. However, the resampling is unbiased and the propagation step draws the particles independently conditionally on the past. The Feynman-Kac formalism proves \cite{bib:PF-convergence,bib:these-Oudjane} that consistency and asymptotic Gaussianity still hold in this scenario, at the price of a variance larger than in the independent case and which accumulates over time.
+	Because resampling duplicates particles, the resulting set is no longer independent, and the i.i.d. results of \Cref{th:MC_estimator,th:weighted_MC} no longer apply. However, the multinomial and systematic resamplings are unbiased and the propagation step draws the particles independently conditionally on the past. The Feynman-Kac formalism proves \cite{bib:PF-convergence,bib:these-Oudjane} that consistency and asymptotic Gaussianity still hold in this scenario, at the price of a variance larger than in the independent case and which accumulates over time for the whole trajectory, while remaining bounded in time for the marginal $p(x_k\mid\mathbf{z}_{1:k})$.
 \end{remark}

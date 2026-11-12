@@ -19,17 +19,17 @@ The SIR resamples at every time step, which eliminates weight degeneracy but com
 
 To limit both issues, the generic particle filter (PF) \cite{bib:PF-Sarkka} resamples only when the weight distribution has degraded significantly. This degradation is measured by the effective sample size \cite{bib:sequential-imputations}:
 \begin{equation}
-	N_{\mathrm{eff}}\triangleq\frac{N}{1+\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\dfrac{p(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\right]}
+	N_{\mathrm{eff}}\triangleq\frac{N}{1+\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}\left[\dfrac{p(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})}{q(\mathbf{x}_{0:k}\mid\mathbf{z}_{1:k})}\right]}
 \end{equation}
 
-Its denominator increases with the variance of the importance weights, whose growth over time corresponds to the weight degeneracy characterised by \Cref{th:variance_weights}. When all the weights are uniform, the variance is zero, and thus $N_{\mathrm{eff}}=N$. Conversely, the more unevenly they are distributed, the smaller $N_{\mathrm{eff}}$, with $N_{\mathrm{eff}}\to1$ when the mass concentrates on a single particle.
+Its denominator increases with the variance of the importance weights, whose growth over time corresponds to the weight degeneracy characterised by \Cref{th:variance_weights}. When all the weights are uniform, the variance is zero, and thus $N_{\mathrm{eff}}=N$. Conversely, the more unevenly they are distributed, the smaller $N_{\mathrm{eff}}$, with $N_{\mathrm{eff}}\to0$ as the mass concentrates on a single particle.
 
 Since the true importance weights are unknown, $N_{\mathrm{eff}}$ is estimated by replacing $\mathbb{V}_{q(\mathbf{x}_{0:k}|\mathbf{z}_{1:k})}[\cdot]$ with the empirical spread of the normalised weights \cite{bib:SMC-dynamic}, which gives:
 \begin{equation}
 	\hat{N}_{\mathrm{eff}}\triangleq\frac{1}{\displaystyle\sum_{i=1}^N\left(w_k^{(i)}\right)^2}\leq N
 \end{equation}
 
-Like $N_{\mathrm{eff}}$, this quantity ranges from $N$ for uniform weights, down to $1$ in the fully degenerate case. The PF then performs the resampling step only when this estimate falls below a threshold:
+Like $N_{\mathrm{eff}}$, this quantity is equal to $N$ for uniform weights, and decreases to $1$ in the fully degenerate case. The PF then performs the resampling step only when this estimate falls below a threshold:
 \begin{equation}
 	\hat{N}_{\mathrm{eff}}<N_{\mathrm{th}}
 \end{equation}
@@ -39,8 +39,8 @@ Unlike the SIR, which traditionally uses the transition density as its proposal 
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim q\left(\cdot|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)$}\Comment{Particle propagation}
-	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\dfrac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}$}\Comment{Weight update}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim q\left(\cdot\:\middle|\:\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)$}\Comment{Particle propagation}
+	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\dfrac{\tilde{p}\left(z_k\:\middle|\:x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}\:\middle|\:x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}\:\middle|\:\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}$}\Comment{Weight update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
 	\State{$\displaystyle\hat{N}_{\mathrm{eff}}=\left.1\middle/\sum_{i=1}^N\left(w_k^{(i)}\right)^2\right.$}\Comment{Resampling criterion}
 	\If{$\hat{N}_{\mathrm{eff}}<N_{\mathrm{th}}$}
@@ -53,15 +53,15 @@ Unlike the SIR, which traditionally uses the transition density as its proposal 
 
 Since each resampling step still collapses diversity, the PF only mitigates impoverishment, but does not prevent it. Indeed, the self-normalised measure of \Cref{th:self_normalised_measure} approximates the PDF by a mixture of Diracs:
 \begin{equation}
-	p(x_k|\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{(i)}\:\delta_{x_k^{(i)}}\label{eq:RPF_dirac}
+	p(x_k\mid\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{(i)}\:\delta_{x_k^{(i)}}\label{eq:RPF_dirac}
 \end{equation}
 
 Since this measure is singular, resampling from it can only reproduce the existing particles. The regularised particle filter (RPF) \cite{bib:RPF} addresses this issue through kernel density estimation \cite{bib:Rosenblatt,bib:Parzen,bib:KDE-multivariate}, by replacing each Dirac with a smooth kernel to obtain the absolutely continuous measure:
 \begin{equation}
-	p(x_k|\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{(i)}\:K_\ell\left(x_k-x_k^{(i)}\right)dx_k\label{eq:RPF_kernel}
+	p(x_k\mid\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{(i)}\:K_\ell\left(x_k-x_k^{(i)}\right)dx_k\label{eq:RPF_kernel}
 \end{equation}
 
-New particles are then drawn from this continuous density rather than from the discrete set, which restores diversity. This is illustrated by \Cref{fig:regularisation} and formalised by \Cref{th:regularisation_kernel,th:KDE}. Being absolutely continuous, this approximation also supplies the density that \eqref{eq:RPF_dirac} lacks, and thus makes the MAP estimator of \cref{sec:state_estimation} well-defined at the cost of a numerical maximisation.
+New particles are then drawn from this continuous density rather than from the discrete set, which restores diversity. This is illustrated by \Cref{fig:regularisation} and formalised by \Cref{th:regularisation_kernel,th:KDE}. Being absolutely continuous, this approximation also supplies the density that \eqref{eq:RPF_dirac} lacks, and thus makes the MAP estimator of \cref{sec:state_estimation} well defined at the cost of a numerical maximisation.
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=0.8\textwidth]{../../Images/Régularisation par noyau.pdf}
@@ -72,7 +72,7 @@ New particles are then drawn from this continuous density rather than from the d
 	Let $K:\mathbb{R}^{d_x}\to\mathbb{R}$. $K$ is a regularisation kernel if:
 	\begin{equation}
 		\left\{\begin{array}{ll}
-		\forall x\in\mathbb{R}^{d_x},\:K(x)\geq0&\text{positive}\\
+		\forall x\in\mathbb{R}^{d_x},\:K(x)\geq0&\text{non-negative}\\
 		\forall x\in\mathbb{R}^{d_x},\:K(-x)=K(x)&\text{symmetric}\\
 		\displaystyle\int{K(x)\:dx}=1&\text{normalised}\\
 		\displaystyle\int{\|x\|^2K(x)\:dx}<\infty&\text{of finite variance}
@@ -162,7 +162,7 @@ The choice of bandwidth $\ell$ is critical to the performance of the RPF. If $\e
 		c_{d_x}\triangleq\frac{\pi^{d_x/2}}{\Gamma(d_x/2+1)}
 	\end{equation}
 	is the volume of the $\mathbb{R}^{d_x}$ unit ball, and $\Gamma$ is the Gamma function.
-	\item\textbf{Gaussian kernel.} While suboptimal with respect to the Epanechnikov kernel, it is simpler to compute \cite{bib:random-variate}. Its expression is given by:
+	\item\textbf{Gaussian kernel.} While suboptimal with respect to the Epanechnikov kernel, it is simpler to sample \cite{bib:random-variate}. Its expression is given by:
 	\begin{equation}
 		\left\{\begin{aligned}
 		K_{\mathrm{Gauss}}&:x\mapsto(2\pi)^{-d_x/2}\exp\left(-\frac{\|x\|^2}{2}\right)\\
@@ -188,8 +188,8 @@ Moreover, the bandwidth $\ell$ is multiplied by a modulation factor $\alpha_{\ma
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim q\left(\cdot|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)$}\Comment{Particle propagation}
-	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\dfrac{\tilde{p}\left(z_k|x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}|x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}$}\Comment{Weight update}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim q\left(\cdot\:\middle|\:\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)$}\Comment{Particle propagation}
+	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\dfrac{\tilde{p}\left(z_k\:\middle|\:x_k^{(i)}\right)\:\tilde{p}\left(x_k^{(i)}\:\middle|\:x_{k-1}^{(i)}\right)}{\tilde{q}\left(x_k^{(i)}\:\middle|\:\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k}\right)}$}\Comment{Weight update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
 	\State{$\displaystyle\hat{N}_{\mathrm{eff}}=\left.1\middle/\sum_{i=1}^N\left(w_k^{(i)}\right)^2\right.$}\Comment{Resampling criterion}
 	\If{$\hat{N}_{\mathrm{eff}}<N_{\mathrm{th}}$}
@@ -207,60 +207,60 @@ Moreover, the bandwidth $\ell$ is multiplied by a modulation factor $\alpha_{\ma
 
 The auxiliary particle filter (APF) \cite{bib:APF,bib:APF-optimality} addresses the degeneracy problem at its root by exploiting a different weakness of the SIR. Since particles are propagated before the new observation $z_k$ is taken into account, particles that will ultimately receive low likelihood waste computational effort. The APF thus introduces a look-ahead step by using a prediction of their future likelihood to resample promising parent particles before propagation.
 
-Formally, the APF targets the joint distribution $p(x_k,i|\mathbf{z}_{1:k})$, where $i\in[\![1,N]\!]$ indexes the parent particle at time $k-1$. Using Bayes' theorem and the chain rule gives:
+Formally, the APF targets the joint distribution $p(x_k,i\mid\mathbf{z}_{1:k})$, where $i\in[\![1,N]\!]$ indexes the parent particle at time $k-1$. Using Bayes' theorem and the chain rule gives:
 \begin{equation}
-	p(x_k,i|\mathbf{z}_{1:k})\propto p(z_k|x_k,i,\mathbf{z}_{1:k-1})\:p(x_k|i,\mathbf{z}_{1:k-1})\:p(i|\mathbf{z}_{1:k-1})\label{eq:joint_distribution_APF}
+	p(x_k,i\mid\mathbf{z}_{1:k})\propto p(z_k\mid x_k,i,\mathbf{z}_{1:k-1})\:p(x_k\mid i,\mathbf{z}_{1:k-1})\:p(i\mid\mathbf{z}_{1:k-1})\label{eq:joint_distribution_APF}
 \end{equation}
 
 Each term of this decomposition can be simplified as follows:
 \begin{itemize}
 	\item\Cref{th:observation_independence} states that the current observation depends only on the current state:
 	\begin{equation}
-		p(z_k|x_k,i,\mathbf{z}_{1:k-1})=p(z_k|x_k)
+		p(z_k\mid x_k,i,\mathbf{z}_{1:k-1})=p(z_k\mid x_k)
 	\end{equation}
 	\item Since the parent index uniquely determines the ancestor trajectory, conditioning on $i$ is equivalent to conditioning on $\mathbf{x}_{0:k-1}^{(i)}$. Moreover, \Cref{th:Markov} establishes that $(x_k)_{k\geq0}$ is a Markov chain, and thus:
 	\begin{equation}
-		p(x_k|i,\mathbf{z}_{1:k-1})=p\left(x_k|\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k-1}\right)=p\left(x_k|x_{k-1}^{(i)}\right)
+		p(x_k\mid i,\mathbf{z}_{1:k-1})=p\left(x_k\:\middle|\:\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k-1}\right)=p\left(x_k\:\middle|\:x_{k-1}^{(i)}\right)
 	\end{equation}
 	\item Finally, assuming that the particle approximation is exact gives:
 	\begin{equation}
-		p(i|\mathbf{z}_{1:k-1})\propto w_{k-1}^{(i)}
+		p(i\mid\mathbf{z}_{1:k-1})\propto w_{k-1}^{(i)}
 	\end{equation}
 \end{itemize}
 
 Combining these equations reduces \eqref{eq:joint_distribution_APF} to:
 \begin{equation}
-	p(x_k,i|\mathbf{z}_{1:k})\propto p\left(z_k|x_k\right)\:p\left(x_k|x_{k-1}^{(i)}\right)\:w_{k-1}^{(i)}
+	p(x_k,i\mid\mathbf{z}_{1:k})\propto p\left(z_k\:\middle|\:x_k\right)\:p\left(x_k\:\middle|\:x_{k-1}^{(i)}\right)\:w_{k-1}^{(i)}
 \end{equation}
 
-However, $p(z_k|x_k)$ cannot be evaluated before $x_k$ is drawn. It is thus approximated by $p\left(z_k|a_k^{(i)}\right)$, where:
+However, $p(z_k\mid x_k)$ cannot be evaluated before $x_k$ is drawn. It is thus approximated by $p\left(z_k\:\middle|\:a_k^{(i)}\right)$, where:
 \begin{equation}
-	a_k^{(i)}\sim p\left(\cdot|x_{k-1}^{(i)}\right)
+	a_k^{(i)}\sim p\left(\cdot\:\middle|\:x_{k-1}^{(i)}\right)
 \end{equation}
 is an auxiliary particle drawn from the transition density, and used to assess the consistency of the future particle $x_k^{(i)}$ with the new observation $z_k$. Alternatively, $a_k^{(i)}$ can be chosen as the mean of this density, a deterministic choice which avoids an additional draw.
 
 In any case, the importance density is therefore:
 \begin{equation}
-	q(x_k,i|\mathbf{z}_{1:k})\propto p\left(z_k|a_k^{(i)}\right)\:p\left(x_k|x_{k-1}^{(i)}\right)\:w_{k-1}^{(i)}
+	q(x_k,i\mid\mathbf{z}_{1:k})\propto p\left(z_k\:\middle|\:a_k^{(i)}\right)\:p\left(x_k\:\middle|\:x_{k-1}^{(i)}\right)\:w_{k-1}^{(i)}
 \end{equation}
 
 Since they are drawn from the prior distribution, \eqref{eq:weight_update_prior} ensures that the auxiliary weights $v_k^{(i)}$ follow:
 \begin{equation}
-	v_k^{(i)}\propto w_{k-1}^{(i)}\:\tilde{p}\left(z_k|a_k^{(i)}\right)
+	v_k^{(i)}\propto w_{k-1}^{(i)}\:\tilde{p}\left(z_k\:\middle|\:a_k^{(i)}\right)
 \end{equation}
 
 In the hope that the evolution noise is sufficiently weak for the auxiliary particles to correctly represent the future particle set, the parent indices $\left\{i^{(j)}\right\}_{j=1}^N$ are resampled according to the auxiliary weights.
 
 The new particle set is then propagated through a standard SIS algorithm using the transition density:
 \begin{equation}
-	x_k^{(j)}\sim p\left(\cdot|x_{k-1}^{\left(i^{(j)}\right)}\right)
+	x_k^{(j)}\sim p\left(\cdot\:\middle|\:x_{k-1}^{\left(i^{(j)}\right)}\right)
 \end{equation}
 with their weights updating as:
 \begin{equation}
 	\begin{aligned}
-	w_k^{(j)}&\propto\frac{\tilde{p}\left(x_k,i^{(j)}|\mathbf{z}_{1:k}\right)}{\tilde{q}\left(x_k,i^{(j)}|\mathbf{z}_{1:k}\right)}\\
-	&\propto\frac{\tilde{p}\left(z_k|x_k^{(j)}\right)\:\tilde{p}\left(x_k^{(j)}|x_{k-1}^{\left(i^{(j)}\right)}\right)\:w_{k-1}^{\left(i^{(j)}\right)}}{\tilde{p}\left(z_k|a_k^{\left(i^{(j)}\right)}\right)\:\tilde{p}\left(x_k^{(j)}|x_{k-1}^{\left(i^{(j)}\right)}\right)\:w_{k-1}^{\left(i^{(j)}\right)}}\\
-	&\propto\frac{\tilde{p}\left(z_k|x_k^{(j)}\right)}{\tilde{p}\left(z_k|a_k^{\left(i^{(j)}\right)}\right)}
+	w_k^{(j)}&\propto\frac{\tilde{p}\left(x_k,i^{(j)}\:\middle|\:\mathbf{z}_{1:k}\right)}{\tilde{q}\left(x_k,i^{(j)}\:\middle|\:\mathbf{z}_{1:k}\right)}\\
+	&\propto\frac{\tilde{p}\left(z_k\:\middle|\:x_k^{(j)}\right)\:\tilde{p}\left(x_k^{(j)}\:\middle|\:x_{k-1}^{\left(i^{(j)}\right)}\right)\:w_{k-1}^{\left(i^{(j)}\right)}}{\tilde{p}\left(z_k\:\middle|\:a_k^{\left(i^{(j)}\right)}\right)\:\tilde{p}\left(x_k^{(j)}\:\middle|\:x_{k-1}^{\left(i^{(j)}\right)}\right)\:w_{k-1}^{\left(i^{(j)}\right)}}\\
+	&\propto\frac{\tilde{p}\left(z_k\:\middle|\:x_k^{(j)}\right)}{\tilde{p}\left(z_k\:\middle|\:a_k^{\left(i^{(j)}\right)}\right)}
 	\end{aligned}
 \end{equation}
 
@@ -268,12 +268,12 @@ The full APF pseudo-code is given in \Cref{alg:APF}.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
-	\State{$\forall i\in[\![1,N]\!],\:a_k^{(i)}\sim p\left(\cdot|x_{k-1}^{(i)}\right)$}\Comment{Auxiliary propagation}
-	\State{$\forall i\in[\![1,N]\!],\:\tilde{v}_k^{(i)}\propto w_{k-1}^{(i)}\:\tilde{p}\left(z_k|a_k^{(i)}\right)$}\Comment{Auxiliary update}
+	\State{$\forall i\in[\![1,N]\!],\:a_k^{(i)}\sim p\left(\cdot\:\middle|\:x_{k-1}^{(i)}\right)$}\Comment{Auxiliary propagation}
+	\State{$\forall i\in[\![1,N]\!],\:\tilde{v}_k^{(i)}\propto w_{k-1}^{(i)}\:\tilde{p}\left(z_k\:\middle|\:a_k^{(i)}\right)$}\Comment{Auxiliary update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:v_k^{(i)}=\left.\tilde{v}_k^{(i)}\middle/\sum_{j=1}^N\tilde{v}_k^{(j)}\right.$}\Comment{Normalisation}
 	\State{$\left\{-,-,i^{(j)}\right\}_{j=1}^N=\operatorname{Resampling}\left(\left\{a_k^{(i)},v_k^{(i)}\right\}_{i=1}^N\right)$}\Comment{Resampling}
-	\State{$\forall j\in[\![1,N]\!],\:x_k^{(j)}\sim p\left(\cdot|x_{k-1}^{\left(i^{(j)}\right)}\right)$}\Comment{Particle propagation}
-	\State{$\forall j\in[\![1,N]\!],\:\tilde{w}_k^{(j)}\propto\dfrac{\tilde{p}\left(z_k|x_k^{(j)}\right)}{\tilde{p}\left(z_k|a_k^{\left(i^{(j)}\right)}\right)}$}\Comment{Weight update}
+	\State{$\forall j\in[\![1,N]\!],\:x_k^{(j)}\sim p\left(\cdot\:\middle|\:x_{k-1}^{\left(i^{(j)}\right)}\right)$}\Comment{Particle propagation}
+	\State{$\forall j\in[\![1,N]\!],\:\tilde{w}_k^{(j)}\propto\dfrac{\tilde{p}\left(z_k\:\middle|\:x_k^{(j)}\right)}{\tilde{p}\left(z_k\:\middle|\:a_k^{\left(i^{(j)}\right)}\right)}$}\Comment{Weight update}
 	\State{$\displaystyle\forall j\in[\![1,N]\!],\:w_k^{(j)}=\left.\tilde{w}_k^{(j)}\middle/\sum_{i=1}^N\tilde{w}_k^{(i)}\right.$}\Comment{Normalisation}
 	\end{algorithmic}\caption{Auxiliary Particle Filter}\label{alg:APF}
 \end{algorithm}
@@ -313,9 +313,9 @@ $x_0^n$ of known distribution, and $x_0^l$ Gaussian.
 
 The idea behind the RBPF is to factorise the PDF as:
 \begin{equation}
-	p\left(\mathbf{x}_{0:k}^l,\mathbf{x}_{0:k}^n|\mathbf{z}_{1:k}\right)=p\left(\mathbf{x}_{0:k}^l|\mathbf{x}_{0:k}^n,\mathbf{z}_{1:k}\right)\:p\left(\mathbf{x}_{0:k}^n|\mathbf{z}_{1:k}\right)
+	p\left(\mathbf{x}_{0:k}^l,\mathbf{x}_{0:k}^n\:\middle|\:\mathbf{z}_{1:k}\right)=p\left(\mathbf{x}_{0:k}^l\:\middle|\:\mathbf{x}_{0:k}^n,\mathbf{z}_{1:k}\right)\:p\left(\mathbf{x}_{0:k}^n\:\middle|\:\mathbf{z}_{1:k}\right)
 \end{equation}
-where $p(\mathbf{x}_{0:k}^n|\mathbf{z}_{1:k})$ is estimated via particle filtering techniques, and $p(\mathbf{x}_{0:k}^l|\mathbf{x}_{0:k}^n,\mathbf{z}_{1:k})$ is analytically solved by a Kalman filter. Here, $\mathbf{x}_{0:k}^l$ and $\mathbf{x}_{0:k}^n$ are defined similarly to $\mathbf{x}_{0:k}$.
+where $p(\mathbf{x}_{0:k}^n\mid\mathbf{z}_{1:k})$ is estimated via particle filtering techniques, and the marginal $p(x_k^l\mid\mathbf{x}_{0:k}^n,\mathbf{z}_{1:k})$ of $p(\mathbf{x}_{0:k}^l\mid\mathbf{x}_{0:k}^n,\mathbf{z}_{1:k})$ is analytically solved by a Kalman filter. Here, $\mathbf{x}_{0:k}^l$ and $\mathbf{x}_{0:k}^n$ are defined similarly to $\mathbf{x}_{0:k}$.
 
 When $\mathbf{Q}_k^{nl}\neq 0$, the noises $\eta_k^l$ and $\eta_k^n$ are correlated, and the Kalman filter cannot be applied directly. \Cref{th:RBPF_decorrelation} decouples them by removing the component of $\eta_k^l$ correlated with $\eta_k^n$.
 
@@ -352,7 +352,7 @@ which can in turn be decomposed as:
 	\begin{aligned}
 	(S_1)&:\left\{\begin{aligned}
 	x_{k-1}^l&=x_{k-1}^l\\
-	x_k^n&=\mathbf{F}_k^n\left(x_{k-1}^n\right)\:x_{k-1}^l+f_k^n\left(x_{k-1}^n\right)+\eta_k^n\\
+	x_k^n&=\mathbf{F}_k^n\left(x_{k-1}^n\right)\:x_{k-1}^l+f_k^n\left(x_{k-1}^n\right)+\eta_k^n
 	\end{aligned}\right.\\
 	(S_2)&:\left\{\begin{aligned}
 	x_k^l&=\overline{\mathbf{F}}_k^l\left(x_{k-1}^n\right)\:x_{k-1}^l+\overline{f}_k^l\left(x_{k-1}^n\right)+\mathbf{Q}_k^{nl}\:(\mathbf{Q}_k^n)^{-1}\:x_k^n+\overline{\eta}_k^l\\
@@ -367,7 +367,7 @@ In full generality, a standard RBPF is computed in five steps:
 \begin{itemize}
 	\item\textbf{Particle propagation.} The non-linear state is propagated according to the proposal density:
 	\begin{equation}
-		{x_k^n}^{(i)}\sim q\left(\cdot|{\mathbf{x}_{0:k-1}^n}^{(i)},\mathbf{z}_{1:k}\right)\label{eq:RBPF_propagation}
+		{x_k^n}^{(i)}\sim q\left(\cdot\:\middle|\:{\mathbf{x}_{0:k-1}^n}^{(i)},\mathbf{z}_{1:k}\right)\label{eq:RBPF_propagation}
 	\end{equation}
 	\item\textbf{Kalman pre-correction.} The previous linear state is corrected according to the Kalman equations applied to $(S_1)$:
 	\begin{align}
@@ -389,7 +389,7 @@ In full generality, a standard RBPF is computed in five steps:
 	\end{align}
 	\item\textbf{Weight update.} The weights corresponding to each particle are updated with respect to the new observation:
 	\begin{align}
-		\tilde{w}_k^{n(i)}&=w_{k-1}^{n(i)}\:\dfrac{\tilde{p}\left(z_k|x_k^{n(i)}\right)\:\tilde{p}\left(x_k^{n(i)}|x_{k-1}^{n(i)}\right)}{\tilde{q}\left(x_k^{n(i)}|\mathbf{x}_{0:k-1}^{n(i)},\mathbf{z}_{1:k}\right)}\label{eq:RBPF_update_debut}\\
+		\tilde{w}_k^{n(i)}&=w_{k-1}^{n(i)}\:\dfrac{\tilde{p}\left(z_k\:\middle|\:\mathbf{x}_{0:k}^{n(i)},\mathbf{z}_{1:k-1}\right)\:\tilde{p}\left(x_k^{n(i)}\:\middle|\:\mathbf{x}_{0:k-1}^{n(i)},\mathbf{z}_{1:k-1}\right)}{\tilde{q}\left(x_k^{n(i)}\:\middle|\:\mathbf{x}_{0:k-1}^{n(i)},\mathbf{z}_{1:k}\right)}\label{eq:RBPF_update_debut}\\
 		w_k^{n(i)}&=\left.\tilde{w}_k^{n(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{n(j)}\right.\label{eq:RBPF_update_fin}
 	\end{align}
 	\item\textbf{Kalman correction.} The linear state is corrected through the standard Kalman correction for $(S_2)$:
@@ -402,7 +402,7 @@ In full generality, a standard RBPF is computed in five steps:
 
 In the RBPF, only the non-linear state is sampled, while the conditional distribution of the linear substate is propagated analytically. The particle approximation is thus the mixture \cite{bib:mixture-Kalman}:
 \begin{equation}
-	p(x_k|\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{n(i)}\:\delta_{x_k^{n(i)}}\left(dx_k^n\right)\:\mathcal{N}\left(\hat{x}_{k|k}^{l(i)},\mathbf{P}_{k|k}^{l(i)}\right)\left(dx_k^l\right)
+	p(x_k\mid\mathbf{z}_{1:k})\:dx_k\approx\sum_{i=1}^Nw_k^{n(i)}\:\delta_{x_k^{n(i)}}\left(dx_k^n\right)\:\mathcal{N}\left(\hat{x}_{k|k}^{l(i)},\mathbf{P}_{k|k}^{l(i)}\right)\left(dx_k^l\right)
 \end{equation}
 
 The MMSE estimator of \cref{sec:state_estimation} can then be approximated by:
@@ -411,12 +411,12 @@ The MMSE estimator of \cref{sec:state_estimation} can then be approximated by:
 \end{equation}
 where
 \begin{equation}
-	x_k^{(i)}\triangleq\begin{bmatrix}x_k^{n(i)}\\\hat{x}_{k|k}^{l(i)}\end{bmatrix}=\mathbb{E}\left[x_k|\mathbf{x}_{0:k}^{n(i)},\mathbf{z}_{1:k}\right]
+	x_k^{(i)}\triangleq\begin{bmatrix}x_k^{n(i)}\\\hat{x}_{k|k}^{l(i)}\end{bmatrix}=\mathbb{E}\left[x_k\:\middle|\:\mathbf{x}_{0:k}^{n(i)},\mathbf{z}_{1:k}\right]
 \end{equation}
 
 Furthermore, since the non-linear state is deterministic when conditioned on the sampled trajectory, we have:
 \begin{equation}
-	\mathbb{V}\left[x_k|\mathbf{x}_{0:k}^{n(i)},\mathbf{z}_{1:k}\right]=\begin{bmatrix}0&0\\0&\mathbf{P}_{k|k}^{l(i)}\end{bmatrix}
+	\mathbb{V}\left[x_k\:\middle|\:\mathbf{x}_{0:k}^{n(i)},\mathbf{z}_{1:k}\right]=\begin{bmatrix}0&0\\0&\mathbf{P}_{k|k}^{l(i)}\end{bmatrix}
 \end{equation}
 
 Applying the law of total covariance finally gives the associated empirical covariance matrix:
@@ -437,7 +437,7 @@ The full RBPF algorithm is summarised in \Cref{alg:RBPF}.
 	\end{algorithmic}\caption{Rao-Blackwellised Particle Filter}\label{alg:RBPF}
 \end{algorithm}
 
-It must be noted that the version presented by \Cref{alg:RBPF} uses a simple SIS to handle the particles, but any more advanced algorithm presented in this section can be used instead. Furthermore, the likelihood $\tilde{p}\left(z_k|x_k^{n(i)}\right)$ and the transition $\tilde{p}\left(x_k^{n(i)}|x_{k-1}^{n(i)}\right)$ in the weight update are centred Gaussian densities, with covariances $\mathbf{S}_k^{l(i)}$ and $\mathbf{S}_k^{n(i)}$ respectively. This is why $\mathbf{S}_k^{l(i)}$ is computed within the Kalman prediction step, before the weight update. However, the correction step itself must be performed after the weight update in situations where a resampling step is involved.
+It must be noted that the version presented by \Cref{alg:RBPF} uses a simple SIS to handle the particles, but any more advanced algorithm presented in this section can be used instead. Furthermore, the likelihood $\tilde{p}\left(z_k\:\middle|\:\mathbf{x}_{0:k}^{n(i)},\mathbf{z}_{1:k-1}\right)$ and the transition $\tilde{p}\left(x_k^{n(i)}\:\middle|\:\mathbf{x}_{0:k-1}^{n(i)},\mathbf{z}_{1:k-1}\right)$ in the weight update are centred Gaussian densities, with covariances $\mathbf{S}_k^{l(i)}$ and $\mathbf{S}_k^{n(i)}$ respectively. This is why $\mathbf{S}_k^{l(i)}$ is computed within the Kalman prediction step, before the weight update. However, the correction step itself must be performed after the weight update in situations where a resampling step is involved.
 
 \begin{remark}[Single Kalman filter]
 	In general, one Kalman filter is required per particle, since $\tilde{\mathbf{F}}_k^{n(i)}$, $\tilde{\mathbf{F}}_k^{l(i)}$ and $\tilde{\mathbf{H}}_k^{(i)}$ all depend on $x_{k-1}^{n(i)}$ and $x_k^{n(i)}$. However, if these matrices do not depend on the non-linear state, then the gains $\mathbf{K}_k^{n(i)}$ and $\mathbf{K}_k^{l(i)}$, and the covariances $\mathbf{P}_{k|k}^{l(i)}$ are identical for all particles. In this scenario, a single Kalman filter can be used for the whole particle set, which substantially reduces the computational cost of the RBPF.

@@ -77,8 +77,10 @@
 
 % Remerciements
 
+\begin{comment}
 \begin{section_titre}{Remerciements}
 \end{section_titre}
+\end{comment}
 
 % Abstracts
 
@@ -106,8 +108,8 @@
 
 % Résumé étendu en français
 
-\begin{section_titre}{Résumé étendu en français}
-\end{section_titre}
+%\begin{section_titre}{Résumé étendu en français}
+%\end{section_titre}
 
 % Table des matières
 
@@ -157,7 +159,7 @@
 \end{section_titre}
 \end{comment}
 
-% Notations
+% Notation
 
 \begin{section_titre}{Nomenclature}
 	\section*{Abbreviations}
@@ -176,14 +178,15 @@
 	\lignetoc{flop}{floating-point operations}
 	\lignetoc{GNSS}{Global Navigation Satellite System}
 	\lignetoc{GP}{Gaussian Process}
-	\lignetoc{HCA}{Hierarchical Clustering Analysis}
+	\lignetoc{HCA}{Hierarchical Cluster Analysis}
 	\lignetoc{HP}{Hyperparameter}
 	\lignetoc{ICAK}{Independent Clustering Adaptive Kriging}
-	\lignetoc{IEKF}{Iterative Extended Kalman Filter}
+	\lignetoc{IEKF}{Iterated Extended Kalman Filter}
 	\lignetoc{i.i.d.}{independent and identically distributed}
 	\lignetoc{KKF}{Kernel Kalman Filter}
 	\lignetoc{KL}{Karhunen-Loève}
 	\lignetoc{KME}{Kernel Mean Embedding}
+	\lignetoc{LiDAR}{Light Detection And Ranging}
 	\lignetoc{MAP}{Maximum \textit{A Posteriori}}
 	\lignetoc{MC}{Monte Carlo}
 	\lignetoc{MCAK}{Merged Clustering Adaptive Kriging}
@@ -210,7 +213,7 @@
 	\lignetoc{SK}{Simple Kriging}
 	\lignetoc{SLAM}{Simultaneous Localisation And Mapping}
 	\lignetoc{SO-EKF}{Second-Order Extended Kalman Filter}
-	\lignetoc{SPD}{Symmetric Positive Definite}
+	\lignetoc{SPD}{Symmetric/Self-adjoint Positive Definite}
 	\lignetoc{SPSD}{Symmetric/Self-adjoint Positive Semi-Definite}
 	\lignetoc{SVD}{Singular Value Decomposition}
 	\lignetoc{UK}{Universal Kriging}
@@ -226,15 +229,15 @@
 	\lignetoc{$\propto$}{Proportionality}
 	\lignetoc{$\sim,\overset{i.i.d.}{\sim}$}{Distributed according to, i.i.d. according to}
 	\lignetoc{$\overset{a.s.}{\longrightarrow},\overset{\mathcal{L}}{\longrightarrow}$}{Almost sure convergence, convergence in law}
-	\lignetoc{$\cdot\succeq0,\cdot\succ0$}{Symmetric positive semi-definite, definite}
+	\lignetoc{$\succeq,\succ$}{Loewner order, SPSD and SPD matrices}
 	\lignetoc{$\langle\cdot,\cdot\rangle$}{Measure/function duality pairing}
-	\lignetoc{$\langle\cdot|\cdot\rangle,\langle\cdot|\cdot\rangle_{\mathcal{E}}$}{Inner product, subscript: of the space $\mathcal{E}$}
-	\lignetoc{$\|\cdot\|,\|\cdot\|_2,\|\cdot\|_F,\|\cdot\|_{\mathrm{op}}$}{Generic, Euclidean, Frobenius and operator norms}
+	\lignetoc{$\langle\cdot\mid\cdot\rangle,\langle\cdot\mid\cdot\rangle_{\mathcal{E}}$}{Inner product, subscript: of the space $\mathcal{E}$}
+	\lignetoc{$\|\cdot\|,\|\cdot\|_2,\|\cdot\|_F,\|\cdot\|_{\mathrm{op}},\|\cdot\|_{\mathbf{M}}$}{Generic, Euclidean, Frobenius operator and Mahalanobis norms}
 	\lignetoc{$[\![\cdot,\cdot]\!],[\cdot,\cdot],(\cdot,\cdot]$}{Discrete, closed and left-open intervals}
 	\lignetoc{$\partial$}{Partial derivative}
 	\lignetoc{$\mathbf{1}_n$}{Vector of ones of size $n$}
 	\lignetoc{$\alpha_{\mathrm{AK}}$}{AK window dilation factor}
-	\lignetoc{$\alpha_{\mathrm{RKHS}},\alpha_{\mathrm{RKHS},x},\alpha_{\mathrm{RKHS},z},\alpha_{\mathrm{RLS}},\alpha_{\mathrm{RPF}}$}{Regularisation coefficients}
+	\lignetoc{$\alpha_{\mathrm{RKHS}},\alpha_{\mathrm{RKHS},X},\alpha_{\mathrm{RKHS},Z},\alpha_{\mathrm{RLS}},\alpha_{\mathrm{RPF}}$}{Regularisation coefficients}
 	\lignetoc{$\beta_{\mathrm{RLS}}$}{RLS forgetting factor}
 	\lignetoc{$\gamma_i,\boldsymbol{\gamma},\hat{\boldsymbol{\gamma}}_k$}{Trend and map coefficients}
 	\lignetoc{$\Gamma$}{Gamma function}
@@ -306,7 +309,7 @@
 	\lignetoc{$\mathcal{F}$}{Function space}
 	\lignetoc{$g,g_i$}{Trend functions}
 	\lignetoc{$\mathcal{GP}$}{Gaussian process}
-	\lignetoc{$\mathbf{G},\mathbf{G}_\theta,\tilde{\mathbf{G}},\bar{\mathbf{G}},\mathbf{G}^z,\mathbf{G}_k^x,\mathbf{G}_k^z$}{Gram matrices}
+	\lignetoc{$\mathbf{G},\mathbf{G}_\theta,\tilde{\mathbf{G}},\bar{\mathbf{G}},\mathbf{G}^Z,\mathbf{G}_k^X,\mathbf{G}_k^Z$}{Gram matrices}
 	\lignetoc{$h,h_k,\mathbf{H}_k,\tilde{\mathbf{H}}_k$}{Observation functions and matrices}
 	\lignetoc{$\hat{h}$}{Field reconstructed by a SLAM method}
 	\lignetoc{$\mathcal{H},\mathcal{H}_\kappa$}{Hilbert space of functions, native RKHS of $\kappa$}
@@ -340,7 +343,7 @@
 	\lignetoc{$p,\tilde{p},p_0$}{Target probability density and initial state density}
 	\lignetoc{$p_k^{(e)},p_k^{(o)}$}{Evolution and observation noise densities}
 	\lignetoc{$p_k^{(x)},p_k^{(y)},\dot{p}_k^{(x)},\dot{p}_k^{(y)}$}{Horizontal position and velocity components}
-	\lignetoc{$p_{A|B}(a|b)$}{Conditional density of $A=a$ given $B=b$}
+	\lignetoc{$p_{A|B}(a\mid b)$}{Conditional density of $A=a$ given $B=b$}
 	\lignetoc{$p_{\mathrm{RS}}$}{Random subsampling rate}
 	\lignetoc{$p_{\mathrm{pos}}$}{Density estimate of the particle positions}
 	\lignetoc{$p_\nu$}{Normalised spectral density of $\kappa_\nu$}
@@ -357,17 +360,18 @@
 	\lignetoc{$\operatorname{rank}$}{Rank of a kernel or operator}
 	\lignetoc{$\mathbf{R},\mathbf{R}_k,\tilde{\mathbf{R}}$}{Observation and training noise covariances}
 	\lignetoc{$\mathbf{R}_{\hat{m}},\mathbf{R}_{\hat{m}_{\mathrm{OK}}},\mathbf{R}_{\hat{m}_{\mathrm{UK}}},\mathbf{R}_{\mathrm{SK}},\mathbf{R}_{\mathrm{OK}},\mathbf{R}_{\mathrm{UK}},\mathbf{R}_{\mathrm{K}},\mathbf{R}_{\mathrm{SK},\mathbf{B}},\mathbf{R}_{\mathrm{SK}|\mathrm{old}},\mathbf{R}_{\mathrm{SK}|r}$}{Kriging covariances}
-	\lignetoc{$\mathbb{R},\mathbb{R}_+,\mathbb{R}_+^*$}{Real, positive and strictly positive real numbers}
+	\lignetoc{$\mathbb{R},\mathbb{R}_+,\mathbb{R}_+^*$}{Real, non-negative and strictly positive real numbers}
 	\lignetoc{$S^N(\mu_p),S^N(\mu_p,\mu_q),\tilde{S}^N,S^N_{K_\ell}$}{Monte Carlo measures}
 	\lignetoc{$\mathbf{S}_k$}{Innovation covariance}
 	\lignetoc{$\mathbf{S}_{d|r}$}{Residual covariance}
 	\lignetoc{$\mathbf{S}_{\mathrm{new}|\mathrm{old}},\mathbf{S}_{\mathrm{new}|\mathrm{old}}^{\mathrm{UK}}$}{Batch innovation covariances, superscript: for UK}
 	\lignetoc{$S_\nu$}{Spectral density of $\kappa_\nu$}
-	\lignetoc{$\mathcal{S}_d^+,\mathcal{S}_d^{++}$}{Sets of SPSD and SPD matrices}
+	\lignetoc{$\mathcal{S}_d^+(\mathbb{R}),\mathcal{S}_d^{++}(\mathbb{R})$}{Sets of SPSD and SPD matrices}
 	\lignetoc{$\operatorname{span}$}{Linear span}
 	\lignetoc{$\operatorname{supp}$}{Support of a measure or function}
 	\lignetoc{$\operatorname{tr}$}{Trace of a matrix}
 	\lignetoc{$\mathbf{T},\mathbf{T}_k$}{Transition matrices of the embedded weights}
+	\lignetoc{$u_k$}{Control input}
 	\lignetoc{$\mathbf{U}$}{Weights of the estimated trend coefficients}
 	\lignetoc{$\mathcal{U}([a,b])$}{Uniform distribution}
 	\lignetoc{$v_k^{(i)},\tilde{v}_k^{(i)}$}{Normalised and unnormalised auxiliary weights}

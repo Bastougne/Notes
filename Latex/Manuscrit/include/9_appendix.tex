@@ -8,14 +8,14 @@
 \section{Gaussian Conditioning Formula}
 
 \begin{proposition}[Gaussian conditioning \cite{bib:multivariate-normal}]\label{th:Gaussian_conditioning}
-	For $n,p\in\mathbb{N}$, let $U\in\mathbb{R}^n$ and $V\in\mathbb{R}^p$ be jointly Gaussian random variables, of respective means $\mu_U,\mu_V$ and covariance matrices $\mathbf{A}\succ0$ and $\mathbf{D}\succ0$. There exists $\mathbf{B}\in\mathcal{M}_{n,p}(\mathbb{R})$ such that:
+	For $n,p\in\mathbb{N}^*$, let $U\in\mathbb{R}^n$ and $V\in\mathbb{R}^p$ be jointly Gaussian random variables, of respective means $\mu_U,\mu_V$ and covariance matrices $\mathbf{A}\succ0$ and $\mathbf{D}\succ0$. There exists $\mathbf{B}\in\mathcal{M}_{n,p}(\mathbb{R})$ such that:
 	\begin{equation}
 		\begin{bmatrix}U\\V\end{bmatrix}\sim\mathcal{N}\left(\begin{bmatrix}\mu_U\\\mu_V\end{bmatrix},\begin{bmatrix}\mathbf{A}&\mathbf{B}\\\mathbf{B}^\top&\mathbf{D}\end{bmatrix}\right)
 	\end{equation}
 
 	We assume $\mathbf{B}$ to be such that this joint covariance is SPD in the sense of \Cref{th:matrix_SPSD}. The conditional distribution of $U$ given $V=y$ is then:
 	\begin{equation}
-		U|V=y\sim\mathcal{N}\left(\mu_U+\mathbf{B}\mathbf{D}^{-1}(y-\mu_V),\mathbf{P}_{U|V}\right)
+		U\mid V=y\sim\mathcal{N}\left(\mu_U+\mathbf{B}\mathbf{D}^{-1}(y-\mu_V),\mathbf{P}_{U|V}\right)
 	\end{equation}
 	with:
 	\begin{equation}
@@ -24,13 +24,13 @@
 \end{proposition}
 
 \begin{proof}
-	The existence of $\mathbf{B}$ is direct by definition of jointly Gaussian random variables. As $\mathbf{D}\succ0$ is invertible, $\mathbf{S}\triangleq \mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{B}^\top$, the Schur complement with respect to $\mathbf{D}$, is well-defined.
+	The existence of $\mathbf{B}$ is direct by definition of jointly Gaussian random variables. As $\mathbf{D}\succ0$ is invertible, $\mathbf{S}\triangleq \mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{B}^\top$, the Schur complement with respect to $\mathbf{D}$, is well defined.
 
 	Let $u\neq0$:
 	\begin{equation}
 		\begin{bmatrix}u\\-\mathbf{D}^{-1}\mathbf{B}^\top u\end{bmatrix}^\top\begin{bmatrix}\mathbf{A}&\mathbf{B}\\\mathbf{B}^\top&\mathbf{D}\end{bmatrix}\begin{bmatrix}u\\-\mathbf{D}^{-1}\mathbf{B}^\top u\end{bmatrix}=u^\top\left(\mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{B}^\top\right)u>0
 	\end{equation}
-	by SPDness of the joint covariance, the left-hand vector being non-zero. $\mathbf{S}$ is thus also invertible, and we can apply the inferior right Schur inversion formula (see \Cref{th:Schur}) to obtain:
+	by SPDness of the joint covariance, the left-hand vector being non-zero. $\mathbf{S}$ is thus also invertible, and we can apply the lower-right Schur inversion formula (see \Cref{th:Schur}) to obtain:
 	\begin{equation}
 		\begin{aligned}
 			\begin{bmatrix}\bar{\mathbf{A}}&\bar{\mathbf{B}}\\\bar{\mathbf{C}}&\bar{\mathbf{D}}\end{bmatrix}&\triangleq\begin{bmatrix}\mathbf{A}&\mathbf{B}\\\mathbf{B}^\top&\mathbf{D}\end{bmatrix}^{-1}\\
@@ -52,13 +52,13 @@
 	The conditional density is thus:
 	\begin{equation}
 		\begin{aligned}
-		p\left(\tilde{u}|\tilde{y}\right)&\propto\frac{\displaystyle p\left(\tilde{u},\tilde{y}\right)}{\displaystyle p\left(\tilde{y}\right)}\\
+		p\left(\tilde{u}\:\middle|\:\tilde{y}\right)&\propto\frac{\displaystyle p\left(\tilde{u},\tilde{y}\right)}{\displaystyle p\left(\tilde{y}\right)}\\
 		&\propto\frac{\displaystyle\exp\left(-\frac{1}{2}\alpha\right)}{\displaystyle\exp\left(-\frac{1}{2}\tilde{y}^\top \mathbf{D}^{-1}\tilde{y}\right)}\\
 		&\propto\exp\left(-\frac{1}{2}(\tilde{u}-\mathbf{B}\mathbf{D}^{-1}\tilde{y})^\top \mathbf{S}^{-1}(\tilde{u}-\mathbf{B}\mathbf{D}^{-1}\tilde{y})\right)
 		\end{aligned}
 	\end{equation}
 
-	With this formulation, it comes that $U|V=y$ is Gaussian with mean:
+	With this formulation, it comes that $U\mid V=y$ is Gaussian with mean:
 	\begin{equation}
 		\mu_{U|V}\triangleq\mu_U+\mathbf{B}\mathbf{D}^{-1}\left(y-\mu_V\right)
 	\end{equation}
@@ -71,7 +71,7 @@
 \section{Schur Inversion Formula}
 
 \begin{proposition}[Schur inversion formula \cite{bib:Schur-complement}]\label{th:Schur}
-	For $n,p\in\mathbb{N}$, let $\mathbf{A}\in\mathcal{M}_{n,n}(\mathbb{R})$, $\mathbf{B}\in\mathcal{M}_{n,p}(\mathbb{R})$, $\mathbf{C}\in\mathcal{M}_{p,n}(\mathbb{R})$, and $\mathbf{D}\in\mathcal{M}_{p,p}(\mathbb{R})$, with $\mathbf{A}$ invertible. We define the matrix $\mathbf{M}$ and its Schur complement with respect to $\mathbf{A}$ as:
+	For $n,p\in\mathbb{N}^*$, let $\mathbf{A}\in\mathcal{M}_{n,n}(\mathbb{R})$, $\mathbf{B}\in\mathcal{M}_{n,p}(\mathbb{R})$, $\mathbf{C}\in\mathcal{M}_{p,n}(\mathbb{R})$, and $\mathbf{D}\in\mathcal{M}_{p,p}(\mathbb{R})$, with $\mathbf{A}$ invertible. We define the matrix $\mathbf{M}$ and its Schur complement with respect to $\mathbf{A}$ as:
 	\begin{equation}
 		\mathbf{M}\triangleq\begin{bmatrix}\mathbf{A}&\mathbf{B}\\\mathbf{C}&\mathbf{D}\end{bmatrix},\qquad \mathbf{M}/\mathbf{A}\triangleq \mathbf{D}-\mathbf{C}\mathbf{A}^{-1}\mathbf{B}
 	\end{equation}
@@ -94,7 +94,7 @@
 		\mathbf{A}\bar{\mathbf{A}}+\mathbf{B}\bar{\mathbf{C}}&=\mathbf{I}\\
 		\mathbf{A}\bar{\mathbf{B}}+\mathbf{B}\bar{\mathbf{D}}&=0\\
 		\mathbf{C}\bar{\mathbf{A}}+\mathbf{D}\bar{\mathbf{C}}&=0\\
-		\mathbf{C}\bar{\mathbf{B}}+\mathbf{D}\bar{\mathbf{D}}&=\mathbf{I}\\
+		\mathbf{C}\bar{\mathbf{B}}+\mathbf{D}\bar{\mathbf{D}}&=\mathbf{I}
 		\end{aligned}\right.
 	\end{equation}
 
@@ -169,7 +169,7 @@
 \section{Woodbury Inversion Formula}
 
 \begin{proposition}[Inversion identity]\label{th:simplified_Woodbury}
-	For $n\in\mathbb{N}$, let $\mathbf{P}\in\mathcal{M}_{n,n}(\mathbb{R})$ such that $\mathbf{I}+\mathbf{P}$ is invertible. Then:
+	For $n\in\mathbb{N}^*$, let $\mathbf{P}\in\mathcal{M}_{n,n}(\mathbb{R})$ such that $\mathbf{I}+\mathbf{P}$ is invertible. Then:
 	\begin{equation}
 		(\mathbf{I}+\mathbf{P})^{-1}=\mathbf{I}-(\mathbf{I}+\mathbf{P})^{-1}\mathbf{P}
 	\end{equation}
@@ -183,7 +183,7 @@
 \end{proof}
 
 \begin{proposition}[Push-through identity \cite{bib:matrix-cookbook}]\label{th:push_through}
-	For $n,p\in\mathbb{N}$, let $\mathbf{P}\in\mathcal{M}_{n,p}(\mathbb{R})$ and $\mathbf{Q}\in\mathcal{M}_{p,n}(\mathbb{R})$ such that $\mathbf{I}_n+\mathbf{P}\mathbf{Q}$ is invertible. Then $\mathbf{I}_p+\mathbf{Q}\mathbf{P}$ is also invertible and:
+	For $n,p\in\mathbb{N}^*$, let $\mathbf{P}\in\mathcal{M}_{n,p}(\mathbb{R})$ and $\mathbf{Q}\in\mathcal{M}_{p,n}(\mathbb{R})$ such that $\mathbf{I}_n+\mathbf{P}\mathbf{Q}$ is invertible. Then $\mathbf{I}_p+\mathbf{Q}\mathbf{P}$ is also invertible and:
 	\begin{equation}
 		(\mathbf{I}_n+\mathbf{P}\mathbf{Q})^{-1}\mathbf{P}=\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})^{-1}
 	\end{equation}
@@ -192,29 +192,49 @@
 \begin{proof}
 	We start by using the identity:
 	\begin{equation}
-		\mathbf{P}+\mathbf{P}\mathbf{Q}\mathbf{P}=\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})=(\mathbf{I}_n+\mathbf{P}\mathbf{Q})\mathbf{P}
+		\mathbf{Q}+\mathbf{Q}\mathbf{P}\mathbf{Q}=(\mathbf{I}_p+\mathbf{Q}\mathbf{P})\mathbf{Q}=\mathbf{Q}(\mathbf{I}_n+\mathbf{P}\mathbf{Q})
 	\end{equation}
-
-	Thus:
+	so that:
 	\begin{equation}
 		\begin{aligned}
-		&\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})=(\mathbf{I}_n+\mathbf{P}\mathbf{Q})\mathbf{P}\\
-		\iff&\mathbf{P}=(\mathbf{I}_n+\mathbf{P}\mathbf{Q})\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})^{-1}\\
-		\iff&(\mathbf{I}_n+\mathbf{P}\mathbf{Q})^{-1}\mathbf{P}=\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})^{-1}
+		(\mathbf{I}_p+\mathbf{Q}\mathbf{P})\left(\mathbf{I}_p-\mathbf{Q}(\mathbf{I}_n+\mathbf{P}\mathbf{Q})^{-1}\mathbf{P}\right)&=\mathbf{I}_p+\mathbf{Q}\mathbf{P}-\mathbf{Q}(\mathbf{I}_n+\mathbf{P}\mathbf{Q})(\mathbf{I}_n+\mathbf{P}\mathbf{Q})^{-1}\mathbf{P}\\
+		&=\mathbf{I}_p
 		\end{aligned}
 	\end{equation}
 	with $\mathbf{I}_p+\mathbf{Q}\mathbf{P}$ admitting a right inverse, hence being invertible.
+
+	Similarly:
+	\begin{equation}
+		\mathbf{P}+\mathbf{P}\mathbf{Q}\mathbf{P}=\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})=(\mathbf{I}_n+\mathbf{P}\mathbf{Q})\mathbf{P}
+	\end{equation}
+	and so:
+	\begin{equation}
+		\begin{aligned}
+		&\mathbf{P}=(\mathbf{I}_n+\mathbf{P}\mathbf{Q})\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})^{-1}\\
+		\iff&(\mathbf{I}_n+\mathbf{P}\mathbf{Q})^{-1}\mathbf{P}=\mathbf{P}(\mathbf{I}_p+\mathbf{Q}\mathbf{P})^{-1}
+		\end{aligned}
+	\end{equation}
 \end{proof}
 
 \begin{proposition}[Generalised Woodbury formula \cite{bib:Woodbury}]\label{th:Woodbury}
-	For $n,p\in\mathbb{N}$, let $\mathbf{A}\in\mathcal{M}_{n,n}(\mathbb{R})$, $\mathbf{B}\in\mathcal{M}_{n,p}(\mathbb{R})$, $\mathbf{C}\in\mathcal{M}_{p,n}(\mathbb{R})$, and $\mathbf{D}\in\mathcal{M}_{p,p}(\mathbb{R})$. We assume that $\mathbf{A}$, $\mathbf{D}$, and $\mathbf{D}+\mathbf{C}\mathbf{A}^{-1}\mathbf{B}$ are invertible. Then $\mathbf{A}+\mathbf{B}\mathbf{D}^{-1}\mathbf{C}$ is also invertible, and:
+	For $n,p\in\mathbb{N}^*$, let $\mathbf{A}\in\mathcal{M}_{n,n}(\mathbb{R})$, $\mathbf{B}\in\mathcal{M}_{n,p}(\mathbb{R})$, $\mathbf{C}\in\mathcal{M}_{p,n}(\mathbb{R})$, and $\mathbf{D}\in\mathcal{M}_{p,p}(\mathbb{R})$. We assume that $\mathbf{A}$, $\mathbf{D}$, and $\mathbf{D}+\mathbf{C}\mathbf{A}^{-1}\mathbf{B}$ are invertible. Then $\mathbf{A}+\mathbf{B}\mathbf{D}^{-1}\mathbf{C}$ is also invertible, and:
 	\begin{equation}
 		\left(\mathbf{A}+\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)^{-1}=\mathbf{A}^{-1}-\mathbf{A}^{-1}\mathbf{B}\left(\mathbf{D}+\mathbf{C}\mathbf{A}^{-1}\mathbf{B}\right)^{-1}\mathbf{C}\mathbf{A}^{-1}
 	\end{equation}
 \end{proposition}
 
 \begin{proof}
-	We first factorise:
+	Since $\mathbf{D}$ and:
+	\begin{equation}
+		\mathbf{D}+\mathbf{C}\mathbf{A}^{-1}\mathbf{B}=\mathbf{D}\left(\mathbf{I}+\mathbf{D}^{-1}\mathbf{C}\mathbf{A}^{-1}\mathbf{B}\right)
+	\end{equation}
+	are invertible, so is $\mathbf{I}+\mathbf{D}^{-1}\mathbf{C}\mathbf{A}^{-1}\mathbf{B}$. \Cref{th:push_through} applied with $\mathbf{P}=\mathbf{D}^{-1}\mathbf{C}$ and $\mathbf{Q}=\mathbf{A}^{-1}\mathbf{B}$ then ensures that $\mathbf{I}+\mathbf{A}^{-1}\mathbf{B}\mathbf{D}^{-1}\mathbf{C}$ is invertible. In turn, this shows that:
+	\begin{equation}
+		\mathbf{A}+\mathbf{B}\mathbf{D}^{-1}\mathbf{C}=\mathbf{A}\left(\mathbf{I}+\mathbf{A}^{-1}\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)
+	\end{equation}
+	is also invertible.
+
+	We then factorise:
 	\begin{equation}
 		\begin{aligned}
 		\left(\mathbf{A}+\mathbf{B}\mathbf{D}^{-1}\mathbf{C}\right)^{-1}&=\left(\mathbf{A}(\mathbf{I}+\mathbf{A}^{-1}\mathbf{B}\mathbf{D}^{-1}\mathbf{C})\right)^{-1}\\

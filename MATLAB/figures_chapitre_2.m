@@ -24,8 +24,18 @@
 % Figures 2.1, 2.3 and 2.4 are schematics rather than plots, so their coordinates
 % are laid out by hand in a unit square with the axes turned off. Only figure 2.2
 % carries data.
+%
+% THE DEFENCE SLIDES (2026-11-08) take figures 2.3 and 2.4 from the same code when
+% figures_soutenance.m runs this script with its structure diapo. A slide column
+% is a third of the manuscript canvas, so scaling the manuscript page down would
+% print the labels at 3 pt, and keeping them legible makes them three times larger
+% relative to the drawing. Their hand-placed layout no longer holds at that ratio,
+% so each figure takes its page and label positions from a structure: the
+% manuscript one reproduces the numbers below, the slide one is a separate layout
+% at 7 pt. The manuscript figures then go to diapo.controle, where
+% figures_soutenance compares them with those of Images/.
 
-clear; close all; clc;
+clearvars -except diapo; close all; clc;
 
 %% Shared parameters
 textwidth = 425;                 % pt, measured on the class: 12pt A4, margin 2.5cm,
@@ -36,6 +46,10 @@ fontsize  = 14;                  % renders at 12.0 pt under that ratio, whatever
 linewidth = 1;
 root      = fileparts(fileparts(mfilename('fullpath')));  % repository root, one level up
 img_dir   = fullfile(root, 'Images');
+en_diapo  = exist('diapo', 'var') && isstruct(diapo);
+if en_diapo
+    img_dir = diapo.controle;
+end
 
 canvas    = @(frac) oversize * frac * textwidth;   % the page an include at frac needs
 
@@ -168,49 +182,29 @@ r_after = 0.030;                 % one radius for all of them: resampling resets
                                  % bigger particle but more copies of itself
 copies  = [3 5];
 
-fig = new_figure(w_23, h_23);
-layout_axes(); axis equal; xlim([0 1]); ylim([0 h_23 / w_23]);
-y_hi = 0.355; y_lo = 0.075;
-
-plot([0.03 0.90], [y_hi y_hi], 'k-', 'LineWidth', 0.6 * linewidth);
-plot([0.03 0.90], [y_lo y_lo], 'k-', 'LineWidth', 0.6 * linewidth);
-txt(0.955, y_hi, {'State'}, fontsize);
-txt(0.955, y_lo, {'State'}, fontsize);
-
-% Every disc is collected before anything is drawn, so that the fills can go down
-% first and the outlines all together on top. Painted one by one, a late disc
-% would bury the outline of an early one, and the copies of the lower axis are
-% precisely the ones that need to stay countable.
-discs = struct('x', {}, 'y', {}, 'r', {}, 'c', {});
-for i = 1:numel(before)
-    face = red;
-    if any(i == kept)
-        face = green;
-    end
-    discs(end+1) = struct('x', before(i).x, 'y', y_hi, 'r', before(i).r, 'c', face); %#ok<SAGROW>
-end
-for c = 1:numel(centres)
-    for i = 1:copies(c)
-        a = 2*pi*(i-1) / copies(c);
-        discs(end+1) = struct('x', centres(c) + 0.42*r_after*cos(a), ...
-                              'y', y_lo + 0.42*r_after*sin(a), ...
-                              'r', r_after, 'c', green); %#ok<SAGROW>
-    end
-end
-for d = discs
-    disc_fill(d, alpha_disc);
-end
-for d = discs
-    disc_edge(d, linewidth);
-end
-
-txt(0.175, y_hi - 0.090, {'\textbf{Degeneracy}'}, fontsize);
-txt(0.510, y_hi - 0.125, {'\textbf{Resampling}'}, fontsize);
-txt(0.175, y_lo - 0.050, {'\textbf{Impoverishment}'}, fontsize);
-arrow([0.290 0.290], [0.215 0.130], linewidth, 1);
-arrow([0.800 0.800], [0.215 0.130], linewidth, 1);
-
+% The page and where its words go: the two state axes at heights y, running over
+% axe and named at etat, each label at an abscissa and an offset from its axis,
+% and the two arrows at abscissae fl_x between heights fl_y.
+L23 = struct('w', w_23, 'h', h_23, 'fs', fontsize, 'y', [0.355 0.075], ...
+             'axe', [0.03 0.90], 'etat', 0.955, 'deg', [0.175 -0.090], ...
+             'res', [0.510 -0.125], 'imp', [0.175 -0.050], ...
+             'fl_x', [0.290 0.800], 'fl_y', [0.215 0.130]);
+fig = figure_23(L23, before, kept, centres, r_after, copies, red, green, alpha_disc, linewidth);
 save_pdf(fig, 'Appauvrissement particulaire', w_23, h_23, img_dir);
+if en_diapo
+    % Lower half of the left column of the slide, 0.48\textwidth by 50 pt, above
+    % the logo of the right column. At 7 pt the labels are relatively 1.7 times
+    % wider than in the manuscript: Resampling moves right of the large discs,
+    % between the two arrows, the left arrow moves right of Degeneracy, and
+    % Impoverishment stays under the axis, left of the copies.
+    w_d = 0.48 * diapo.textwidth;  h_d = 50;
+    D23 = struct('w', w_d, 'h', h_d, 'fs', 7, 'y', [0.258 0.068], ...
+                 'axe', [0.03 0.875], 'etat', 0.94, 'deg', [0.170 -0.058], ...
+                 'res', [0.580 -0.111], 'imp', [0.200 -0.034], ...
+                 'fl_x', [0.350 0.800], 'fl_y', [0.228 0.098]);
+    fig = figure_23(D23, before, kept, centres, r_after, copies, red, green, alpha_disc, linewidth);
+    save_pdf(fig, 'Appauvrissement particulaire', w_d, h_d, diapo.img);
+end
 
 %% Figure 2.4, a weighted empirical measure and its regularisation
 % The same five particles on both panels, at the same abscissae, so that the two
@@ -223,81 +217,152 @@ w_p     = [0.16 0.28 0.20 0.24 0.12];   % inside a cluster, so that it reads as 
 h_band  = 0.12;                          % wide enough that the kernels bridge the hole
                                          % rather than leaving it empty, which is the
                                          % whole difference between the two panels
-x_grid  = linspace(-0.30, 1.20, 500);
-kernels = w_p .* exp(-0.5 * ((x_grid' - x_p) / h_band).^2) / (h_band * sqrt(2*pi));
-density = sum(kernels, 2);
-y_max   = 1.15 * max(density);
-x_lim   = [-0.22 1.12];
-y_lim   = [-0.12 * y_max, y_max];   % just enough under the baseline for the samples
-                                    % label, the other two having moved to the corridor
-spikes  = w_p / max(w_p) * 0.88 * y_max;   % the tallest weight fills the panel
 
-% The two panels are pushed apart to open a corridor between them, in which the
-% three names common to both are stacked once instead of twice.
-pos_l = [0.010 0.080 0.390 0.890];
-pos_r = [0.600 0.080 0.390 0.890];
-
-fig = new_figure(w_24, h_24);
-
-axes('Units', 'normalized', 'Position', pos_l); hold on;
-for i = 1:numel(x_p)
-    plot([x_p(i) x_p(i)], [0, spikes(i)], '-', 'Color', blue, 'LineWidth', linewidth);
-end
-plot(x_p, zeros(size(x_p)), 'o', 'Color', blue, 'MarkerFaceColor', 'w', ...
-     'MarkerSize', 4, 'LineWidth', linewidth);
-plot(x_lim, [0 0], 'k-', 'LineWidth', 0.6 * linewidth);
-hold off; axis off; xlim(x_lim); ylim(y_lim);
-
-axes('Units', 'normalized', 'Position', pos_r); hold on;
-plot(x_grid, kernels, '-', 'Color', blue, 'LineWidth', linewidth);
-plot(x_grid, density, '-', 'Color', green, 'LineWidth', 1.4 * linewidth);
-plot(x_p, zeros(size(x_p)), 'o', 'Color', blue, 'MarkerFaceColor', 'w', ...
-     'MarkerSize', 4, 'LineWidth', linewidth);
-plot(x_lim, [0 0], 'k-', 'LineWidth', 0.6 * linewidth);
-
-hold off; axis off; xlim(x_lim); ylim(y_lim);
-
-% The shared column, drawn in an axes spanning the whole page so that a leader
-% may start between the panels and end inside either of them. Every leader is
-% horizontal, so each label sits at the height of what it names and the four of
-% them space themselves out. "samples" is the exception twice over: it stands at
-% the height of the two baselines, and it carries no leader, which at that height
-% would be taken for the axis itself.
-axes('Units', 'normalized', 'Position', [0 0 1 1]); hold on;
-axis off; xlim([0 1]); ylim([0 1]);
-x_col = mean([pos_l(1) + pos_l(3), pos_r(1)]);
-lead  = 0.078;                   % where a leader starts, clear of the widest label
-
-p_base = to_fig(pos_l, x_lim, y_lim, 0, 0);
-text(x_col, p_base(2), 'samples', 'Interpreter', 'latex', ...
-     'FontSize', fontsize, 'HorizontalAlignment', 'center');
-
-% The kernels are named on the left flank of the tallest one, high enough up that
-% the flank is unmistakably its own and not the foot of its neighbour.
-x_kern = x_p(2) - 0.9 * h_band;
-p_kern = to_fig(pos_r, x_lim, y_lim, x_kern, interp1(x_grid, kernels(:, 2), x_kern));
-label_with_leader(x_col, p_kern, lead, {'kernels'}, fontsize, grey, linewidth);
-
-% The weights are named three quarters up the tallest spike of the right cluster,
-% where the leader clears the shorter one beside it.
-p_wght = to_fig(pos_l, x_lim, y_lim, x_p(4), 0.75 * spikes(4));
-label_with_leader(x_col, p_wght, -lead, {'weights'}, fontsize, grey, linewidth);
-
-% The sum, near the top of it, and on the flank facing its label. The level is
-% above anything the right hump reaches, so the last crossing is the descending
-% side of the left one -- the first thing a leader coming from the right meets,
-% which is what keeps it from cutting across the curve to reach the other flank.
-y_dens = 0.88 * max(density);
-x_dens = x_grid(find(density >= y_dens, 1, 'last'));
-p_dens = to_fig(pos_r, x_lim, y_lim, x_dens, y_dens);
-label_with_leader(x_col+0.38, p_dens, -lead, {'density', 'estimate'}, fontsize, grey, linewidth);
-hold off;
-
+% The page, the two panels, the distance from the centre of the corridor at which
+% a leader starts (lead) and the offset of the density label from that centre.
+L24 = struct('w', w_24, 'h', h_24, 'fs', fontsize, ...
+             'pos_l', [0.010 0.080 0.390 0.890], 'pos_r', [0.600 0.080 0.390 0.890], ...
+             'lead', 0.078, 'dens', 0.38);
+fig = figure_24(L24, x_p, w_p, h_band, blue, green, grey, linewidth);
 save_pdf(fig, 'Régularisation par noyau', w_24, h_24, img_dir);
+if en_diapo
+    % Lower half of the right column of the slide, 0.48\textwidth by 50 pt so as to
+    % end above the logo. The same layout holds at 7 pt once the leaders start
+    % further from the centre of the corridor, the labels being wider.
+    w_d = 0.48 * diapo.textwidth;  h_d = 50;
+    D24 = struct('w', w_d, 'h', h_d, 'fs', 7, ...
+                 'pos_l', [0.010 0.080 0.390 0.890], 'pos_r', [0.600 0.080 0.390 0.890], ...
+                 'lead', 0.095, 'dens', 0.38);
+    fig = figure_24(D24, x_p, w_p, h_band, blue, green, grey, linewidth);
+    save_pdf(fig, 'Régularisation par noyau', w_d, h_d, diapo.img);
+end
 
 fprintf('Four PDFs written to %s\n', img_dir);
 
 %% Local functions
+function fig = figure_23(L, before, kept, centres, r_after, copies, red, green, alpha_disc, linewidth)
+% Figure 2.3 on the page and with the label positions of L. Taken out of the body
+% of the script on 2026-11-08, unchanged but for those positions, so that the
+% defence slide can redraw it on a page of its own.
+    fig = new_figure(L.w, L.h);
+    layout_axes(); axis equal; xlim([0 1]); ylim([0 L.h / L.w]);
+    y_hi = L.y(1); y_lo = L.y(2);
+
+    plot(L.axe, [y_hi y_hi], 'k-', 'LineWidth', 0.6 * linewidth);
+    plot(L.axe, [y_lo y_lo], 'k-', 'LineWidth', 0.6 * linewidth);
+    txt(L.etat, y_hi, {'State'}, L.fs);
+    txt(L.etat, y_lo, {'State'}, L.fs);
+
+    % Every disc is collected before anything is drawn, so that the fills can go down
+    % first and the outlines all together on top. Painted one by one, a late disc
+    % would bury the outline of an early one, and the copies of the lower axis are
+    % precisely the ones that need to stay countable.
+    discs = struct('x', {}, 'y', {}, 'r', {}, 'c', {});
+    for i = 1:numel(before)
+        face = red;
+        if any(i == kept)
+            face = green;
+        end
+        discs(end+1) = struct('x', before(i).x, 'y', y_hi, 'r', before(i).r, 'c', face); %#ok<AGROW>
+    end
+    for c = 1:numel(centres)
+        for i = 1:copies(c)
+            a = 2*pi*(i-1) / copies(c);
+            discs(end+1) = struct('x', centres(c) + 0.42*r_after*cos(a), ...
+                                  'y', y_lo + 0.42*r_after*sin(a), ...
+                                  'r', r_after, 'c', green); %#ok<AGROW>
+        end
+    end
+    for d = discs
+        disc_fill(d, alpha_disc);
+    end
+    for d = discs
+        disc_edge(d, linewidth);
+    end
+
+    txt(L.deg(1), y_hi + L.deg(2), {'\textbf{Degeneracy}'}, L.fs);
+    txt(L.res(1), y_hi + L.res(2), {'\textbf{Resampling}'}, L.fs);
+    txt(L.imp(1), y_lo + L.imp(2), {'\textbf{Impoverishment}'}, L.fs);
+    arrow(L.fl_x([1 1]), L.fl_y, linewidth, 1);
+    arrow(L.fl_x([2 2]), L.fl_y, linewidth, 1);
+end
+
+function fig = figure_24(L, x_p, w_p, h_band, blue, green, grey, linewidth)
+% Figure 2.4 on the page and with the panels, leaders and font of L. Taken out of
+% the body of the script on 2026-11-08, unchanged but for those, so that the
+% defence slide can redraw it on a page of its own.
+    x_grid  = linspace(-0.30, 1.20, 500);
+    kernels = w_p .* exp(-0.5 * ((x_grid' - x_p) / h_band).^2) / (h_band * sqrt(2*pi));
+    density = sum(kernels, 2);
+    y_max   = 1.15 * max(density);
+    x_lim   = [-0.22 1.12];
+    y_lim   = [-0.12 * y_max, y_max];   % just enough under the baseline for the samples
+                                        % label, the other two having moved to the corridor
+    spikes  = w_p / max(w_p) * 0.88 * y_max;   % the tallest weight fills the panel
+
+    % The two panels are pushed apart to open a corridor between them, in which the
+    % three names common to both are stacked once instead of twice.
+    pos_l = L.pos_l;
+    pos_r = L.pos_r;
+    fontsize = L.fs;
+
+    fig = new_figure(L.w, L.h);
+
+    axes('Units', 'normalized', 'Position', pos_l); hold on;
+    for i = 1:numel(x_p)
+        plot([x_p(i) x_p(i)], [0, spikes(i)], '-', 'Color', blue, 'LineWidth', linewidth);
+    end
+    plot(x_p, zeros(size(x_p)), 'o', 'Color', blue, 'MarkerFaceColor', 'w', ...
+         'MarkerSize', 4, 'LineWidth', linewidth);
+    plot(x_lim, [0 0], 'k-', 'LineWidth', 0.6 * linewidth);
+    hold off; axis off; xlim(x_lim); ylim(y_lim);
+
+    axes('Units', 'normalized', 'Position', pos_r); hold on;
+    plot(x_grid, kernels, '-', 'Color', blue, 'LineWidth', linewidth);
+    plot(x_grid, density, '-', 'Color', green, 'LineWidth', 1.4 * linewidth);
+    plot(x_p, zeros(size(x_p)), 'o', 'Color', blue, 'MarkerFaceColor', 'w', ...
+         'MarkerSize', 4, 'LineWidth', linewidth);
+    plot(x_lim, [0 0], 'k-', 'LineWidth', 0.6 * linewidth);
+
+    hold off; axis off; xlim(x_lim); ylim(y_lim);
+
+    % The shared column, drawn in an axes spanning the whole page so that a leader
+    % may start between the panels and end inside either of them. Every leader is
+    % horizontal, so each label sits at the height of what it names and the four of
+    % them space themselves out. "samples" is the exception twice over: it stands at
+    % the height of the two baselines, and it carries no leader, which at that height
+    % would be taken for the axis itself.
+    axes('Units', 'normalized', 'Position', [0 0 1 1]); hold on;
+    axis off; xlim([0 1]); ylim([0 1]);
+    x_col = mean([pos_l(1) + pos_l(3), pos_r(1)]);
+    lead  = L.lead;                  % where a leader starts, clear of the widest label
+
+    p_base = to_fig(pos_l, x_lim, y_lim, 0, 0);
+    text(x_col, p_base(2), 'samples', 'Interpreter', 'latex', ...
+         'FontSize', fontsize, 'HorizontalAlignment', 'center');
+
+    % The kernels are named on the left flank of the tallest one, high enough up that
+    % the flank is unmistakably its own and not the foot of its neighbour.
+    x_kern = x_p(2) - 0.9 * h_band;
+    p_kern = to_fig(pos_r, x_lim, y_lim, x_kern, interp1(x_grid, kernels(:, 2), x_kern));
+    label_with_leader(x_col, p_kern, lead, {'kernels'}, fontsize, grey, linewidth);
+
+    % The weights are named three quarters up the tallest spike of the right cluster,
+    % where the leader clears the shorter one beside it.
+    p_wght = to_fig(pos_l, x_lim, y_lim, x_p(4), 0.75 * spikes(4));
+    label_with_leader(x_col, p_wght, -lead, {'weights'}, fontsize, grey, linewidth);
+
+    % The sum, near the top of it, and on the flank facing its label. The level is
+    % above anything the right hump reaches, so the last crossing is the descending
+    % side of the left one -- the first thing a leader coming from the right meets,
+    % which is what keeps it from cutting across the curve to reach the other flank.
+    y_dens = 0.88 * max(density);
+    x_dens = x_grid(find(density >= y_dens, 1, 'last'));
+    p_dens = to_fig(pos_r, x_lim, y_lim, x_dens, y_dens);
+    label_with_leader(x_col+L.dens, p_dens, -lead, {'density', 'estimate'}, fontsize, grey, linewidth);
+    hold off;
+end
+
 function label_with_leader(x_col, target, lead, lines, fontsize, colour, linewidth)
 % One entry of the shared column: the words centred in the corridor at the height
 % of what they name, and a horizontal leader running out to it. lead is signed,

@@ -9,9 +9,9 @@
 
 Throughout \cref{sec:kriging_navigation}, we assumed that we had access to at least some prior knowledge of the environment in the form of a sparse and noisy set of training data. Such training points formed the basis on which we were able to reconstruct the observation function using kriging, without which no Bayesian correction could be performed.
 
-In this chapter, we address the navigation problem described by \eqref{eq:navigation_problem} without any prior training data. This situation corresponds to simultaneous localisation and mapping (SLAM), where the environment must be learnt while simultaneously estimating the vehicle's position and kinematic state. SLAM is a well-established problem in autonomous navigation \cite{bib:SLAM-tutorial,bib:SLAM-survey}. A standard solution is to use exteroceptive sensors, such as a stereo camera \cite{bib:ORB-SLAM2}, LiDAR \cite{bib:LOAM,bib:Cartographer}, or sonar, which provide information about the surrounding environment beyond the vehicle's immediate vicinity.
+In this chapter, we address the navigation problem described by \eqref{eq:navigation_problem} without any prior training data. This situation corresponds to simultaneous localisation and mapping (SLAM), where the environment must be learnt while simultaneously estimating the vehicle's position and kinematic state. SLAM is a well-established problem in autonomous navigation \cite{bib:SLAM-tutorial,bib:SLAM-survey}. A standard solution is to use exteroceptive sensors, such as a stereo camera \cite{bib:ORB-SLAM2}, light detection and ranging (LiDAR) \cite{bib:LOAM,bib:Cartographer}, or sonar, which provide information about the surrounding environment beyond the vehicle's immediate vicinity.
 
-In our case, however, we focus on local sensors, such as magnetometers or gravimeters, whose measurements are restricted to the field at the vehicle's current location. They consequently provide no direct information about the neighbouring environment, preventing the evaluation of the likelihood at any location other than the true one, which a Bayesian filter is precisely trying to recover.
+In our case, however, we focus on local sensors, such as magnetometers or gravimeters, whose measurements are restricted to the field at the vehicle's current location. They consequently provide no direct information about the neighbouring environment, preventing the evaluation of the likelihood at any location other than the true one, which a Bayesian filter is precisely trying to recover. It must be noted that the maps considered in this document are those of the scalar magnetic anomaly, so that a magnetometer is used here through the norm of the field alone.
 
 GP-based maps have been used to overcome this limitation, by correlating the field at the current location with that of previously visited ones, both indoors \cite{bib:SLAM-magneto,bib:magnetic-SLAM-3D,bib:magnetic-SLAM-EKF} and from the air, over the magnetic anomaly field \cite{bib:MagSLAM} or the terrain \cite{bib:SLAM-GP-terrain}.
 
@@ -64,7 +64,11 @@ The eigenpairs of the Mercer operator are then approximated by:
 	\lambda_j&=S_\nu(\omega_j)
 	\end{aligned}\right.\label{eq:Laplace_basis}
 \end{equation}
-where $\omega_j^{(d)}$ and $x^{(d)}$ denote the $d$-th components of $\omega_j$ and $x$, and $S_\nu$ is the Fourier transform of $\kappa_\nu$ given in \cref{sec:proof_Matérn}. $S_\nu$ is  also known as the spectral density of $\kappa_\nu$.
+where:
+\begin{equation}
+	\omega_j^{(d)}\triangleq\pi\:n_d/L_d
+\end{equation}
+and $x^{(d)}$ respectively denote the $d$-th components of $\omega_j$ and $x$, and $S_\nu$ is the Fourier transform of $\kappa_\nu$ given in \cref{sec:proof_Matérn}. $S_\nu$ is  also known as the spectral density of $\kappa_\nu$.
 
 Let $\boldsymbol{\Psi}$ and $\boldsymbol{\Lambda}$ be defined as in \cref{sec:efficient_kriging} from these approximated eigenpairs. Under \Cref{th:SLAM_assumptions}, \Cref{th:KL_parametrisation} then gives:
 \begin{equation}
@@ -74,7 +78,7 @@ Let $\boldsymbol{\Psi}$ and $\boldsymbol{\Lambda}$ be defined as in \cref{sec:ef
 Since $S_\nu$ is only given up to the constant $C$ in \cref{sec:proof_Matérn}, the eigenvalues are normalised such that the variance $\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top$ of the approximated field equals $\sigma_h^2$ at the centre of $\Omega$, where the boundary conditions have the least influence. Furthermore, the basis functions only depend on the domain, and can thus be computed before the mission.
 
 \begin{remark}[Choice of the domain]
-	The basis functions of \eqref{eq:Laplace_basis} are equal to zero on the boundary of $\Omega$, and so is the field reconstructed from \eqref{eq:SLAM_map}. The domain must therefore be chosen larger than the region covered by the vehicle. However, the frequencies are spaced by $\pi/L_d$ along the $d$-th axis. The rank $r_{\mathrm{KL}}$ required to reach a given frequency thus increases with the size of the domain, which is why the original method divides it into tiles.
+	Although \Cref{th:KL} holds on any compact set, the eigenfunctions of the Laplace operator are only known in closed form on simple domains, which is why $\Omega$ is taken to be a box. Moreover, the basis functions of \eqref{eq:Laplace_basis} are equal to zero on the boundary of $\Omega$, and so is the field reconstructed from \eqref{eq:SLAM_map}. The domain must therefore be chosen larger than the region covered by the vehicle. However, the frequencies are spaced by $\pi/L_d$ along the $d$-th axis. The rank $r_{\mathrm{KL}}$ required to reach a given frequency thus increases with the size of the domain, which is why the original method divides it into tiles.
 \end{remark}
 
 \subsection{Rao-Blackwellised Estimation}
@@ -83,7 +87,8 @@ Under \Cref{th:SLAM_assumptions} and the approximation \eqref{eq:SLAM_map}, the 
 \begin{equation}
 	z_k=\boldsymbol{\Psi}(x_k)\:\boldsymbol{\gamma}+\varepsilon_k
 \end{equation}
-and is thus linear in the coefficients for a given state. Assuming that the evolution noise is additive and Gaussian, the navigation problem \eqref{eq:navigation_problem} is then the system \eqref{eq:RBPF_model} with:
+and is thus linear in the coefficients for a given state. Assuming that the evolution noise is additive and Gaussian, the navigation problem \eqref{eq:navigation_problem} is then the Rao-Blackwellised system \eqref{eq:RBPF_model}
+with:
 \begin{equation}
 	\left\{\begin{array}{llll}
 	x_k^n=x_k&\mathbf{F}_k^n=0&f_k^n=f_k&\mathbf{Q}_k^n=\mathbf{Q}_k\\
@@ -101,7 +106,7 @@ Using the transition density as proposal, as described in \eqref{eq:prior_propos
 \begin{itemize}
 	\item\textbf{Particle propagation.} The particles are propagated according to the transition density:
 	\begin{equation}
-		x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{(i)}\right)
+		x_k^{(i)}\sim p\left(\cdot\:\middle|\:x_{k-1}^{(i)}\right)
 	\end{equation}
 	\item\textbf{Weight update.} Let $\boldsymbol{\Psi}_k^{(i)}\triangleq\boldsymbol{\Psi}\left(x_k^{(i)}\right)$. The innovation and its covariance are:
 	\begin{equation}
@@ -112,7 +117,7 @@ Using the transition density as proposal, as described in \eqref{eq:prior_propos
 	\end{equation}
 	and the weights are updated as in \eqref{eq:weight_update_prior}, with the likelihood:
 	\begin{equation}
-		z_k|\mathbf{x}_{0:k}^{(i)},\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\boldsymbol{\Psi}_k^{(i)}\:\hat{\boldsymbol{\gamma}}_{k-1}^{(i)},\mathbf{S}_k^{(i)}\right)
+		z_k\mid\mathbf{x}_{0:k}^{(i)},\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\boldsymbol{\Psi}_k^{(i)}\:\hat{\boldsymbol{\gamma}}_{k-1}^{(i)},\mathbf{S}_k^{(i)}\right)
 	\end{equation}
 
 	Similarly to \eqref{eq:kriged_likelihood}, its covariance accounts for both the uncertainty of the estimated field and the observation noise. The last term of $\mathbf{S}_k^{(i)}$, which is not part of the original method, is the part of the prior variance $\sigma_h^2$ that the truncated basis does not represent. Since it cannot be learnt, it is treated as an additional observation noise.
@@ -136,12 +141,12 @@ As for the RPF of \Cref{alg:RPF}, the particles are only resampled when the effe
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{(i)}\right)$}\Comment{Particle propagation}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot\:\middle|\:x_{k-1}^{(i)}\right)$}\Comment{Particle propagation}
 	\State{$\forall i\in[\![1,N]\!],\:\boldsymbol{\Psi}_k^{(i)}=\boldsymbol{\Psi}\left(x_k^{(i)}\right)$}\Comment{\textbf{Innovation}}
 	\State{$\forall i\in[\![1,N]\!],\:y_k^{(i)}=z_k-\boldsymbol{\Psi}_k^{(i)}\:\hat{\boldsymbol{\gamma}}_{k-1}^{(i)}$}
 	\State{$\forall i\in[\![1,N]\!],\:\mathbf{S}_k^{(i)}=\boldsymbol{\Psi}_k^{(i)}\:\mathbf{P}_{k-1}^{\gamma(i)}\left(\boldsymbol{\Psi}_k^{(i)}\right)^\top+\mathbf{R}_k+\max\left(\sigma_h^2-\boldsymbol{\Psi}_k^{(i)}\:\boldsymbol{\Lambda}\left(\boldsymbol{\Psi}_k^{(i)}\right)^\top,0\right)$}
-	\State{$\forall i\in[\![1,N]\!],\:z_k|\mathbf{x}_{0:k}^{(i)},\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\boldsymbol{\Psi}_k^{(i)}\:\hat{\boldsymbol{\gamma}}_{k-1}^{(i)},\mathbf{S}_k^{(i)}\right)$}
-	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\tilde{p}\left(z_k|x_k^{(i)}\right)$}\Comment{Weight update}
+	\State{$\forall i\in[\![1,N]\!],\:z_k\mid\mathbf{x}_{0:k}^{(i)},\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\boldsymbol{\Psi}_k^{(i)}\:\hat{\boldsymbol{\gamma}}_{k-1}^{(i)},\mathbf{S}_k^{(i)}\right)$}
+	\State{$\forall i\in[\![1,N]\!],\:\tilde{w}_k^{(i)}=w_{k-1}^{(i)}\:\tilde{p}\left(z_k\:\middle|\:\mathbf{x}_{0:k}^{(i)},\mathbf{z}_{1:k-1}\right)$}\Comment{Weight update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:w_k^{(i)}=\left.\tilde{w}_k^{(i)}\middle/\sum_{j=1}^N\tilde{w}_k^{(j)}\right.$}\Comment{Normalisation}
 	\State{$\displaystyle\hat{N}_{\mathrm{eff}}=\left.1\middle/\sum_{i=1}^N\left(w_k^{(i)}\right)^2\right.$}\Comment{Resampling criterion}
 	\If{$\hat{N}_{\mathrm{eff}}<N_{\mathrm{th}}$}
@@ -168,11 +173,11 @@ As for the RPF of \Cref{alg:RPF}, the particles are only resampled when the effe
 
 As described by \Cref{th:SLAM_cost}, RBPF-SLAM associates each particle with its own coefficients and covariance matrix, which becomes costly when the number of particles or of basis functions is large. In this section, we propose to estimate a single set of coefficients instead, shared by all the particles. The proposed method relies on the AKKF of \Cref{alg:AKKF}.
 
-The AKKF never evaluates the likelihood, and only requires samples of $p(z_k|x_k)$. However, under \Cref{th:SLAM_assumptions}, drawing these samples requires the observation function $h$, which is unknown. Since the filtering problem is already formulated in an RKHS, it is natural to estimate $h$ in such a space as well. This section introduces random Fourier features (RFF) \cite{bib:RFF,bib:RFF-survey} to obtain a finite-dimensional approximation of this space, and recursive least squares (RLS) \cite{bib:RFF-RLS} to estimate the corresponding coefficients.
+The AKKF never evaluates the likelihood, and only requires samples of $p(z_k\mid x_k)$. However, under \Cref{th:SLAM_assumptions}, drawing these samples requires the observation function $h$, which is unknown. Since the filtering problem is already formulated in an RKHS, it is natural to estimate $h$ in such a space as well. This section introduces random Fourier features (RFF) \cite{bib:RFF,bib:RFF-survey} to obtain a finite-dimensional approximation of this space, and recursive least squares (RLS) \cite{bib:RFF-RLS} to estimate the corresponding coefficients.
 
 \subsection{Random Fourier Features}
 
-Let $\mathcal{H}_{\kappa_\nu}$ be the native RKHS of the kernel $\kappa_\nu$. According to \Cref{th:RKHS_regularisation}, the regularised least-squares estimate of $h$ in $\mathcal{H}_{\kappa_\nu}$ is a linear combination of the features of its training points. As for kriging, its number of coefficients is thus equal to the number of training points, which increases at each time step when the observations are collected along the trajectory. To obtain a fixed number of coefficients, the kernel is approximated by a finite number of known functions instead.
+Let $\mathcal{H}_{\kappa_\nu}$ be the native RKHS of the kernel $\kappa_\nu$. According to \Cref{th:RKHS_regularisation}, the regularised least-squares estimate of $h$ in $\mathcal{H}_{\kappa_\nu}$ is a linear combination of the features of its training points. As for kriging, its number of coefficients is thus equal to the number of training points, which increases at each time step when the observations are collected along the trajectory. Unlike the adaptive windows of \cref{sec:AK_PF}, which select a subset of a survey available in full at every time step, this training set is the only knowledge of the map. To obtain a fixed number of coefficients, the kernel is approximated by a finite number of known functions instead.
 
 Let $p_\nu$ be the probability density obtained by normalising the spectral density of $\kappa_\nu$:
 \begin{equation}
@@ -319,14 +324,14 @@ It must be noted that the map update only relies on the real observation $z_k$, 
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{+(i)}\right)$}\Comment{Particle propagation}
-	\State{$\mathbf{D}_k=\left(\mathbf{G}_{k-1}^x+\alpha_{\mathrm{RKHS},x}\mathbf{I}_N\right)^{-1}\mathbf{G}_{k-1}^x-\mathbf{I}_N$}\Comment{Embedded prediction}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot\:\middle|\:x_{k-1}^{+(i)}\right)$}\Comment{Particle propagation}
+	\State{$\mathbf{D}_k=\left(\mathbf{G}_{k-1}^X+\alpha_{\mathrm{RKHS},X}\mathbf{I}_N\right)^{-1}\mathbf{G}_{k-1}^X-\mathbf{I}_N$}\Comment{Embedded prediction}
 	\State{$\displaystyle\boldsymbol{\Sigma}_{k|k-1}=\boldsymbol{\Sigma}_{k-1|k-1}^++\frac{1}{N}\mathbf{D}_k\:\mathbf{D}_k^\top$}
 	\State{$\forall i\in[\![1,N]\!],\:z_k^{(i)}=\boldsymbol{\Psi}\left(x_k^{(i)}\right)\hat{\boldsymbol{\gamma}}_{k-1}+\varepsilon_k^{(i)},$}\Comment{\textbf{Simulated observations}}
 	\State{$\qquad\varepsilon_k^{(i)}\sim\mathcal{N}\left(0,\mathbf{R}_k\left(1+\boldsymbol{\Psi}\left(x_k^{(i)}\right)\mathbf{P}_{k-1}^\gamma\:\boldsymbol{\Psi}\left(x_k^{(i)}\right)^\top\right)\right)$}
-	\State{$\mathbf{K}_k=\boldsymbol{\Sigma}_{k|k-1}\left(\mathbf{G}_k^z\:\boldsymbol{\Sigma}_{k|k-1}+\alpha_{\mathrm{RKHS},z}\mathbf{I}_N\right)^{-1}$}\Comment{Embedded correction}
-	\State{$\mathbf{w}_k=\mathbf{w}_{k-1}^++\mathbf{K}_k\left(\kappa_Z\left(\mathbf{z}_k,z_k\right)-\mathbf{G}_k^z\:\mathbf{w}_{k-1}^+\right)$}
-	\State{$\boldsymbol{\Sigma}_{k|k}=\boldsymbol{\Sigma}_{k|k-1}-\mathbf{K}_k\:\mathbf{G}_k^z\:\boldsymbol{\Sigma}_{k|k-1}$}
+	\State{$\mathbf{K}_k=\boldsymbol{\Sigma}_{k|k-1}\left(\mathbf{G}_k^Z\:\boldsymbol{\Sigma}_{k|k-1}+\alpha_{\mathrm{RKHS},Z}\mathbf{I}_N\right)^{-1}$}\Comment{Embedded correction}
+	\State{$\mathbf{w}_k=\mathbf{w}_{k-1}^++\mathbf{K}_k\left(\kappa_Z\left(\mathbf{z}_k,z_k\right)-\mathbf{G}_k^Z\:\mathbf{w}_{k-1}^+\right)$}
+	\State{$\boldsymbol{\Sigma}_{k|k}=\boldsymbol{\Sigma}_{k|k-1}-\mathbf{K}_k\:\mathbf{G}_k^Z\:\boldsymbol{\Sigma}_{k|k-1}$}
 	\State{$\displaystyle\bar{x}_k=\frac{1}{N}\sum_{i=1}^Nx_k^{(i)}$}\Comment{\textbf{State estimation}}
 	\State{$\displaystyle\hat{x}_k=\bar{x}_k+\sum_{i=1}^Nw_k^{(i)}\left(x_k^{(i)}-\bar{x}_k\right)$}
 	\State{$\displaystyle\hat{\mathbf{P}}_k=\sum_{i=1}^N\sum_{j=1}^N\left[\boldsymbol{\Sigma}_{k|k}\right]_{ij}\left(x_k^{(i)}-\bar{x}_k\right)\left(x_k^{(j)}-\bar{x}_k\right)^\top$}
@@ -334,7 +339,7 @@ It must be noted that the map update only relies on the real observation $z_k$, 
 	\State{$\hat{\boldsymbol{\gamma}}_k=\hat{\boldsymbol{\gamma}}_{k-1}+\mathbf{K}_k^\gamma\left(z_k-\boldsymbol{\Psi}\left(\hat{x}_k\right)\hat{\boldsymbol{\gamma}}_{k-1}\right)$}
 	\State{$\mathbf{P}_k^\gamma=\dfrac{1}{\beta_{\mathrm{RLS}}}\left(\mathbf{I}_{r_{\mathrm{RFF}}}-\mathbf{K}_k^\gamma\:\boldsymbol{\Psi}\left(\hat{x}_k\right)\right)\mathbf{P}_{k-1}^\gamma$}
 	\State{$\forall i\in[\![1,N]\!],\:x_k^{+(i)}\sim\mathcal{N}\left(\hat{x}_k,\hat{\mathbf{P}}_k\right)$}\Comment{Resampling}
-	\State{$\mathbf{T}_k=\left(\mathbf{G}_k^x+\alpha_{\mathrm{RKHS},x}\mathbf{I}_N\right)^{-1}\kappa_X\left(\mathbf{x}_k^+,\mathbf{x}_k\right)$}\Comment{Embedded resampling}
+	\State{$\mathbf{T}_k=\left(\mathbf{G}_k^X+\alpha_{\mathrm{RKHS},X}\mathbf{I}_N\right)^{-1}\kappa_X\left(\mathbf{x}_k^+,\mathbf{x}_k\right)$}\Comment{Embedded resampling}
 	\State{$\mathbf{w}_k^+=\mathbf{T}_k\mathbf{w}_k$}
 	\State{$\boldsymbol{\Sigma}_{k|k}^+=\mathbf{T}_k\:\boldsymbol{\Sigma}_{k|k}\:\mathbf{T}_k^\top$}
 	\end{algorithmic}\caption{AKKF-SLAM}\label{alg:AKKF_SLAM}
@@ -380,7 +385,7 @@ Finally, the initial uncertainty is reduced to:
 	1000^2&0&0&0\\
 	0&1000^2&0&0\\
 	0&0&2^2&0\\
-	0&0&0&2^2\\
+	0&0&0&2^2
 	\end{bmatrix}
 \end{equation}
 in the units of \cref{sec:scenario}. Indeed, since the kernel is radial, translating both the trajectory and the field does not change the distribution of the observations. Without training data, the error on the initial position can therefore not be corrected, and a SLAM method can only limit the growth of the estimation error over time.
@@ -398,7 +403,11 @@ Both SLAM methods are given the same kernel, which is a Matérn kernel of smooth
 
 For RBPF-SLAM, the domain $\Omega$ is the smallest rectangle containing the trajectory, extended by a margin of $25$ km on each side, and $r_{\mathrm{KL}}=300$ basis functions are used. Its regularisation uses the parameters of \cref{sec:scenario}.
 
-For AKKF-SLAM, $r_{\mathrm{RFF}}=500$ features are used, with $\alpha_{\mathrm{RKHS},x}=0.1$, $\alpha_{\mathrm{RKHS},z}=1$, $\alpha_{\mathrm{RLS}}=0.01$ and $\beta_{\mathrm{RLS}}=0.995$. Their frequencies and phases are drawn again for each Monte Carlo run. The coefficient $\alpha_{\mathrm{RKHS},z}$ is ten times larger than in \cite{bib:RFF-KKF-SLAM}, which reduces the gain $\mathbf{K}_k$ of the embedded correction. The kernel $\kappa_X$ is an SE kernel of unit variance and correlation length, using the Mahalanobis norm associated with $\mathbf{P}_0$. The kernel $\kappa_Z$ is an SE kernel of unit variance, whose correlation length is set at each time step to the median of the distances between the simulated observations and $z_k$, with a minimum of $\sqrt{\mathbf{R}_k}$. The AKKF using the known field shares these settings, and also computes its moments with respect to the empirical mean of the particles.
+For AKKF-SLAM, $r_{\mathrm{RFF}}=500$ features are used, with $\alpha_{\mathrm{RKHS},X}=0.1$, $\alpha_{\mathrm{RKHS},Z}=1$, $\alpha_{\mathrm{RLS}}=0.01$ and $\beta_{\mathrm{RLS}}=0.995$. Their frequencies and phases are drawn again for each Monte Carlo run. The forgetting factor is chosen so that the effective memory:
+\begin{equation}
+	\frac{1}{1-\beta_{\mathrm{RLS}}}=200
+\end{equation}
+steps of \eqref{eq:RLS_criterion}, that is $500$ km, covers about two and a half laps of the circuit, so that the observations of the previous lap still contribute to the map. The coefficient $\alpha_{\mathrm{RKHS},Z}$ is ten times larger than in \cite{bib:RFF-KKF-SLAM}, which reduces the gain $\mathbf{K}_k$ of the embedded correction. The kernel $\kappa_X$ is an SE kernel of unit variance and correlation length, using the Mahalanobis norm associated with $\mathbf{P}_0$. The kernel $\kappa_Z$ is an SE kernel of unit variance, whose correlation length is set at each time step to the median of the distances between the simulated observations and $z_k$, with a minimum of $\sqrt{\mathbf{R}_k}$. The AKKF using the known field shares these settings, and also computes its moments with respect to the empirical mean of the particles.
 
 This scenario is illustrated by \Cref{fig:SLAM_scenario} and summarised by \Cref{tab:SLAM_scenario}.
 
@@ -413,7 +422,7 @@ This scenario is illustrated by \Cref{fig:SLAM_scenario} and summarised by \Cref
 		\multirow{2}{*}{Field}&Function&Analytical\\\cline{2-3}
 		&Standard deviation&$123$ nT\\\hline
 		\multirow{4}{*}{Trajectory}&Form&Closed circuit\\\cline{2-3}
-		&Dimensions&$60$ km$\times60$ km\\\cline{2-3}
+		&Dimensions&$60$ km $\times$ $60$ km\\\cline{2-3}
 		&Turn radius&$25.5$ km\\\cline{2-3}
 		&$N_\mathrm{steps}$&$300$\\\hline
 		\multirow{2}{*}{Filters}&$N$&$500$\\\cline{2-3}
@@ -422,10 +431,10 @@ This scenario is illustrated by \Cref{fig:SLAM_scenario} and summarised by \Cref
 		&$\sigma_h^2$&$125^2$ $(\text{nT})^2$\\\cline{2-3}
 		&$\ell$&$4$ km\\\hline
 		\multirow{2}{*}{RBPF-SLAM}&$r_{\mathrm{KL}}$&$300$\\\cline{2-3}
-		&$\Omega$&$110$ km$\times110$ km\\\hline
+		&$\Omega$&$110$ km $\times$ $110$ km\\\hline
 		\multirow{5}{*}{AKKF-SLAM}&$r_{\mathrm{RFF}}$&$500$\\\cline{2-3}
-		&$\alpha_{\mathrm{RKHS},x}$&$0.1$\\\cline{2-3}
-		&$\alpha_{\mathrm{RKHS},z}$&$1$\\\cline{2-3}
+		&$\alpha_{\mathrm{RKHS},X}$&$0.1$\\\cline{2-3}
+		&$\alpha_{\mathrm{RKHS},Z}$&$1$\\\cline{2-3}
 		&$\alpha_{\mathrm{RLS}}$&$0.01$\\\cline{2-3}
 		&$\beta_{\mathrm{RLS}}$&$0.995$\\\hline
 	\end{tabular}
@@ -456,7 +465,7 @@ As expected, neither SLAM method reduces the initial error. During the first lap
 
 On the other hand, the RMSE of AKKF-SLAM increases faster than that of the inertial solution during the first lap, and reaches $1.9$ km at $k=78$. It then remains between $1.8$ and $1.9$ km until the end of the mission, without any noticeable growth, and is lower than that of the inertial solution from $k=92$ onward. Its ARMSE over the whole mission is $1.78$ km, against $1.82$ km for RBPF-SLAM. However, the NEES of AKKF-SLAM lies between $10$ and $14$ after $k=100$, above the consistency band, although it does not increase over time, unlike that of RBPF-SLAM.
 
-Since the AKKF using the known field is conservative, this overconfidence comes from the learnt map. This may be explained by the training inputs of \eqref{eq:RLS_criterion}, whose uncertainty is not accounted for by \Cref{alg:AKKF_SLAM}. The two modifications of the method of \cite{bib:RFF-KKF-SLAM} reduce this overconfidence without removing it. When the simulated observations only add the observation noise to the estimated field, the NEES over the last third of the mission increases from $11$ to $15$, and the ARMSE over the whole mission from $1.78$ to $1.92$ km. When the second term of \eqref{eq:AKKF_SLAM_variance} is kept but $\alpha_{\mathrm{RKHS},z}=0.1$, they increase to $22$ and $1.96$ km. Without both modifications, as in the original method, they reach $57$ and $2.70$ km, and the RMSE of AKKF-SLAM only becomes lower than that of the inertial solution from $k=170$. Finally, as in the original formulation, the state and the field can be represented by the same features, by using the approximated kernel $(x,x')\mapsto\boldsymbol{\Psi}(x)\:\boldsymbol{\Psi}(x')^\top$ as $\kappa_X$. With $\alpha_{\mathrm{RLS}}=\mathbf{R}_k/\sigma_h^2$, so that the prior distribution $\mathcal{N}\left(0,\mathbf{R}_k\:\mathbf{P}_0^\gamma\right)$ of the coefficients becomes $\mathcal{N}\left(0,\sigma_h^2\:\mathbf{I}_{r_{\mathrm{RFF}}}\right)$, the NEES over the last third of the mission then decreases to $2.4$ and remains within the consistency band throughout the mission, for an ARMSE of $1.71$ km, but the field error along the trajectory increases to $95.0$ nT.
+Since the AKKF using the known field is conservative, this overconfidence comes from the learnt map. This may be explained by the training inputs of \eqref{eq:RLS_criterion}, whose uncertainty is not accounted for by \Cref{alg:AKKF_SLAM}. Two of the modifications of the method of \cite{bib:RFF-KKF-SLAM} reduce this overconfidence without removing it. When the simulated observations only add the observation noise to the estimated field, the NEES over the last third of the mission increases from $11$ to $15$, and the ARMSE over the whole mission from $1.78$ to $1.92$ km. When the second term of \eqref{eq:AKKF_SLAM_variance} is kept but $\alpha_{\mathrm{RKHS},Z}=0.1$, they increase to $22$ and $1.96$ km. Without both modifications, as in the original method but with the moments computed with respect to $\bar{x}_k$, they reach $57$ and $2.70$ km, and the RMSE of AKKF-SLAM only becomes lower than that of the inertial solution from $k=170$. Finally, as in the original formulation, the state and the field can be represented by the same features, by using the approximated kernel $(x,x')\mapsto\boldsymbol{\Psi}(x)\:\boldsymbol{\Psi}(x')^\top$ as $\kappa_X$. With $\alpha_{\mathrm{RLS}}=\mathbf{R}_k/\sigma_h^2$, so that the prior distribution $\mathcal{N}\left(0,\mathbf{R}_k\:\mathbf{P}_0^\gamma\right)$ of the coefficients becomes $\mathcal{N}\left(0,\sigma_h^2\:\mathbf{I}_{r_{\mathrm{RFF}}}\right)$, the NEES over the last third of the mission then decreases to $2.4$ and remains within the consistency band throughout the mission, for an ARMSE of $1.71$ km, but the field error along the trajectory increases to $95.0$ nT.
 
 Regarding the field, both methods reduce the reconstruction error along the trajectory, from $102.5$ nT without any map to $78.9$ nT for RBPF-SLAM, and $79.8$ nT for AKKF-SLAM. \Cref{fig:SLAM_maps} presents the field reconstructed by each method at the end of the first run, along with the RMSE of the reconstruction over the $N_\mathrm{MC}$ runs. Both methods only recover the field in the neighbourhood of the circuit. Away from it, the field reconstructed by RBPF-SLAM vanishes, whereas that of AKKF-SLAM oscillates.
 
@@ -481,7 +490,7 @@ Finally, \Cref{fig:SLAM_ranks} and \Cref{tab:SLAM_ranks} compare RBPF-SLAM and A
 	\caption{Estimation ARMSE, NEES over the last third of the mission, field ARMSE along the trajectory, computational cost per run, in flops, and memory requirement of RBPF-SLAM and AKKF-SLAM for several ranks of their bases.}\label{tab:SLAM_ranks}
 \end{table}
 
-In contrast, the ARMSE of AKKF-SLAM remains between $1.6$ and $1.8$ km from $r_{\mathrm{RFF}}=50$ to $1000$, and its NEES between $9$ and $16$, whereas its field error decreases from $172.5$ to $76.9$ nT. Its accuracy is thus not limited by the representation of the field. Indeed, its RMSE is already $1.41$ km at $k=1$, because of the initial error that neither SLAM method can correct, and a more accurate map can only reduce the rest of its error. The same holds for the method of \cite{bib:RFF-KKF-SLAM}, whose ARMSE remains between $2.5$ and $3.0$ km from $r_{\mathrm{RFF}}=50$ to $2000$. Since the cost of AKKF-SLAM is dominated by the $\mathcal{O}\left(N^3\right)$ operations of the AKKF, it only grows from $638$ Gflop per run for $r_{\mathrm{RFF}}=50$ to $713$ Gflop for $r_{\mathrm{RFF}}=500$, and $939$ Gflop for $r_{\mathrm{RFF}}=1000$.
+In contrast, the ARMSE of AKKF-SLAM remains between $1.6$ and $1.8$ km from $r_{\mathrm{RFF}}=50$ to $1000$, and its NEES between $9$ and $16$, whereas its field error decreases from $172.5$ to $76.9$ nT. Its accuracy is thus not limited by the representation of the field. Indeed, its RMSE is already $1.41$ km at $k=1$, mostly because of the initial error that neither SLAM method can correct, and a more accurate map can only reduce the rest of its error. The same holds for the method of \cite{bib:RFF-KKF-SLAM} with the moments computed with respect to $\bar{x}_k$, whose ARMSE remains between $2.5$ and $3.0$ km from $r_{\mathrm{RFF}}=50$ to $2000$. Since the cost of AKKF-SLAM is dominated by the $\mathcal{O}\left(N^3\right)$ operations of the AKKF, it only grows from $638$ Gflop per run for $r_{\mathrm{RFF}}=50$ to $713$ Gflop for $r_{\mathrm{RFF}}=500$, and $939$ Gflop for $r_{\mathrm{RFF}}=1000$.
 
 Taken together, these results show that both methods limit the growth of the estimation error in the absence of training data. On this scenario, AKKF-SLAM reaches the accuracy of RBPF-SLAM with a single set of coefficients, and thus with $45$ times less memory, but requires $12$ times more operations. Moreover, the accuracy of RBPF-SLAM requires a basis that resolves the shortest wavelength of the field, and its cost grows quadratically with its rank, whereas neither the accuracy nor the cost of AKKF-SLAM varies much with the number of its features. AKKF-SLAM is also more robust, with $73\%$ of its runs ending below $2$ km against $50\%$ for RBPF-SLAM, and no divergence at any rank. However, with the settings of \Cref{tab:SLAM_scenario}, neither method provides a consistent estimate of its own uncertainty, and both remain far from the accuracy reached with the known field. In the case of AKKF-SLAM, this inconsistency comes from the learnt map, the AKKF itself being conservative when the field is known.
 

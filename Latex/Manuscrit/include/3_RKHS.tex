@@ -1,6 +1,6 @@
 \section{Reproducing Kernel Hilbert Spaces}\label{sec:RKHS}
 
-Beyond regression, the covariance kernel also induces a functional Hilbert space, known as a reproducing kernel Hilbert space (RKHS) \cite{bib:Aronszajn,bib:RKHS-Dumbgen}. The RKHS representation is complementary to the probabilistic viewpoint described throughout this chapter. Indeed, while the GP describes a probabilistic distribution over functions, the RKHS associated with its covariance kernel provides a deterministic functional space in which such functions can be represented, manipulated, or approximated. For the sake of simplicity, we assume that $d_z=1$, so that the reproducing property can be written in its most natural form.
+Beyond regression, the covariance kernel also induces a functional Hilbert space, known as a reproducing kernel Hilbert space (RKHS) \cite{bib:Aronszajn,bib:RKHS-Dumbgen}. The RKHS representation is complementary to the probabilistic viewpoint described throughout this chapter. Indeed, while the GP describes a probabilistic distribution over functions, the RKHS associated with its covariance kernel provides a deterministic functional space in which their estimates can be represented, manipulated, or approximated. For the sake of simplicity, we assume that $d_z=1$, so that the reproducing property can be written in its most natural form.
 
 \subsection{Reproducing Property and Definition}
 
@@ -66,7 +66,7 @@ is continuous on $\mathcal{H}$ for every $x\in\Omega$. Its reproducing kernel is
 	See \cref{sec:proof_native_RKHS}.
 \end{proof}
 
-The native RKHS is spanned by the functions $\kappa(x,\cdot)$, so every $x\in\Omega$ is naturally represented in $\mathcal{H}_\kappa$ by the $\kappa(x,\cdot)$ it generates. This correspondence defines the feature map, introduced by \Cref{th:feature_map}, and provides the representation on which the kernel methods of the following sections operate.
+The native RKHS is the closure of the span of the functions $\kappa(x,\cdot)$, so every $x\in\Omega$ is naturally represented in $\mathcal{H}_\kappa$ by the $\kappa(x,\cdot)$ it generates. This correspondence defines the feature map, introduced by \Cref{th:feature_map}, and provides the representation on which the kernel methods of the following sections operate.
 
 \begin{definition}[Feature map]\label{th:feature_map}
 	Let $\kappa$ be an SPSD kernel on $\Omega$, and $(\mathcal{H}_\kappa,\langle\cdot\mid\cdot\rangle_{\mathcal{H}_\kappa})$ be its native RKHS. The feature map of $\mathcal{H}_\kappa$ is:
@@ -332,7 +332,7 @@ Each of its elements $T$ also acts as a continuous linear operator from $\mathca
 Similarly to \Cref{th:KME_existence}, \Cref{th:cross_covariance} gives a sufficient condition for the existence of $\mu_{XZ}$. It also generalises \eqref{eq:KME_expectation} to expectations involving both $X$ and $Z$ \cite{bib:kernel-embeddings}.
 
 \begin{proposition}[Existence of the joint KME]\label{th:cross_covariance}
-	With the notations of \Cref{th:joint_KME}, if $\mathbb{E}_{p_{XZ}}\left[\sqrt{\kappa_X(X,X)\:\kappa_Z(Z,Z)}\right]<\infty$, then $\mu_{XZ}$ is well defined and:
+	With the notation of \Cref{th:joint_KME}, if $\mathbb{E}_{p_{XZ}}\left[\sqrt{\kappa_X(X,X)\:\kappa_Z(Z,Z)}\right]<\infty$, then $\mu_{XZ}$ is well defined and:
 	\begin{equation}
 		\forall\varphi\in\mathcal{H}_{\kappa_X},\:\forall\psi\in\mathcal{H}_{\kappa_Z},\:\langle\varphi\mid\mu_{XZ}\:\psi\rangle_{\mathcal{H}_{\kappa_X}}=\mathbb{E}_{p_{XZ}}\left[\varphi(X)\:\psi(Z)\right]
 	\end{equation}
@@ -363,27 +363,27 @@ Similarly to \Cref{th:KME_existence}, \Cref{th:cross_covariance} gives a suffici
 \Cref{th:conditional_KME} introduces the embedding of a conditional law, and \Cref{th:conditional_operator} shows that it depends linearly on the feature of the value taken by the conditioning variable \cite{bib:conditional-embeddings}. In the following, $\mu_{ZX}$ and $\mu_{XX}$ denote the joint KMEs of $(Z,X)$ and of $(X,X)$, the latter being taken under the kernel $\kappa_X$ alone.
 
 \begin{definition}[Conditional KME]\label{th:conditional_KME}
-	With the notations of \Cref{th:joint_KME}, let $p_{Z|X}$ be the conditional probability density of $Z$ given $X$, and $x\in\Omega_X$. The conditional KME of $Z$ given $X=x$ is:
+	With the notation of \Cref{th:joint_KME}, let $p_{Z|X}$ be the conditional probability density of $Z$ given $X$, and $x\in\Omega_X$. The conditional KME of $Z$ given $X=x$ is:
 	\begin{equation}
-		\mu_{Z|x}\triangleq\mathbb{E}\left[\Phi_Z(Z)|X=x\right]=\int_{\Omega_Z}{\Phi_Z(z)\:p_{Z|X}(z|x)\:dz}\in\mathcal{H}_{\kappa_Z}\label{eq:conditional_KME}
+		\mu_{Z|x}\triangleq\mathbb{E}\left[\Phi_Z(Z)\:\middle|\:X=x\right]=\int_{\Omega_Z}{\Phi_Z(z)\:p_{Z|X}(z\mid x)\:dz}\in\mathcal{H}_{\kappa_Z}\label{eq:conditional_KME}
 	\end{equation}
 
 	As in \Cref{th:KME}, it can be used to express conditional expectations in terms of inner products:
 	\begin{equation}
-		\forall\psi\in\mathcal{H}_{\kappa_Z},\:\mathbb{E}[\psi(Z)|X=x]=\langle\psi\mid\mu_{Z|x}\rangle_{\mathcal{H}_{\kappa_Z}}
+		\forall\psi\in\mathcal{H}_{\kappa_Z},\:\mathbb{E}[\psi(Z)\mid X=x]=\langle\psi\mid\mu_{Z|x}\rangle_{\mathcal{H}_{\kappa_Z}}
 	\end{equation}
 \end{definition}
 
 \begin{proposition}[Conditional embedding operator]\label{th:conditional_operator}
-	With the notations of \Cref{th:conditional_KME}, assume that:
+	With the notation of \Cref{th:conditional_KME}, assume that:
 	\begin{equation}
-		\psi\mapsto\mathbb{E}[\psi(Z)|X=\cdot]
+		\psi\mapsto\mathbb{E}[\psi(Z)\mid X=\cdot]
 	\end{equation}
 	is a continuous linear operator from $\mathcal{H}_{\kappa_Z}$ to $\mathcal{H}_{\kappa_X}$.
 
 	We also let $\mu_{Z|X}$ be its adjoint, \textit{i.e.} the continuous linear operator from $\mathcal{H}_{\kappa_X}$ to $\mathcal{H}_{\kappa_Z}$ such that:
 	\begin{equation}
-		\forall\varphi\in\mathcal{H}_{\kappa_X},\:\forall\psi\in\mathcal{H}_{\kappa_Z},\:\langle\psi\mid\mu_{Z|X}\:\varphi\rangle_{\mathcal{H}_{\kappa_Z}}=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\varphi\rangle_{\mathcal{H}_{\kappa_X}}
+		\forall\varphi\in\mathcal{H}_{\kappa_X},\:\forall\psi\in\mathcal{H}_{\kappa_Z},\:\langle\psi\mid\mu_{Z|X}\:\varphi\rangle_{\mathcal{H}_{\kappa_Z}}=\langle\mathbb{E}[\psi(Z)\mid X=\cdot]\mid\varphi\rangle_{\mathcal{H}_{\kappa_X}}
 	\end{equation}
 
 	The conditional KME is then linear in the feature of the conditioning value:
@@ -403,8 +403,8 @@ Similarly to \Cref{th:KME_existence}, \Cref{th:cross_covariance} gives a suffici
 	Let $\varphi\in\mathcal{H}_{\kappa_X}$, $\psi\in\mathcal{H}_{\kappa_Z}$ and $x\in\Omega_X$. We have:
 	\begin{equation}
 		\begin{aligned}
-		\langle\psi\mid\mu_{Z|x}\rangle_{\mathcal{H}_{\kappa_Z}}&=\mathbb{E}[\psi(Z)|X=x]\\
-		&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\Phi_X(x)\rangle_{\mathcal{H}_{\kappa_X}}\\
+		\langle\psi\mid\mu_{Z|x}\rangle_{\mathcal{H}_{\kappa_Z}}&=\mathbb{E}[\psi(Z)\mid X=x]\\
+		&=\langle\mathbb{E}[\psi(Z)\mid X=\cdot]\mid\Phi_X(x)\rangle_{\mathcal{H}_{\kappa_X}}\\
 		&=\langle\psi\mid\mu_{Z|X}\Phi_X(x)\rangle_{\mathcal{H}_{\kappa_Z}}
 		\end{aligned}
 	\end{equation}
@@ -412,8 +412,8 @@ Similarly to \Cref{th:KME_existence}, \Cref{th:cross_covariance} gives a suffici
 	Similarly, the tower property of conditional expectation yields:
 	\begin{equation}
 		\begin{aligned}
-		\langle\psi\mid\mu_{Z|X}\:\mu_{XX}\:\varphi\rangle_{\mathcal{H}_{\kappa_Z}}&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\mu_{XX}\:\varphi\rangle_{\mathcal{H}_{\kappa_X}}\\
-		&=\mathbb{E}\left[\mathbb{E}[\psi(Z)|X]\:\varphi(X)\right]\\
+		\langle\psi\mid\mu_{Z|X}\:\mu_{XX}\:\varphi\rangle_{\mathcal{H}_{\kappa_Z}}&=\langle\mathbb{E}[\psi(Z)\mid X=\cdot]\mid\mu_{XX}\:\varphi\rangle_{\mathcal{H}_{\kappa_X}}\\
+		&=\mathbb{E}\left[\mathbb{E}[\psi(Z)\mid X]\:\varphi(X)\right]\\
 		&=\mathbb{E}_{p_{XZ}}\left[\psi(Z)\:\varphi(X)\right]\\
 		&=\langle\psi\mid\mu_{ZX}\:\varphi\rangle_{\mathcal{H}_{\kappa_Z}}
 		\end{aligned}
@@ -421,8 +421,8 @@ Similarly to \Cref{th:KME_existence}, \Cref{th:cross_covariance} gives a suffici
 	while the law of total expectation yields:
 	\begin{equation}
 		\begin{aligned}
-		\langle\psi\mid\mu_{Z|X}\:\mu_X\rangle_{\mathcal{H}_{\kappa_Z}}&=\langle\mathbb{E}[\psi(Z)|X=\cdot]\mid\mu_X\rangle_{\mathcal{H}_{\kappa_X}}\\
-		&=\mathbb{E}\left[\mathbb{E}[\psi(Z)|X]\right]\\
+		\langle\psi\mid\mu_{Z|X}\:\mu_X\rangle_{\mathcal{H}_{\kappa_Z}}&=\langle\mathbb{E}[\psi(Z)\mid X=\cdot]\mid\mu_X\rangle_{\mathcal{H}_{\kappa_X}}\\
+		&=\mathbb{E}\left[\mathbb{E}[\psi(Z)\mid X]\right]\\
 		&=\mathbb{E}\left[\psi(Z)\right]\\
 		&=\langle\psi\mid\mu_Z\rangle_{\mathcal{H}_{\kappa_Z}}
 		\end{aligned}

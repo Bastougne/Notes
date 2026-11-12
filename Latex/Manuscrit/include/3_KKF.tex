@@ -1,6 +1,6 @@
 \subsection{Empirical Embeddings}
 
-When $\kappa_X$ is an SE or Matérn kernel on $\mathbb{R}^{d_x}$, every element of $\mathcal{H}_{\kappa_X}$ is square-integrable \cite{bib:Wendland}. However, when $X$ and $Z$ are independent, $\mathbb{E}[\psi(Z)|X=\cdot]$ is the constant function $\langle\psi\mid\mu_Z\rangle_{\mathcal{H}_{\kappa_Z}}$. Such a function belongs to $\mathcal{L}^2(\mathbb{R}^{d_x},\mathbb{R})$ only when this constant is zero. Consequently, the assumption of \Cref{th:conditional_operator} is not satisfied in general, and the conditional embedding operator may not exist.
+When $\kappa_X$ is an SE or Matérn kernel on $\mathbb{R}^{d_x}$, every element of $\mathcal{H}_{\kappa_X}$ is square-integrable \cite{bib:Wendland}. However, when $X$ and $Z$ are independent, $\mathbb{E}[\psi(Z)\mid X=\cdot]$ is the constant function $\langle\psi\mid\mu_Z\rangle_{\mathcal{H}_{\kappa_Z}}$. Such a function belongs to $\mathcal{L}^2(\mathbb{R}^{d_x},\mathbb{R})$ only when this constant is zero. Consequently, the assumption of \Cref{th:conditional_operator} is not satisfied in general, and the conditional embedding operator may not exist.
 
 Furthermore, \eqref{eq:KME} and \eqref{eq:conditional_KME} are no more computable than the integrals of \cref{sec:Bayesian_estimation}. Similarly to \Cref{th:MC_estimator}, the KMEs can be approximated by a Monte Carlo estimator, as presented by \Cref{th:KME_MC} and \Cref{th:conditional_KME_MC}. The estimator of the conditional KME is also regularised, so that it remains well defined even when the assumption of \Cref{th:conditional_operator} is not satisfied.
 
@@ -56,7 +56,7 @@ which suggests replacing $\mu_{ZX}$ and $\mu_{XX}$ with their empirical counterp
 \end{proof}
 
 \begin{remark}[Conditional KME as a regression]
-	Let $\psi\in\mathcal{H}_{\kappa_Z}$. According to \Cref{th:conditional_KME_MC}, the conditional expectation $\mathbb{E}[\psi(Z)|X=x]$ is estimated by:
+	Let $\psi\in\mathcal{H}_{\kappa_Z}$. According to \Cref{th:conditional_KME_MC}, the conditional expectation $\mathbb{E}[\psi(Z)\mid X=x]$ is estimated by:
 	\begin{equation}
 		\langle\psi\mid\hat{\mu}_{Z|x}\rangle_{\mathcal{H}_{\kappa_Z}}=\kappa_X(x,\mathbf{x})\left(\kappa_X(\mathbf{x},\mathbf{x})+\alpha_{\mathrm{RKHS}} N\mathbf{I}_N\right)^{-1}\psi(\mathbf{z})
 	\end{equation}
@@ -70,19 +70,19 @@ which suggests replacing $\mu_{ZX}$ and $\mu_{XX}$ with their empirical counterp
 The kernel Kalman filter (KKF) \cite{bib:kernel-Kalman} solves the filtering problem \eqref{eq:navigation_problem} by propagating the KME of the PDF instead of the PDF itself. Formally, let $\kappa_X$ and $\kappa_Z$ be SPD kernels on the state space $\mathbb{R}^{d_x}$ and on the observation space $\mathbb{R}^{d_z}$, with respective native RKHSs $\mathcal{H}_{\kappa_X}$ and $\mathcal{H}_{\kappa_Z}$, and feature maps $\Phi_X$ and $\Phi_Z$. Using the index convention of \Cref{th:Kalman}, the KMEs of the predicted and corrected densities of \Cref{alg:optimal_estimation} are:
 \begin{equation}
 	\left\{\begin{aligned}
-	\mu_{k|k-1}&\triangleq\mathbb{E}\left[\Phi_X(x_k)|\mathbf{z}_{1:k-1}\right]\\
-	\mu_{k|k}&\triangleq\mathbb{E}\left[\Phi_X(x_k)|\mathbf{z}_{1:k}\right]
+	\mu_{k|k-1}&\triangleq\mathbb{E}\left[\Phi_X(x_k)\:\middle|\:\mathbf{z}_{1:k-1}\right]\\
+	\mu_{k|k}&\triangleq\mathbb{E}\left[\Phi_X(x_k)\:\middle|\:\mathbf{z}_{1:k}\right]
 	\end{aligned}\right.
 \end{equation}
 
 When $\kappa_X$ is characteristic, these KMEs uniquely determine both densities. \Cref{th:embedded_model} shows that the state-space model \eqref{eq:navigation_problem} becomes linear when it is expressed in terms of features.
 
 \begin{proposition}[Embedded state-space model]\label{th:embedded_model}
-	Assume that the transition density $p(x_k|x_{k-1})$ and the likelihood $p(z_k|x_k)$ satisfy the assumption of \Cref{th:conditional_operator}, and let $\mu_{x_k|x_{k-1}}$ and $\mu_{z_k|x_k}$ denote their respective conditional embedding operators. Then:
+	Assume that the transition density $p(x_k\mid x_{k-1})$ and the likelihood $p(z_k\mid x_k)$ satisfy the assumption of \Cref{th:conditional_operator}, and let $\mu_{x_k|x_{k-1}}$ and $\mu_{z_k|x_k}$ denote their respective conditional embedding operators. Then:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\mathbb{E}\left[\Phi_X(x_k)|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]&=\mu_{x_k|x_{k-1}}\Phi_X(x_{k-1})\\
-		\mathbb{E}\left[\Phi_Z(z_k)|\mathbf{x}_{0:k},\mathbf{z}_{1:k-1}\right]&=\mu_{z_k|x_k}\Phi_X(x_k)
+		\mathbb{E}\left[\Phi_X(x_k)\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]&=\mu_{x_k|x_{k-1}}\Phi_X(x_{k-1})\\
+		\mathbb{E}\left[\Phi_Z(z_k)\:\middle|\:\mathbf{x}_{0:k},\mathbf{z}_{1:k-1}\right]&=\mu_{z_k|x_k}\Phi_X(x_k)
 		\end{aligned}\right.
 	\end{equation}
 
@@ -98,8 +98,8 @@ When $\kappa_X$ is characteristic, these KMEs uniquely determine both densities.
 	Since $\mu_{x_k|x_{k-1}}$ is linear and continuous, the tower property of conditional expectation finally yields:
 	\begin{equation}
 		\begin{aligned}
-		\mu_{k|k-1}&=\mathbb{E}\left[\mathbb{E}\left[\Phi_X(x_k)|\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]|\mathbf{z}_{1:k-1}\right]\\
-		&=\mathbb{E}\left[\mu_{x_k|x_{k-1}}\Phi_X(x_{k-1})|\mathbf{z}_{1:k-1}\right]\\
+		\mu_{k|k-1}&=\mathbb{E}\left[\mathbb{E}\left[\Phi_X(x_k)\:\middle|\:\mathbf{x}_{0:k-1},\mathbf{z}_{1:k-1}\right]\:\middle|\:\mathbf{z}_{1:k-1}\right]\\
+		&=\mathbb{E}\left[\mu_{x_k|x_{k-1}}\Phi_X(x_{k-1})\:\middle|\:\mathbf{z}_{1:k-1}\right]\\
 		&=\mu_{x_k|x_{k-1}}\:\mu_{k-1|k-1}
 		\end{aligned}
 	\end{equation}
@@ -119,11 +119,11 @@ In practice, neither $\mu_{x_k|x_{k-1}}$ nor $\mu_{z_k|x_k}$ is known. The KKF e
 \end{equation}
 where $\tilde{x}_i$ is the successor of the state $\tilde{x}_i^-$, and $\tilde{z}_i$ is the observation of $\tilde{x}_i$. We let $\tilde{\mathbf{x}}^-$, $\tilde{\mathbf{x}}$ and $\tilde{\mathbf{z}}$ denote the corresponding tuples. The model \eqref{eq:navigation_problem} is thus assumed to be stationary, but does not need to be known.
 
-The two operators are estimated by applying \Cref{th:conditional_KME_MC} to the pairs $\left(\tilde{x}_i^-,\tilde{x}_i\right)$ and $\left(\tilde{x}_i,\tilde{z}_i\right)$ respectively, with $\alpha_{\mathrm{RKHS},x}\triangleq\alpha_{\mathrm{RKHS}}\tilde{N}$. For $\mathbf{w}\in\mathbb{R}^{\tilde{N}}$, the function $\mathbf{w}^\top\Phi_X(\tilde{\mathbf{x}})$ takes the values $\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}\right)\mathbf{w}$ at $\tilde{\mathbf{x}}^-$ and $\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\mathbf{w}$ at $\tilde{\mathbf{x}}$, which gives:
+The two operators are estimated by applying \Cref{th:conditional_KME_MC} to the pairs $\left(\tilde{x}_i^-,\tilde{x}_i\right)$ and $\left(\tilde{x}_i,\tilde{z}_i\right)$ respectively, with $\alpha_{\mathrm{RKHS},X}\triangleq\alpha_{\mathrm{RKHS}}\tilde{N}$. For $\mathbf{w}\in\mathbb{R}^{\tilde{N}}$, the function $\mathbf{w}^\top\Phi_X(\tilde{\mathbf{x}})$ takes the values $\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}\right)\mathbf{w}$ at $\tilde{\mathbf{x}}^-$ and $\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\mathbf{w}$ at $\tilde{\mathbf{x}}$, which gives:
 \begin{equation}
 	\left\{\begin{aligned}
-	\hat{\mu}_{x_k|x_{k-1}}\left(\mathbf{w}^\top\Phi_X(\tilde{\mathbf{x}})\right)&=\left(\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}\right)\mathbf{w}\right)^\top\left(\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)+\alpha_{\mathrm{RKHS},x}\mathbf{I}_{\tilde{N}}\right)^{-1}\Phi_X(\tilde{\mathbf{x}})\\
-	\hat{\mu}_{z_k|x_k}\left(\mathbf{w}^\top\Phi_X(\tilde{\mathbf{x}})\right)&=\left(\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\mathbf{w}\right)^\top\left(\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\alpha_{\mathrm{RKHS},x}\mathbf{I}_{\tilde{N}}\right)^{-1}\Phi_Z(\tilde{\mathbf{z}})
+	\hat{\mu}_{x_k|x_{k-1}}\left(\mathbf{w}^\top\Phi_X(\tilde{\mathbf{x}})\right)&=\left(\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}\right)\mathbf{w}\right)^\top\left(\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)+\alpha_{\mathrm{RKHS},X}\mathbf{I}_{\tilde{N}}\right)^{-1}\Phi_X(\tilde{\mathbf{x}})\\
+	\hat{\mu}_{z_k|x_k}\left(\mathbf{w}^\top\Phi_X(\tilde{\mathbf{x}})\right)&=\left(\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})\:\mathbf{w}\right)^\top\left(\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\alpha_{\mathrm{RKHS},X}\mathbf{I}_{\tilde{N}}\right)^{-1}\Phi_Z(\tilde{\mathbf{z}})
 	\end{aligned}\right.
 \end{equation}
 which can be rewritten as:
@@ -136,47 +136,47 @@ which can be rewritten as:
 with:
 \begin{equation}
 	\left\{\begin{aligned}
-	\mathbf{T}&\triangleq\left(\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)+\alpha_{\mathrm{RKHS},x}\mathbf{I}_{\tilde{N}}\right)^{-1}\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}\right)\\
-	\mathbf{O}&\triangleq\left(\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\alpha_{\mathrm{RKHS},x}\mathbf{I}_{\tilde{N}}\right)^{-1}\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})
+	\mathbf{T}&\triangleq\left(\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)+\alpha_{\mathrm{RKHS},X}\mathbf{I}_{\tilde{N}}\right)^{-1}\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}\right)\\
+	\mathbf{O}&\triangleq\left(\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\alpha_{\mathrm{RKHS},X}\mathbf{I}_{\tilde{N}}\right)^{-1}\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})
 	\end{aligned}\right.
 \end{equation}
 
-In particular, the set spanned by the features $\Phi_X(\tilde{\mathbf{x}})$, called the dictionary, is stable under the estimated transition operator. A KME of this set is then entirely described by its weights $\mathbf{w}$, on which the two operators act as the matrices $\mathbf{T}$ and $\mathbf{O}$.
+In particular, the set spanned by the features $\Phi_X(\tilde{\mathbf{x}})$, called the dictionary, is stable under the estimated transition operator. A KME in this set is then entirely described by its weights $\mathbf{w}$, on which the two operators act as the matrices $\mathbf{T}$ and $\mathbf{O}$.
 
 The remaining quantities of the model are obtained as follows:
 \begin{itemize}
 	\item\textbf{Transition residual.} The values of $\Phi_X\left(\tilde{x}_i^-\right)$ at $\tilde{\mathbf{x}}^-$ form the $i$-th column of $\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)$. According to \Cref{th:conditional_KME_MC}, the weights of the image of this feature by the estimated transition operator are thus the $i$-th column of $\mathbf{D}+\mathbf{I}_{\tilde{N}}$, where:
 	\begin{equation}
-		\mathbf{D}\triangleq\left(\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)+\alpha_{\mathrm{RKHS},x}\mathbf{I}_{\tilde{N}}\right)^{-1}\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)-\mathbf{I}_{\tilde{N}}
+		\mathbf{D}\triangleq\left(\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)+\alpha_{\mathrm{RKHS},X}\mathbf{I}_{\tilde{N}}\right)^{-1}\kappa_X\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}^-\right)-\mathbf{I}_{\tilde{N}}
 	\end{equation}
 	Since the weights of $\Phi_X(\tilde{x}_i)$ are the $i$-th column of $\mathbf{I}_{\tilde{N}}$, those of the residual $\Phi_X(\tilde{x}_i)-\hat{\mu}_{x_k|x_{k-1}}\Phi_X\left(\tilde{x}_i^-\right)$ of the $i$-th training triple are the $i$-th column of $-\mathbf{D}$. The covariance of the transition residual is then estimated by the empirical second-order moment of these weights:
 	\begin{equation}
 		\mathbf{V}\triangleq\frac{1}{\tilde{N}}\mathbf{D}\:\mathbf{D}^\top
 	\end{equation}
-	\item\textbf{Observation residual.} The covariance of the observation residual is chosen as $\alpha_{\mathrm{RKHS},z}\operatorname{id}$, where $\alpha_{\mathrm{RKHS},z}\in\mathbb{R}_+^*$ and $\operatorname{id}$ denotes the identity of $\mathcal{H}_{\kappa_Z}$.
+	\item\textbf{Observation residual.} The covariance of the observation residual is chosen as $\alpha_{\mathrm{RKHS},Z}\operatorname{id}$, where $\alpha_{\mathrm{RKHS},Z}\in\mathbb{R}_+^*$ and $\operatorname{id}$ denotes the identity of $\mathcal{H}_{\kappa_Z}$.
 	\item\textbf{Observation.} According to the reproducing property, the inner products of $\psi\in\mathcal{H}_{\kappa_Z}$ with the features $\Phi_Z(\tilde{\mathbf{z}})$ are its values $\psi(\tilde{\mathbf{z}})$. The predicted observation $(\mathbf{O}\mathbf{w})^\top\Phi_Z(\tilde{\mathbf{z}})$ belongs to the set spanned by these features, and the covariance of the observation residual is proportional to the identity. The component of $\Phi_Z(z_k)$ that is orthogonal to this set is therefore uncorrelated with the other one, and $\Phi_Z(z_k)$ is only used through its values at $\tilde{\mathbf{z}}$. By the kernel trick, the observation and its prediction become:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\left(\Phi_Z(z_k)\right)(\tilde{\mathbf{z}})&=\kappa_Z(\tilde{\mathbf{z}},z_k)\\
-		\left((\mathbf{O}\mathbf{w})^\top\Phi_Z(\tilde{\mathbf{z}})\right)(\tilde{\mathbf{z}})&=\mathbf{G}^z\mathbf{O}\mathbf{w}
+		\left((\mathbf{O}\mathbf{w})^\top\Phi_Z(\tilde{\mathbf{z}})\right)(\tilde{\mathbf{z}})&=\mathbf{G}^Z\mathbf{O}\mathbf{w}
 		\end{aligned}\right.
 	\end{equation}
 	where:
 	\begin{equation}
-		\mathbf{G}^z\triangleq \kappa_Z(\tilde{\mathbf{z}},\tilde{\mathbf{z}})
+		\mathbf{G}^Z\triangleq \kappa_Z(\tilde{\mathbf{z}},\tilde{\mathbf{z}})
 	\end{equation}
-	Similarly, a residual $r$ of covariance $\alpha_{\mathrm{RKHS},z}\operatorname{id}$ verifies, for $i,j\in[\![1,\tilde{N}]\!]$:
+	Similarly, a residual $r$ of covariance $\alpha_{\mathrm{RKHS},Z}\operatorname{id}$ verifies, for $i,j\in[\![1,\tilde{N}]\!]$:
 	\begin{equation}
-		\mathbb{E}\left[r(\tilde{z}_i)\:r(\tilde{z}_j)\right]=\alpha_{\mathrm{RKHS},z}\langle\Phi_Z(\tilde{z}_i)\mid\Phi_Z(\tilde{z}_j)\rangle_{\mathcal{H}_{\kappa_Z}}=\alpha_{\mathrm{RKHS},z}\kappa_Z(\tilde{z}_i,\tilde{z}_j)
+		\mathbb{E}\left[r(\tilde{z}_i)\:r(\tilde{z}_j)\right]=\alpha_{\mathrm{RKHS},Z}\langle\Phi_Z(\tilde{z}_i)\mid\Phi_Z(\tilde{z}_j)\rangle_{\mathcal{H}_{\kappa_Z}}=\alpha_{\mathrm{RKHS},Z}\kappa_Z(\tilde{z}_i,\tilde{z}_j)
 	\end{equation}
-	and the covariance of the observation residual becomes $\alpha_{\mathrm{RKHS},z}\mathbf{G}^z$.
+	and the covariance of the observation residual becomes $\alpha_{\mathrm{RKHS},Z}\mathbf{G}^Z$.
 \end{itemize}
 
 The KKF is then the Kalman filter of \Cref{alg:Kalman_filter} applied to the weights, under the substitutions:
 \begin{equation}
 	\left\{\begin{aligned}
-	\hat{x}_{k|k}&\longrightarrow\mathbf{w}_{k|k}&\qquad \mathbf{F}_k&\longrightarrow \mathbf{T}&\qquad \mathbf{H}_k&\longrightarrow \mathbf{G}^z\mathbf{O}\\
-	\mathbf{P}_{k|k}&\longrightarrow\boldsymbol{\Sigma}_{k|k}&\qquad \mathbf{Q}_k&\longrightarrow \mathbf{V}&\qquad \mathbf{R}_k&\longrightarrow\alpha_{\mathrm{RKHS},z}\mathbf{G}^z\\
+	\hat{x}_{k|k}&\longrightarrow\mathbf{w}_{k|k}&\qquad \mathbf{F}_k&\longrightarrow \mathbf{T}&\qquad \mathbf{H}_k&\longrightarrow \mathbf{G}^Z\mathbf{O}\\
+	\mathbf{P}_{k|k}&\longrightarrow\boldsymbol{\Sigma}_{k|k}&\qquad \mathbf{Q}_k&\longrightarrow \mathbf{V}&\qquad \mathbf{R}_k&\longrightarrow\alpha_{\mathrm{RKHS},Z}\mathbf{G}^Z\\
 	z_k&\longrightarrow \kappa_Z(\tilde{\mathbf{z}},z_k)&\qquad b_k^{(e)}&\longrightarrow0&\qquad b_k^{(o)}&\longrightarrow0
 	\end{aligned}\right.\label{eq:KKF_substitutions}
 \end{equation}
@@ -191,25 +191,25 @@ and $\boldsymbol{\Sigma}_{k|k}\in\mathcal{S}_{\tilde{N}}^+(\mathbb{R})$ is the c
 \end{proposition}
 
 \begin{proof}
-	The prediction and correction steps of \Cref{alg:Kalman_filter} are obtained by direct substitution. Since $\kappa_Z$ is SPD and the training observations are pairwise distinct, we have $\mathbf{G}^z\succ0$. The innovation covariance can thus be factorised as:
+	The prediction and correction steps of \Cref{alg:Kalman_filter} are obtained by direct substitution. Since $\kappa_Z$ is SPD and the training observations are pairwise distinct, we have $\mathbf{G}^Z\succ0$. The innovation covariance can thus be factorised as:
 	\begin{equation}
-		\mathbf{S}_k=\mathbf{G}^z\mathbf{O}\:\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top \mathbf{G}^z+\alpha_{\mathrm{RKHS},z}\mathbf{G}^z=\left(\mathbf{G}^z\mathbf{O}\:\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top+\alpha_{\mathrm{RKHS},z}\mathbf{I}_{\tilde{N}}\right)\mathbf{G}^z
+		\mathbf{S}_k=\mathbf{G}^Z\mathbf{O}\:\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top \mathbf{G}^Z+\alpha_{\mathrm{RKHS},Z}\mathbf{G}^Z=\left(\mathbf{G}^Z\mathbf{O}\:\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top+\alpha_{\mathrm{RKHS},Z}\mathbf{I}_{\tilde{N}}\right)\mathbf{G}^Z
 	\end{equation}
 	where both factors are invertible since $\mathbf{S}_k\succ0$. The Kalman gain is therefore:
 	\begin{equation}
-		\mathbf{K}_k=\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top \mathbf{G}^z\:\mathbf{S}_k^{-1}=\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top\left(\mathbf{G}^z\mathbf{O}\:\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top+\alpha_{\mathrm{RKHS},z}\mathbf{I}_{\tilde{N}}\right)^{-1}
+		\mathbf{K}_k=\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top \mathbf{G}^Z\:\mathbf{S}_k^{-1}=\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top\left(\mathbf{G}^Z\mathbf{O}\:\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top+\alpha_{\mathrm{RKHS},Z}\mathbf{I}_{\tilde{N}}\right)^{-1}
 	\end{equation}
 \end{proof}
 
-The KKF is initialised using samples of the initial density $p_0$. By \Cref{th:conditional_KME_MC} applied to the pairs $\left(\tilde{x}_i,\tilde{x}_i\right)$, a sample $x\in\mathbb{R}^{d_x}$ is represented in the dictionary by the weights $\left(\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\alpha_{\mathrm{RKHS},x}\mathbf{I}_{\tilde{N}}\right)^{-1}\kappa_X(\tilde{\mathbf{x}},x)$, and $\mathbf{w}_{0|0}$ and $\boldsymbol{\Sigma}_{0|0}$ are the empirical mean and covariance of these weights over the samples.
+The KKF is initialised using samples of the initial density $p_0$. By \Cref{th:conditional_KME_MC} applied to the pairs $\left(\tilde{x}_i,\tilde{x}_i\right)$, a sample $x\in\mathbb{R}^{d_x}$ is represented in the dictionary by the weights $\left(\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\alpha_{\mathrm{RKHS},X}\mathbf{I}_{\tilde{N}}\right)^{-1}\kappa_X(\tilde{\mathbf{x}},x)$, and $\mathbf{w}_{0|0}$ and $\boldsymbol{\Sigma}_{0|0}$ are the empirical mean and covariance of these weights over the samples.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
 	\State{$\mathbf{w}_{k|k-1}=\mathbf{T}\:\mathbf{w}_{k-1|k-1}$}\Comment{Weight prediction}
 	\State{$\boldsymbol{\Sigma}_{k|k-1}=\mathbf{T}\:\boldsymbol{\Sigma}_{k-1|k-1}\:\mathbf{T}^\top+\mathbf{V}$}\Comment{Covariance prediction}
-	\State{$\mathbf{K}_k=\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top\left(\mathbf{G}^z\mathbf{O}\:\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top+\alpha_{\mathrm{RKHS},z}\mathbf{I}_{\tilde{N}}\right)^{-1}$}\Comment{Kernel Kalman gain}
-	\State{$\mathbf{w}_{k|k}=\mathbf{w}_{k|k-1}+\mathbf{K}_k\left(\kappa_Z\left(\tilde{\mathbf{z}},z_k\right)-\mathbf{G}^z\mathbf{O}\:\mathbf{w}_{k|k-1}\right)$}\Comment{Weight correction}
-	\State{$\boldsymbol{\Sigma}_{k|k}=\boldsymbol{\Sigma}_{k|k-1}-\mathbf{K}_k\:\mathbf{G}^z\mathbf{O}\:\boldsymbol{\Sigma}_{k|k-1}$}\Comment{Covariance correction}
+	\State{$\mathbf{K}_k=\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top\left(\mathbf{G}^Z\mathbf{O}\:\boldsymbol{\Sigma}_{k|k-1}\:\mathbf{O}^\top+\alpha_{\mathrm{RKHS},Z}\mathbf{I}_{\tilde{N}}\right)^{-1}$}\Comment{Kernel Kalman gain}
+	\State{$\mathbf{w}_{k|k}=\mathbf{w}_{k|k-1}+\mathbf{K}_k\left(\kappa_Z\left(\tilde{\mathbf{z}},z_k\right)-\mathbf{G}^Z\mathbf{O}\:\mathbf{w}_{k|k-1}\right)$}\Comment{Weight correction}
+	\State{$\boldsymbol{\Sigma}_{k|k}=\boldsymbol{\Sigma}_{k|k-1}-\mathbf{K}_k\:\mathbf{G}^Z\mathbf{O}\:\boldsymbol{\Sigma}_{k|k-1}$}\Comment{Covariance correction}
 	\end{algorithmic}\caption{Kernel Kalman Filter}\label{alg:KKF}
 \end{algorithm}
 
@@ -220,7 +220,7 @@ In particular, the weight correction of \Cref{alg:KKF} shows that the gain $\mat
 
 The state is estimated from the corrected KME using \eqref{eq:KME_expectation}. Since the coordinate functions of the state do not belong to $\mathcal{H}_{\kappa_X}$ in general, they are replaced by their regularised least-squares approximations in the dictionary. \Cref{th:RKHS_regularisation} applied to the training points $\tilde{\mathbf{x}}$ and to the $j$-th coordinates $[\tilde{\mathbf{x}}]_j\in\mathbb{R}^{\tilde{N}}$ of the training states, with the same $\alpha_{\mathrm{RKHS}}$, approximates the $j$-th coordinate function by $a^\top\Phi_X(\tilde{\mathbf{x}})$, with:
 \begin{equation}
-	a\triangleq\left(\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\alpha_{\mathrm{RKHS},x}\mathbf{I}_{\tilde{N}}\right)^{-1}[\tilde{\mathbf{x}}]_j
+	a\triangleq\left(\kappa_X(\tilde{\mathbf{x}},\tilde{\mathbf{x}})+\alpha_{\mathrm{RKHS},X}\mathbf{I}_{\tilde{N}}\right)^{-1}[\tilde{\mathbf{x}}]_j
 \end{equation}
 
 By the kernel trick, its inner product with $\hat{\mu}_{k|k}$ is:
@@ -250,18 +250,18 @@ Formally, at time $k$, the triple $\left(\tilde{\mathbf{x}}^-,\tilde{\mathbf{x}}
 The dictionary thus changes at every time step. In particular, the corrected KME of time $k-1$ is represented by the particles $\mathbf{x}_{k-1}$, with weights $\mathbf{w}_{k-1}$ and covariance $\boldsymbol{\Sigma}_{k-1|k-1}$. On the other hand, the transition operator is estimated from the pairs $\left(x_{k-1}^{+(i)},x_k^{(i)}\right)$, and returns KMEs represented by the particles $\mathbf{x}_k$. \Cref{th:AKKF_prediction} gives the corresponding change of weights.
 
 \begin{proposition}[Prediction over a moving dictionary]\label{th:AKKF_prediction}
-	Let $\hat{\mu}_{x_k|x_{k-1}}$ be the transition operator estimated by \Cref{th:conditional_KME_MC} from the pairs $\left(x_{k-1}^{+(i)},x_k^{(i)}\right)_{i\in[\![1,N]\!]}$, with $\alpha_{\mathrm{RKHS},x}\triangleq\alpha_{\mathrm{RKHS}} N$, and let $\mathbf{G}_{k-1}^x\triangleq \kappa_X\left(\mathbf{x}_{k-1}^+,\mathbf{x}_{k-1}^+\right)$. Then, for all $\mathbf{w}\in\mathbb{R}^N$:
+	Let $\hat{\mu}_{x_k|x_{k-1}}$ be the transition operator estimated by \Cref{th:conditional_KME_MC} from the pairs $\left(x_{k-1}^{+(i)},x_k^{(i)}\right)_{i\in[\![1,N]\!]}$, with $\alpha_{\mathrm{RKHS},X}\triangleq\alpha_{\mathrm{RKHS}} N$, and let $\mathbf{G}_{k-1}^X\triangleq \kappa_X\left(\mathbf{x}_{k-1}^+,\mathbf{x}_{k-1}^+\right)$. Then, for all $\mathbf{w}\in\mathbb{R}^N$:
 	\begin{equation}
 		\hat{\mu}_{x_k|x_{k-1}}\left(\mathbf{w}^\top\Phi_X(\mathbf{x}_{k-1})\right)=(\mathbf{T}_{k-1}\mathbf{w})^\top\Phi_X(\mathbf{x}_k)
 	\end{equation}
 	with:
 	\begin{equation}
-		\mathbf{T}_{k-1}\triangleq\left(\mathbf{G}_{k-1}^x+\alpha_{\mathrm{RKHS},x}\mathbf{I}_N\right)^{-1}\kappa_X\left(\mathbf{x}_{k-1}^+,\mathbf{x}_{k-1}\right)
+		\mathbf{T}_{k-1}\triangleq\left(\mathbf{G}_{k-1}^X+\alpha_{\mathrm{RKHS},X}\mathbf{I}_N\right)^{-1}\kappa_X\left(\mathbf{x}_{k-1}^+,\mathbf{x}_{k-1}\right)
 	\end{equation}
 
 	Furthermore, the weights in $\Phi_X(\mathbf{x}_k)$ of the residual $\Phi_X\left(x_k^{(i)}\right)-\hat{\mu}_{x_k|x_{k-1}}\Phi_X\left(x_{k-1}^{+(i)}\right)\hspace{-1pt}$ of the $i$-th pair are the $i$-th column of $-\mathbf{D}_k$, where:
 	\begin{equation}
-		\mathbf{D}_k\triangleq\left(\mathbf{G}_{k-1}^x+\alpha_{\mathrm{RKHS},x}\mathbf{I}_N\right)^{-1}\mathbf{G}_{k-1}^x-\mathbf{I}_N
+		\mathbf{D}_k\triangleq\left(\mathbf{G}_{k-1}^X+\alpha_{\mathrm{RKHS},X}\mathbf{I}_N\right)^{-1}\mathbf{G}_{k-1}^X-\mathbf{I}_N
 	\end{equation}
 \end{proposition}
 
@@ -269,14 +269,14 @@ The dictionary thus changes at every time step. In particular, the corrected KME
 	Let $\mathbf{w}\in\mathbb{R}^N$. The function $\mathbf{w}^\top\Phi_X(\mathbf{x}_{k-1})$ takes the values $\kappa_X\left(\mathbf{x}_{k-1}^+,\mathbf{x}_{k-1}\right)\mathbf{w}$ at $\mathbf{x}_{k-1}^+$, and \Cref{th:conditional_KME_MC} thus gives:
 	\begin{equation}
 		\begin{aligned}
-		\hat{\mu}_{x_k|x_{k-1}}\left(\mathbf{w}^\top\Phi_X(\mathbf{x}_{k-1})\right)&=\left(\kappa_X\left(\mathbf{x}_{k-1}^+,\mathbf{x}_{k-1}\right)\mathbf{w}\right)^\top\left(\mathbf{G}_{k-1}^x+\alpha_{\mathrm{RKHS},x}\mathbf{I}_N\right)^{-1}\Phi_X(\mathbf{x}_k)\\
+		\hat{\mu}_{x_k|x_{k-1}}\left(\mathbf{w}^\top\Phi_X(\mathbf{x}_{k-1})\right)&=\left(\kappa_X\left(\mathbf{x}_{k-1}^+,\mathbf{x}_{k-1}\right)\mathbf{w}\right)^\top\left(\mathbf{G}_{k-1}^X+\alpha_{\mathrm{RKHS},X}\mathbf{I}_N\right)^{-1}\Phi_X(\mathbf{x}_k)\\
 		&=(\mathbf{T}_{k-1}\mathbf{w})^\top\Phi_X(\mathbf{x}_k)
 		\end{aligned}
 	\end{equation}
 
-	Similarly, the values of $\Phi_X\left(x_{k-1}^{+(i)}\right)$ at $\mathbf{x}_{k-1}^+$ form the $i$-th column of $\mathbf{G}_{k-1}^x$. The weights of its image are thus the $i$-th column of:
+	Similarly, the values of $\Phi_X\left(x_{k-1}^{+(i)}\right)$ at $\mathbf{x}_{k-1}^+$ form the $i$-th column of $\mathbf{G}_{k-1}^X$. The weights of its image are thus the $i$-th column of:
 	\begin{equation}
-		\left(\mathbf{G}_{k-1}^x+\alpha_{\mathrm{RKHS},x}\mathbf{I}_N\right)^{-1}\mathbf{G}_{k-1}^x=\mathbf{D}_k+\mathbf{I}_N
+		\left(\mathbf{G}_{k-1}^X+\alpha_{\mathrm{RKHS},X}\mathbf{I}_N\right)^{-1}\mathbf{G}_{k-1}^X=\mathbf{D}_k+\mathbf{I}_N
 	\end{equation}
 	while the weights of $\Phi_X\left(x_k^{(i)}\right)$ are the $i$-th column of $\mathbf{I}_N$. The weights of their difference are therefore the $i$-th column of $-\mathbf{D}_k$.
 \end{proof}
@@ -302,15 +302,15 @@ Each iteration of the AKKF is then computed in four steps:
 	The predicted weights are associated with the propagated particles $\mathbf{x}_k$.
 	\item\textbf{Embedded correction.} The correction step is that of \Cref{alg:KKF}, where the observation operator is estimated from the pairs $\left(x_k^{(i)},z_k^{(i)}\right)$, with the Gram matrix:
 	\begin{equation}
-		\mathbf{G}_k^z\triangleq \kappa_Z(\mathbf{z}_k,\mathbf{z}_k)
+		\mathbf{G}_k^Z\triangleq \kappa_Z(\mathbf{z}_k,\mathbf{z}_k)
 	\end{equation}
 
 	Moreover, the matrix $\mathbf{O}$ is replaced by the identity. This corresponds to an observation operator estimated without regularisation, which maps the feature of each particle to the feature of its simulated observation. The correction thus becomes:
 	\begin{equation}
 		\left\{\begin{aligned}
-		\mathbf{K}_k&=\boldsymbol{\Sigma}_{k|k-1}\left(\mathbf{G}_k^z\:\boldsymbol{\Sigma}_{k|k-1}+\alpha_{\mathrm{RKHS},z}\mathbf{I}_N\right)^{-1}\\
-		\mathbf{w}_k&=\mathbf{w}_{k|k-1}+\mathbf{K}_k\left(\kappa_Z\left(\mathbf{z}_k,z_k\right)-\mathbf{G}_k^z\:\mathbf{w}_{k|k-1}\right)\\
-		\boldsymbol{\Sigma}_{k|k}&=\boldsymbol{\Sigma}_{k|k-1}-\mathbf{K}_k\:\mathbf{G}_k^z\:\boldsymbol{\Sigma}_{k|k-1}
+		\mathbf{K}_k&=\boldsymbol{\Sigma}_{k|k-1}\left(\mathbf{G}_k^Z\:\boldsymbol{\Sigma}_{k|k-1}+\alpha_{\mathrm{RKHS},Z}\mathbf{I}_N\right)^{-1}\\
+		\mathbf{w}_k&=\mathbf{w}_{k|k-1}+\mathbf{K}_k\left(\kappa_Z\left(\mathbf{z}_k,z_k\right)-\mathbf{G}_k^Z\:\mathbf{w}_{k|k-1}\right)\\
+		\boldsymbol{\Sigma}_{k|k}&=\boldsymbol{\Sigma}_{k|k-1}-\mathbf{K}_k\:\mathbf{G}_k^Z\:\boldsymbol{\Sigma}_{k|k-1}
 		\end{aligned}\right.
 	\end{equation}
 	\item\textbf{State estimation.} The estimator \eqref{eq:KKF_estimate} then reduces to the weighted mean of the particles:
@@ -323,7 +323,7 @@ Each iteration of the AKKF is then computed in four steps:
 		\hat{\mathbf{P}}_k=\sum_{i=1}^N\sum_{j=1}^N\left[\boldsymbol{\Sigma}_{k|k}\right]_{ij}\:x_k^{(i)}\left(x_k^{(j)}\right)^\top
 	\end{equation}
 
-	Both are exact when the coordinate functions belong to $\mathcal{H}_{\kappa_X}$, which is the case for a polynomial kernel, and are approximations otherwise.
+	Both are exact when the coordinate functions belong to $\mathcal{H}_{\kappa_X}$, which is the case for a polynomial kernel, but are approximations for bounded SPD kernels, such as Matérn kernels.
 	\item\textbf{Resampling.} The new particles $\mathbf{x}_k^+$ are drawn from $\mathcal{N}\left(\hat{x}_k,\hat{\mathbf{P}}_k\right)$.
 \end{itemize}
 
@@ -336,26 +336,26 @@ It is presented by \Cref{alg:AKKF}, where $\mathbf{w}_k$ denotes the corrected w
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
-	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot|x_{k-1}^{+(i)}\right)$}\Comment{Particle propagation}
-	\State{$\mathbf{D}_k=\left(\mathbf{G}_{k-1}^x+\alpha_{\mathrm{RKHS},x}\mathbf{I}_N\right)^{-1}\mathbf{G}_{k-1}^x-\mathbf{I}_N$}\Comment{Embedded prediction}
+	\State{$\forall i\in[\![1,N]\!],\:x_k^{(i)}\sim p\left(\cdot\:\middle|\:x_{k-1}^{+(i)}\right)$}\Comment{Particle propagation}
+	\State{$\mathbf{D}_k=\left(\mathbf{G}_{k-1}^X+\alpha_{\mathrm{RKHS},X}\mathbf{I}_N\right)^{-1}\mathbf{G}_{k-1}^X-\mathbf{I}_N$}\Comment{Embedded prediction}
 	\State{$\displaystyle\boldsymbol{\Sigma}_{k|k-1}=\boldsymbol{\Sigma}_{k-1|k-1}^++\frac{1}{N}\mathbf{D}_k\:\mathbf{D}_k^\top$}
 	\State{$\forall i\in[\![1,N]\!],\:z_k^{(i)}=h_k\left(x_k^{(i)},\varepsilon_k^{(i)}\right),\:\varepsilon_k^{(i)}\sim p_k^{(o)}$}\Comment{Simulated observations}
-	\State{$\mathbf{K}_k=\boldsymbol{\Sigma}_{k|k-1}\left(\mathbf{G}_k^z\:\boldsymbol{\Sigma}_{k|k-1}+\alpha_{\mathrm{RKHS},z}\mathbf{I}_N\right)^{-1}$}\Comment{Embedded correction}
-	\State{$\mathbf{w}_k=\mathbf{w}_{k-1}^++\mathbf{K}_k\left(\kappa_Z\left(\mathbf{z}_k,z_k\right)-\mathbf{G}_k^z\:\mathbf{w}_{k-1}^+\right)$}
-	\State{$\boldsymbol{\Sigma}_{k|k}=\boldsymbol{\Sigma}_{k|k-1}-\mathbf{K}_k\:\mathbf{G}_k^z\:\boldsymbol{\Sigma}_{k|k-1}$}
+	\State{$\mathbf{K}_k=\boldsymbol{\Sigma}_{k|k-1}\left(\mathbf{G}_k^Z\:\boldsymbol{\Sigma}_{k|k-1}+\alpha_{\mathrm{RKHS},Z}\mathbf{I}_N\right)^{-1}$}\Comment{Embedded correction}
+	\State{$\mathbf{w}_k=\mathbf{w}_{k-1}^++\mathbf{K}_k\left(\kappa_Z\left(\mathbf{z}_k,z_k\right)-\mathbf{G}_k^Z\:\mathbf{w}_{k-1}^+\right)$}
+	\State{$\boldsymbol{\Sigma}_{k|k}=\boldsymbol{\Sigma}_{k|k-1}-\mathbf{K}_k\:\mathbf{G}_k^Z\:\boldsymbol{\Sigma}_{k|k-1}$}
 	\State{$\displaystyle\hat{x}_k=\sum_{i=1}^Nw_k^{(i)}\:x_k^{(i)}$}\Comment{State estimation}
 	\State{$\displaystyle\hat{\mathbf{P}}_k=\sum_{i=1}^N\sum_{j=1}^N\left[\boldsymbol{\Sigma}_{k|k}\right]_{ij}\:x_k^{(i)}\left(x_k^{(j)}\right)^\top$}
 	\State{$\forall i\in[\![1,N]\!],\:x_k^{+(i)}\sim\mathcal{N}\left(\hat{x}_k,\hat{\mathbf{P}}_k\right)$}\Comment{Resampling}
-	\State{$\mathbf{T}_k=\left(\mathbf{G}_k^x+\alpha_{\mathrm{RKHS},x}\mathbf{I}_N\right)^{-1}\kappa_X\left(\mathbf{x}_k^+,\mathbf{x}_k\right)$}\Comment{Embedded resampling}
+	\State{$\mathbf{T}_k=\left(\mathbf{G}_k^X+\alpha_{\mathrm{RKHS},X}\mathbf{I}_N\right)^{-1}\kappa_X\left(\mathbf{x}_k^+,\mathbf{x}_k\right)$}\Comment{Embedded resampling}
 	\State{$\mathbf{w}_k^+=\mathbf{T}_k\:\mathbf{w}_k$}
 	\State{$\boldsymbol{\Sigma}_{k|k}^+=\mathbf{T}_k\:\boldsymbol{\Sigma}_{k|k}\:\mathbf{T}_k^\top$}
 	\end{algorithmic}\caption{Adaptive Kernel Kalman Filter}\label{alg:AKKF}
 \end{algorithm}
 
-It must be noted that the AKKF only requires samples of the likelihood $p(z_k|x_k)$, and never evaluates it.
+It must be noted that the AKKF only requires samples of the likelihood $p(z_k\mid x_k)$, and never evaluates it.
 
 \begin{remark}[Sign of the weights]
-	The embedded correction solves a regularised least-squares problem in the feature space, rather than a Bayesian update of a discrete measure. Its weights are thus not constrained to be positive, and the KME they represent is not that of a probability measure in general. While the estimator $\hat{x}_k$ remains well defined, the effective sample size of \cref{sec:particle_filtering} does not, and neither does the resampling criterion based on it. This is why the AKKF resamples at every time step, by drawing a new particle set from a Gaussian distribution.
+	The embedded correction solves a regularised least-squares problem in the feature space, rather than a Bayesian update of a discrete measure. Its weights are thus not constrained to be non-negative, and the KME they represent is not that of a probability measure in general. While the estimator $\hat{x}_k$ remains well defined, the effective sample size of \cref{sec:particle_filtering} does not, and neither does the resampling criterion based on it. This is why the AKKF resamples at every time step, by drawing a new particle set from a Gaussian distribution.
 
 	Nonetheless, $\hat{\mathbf{P}}_k$ is SPSD as soon as $\boldsymbol{\Sigma}_{k|k}$ is, up to the numerical errors addressed in \cref{sec:covariance_correction}.
 \end{remark}

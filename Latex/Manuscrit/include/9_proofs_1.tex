@@ -12,26 +12,26 @@
 	\mathbb{V}[X]\triangleq\mathbb{E}\left[(X-\mathbb{E}[X])(X-\mathbb{E}[X])^\top\right]
 \end{equation}
 
-Since $x_k=\mathbf{F}_k\:x_{k-1}+b_k^{(e)}+\eta_k$ is an affine transformation of two independent Gaussian random variables $x_{k-1}|\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k-1|k-1},\mathbf{P}_{k-1|k-1}\right)$ and $\eta_k\sim\mathcal{N}(0,\mathbf{Q}_k)$, the predicted state $x_k|\mathbf{z}_{1:k-1}$ is also Gaussian, with:
+Since $x_k=\mathbf{F}_k\:x_{k-1}+b_k^{(e)}+\eta_k$ is an affine transformation of two independent Gaussian random variables $x_{k-1}\mid\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k-1|k-1},\mathbf{P}_{k-1|k-1}\right)$ and $\eta_k\sim\mathcal{N}(0,\mathbf{Q}_k)$, the predicted state $x_k\mid\mathbf{z}_{1:k-1}$ is also Gaussian, with:
 \begin{equation}
 	\begin{aligned}
-	\hat{x}_{k|k-1}&\triangleq\mathbb{E}[x_k|\mathbf{z}_{1:k-1}]\\
-	&=\mathbf{F}_k\:\mathbb{E}[x_{k-1}|\mathbf{z}_{1:k-1}]+b_k^{(e)}+\mathbb{E}[\eta_k|\mathbf{z}_{1:k-1}]\\
+	\hat{x}_{k|k-1}&\triangleq\mathbb{E}[x_k\mid\mathbf{z}_{1:k-1}]\\
+	&=\mathbf{F}_k\:\mathbb{E}[x_{k-1}\mid\mathbf{z}_{1:k-1}]+b_k^{(e)}+\mathbb{E}[\eta_k\mid\mathbf{z}_{1:k-1}]\\
 	&=\mathbf{F}_k\:\hat{x}_{k-1|k-1}+b_k^{(e)}
 	\end{aligned}
 \end{equation}
 and:
 \begin{equation}
 	\begin{aligned}
-	\mathbf{P}_{k|k-1}&\triangleq\mathbb{V}[x_k|\mathbf{z}_{1:k-1}]\\
-	&=\mathbf{F}_k\:\mathbb{V}[x_{k-1}|\mathbf{z}_{1:k-1}]\:\mathbf{F}_k^\top+\mathbb{V}[\eta_k|\mathbf{z}_{1:k-1}]\\
+	\mathbf{P}_{k|k-1}&\triangleq\mathbb{V}[x_k\mid\mathbf{z}_{1:k-1}]\\
+	&=\mathbf{F}_k\:\mathbb{V}[x_{k-1}\mid\mathbf{z}_{1:k-1}]\:\mathbf{F}_k^\top+\mathbb{V}[\eta_k\mid\mathbf{z}_{1:k-1}]\\
 	&=\mathbf{F}_k\:\mathbf{P}_{k-1|k-1}\:\mathbf{F}_k^\top+\mathbf{Q}_k
 	\end{aligned}
 \end{equation}
 
 The predicted covariance is thus SPD as the sum of an SPSD matrix and the SPD matrix $\mathbf{Q}_k$.
 
-\textbf{Correction.} The joint distribution of $(x_k,z_k)$ given $\mathbf{z}_{1:k-1}$ is also Gaussian, since $z_k=\mathbf{H}_k\:x_k+b_k^{(o)}+\varepsilon_k$ is an affine transformation of the independent Gaussian variables $x_k|\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k|k-1},\mathbf{P}_{k|k-1}\right)$ and $\varepsilon_k\sim\mathcal{N}(0,\mathbf{R}_k)$. It comes that:
+\textbf{Correction.} The joint distribution of $(x_k,z_k)$ given $\mathbf{z}_{1:k-1}$ is also Gaussian, since $z_k=\mathbf{H}_k\:x_k+b_k^{(o)}+\varepsilon_k$ is an affine transformation of the independent Gaussian variables $x_k\mid\mathbf{z}_{1:k-1}\sim\mathcal{N}\left(\hat{x}_{k|k-1},\mathbf{P}_{k|k-1}\right)$ and $\varepsilon_k\sim\mathcal{N}(0,\mathbf{R}_k)$. It comes that:
 \begin{equation}
 	\left.\begin{bmatrix}
 	x_k\\z_k
@@ -61,7 +61,7 @@ Since $\mathbf{R}_k\succ0$, the independent pair $(x_k,\varepsilon_k)$ has the c
 	\end{bmatrix}\succ0
 \end{equation}
 
-Its image under the invertible linear map $(x,\varepsilon)\mapsto(x,\mathbf{H}_k\:x+\varepsilon)$ therefore has an SPD covariance as well. The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) can thus be applied to show that the posterior distribution $x_k|\mathbf{z}_{1:k}$ is Gaussian, with:
+Its image under the invertible linear map $(x,\varepsilon)\mapsto(x,\mathbf{H}_k\:x+\varepsilon)$ therefore has an SPD covariance as well. The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) can thus be applied to show that the posterior distribution $x_k\mid\mathbf{z}_{1:k}$ is Gaussian, with:
 \begin{align}
 	\hat{x}_{k|k}&=\hat{x}_{k|k-1}+\mathbf{K}_k\:y_k\\
 	\mathbf{P}_{k|k}&=(\mathbf{I}-\mathbf{K}_k\:\mathbf{H}_k)\:\mathbf{P}_{k|k-1}
@@ -80,7 +80,7 @@ is itself SPD, so $\mathbf{P}_{k|k}\succ0$.
 
 \section[Proof of Proposition 2.10]{Proof of \Cref{th:RBPF_decorrelation}}\label{sec:proof_RBPF}
 
-As a linear combination of the centred noises $\eta_k^l$ and $\eta_k^n$, $\overline{\eta}_k^l$ is centred. Its covariance develops as:
+As a linear combination of the centred noises $\eta_k^l$ and $\eta_k^n$, $\overline{\eta}_k^l$ is centred. Its covariance expands as:
 \begin{equation}
 	\begin{aligned}
 	\overline{\mathbf{Q}}_k^l&=\mathbb{E}\left[\overline{\eta}_k^l\:{\overline{\eta}_k^l}^\top\right]\\
@@ -175,7 +175,7 @@ Assume that $\nu\in\mathbb{R}_+^*$ and let $\kappa_\nu$ denote such a function. 
 	\quad\text{and}\quad
 	\tilde{r}:\left\{\begin{aligned}
 	\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}&\to\mathbb{R}_+\\
-	x,x'&\mapsto\frac{\sqrt{2\nu}}{\ell}\|x-x'\|
+	x,x'&\mapsto\frac{\sqrt{2\nu}}{\ell}\|x-x'\|_2
 	\end{aligned}\right.
 \end{equation}
 
@@ -184,7 +184,7 @@ $\tilde{r}$ and $K_\nu$ are continuous on $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x
 	K_\nu(r)=2^{\nu-1}\Gamma(\nu)\:r^{-\nu}+o\left(r^{-\nu}\right)
 \end{equation}
 
-Therefore, $g$ can be continuously extended to $0$ by setting $g(0)=\sigma_h^2$, and $\kappa_\nu$ is thus continuous on the entirety of $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}$.
+Therefore, $g$ can be continuously extended to $0$ by setting $g(0)=\sigma_h^2$, and $\kappa_\nu$ is thus continuous on the entirety of $\mathbb{R}^{d_x}\times\mathbb{R}^{d_x}$, with $\kappa_\nu(x,x)=\sigma_h^2$.
 
 Let $x,x'\in\mathbb{R}^{d_x}$. By symmetry of the norm, $\tilde{r}(x,x')=\tilde{r}(x',x)$, and thus:
 \begin{equation}
@@ -196,7 +196,7 @@ Furthermore, Bochner's theorem \cite{bib:Akhiezer} states that a continuous inte
 \begin{equation}
 	S_\nu:\left\{\begin{aligned}
 	\mathbb{R}^{d_x}&\to\mathbb{R}\\
-	\omega&\mapsto C\:\left(\frac{2\nu}{\ell^2}+\|\omega\|^2\right)^{-(\nu+d_x/2)}
+	\omega&\mapsto C\:\left(\frac{2\nu}{\ell^2}+\|\omega\|_2^2\right)^{-(\nu+d_x/2)}
 	\end{aligned}\right.
 \end{equation}
 where $C>0$ is a normalising constant which only depends on $d_x$ and the parameters of $\kappa_\nu$. Since $\nu>0$, $\ell>0$, it comes that:
@@ -209,7 +209,7 @@ The case $\nu=+\infty$ is more direct. The squared exponential kernel is continu
 \begin{equation}
 	S_\nu:\left\{\begin{aligned}
 	\mathbb{R}^{d_x}&\to\mathbb{R}\\
-	\omega&\mapsto C\:\exp\left(-\frac{\ell^2\|\omega\|^2}{2}\right)
+	\omega&\mapsto C\:\exp\left(-\frac{\ell^2\|\omega\|_2^2}{2}\right)
 	\end{aligned}\right.
 \end{equation}
 which is again strictly positive, so Bochner's theorem applies as above.
@@ -222,7 +222,7 @@ Let:
 \end{equation}
 be the Lagrangian associated with the optimisation problem \eqref{eq:error_covariance} under the constraint \eqref{eq:ordinary_kriging_constraint}, and $\boldsymbol{\Xi}\in\mathcal{M}_{d_z,d_z}(\mathbb{R})$ the corresponding Lagrange multiplier.
 
-This problem is solved by finding the minimum of $\mathcal{L}$, \textit{i.e.} finding a zero of its derivative. Writing $\mathbf{G}$ for $\mathbf{G}(\tilde{\mathbf{x}})$, the same properties used in the proof of \Cref{th:simple_kriging} give:
+This problem is solved by finding a minimum of $\mathcal{L}$, \textit{i.e.} finding a zero of its derivative. Writing $\mathbf{G}$ for $\mathbf{G}(\tilde{\mathbf{x}})$, the same properties used in the proof of \Cref{th:simple_kriging} give:
 \begin{equation}
 	\begin{aligned}
 	&\frac{\partial\mathcal{L}}{\partial \mathbf{W}}(\mathbf{W},\boldsymbol{\Xi})=0\\
@@ -243,7 +243,7 @@ Together with the constraint $\mathbf{C}^\top \mathbf{W}=\mathbf{I}_{d_z}$, this
 	\end{bmatrix}
 \end{equation}
 
-The left matrix block can be inverted using the upper left Schur inversion formula from \Cref{th:Schur}. Its Schur complement,
+The block matrix on the left-hand side can be inverted using the Schur inversion formula of \Cref{th:Schur}, with respect to its upper left block. The corresponding Schur complement:
 \begin{equation}
 	\mathbf{S}\triangleq0-\mathbf{C}^\top \mathbf{G}^{-1}\mathbf{C}=-\mathbf{C}^\top \mathbf{G}^{-1}\mathbf{C},
 \end{equation}
@@ -390,7 +390,7 @@ By independence of $h-g\:\boldsymbol{\gamma}$ and $\boldsymbol{\gamma}$, it foll
 	\end{aligned}
 \end{equation}
 
-As a linear combination of the jointly Gaussian distributions $h-g\:\boldsymbol{\gamma}$ and $\boldsymbol{\gamma}$, we finally have:
+Since $h$ is a linear combination of the jointly Gaussian terms $h-g\:\boldsymbol{\gamma}$ and $\boldsymbol{\gamma}$, we finally have:
 \begin{equation}
 	h\sim\mathcal{GP}(0,\kappa_{\mathbf{B}})
 \end{equation}
@@ -435,7 +435,7 @@ By definition of $\mathbf{M}_{\mathbf{B}}$, we have:
 	\begin{aligned}
 	&\left(\mathbf{B}^{-1}+\mathbf{M}^{-1}\right)\mathbf{M}_{\mathbf{B}}=\mathbf{I}\\
 	\iff\quad&\mathbf{M}^{-1}\mathbf{M}_{\mathbf{B}}=\mathbf{I}-\mathbf{B}^{-1}\mathbf{M}_{\mathbf{B}}\\
-	\iff\quad&\mathbf{B}\:\mathbf{M}^{-1}\mathbf{M}_{\mathbf{B}}=\mathbf{B}-\mathbf{M}_{\mathbf{B}}\\
+	\iff\quad&\mathbf{B}\:\mathbf{M}^{-1}\mathbf{M}_{\mathbf{B}}=\mathbf{B}-\mathbf{M}_{\mathbf{B}}
 	\end{aligned}
 \end{equation}
 
@@ -558,7 +558,7 @@ The subtracted term is $\mathbf{R}_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},
 
 \section[Proof of Proposition 3.14]{Proof of \Cref{th:universal_kriging_update}}\label{sec:proof_UK_update}
 
-Let $\mathbf{B}\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}$, and assume that $\boldsymbol{\gamma}\sim\mathcal{N}(0,\mathbf{B})$. \Cref{th:kriging_vague_prior} gives:
+Let $\mathbf{B}\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})$, and assume that $\boldsymbol{\gamma}\sim\mathcal{N}(0,\mathbf{B})$. \Cref{th:kriging_vague_prior} gives:
 \begin{equation}
 	h\sim\mathcal{GP}(0,\kappa_{\mathbf{B}})
 \end{equation}
@@ -592,7 +592,7 @@ For the conditional kernel, let $x'\in\Omega$. For the sake of clarity, we now l
 	\bar{\mathbf{G}}_{\mathbf{B}}\triangleq\begin{bmatrix}\mathbf{G}&g\\g^\top&-\mathbf{B}^{-1}\end{bmatrix}
 \end{equation}
 
-Its Schur complement with respect to $-\mathbf{B}^{-1}$ is $\mathbf{G}+g\:\mathbf{B}\:g^\top=\mathbf{G}_{\mathbf{B}}$, which is SPD. The inferior right Schur inversion formula (see \Cref{th:Schur}) thus gives:
+Its Schur complement with respect to $-\mathbf{B}^{-1}$ is $\mathbf{G}+g\:\mathbf{B}\:g^\top=\mathbf{G}_{\mathbf{B}}$, which is SPD. The lower-right Schur inversion formula (see \Cref{th:Schur}) thus gives:
 \begin{equation}
 	\bar{\mathbf{G}}_{\mathbf{B}}^{-1}=\begin{bmatrix}\mathbf{G}_{\mathbf{B}}^{-1}&\mathbf{G}_{\mathbf{B}}^{-1}g\:\mathbf{B}\\\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}&-\mathbf{B}+\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}g\:\mathbf{B}\end{bmatrix}
 \end{equation}

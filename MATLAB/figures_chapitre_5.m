@@ -39,14 +39,25 @@
 %
 % Les conventions sont celles de figures_campagnes.m : page figee, police calculee pour
 % sortir a 12 pt dans le manuscrit, une couleur et un trait par methode.
+%
+% LES VERSIONS DIAPO DE LA SOUTENANCE (2026-11-08) sortent du meme code quand
+% figures_soutenance.m appelle ce script avec la structure diapo, comme dans
+% figures_campagnes.m : dans diapo.img, a la taille ou Latex/Soutenance/main.tex les insere.
+% Les sorties du manuscrit, tracees quand meme, vont alors dans diapo.controle (figures) et
+% diapo.tab (tableaux et chiffres_ch5.txt), et diapo.lots_ch5 remplace sortie.lots.
 
-clearvars -except sortie; close all; clc;
+clearvars -except sortie diapo; close all; clc;
 here = fileparts(mfilename('fullpath'));
 if ~exist('sortie', 'var'), sortie = struct(); end
 if ~isfield(sortie, 'lots'), sortie.lots = fullfile(here, 'resultats', 'ch5_v2', 'lots'); end
 if ~isfield(sortie, 'img'),  sortie.img  = fullfile(fileparts(here), 'Images'); end
 if ~isfield(sortie, 'tab'),  sortie.tab  = fullfile(fileparts(here), 'Latex', 'Manuscrit', 'include'); end
 if ~isfield(sortie, 'chiffres'), sortie.chiffres = fullfile(here, 'resultats', 'ch5_v2', 'tableaux'); end
+en_diapo = exist('diapo', 'var') && isstruct(diapo);
+if en_diapo
+    sortie.img = diapo.controle;  sortie.tab = diapo.tab;  sortie.chiffres = diapo.tab;
+    if isfield(diapo, 'lots_ch5'), sortie.lots = diapo.lots_ch5; end
+end
 for d = {sortie.img, sortie.tab, sortie.chiffres}
     if ~exist(d{1}, 'dir'), mkdir(d{1}); end
 end
@@ -145,38 +156,41 @@ if ~isempty(ref)
            par.map.amplitude, mat2str(par.map.poids), mat2str(par.map.longueurs / 1e3), ...
            std(h(:)), par.slam.moyenne, dom(2) - dom(1), dom(4) - dom(3));
 
-    fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 pdf_w pdf_h]);
-    t   = tiledlayout(fig, 1, 1, 'TileSpacing', 'compact', 'Padding', 'compact');
-    ax  = nexttile(t);
-    imagesc(ax, g / 1e3, g / 1e3, h); hold(ax, 'on');
-    set(ax, 'YDir', 'normal'); axis(ax, 'image');
-    rectangle(ax, 'Position', [dom(1), dom(3), dom(2) - dom(1), dom(4) - dom(3)], ...
-              'EdgeColor', 'k', 'LineStyle', '--', 'LineWidth', linewidth);
-    plot(ax, x_true(1, :) / 1e3, x_true(2, :) / 1e3, 'k-', 'LineWidth', linewidth);
-    plot(ax, x_true(1, 1) / 1e3, x_true(2, 1) / 1e3, 'ko', 'MarkerSize', 5, 'MarkerFaceColor', 'k');
-    hold(ax, 'off');
-    xlim(ax, vue(1:2)); ylim(ax, vue(3:4));
-    colormap(ax, parula);
-    cb = colorbar(ax);
-    cb.Layout.Tile = 'east';
-    cb.TickLabelInterpreter = 'latex';  cb.FontSize = fs;
-    ylabel(cb, '$h(x)$ (nT)', 'Interpreter', 'latex', 'FontSize', fs);
-    xlabel(ax, '$p^{(x)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
-    ylabel(ax, '$p^{(y)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
-    set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fs, 'Layer', 'top');
-    box(ax, 'on');
+    fig = figure_champ(g, h, dom, vue, x_true, pdf_w, pdf_h, fs, linewidth);
     exporter(fig, 'Champ et circuit du SLAM', pdf_w, pdf_h, sortie.img);
+    if en_diapo
+        % Colonne de gauche de la diapo du scenario, a 0.47\textwidth. Carte et barre posees a
+        % la main (voir figure_champ) : avec l'espacement du manuscrit, la carte ne faisait que
+        % 55 pt de cote. La hauteur est celle de la carte et de ses marges, sans blanc.
+        w_d = 0.47 * diapo.textwidth;  h_d = 99;
+        fig = figure_champ(g, h, dom, vue, x_true, w_d, h_d, diapo.fs, linewidth, true);
+        exporter(fig, 'Champ et circuit du SLAM', w_d, h_d, diapo.img);
+    end
 
     %% RMSE et NEES au cours du vol
     kd = (1:pas_trace:n_it)';
     bas  = chi2inv((1 - par.conv.confiance) / 2, d_x) / chi2inv(0.5, d_x);
     haut = chi2inv(1 - (1 - par.conv.confiance) / 2, d_x) / chi2inv(0.5, d_x);
     courbes(kk, kd, R, [bas haut], textwidth, linewidth, sortie.img, 'RMSE et NEES du SLAM');
+    if en_diapo
+        % Colonne de gauche de la diapo, a 0.5\textwidth, sur toute sa hauteur. La legende
+        % tient sur une colonne : sur deux, elle depassait de la page.
+        courbes(kk, kd, R, [bas haut], textwidth, linewidth, diapo.img, 'RMSE et NEES du SLAM', ...
+                struct('w', 0.5 * diapo.textwidth, 'h', 185, 'fs', diapo.fs, 'ncol', 1, ...
+                       'jeton', [12 8], 'serre', true));
+    end
 
     %% Les cartes reconstruites
     i_rbpf = find(strcmp({R.cle}, 'rbpf'));  i_akkf = find(strcmp({R.cle}, 'akkf'));
     if ~isempty(i_rbpf) && ~isempty(i_akkf)
         cartes(ref, R([i_rbpf i_akkf]), textwidth, linewidth, sortie.img, 'Cartes reconstruites du SLAM');
+        if en_diapo
+            % Colonne de gauche de la diapo, a 0.56\textwidth, cartes sans graduations : la
+            % diapo du scenario donne deja l'echelle en km.
+            cartes(ref, R([i_rbpf i_akkf]), textwidth, linewidth, diapo.img, ...
+                   'Cartes reconstruites du SLAM', ...
+                   struct('w', 0.56 * diapo.textwidth, 'h', 150, 'fs', diapo.fs, 'graduations', false));
+        end
     end
 
     %% Le tableau des erreurs moyennes
@@ -271,6 +285,13 @@ tous = rangs(lots, ref);
 pts  = tous(ismember({tous.cle}, {'rbpf', 'akkf'}));
 if ~isempty(pts)
     figure_rangs(pts, R, textwidth, linewidth, sortie.img, 'Rangs du SLAM');
+    if en_diapo
+        % Colonne de gauche de la diapo, a 0.47\textwidth : l'erreur de position et le cout,
+        % les deux grandeurs que la diapo commente, l'une sous l'autre.
+        figure_rangs(pts, R, textwidth, linewidth, diapo.img, 'Rangs du SLAM', ...
+                     struct('w', 0.47 * diapo.textwidth, 'h', 180, 'fs', diapo.fs, ...
+                            'panneaux', [1 4], 'ncol', 1, 'jeton', [12 8], 'serre', true));
+    end
     fid = fopen(fullfile(sortie.tab, 'rangs_slam.tex'), 'w', 'n', 'UTF-8');
     % LE NOM DE LA METHODE EN LIGNE D'EN-TETE DE SON BLOC (2026-10-26), et non dans une colonne :
     % avec « Modified AKKF-SLAM », la colonne des filtres rendait le tableau trop large de 109 pt.
@@ -380,13 +401,69 @@ function pts = rangs(lots, ref)
     pts = pts(o);
 end
 
-function courbes(kk, kd, R, bande, textwidth, linewidth, img_dir, nom_fig)
+function fig = figure_champ(g, h, dom, vue, x_true, pdf_w, pdf_h, fs, linewidth, serre)
+% Le champ analytique, le domaine de la base de Laplace en tirets et le circuit vrai, son
+% point de depart en noir. Sorti du corps du script le 2026-11-08, sans changement, pour etre
+% trace aussi a la taille de la diapo de soutenance ; serre (facultatif) y place la carte
+% et sa barre de couleur a la main, en points : dans la case est du tiledlayout, la barre
+% restait a 16 pt de la carte, meme en espacement serre, et la carte n'avait que 62 pt de
+% cote dans sa colonne de 144 pt.
+    if nargin < 10, serre = false; end
+    fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 pdf_w pdf_h]);
+    if serre
+        ax = axes(fig);
+    else
+        t  = tiledlayout(fig, 1, 1, 'TileSpacing', 'compact', 'Padding', 'compact');
+        ax = nexttile(t);
+    end
+    imagesc(ax, g / 1e3, g / 1e3, h); hold(ax, 'on');
+    set(ax, 'YDir', 'normal'); axis(ax, 'image');
+    rectangle(ax, 'Position', [dom(1), dom(3), dom(2) - dom(1), dom(4) - dom(3)], ...
+              'EdgeColor', 'k', 'LineStyle', '--', 'LineWidth', linewidth);
+    plot(ax, x_true(1, :) / 1e3, x_true(2, :) / 1e3, 'k-', 'LineWidth', linewidth);
+    plot(ax, x_true(1, 1) / 1e3, x_true(2, 1) / 1e3, 'ko', 'MarkerSize', 5, 'MarkerFaceColor', 'k');
+    hold(ax, 'off');
+    xlim(ax, vue(1:2)); ylim(ax, vue(3:4));
+    colormap(ax, parula);
+    cb = colorbar(ax);
+    if ~serre, cb.Layout.Tile = 'east'; end
+    cb.TickLabelInterpreter = 'latex';  cb.FontSize = fs;
+    ylabel(cb, '$h(x)$ (nT)', 'Interpreter', 'latex', 'FontSize', fs);
+    xlabel(ax, '$p^{(x)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
+    ylabel(ax, '$p^{(y)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
+    set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fs, 'Layer', 'top');
+    box(ax, 'on');
+    if serre
+        % Marges mesurees sur le rendu a 7,5 pt : a gauche l'intitule et les graduations de
+        % l'ordonnee, en bas ceux de l'abscisse, a droite l'ecart, la barre, ses graduations
+        % et son intitule. La barre d'abord : sa position posee, elle ne retaille plus l'axe.
+        gauche = 23;  bas = 19;  haut = 3;  ecart = 4;  barre = 7;  droite = 44;
+        cote = min(pdf_w - gauche - droite, pdf_h - bas - haut);
+        set([ax cb], 'Units', 'points');
+        cb.Position = [gauche + cote + ecart, bas, barre, cote];
+        ax.Position = [gauche, bas, cote, cote];
+    end
+end
+
+function courbes(kk, kd, R, bande, textwidth, linewidth, img_dir, nom_fig, gab)
 % Les filtres sur deux panneaux empiles, l'erreur de position en haut et la NEES en bas, avec
 % une seule legende au-dessus. La figure est inseree a \textwidth.
-    pdf_w = textwidth;  pdf_h = 400;  fs = 12;
+%
+% gab (soutenance, 2026-11-08), facultatif : la taille w x h en points, la police fs, et au
+% besoin le nombre de colonnes de la legende (ncol), la taille de ses traits (jeton,
+% longueur et hauteur : une hauteur de 18 pt espace trop des lignes ecrites a 7,5 pt) et
+% serre pour resserrer les cases.
+    pdf_w = textwidth;  pdf_h = 400;  fs = 12;  ncol = 3;  jeton = [18 18];  serre = false;
+    if nargin >= 9
+        pdf_w = gab.w;  pdf_h = gab.h;  fs = gab.fs;
+        if isfield(gab, 'ncol'),  ncol  = gab.ncol;  end
+        if isfield(gab, 'jeton'), jeton = gab.jeton; end
+        if isfield(gab, 'serre'), serre = gab.serre; end
+    end
     n_it  = numel(kk);
     fig   = figure('Color', 'w', 'Units', 'points', 'Position', [40 40 pdf_w pdf_h]);
     t     = tiledlayout(fig, 2, 1, 'TileSpacing', 'compact', 'Padding', 'compact');
+    if serre, t.TileSpacing = 'tight'; end
 
     ax = nexttile(t); hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on');
     leg = cell(1, numel(R));
@@ -400,8 +477,8 @@ function courbes(kk, kd, R, bande, textwidth, linewidth, img_dir, nom_fig)
     xlim(ax, [1 n_it]);  ylim(ax, [0, 1.05 * ymax]);
     set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fs, 'XTickLabel', []);
     ylabel(ax, '$\mathrm{RMSE}_{\hat{x}}(k)$ (m)', 'Interpreter', 'latex', 'FontSize', fs);
-    lg = legend(ax, leg, 'Interpreter', 'latex', 'FontSize', fs, 'NumColumns', 3);
-    lg.ItemTokenSize = [18 18];
+    lg = legend(ax, leg, 'Interpreter', 'latex', 'FontSize', fs, 'NumColumns', ncol);
+    lg.ItemTokenSize = jeton;
     lg.Layout.Tile   = 'north';
 
     ax = nexttile(t); hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on');
@@ -425,13 +502,22 @@ function courbes(kk, kd, R, bande, textwidth, linewidth, img_dir, nom_fig)
     exporter(fig, nom_fig, pdf_w, pdf_h, img_dir);
 end
 
-function cartes(ref, R, textwidth, linewidth, img_dir, nom_fig)
+function cartes(ref, R, textwidth, linewidth, img_dir, nom_fig, gab)
 % Comme dans l'article FUSION 2026 : en haut, la carte reconstruite par chaque SLAM sur le
 % premier essai, avec la trajectoire vraie en noir et celle qu'il a estimee en pointille
 % bleu ; en bas, la RMSE de reconstruction sur tous les essais, point par point. Chaque
 % ligne a son echelle de couleur, commune aux deux methodes, et celle du haut est l'etendue
 % du champ vrai sur le domaine.
-    pdf_w = textwidth;  pdf_h = 400;  fs = 12;
+%
+% gab (soutenance, 2026-11-08), facultatif : la taille w x h en points, la police fs, et
+% graduations a false pour des cartes sans graduations ni labels en km. Sur une colonne de
+% diapo, ces derniers ne laissaient a chaque carte que 35 pt de cote, et les titres des
+% deux methodes se touchaient.
+    pdf_w = textwidth;  pdf_h = 400;  fs = 12;  grad = true;
+    if nargin >= 7
+        pdf_w = gab.w;  pdf_h = gab.h;  fs = gab.fs;
+        if isfield(gab, 'graduations'), grad = gab.graduations; end
+    end
     P = ref.P_eval;  n = round(sqrt(size(P, 2)));
     xs = reshape(P(1, :), n, n);  ys = reshape(P(2, :), n, n);
     xs = xs(1, :) / 1e3;  ys = ys(:, 1)' / 1e3;
@@ -465,10 +551,14 @@ function cartes(ref, R, textwidth, linewidth, img_dir, nom_fig)
             hold(ax, 'off');
             xlim(ax, xs([1 end])); ylim(ax, ys([1 end]));
             set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fs, 'Layer', 'top');
-            if ligne == 2, xlabel(ax, '$p^{(x)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
-            else, set(ax, 'XTickLabel', []); end
-            if j == 1, ylabel(ax, '$p^{(y)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
-            else, set(ax, 'YTickLabel', []); end
+            if grad
+                if ligne == 2, xlabel(ax, '$p^{(x)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
+                else, set(ax, 'XTickLabel', []); end
+                if j == 1, ylabel(ax, '$p^{(y)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
+                else, set(ax, 'YTickLabel', []); end
+            else
+                set(ax, 'XTick', [], 'YTick', []);
+            end
             box(ax, 'on');
         end
         cb = colorbar(ax);
@@ -480,42 +570,59 @@ function cartes(ref, R, textwidth, linewidth, img_dir, nom_fig)
     exporter(fig, nom_fig, pdf_w, pdf_h, img_dir);
 end
 
-function figure_rangs(pts, R, textwidth, linewidth, img_dir, nom_fig)
+function figure_rangs(pts, R, textwidth, linewidth, img_dir, nom_fig, gab)
 % Quatre panneaux contre le rang de la base, en echelle logarithmique : erreur de position
 % sur tout le vol, NEES du dernier tiers, erreur de carte le long du vol, et flops par essai.
 % L'inertiel et la carte nulle donnent les references en gris.
-    pdf_w = textwidth;  pdf_h = 400;  fs = 12;
+%
+% gab (soutenance, 2026-11-08), facultatif : la taille w x h en points, la police fs, et au
+% besoin les panneaux retenus (panneaux, parmi 1 a 4, empiles quand ils ne sont pas quatre),
+% le nombre de colonnes de la legende (ncol), la taille de ses traits (jeton) et serre pour
+% resserrer les cases.
+    pdf_w = textwidth;  pdf_h = 400;  fs = 12;  panneaux = 1:4;  ncol = 2;  jeton = [18 18];
+    serre = false;
+    if nargin >= 7
+        pdf_w = gab.w;  pdf_h = gab.h;  fs = gab.fs;
+        if isfield(gab, 'panneaux'), panneaux = gab.panneaux; end
+        if isfield(gab, 'ncol'),     ncol     = gab.ncol;     end
+        if isfield(gab, 'jeton'),    jeton    = gab.jeton;    end
+        if isfield(gab, 'serre'),    serre    = gab.serre;    end
+    end
+    n_p  = numel(panneaux);
+    n_c  = 1 + (n_p == 4);                    % deux colonnes pour les quatre, sinon une pile
     cles = unique({pts.cle}, 'stable');
     i_in = find(strcmp({R.cle}, 'inertiel'), 1);
     champs = {'armse', 'nees', 'carte', 'flops'};
     etiq   = {'$\mathrm{ARMSE}_{\hat{x}}$ (m)', 'NEES', '$\mathrm{ARMSE}_{\hat{h}}$ (nT)', ...
               'Cost per run (flops)'};
     fig = figure('Color', 'w', 'Units', 'points', 'Position', [40 40 pdf_w pdf_h]);
-    t   = tiledlayout(fig, 2, 2, 'TileSpacing', 'compact', 'Padding', 'compact');
+    t   = tiledlayout(fig, ceil(n_p / n_c), n_c, 'TileSpacing', 'compact', 'Padding', 'compact');
+    if serre, t.TileSpacing = 'tight'; end
     h_leg = gobjects(0);  leg = {};
-    for p = 1:4
+    for ip = 1:n_p
+        p  = panneaux(ip);
         ax = nexttile(t); hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on');
         for c = 1:numel(cles)
             q = pts(strcmp({pts.cle}, cles{c}));
             [col, l, nom] = style_methode(cles{c});
             hp = plot(ax, [q.rang], [q.(champs{p})], l, 'Color', col, 'LineWidth', linewidth, ...
                       'Marker', 'o', 'MarkerSize', 4, 'MarkerFaceColor', col);
-            if p == 1, h_leg(end + 1) = hp; leg{end + 1} = nom; end %#ok<AGROW>
+            if ip == 1, h_leg(end + 1) = hp; leg{end + 1} = nom; end %#ok<AGROW>
         end
         if ~isempty(i_in) && any(p == [1 3])
             if p == 1, v = mean(R(i_in).res.rmse); else, v = R(i_in).res.armse_map_traj; end
             hp = yline(ax, v, '--', 'Color', [0.45 0.45 0.45], 'LineWidth', linewidth);
-            if p == 1, h_leg(end + 1) = hp; leg{end + 1} = 'Inertial navigation'; end %#ok<AGROW>
+            if ip == 1, h_leg(end + 1) = hp; leg{end + 1} = 'Inertial navigation'; end %#ok<AGROW>
         end
         hold(ax, 'off');
         set(ax, 'XScale', 'log', 'TickLabelInterpreter', 'latex', 'FontSize', fs);
         if any(p == [2 4]), set(ax, 'YScale', 'log'); end
         ylabel(ax, etiq{p}, 'Interpreter', 'latex', 'FontSize', fs);
-        if p >= 3, xlabel(ax, 'Rank', 'Interpreter', 'latex', 'FontSize', fs);
+        if ip > n_p - n_c, xlabel(ax, 'Rank', 'Interpreter', 'latex', 'FontSize', fs);
         else, set(ax, 'XTickLabel', []); end
     end
-    lg = legend(h_leg, leg, 'Interpreter', 'latex', 'FontSize', fs, 'NumColumns', 2);
-    lg.ItemTokenSize = [18 18];
+    lg = legend(h_leg, leg, 'Interpreter', 'latex', 'FontSize', fs, 'NumColumns', ncol);
+    lg.ItemTokenSize = jeton;
     lg.Layout.Tile = 'north';
     exporter(fig, nom_fig, pdf_w, pdf_h, img_dir);
 end
@@ -532,9 +639,9 @@ function [c, l, nom] = style_methode(cle)
         case 'rbpf',       c = [0.75 0.02 0.15];  l = '-';   nom = 'RBPF-SLAM';
         case 'akkf',       c = [0.95 0.60 0.00];  l = '-';   nom = 'AKKF-SLAM';
         case 'akkf_orig',  c = [0.60 0.35 0.00];  l = '-';   nom = 'AKKF-SLAM of the original article';
-        case 'akkf_pv',    c = [0.95 0.60 0.00];  l = '--';  nom = 'AKKF-SLAM ($\alpha_{\mathrm{RKHS},z}=0.1$)';
+        case 'akkf_pv',    c = [0.95 0.60 0.00];  l = '--';  nom = 'AKKF-SLAM ($\alpha_{\mathrm{RKHS},Z}=0.1$)';
         case 'akkf_lz1',   c = [0.95 0.60 0.00];  l = '-.';  nom = 'AKKF-SLAM (noise variance only)';
-        case 'akkf_carte01', c = [0.95 0.60 0.00]; l = ':';  nom = 'Known map (AKKF, $\alpha_{\mathrm{RKHS},z}=0.1$)';
+        case 'akkf_carte01', c = [0.95 0.60 0.00]; l = ':';  nom = 'Known map (AKKF, $\alpha_{\mathrm{RKHS},Z}=0.1$)';
         otherwise
             error('figures_chapitre_5:style', 'Cle de methode inconnue : %s.', cle);
     end

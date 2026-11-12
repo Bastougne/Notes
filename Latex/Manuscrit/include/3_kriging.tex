@@ -14,7 +14,7 @@ Without further information regarding $h$, we would only be able to state that $
 		h(\tilde{x}_1)+\tilde{\varepsilon}_1\\\vdots\\h(\tilde{x}_{\tilde{N}})+\tilde{\varepsilon}_{\tilde{N}}
 	\end{bmatrix}\in\mathbb{R}^{\tilde{N}d_z},\qquad\tilde{\varepsilon}_i\sim\mathcal{N}(0,\tilde{\mathbf{R}}),\qquad\tilde{\mathbf{R}}\in\mathcal{S}_{d_z}^+(\mathbb{R})
 \end{equation}
-where $\tilde{\varepsilon}_1,\dots,\tilde{\varepsilon}_{\tilde{N}}$ are mutually independent and independent of $h$.
+where $\tilde{\varepsilon}_1,\dots,\tilde{\varepsilon}_{\tilde{N}}$ are mutually independent and independent of $h$ and $\varepsilon$.
 
 The goal of this section is to derive the best linear unbiased estimator (BLUE) of $z$ with respect to $\tilde{\mathbf{z}}$, \textit{i.e.} the estimator:
 \begin{equation}
@@ -26,7 +26,7 @@ parametrised by a weight matrix:
 	w_1\\\vdots\\w_{\tilde{N}}
 	\end{bmatrix}\in\mathcal{M}_{\tilde{N}d_z,d_z}(\mathbb{R})
 \end{equation}
-such that the error vector has an expectation of $0$ and a minimum covariance. This setting is illustrated by \Cref{fig:kriging_example} for a $\mathbb{R}^2\to\mathbb{R}$ field.
+such that the error vector has an expectation of $0$ and a minimum covariance. This setting is illustrated by \Cref{fig:kriging_example} for an $\mathbb{R}^2\to\mathbb{R}$ field.
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=0.7\textwidth]{../../Images/Exemple de krigeage 3D.pdf}
@@ -62,7 +62,7 @@ Moreover, $\mathbb{V}\left[\hat{z}-z\right]$ is a covariance matrix, and therefo
 Simple kriging (SK) is the simplest form of kriging, and assumes that the mean function $m$ is known. \Cref{th:simple_kriging} gives a closed-form expression of the SK estimator and its associated covariance matrix, while \Cref{th:simple_kriging_conditional} shows that it coincides with the conditional distribution of $z$ given $\tilde{\mathbf{z}}$.
 
 \begin{proposition}[Simple kriging estimator]\label{th:simple_kriging}
-	Using the notations introduced in \cref{sec:kriging}, the SK estimator of $z$ and its error covariance are:
+	Using the notation introduced in \cref{sec:kriging}, the SK estimator of $z$ and its error covariance are:
 	\begin{equation}
 		\left\{\begin{aligned}
 		\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)&=m(x)+\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\:(\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}}))\\
@@ -72,7 +72,7 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 \end{proposition}
 
 \begin{proof}
-	Since $m$ is known, we may assume it to be identically equal to $0$ by working with $h-m$ instead of $h$, without any loss of generality. In the centred case, \eqref{eq:error_covariance} can be developed as follows:
+	Since $m$ is known, we may assume it to be identically equal to $0$ by working with $h-m$ instead of $h$, without any loss of generality. In the centred case, \eqref{eq:error_covariance} can be expanded as follows:
 	\begin{equation}
 		\mathbb{V}[\mathbf{W}^\top\tilde{\mathbf{z}}-z]=\mathbf{W}^\top \mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{W}-\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{W}+\kappa(x,x)+\mathbf{R}\label{eq:generic_kriging_variance}
 	\end{equation}
@@ -109,7 +109,7 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 \end{remark}
 
 \begin{remark}[Error covariance minimisation]
-	While the SK weight matrix $\mathbf{W}=\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)$ was obtained by minimising the trace of $\mathbb{V}[\hat{z}-z]$, it minimises the whole covariance in the SPSD sense. Indeed:
+	While the SK weight matrix $\mathbf{W}=\mathbf{G}^{-1}\kappa(\tilde{\mathbf{x}},x)$ was obtained by minimising the trace of $\mathbb{V}[\hat{z}-z]$, it minimises the whole covariance for the Loewner order $\succeq$ of \Cref{th:matrix_SPSD}. Indeed:
 	\begin{equation}
 		\begin{aligned}
 		\mathbb{V}[\hat{z}-z]-\mathbf{R}_{\mathrm{SK}}&=\mathbf{W}^\top \mathbf{G}(\tilde{\mathbf{x}})\:\mathbf{W}-\mathbf{W}^\top \kappa(\tilde{\mathbf{x}},x)-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{W}+\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)\\
@@ -129,7 +129,7 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 		\end{aligned}\right.
 	\end{equation}
 
-	In particular, the error covariance reduces to the query noise $\mathbf{R}$ alone, and vanishes when $\mathbf{R}=0$. That degenerate case is the one set aside at the start of this section, and is reached by continuity in $x$. On the contrary, a positive training noise $\tilde{\mathbf{R}}\succ0$ turns kriging into a smoother rather than an interpolator \cite{bib:spline-correspondence}.
+	In particular, since the training observations are noiseless, the latent field is recovered exactly at the training points, and the error covariance reduces to the query noise $\mathbf{R}$ alone, which vanishes when $\mathbf{R}=0$. That degenerate case is the one set aside at the start of this section, and is reached by continuity in $x$. By contrast, a positive training noise $\tilde{\mathbf{R}}\succ0$ turns kriging into a smoother rather than an interpolator \cite{bib:spline-correspondence}.
 \end{proposition}
 
 \begin{proof}
@@ -172,7 +172,7 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 \end{proposition}
 
 \begin{proof}
-	Since they are evaluations of the same GP under an additive Gaussian white noise, $z$ and $\tilde{\mathbf{z}}$ are jointly Gaussian. Their joint distribution is:
+	Since $z$ and $\tilde{\mathbf{z}}$ are evaluations of the same GP under independent additive Gaussian white noises, they are jointly Gaussian. Their joint distribution is:
 	\begin{equation}
 		\begin{bmatrix}
 		z\\\tilde{\mathbf{z}}
@@ -189,7 +189,7 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 This result is a special case of the more general result established in \Cref{th:MMSE_estimator}. Since the unbiased hypothesis of the BLUE is automatically verified by the SK estimator, the minimisation criterion \eqref{eq:error_covariance} amounts to finding the MMSE estimator of $z$ given $\tilde{\mathbf{z}}$, which is always the conditional expectation.
 
 \begin{remark}[Simultaneous estimation]
-	The simultaneous estimation of $h$ at several query points $\mathbf{x}=(x_1,\dots,x_n)\in\Omega^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. In particular, the $\mathcal{O}\left(\tilde{N}^3\right)$ cost of inverting $\mathbf{G}(\tilde{\mathbf{x}})$ can be shared across the $n$ estimations whether they are performed successively or simultaneously.
+	The simultaneous estimation of $z$ at several query points $\mathbf{x}=(x_1,\dots,x_n)\in\Omega^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. In particular, the $\mathcal{O}\left(\tilde{N}^3\right)$ cost of inverting $\mathbf{G}(\tilde{\mathbf{x}})$ can be shared across the $n$ estimations whether they are performed successively or simultaneously.
 
 	However, computing only the $n$ diagonal blocks of $\mathbf{R}_{\mathrm{SK}}(\mathbf{x},\tilde{\mathbf{x}})$ costs $\mathcal{O}(\tilde{N}^3+n\tilde{N}^2)$, whereas forming the full matrix before discarding its off-diagonal blocks costs $\mathcal{O}(\tilde{N}^3+n\tilde{N}^2+n^2\tilde{N})$ due to the extra off-diagonal matrix products. The off-diagonal blocks describe the correlation between the estimation errors made at distinct query points, and should only be computed when that correlation is needed.
 \end{remark}
@@ -198,7 +198,7 @@ This result is a special case of the more general result established in \Cref{th
 
 Assuming the mean function to be known is a strong assumption, and can be unrealistic in practical scenarios. While an approximated model could be used instead of the true $m$, this would cause the kriging estimator to be overly confident in its estimation. Ordinary kriging (OK) extends its simple counterpart by assuming that the mean is an unknown constant $m\in\mathbb{R}^{d_z}$, and estimating it alongside the weights.
 
-The unbiased assumption of the OK estimator yields:
+The unbiased assumption of the OK estimator for all $m\in\mathbb{R}^{d_z}$ yields:
 \begin{equation}
 	\begin{aligned}
 	&\mathbb{E}[\hat{z}-z]=0\\
@@ -252,7 +252,7 @@ The OK weights thus minimise \eqref{eq:error_covariance} under the constraint \e
 		\end{bmatrix}}_{\tilde{N}\text{ times}}=\mathbf{C}\:\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})
 	\end{equation}
 
-	Ordinary kriging can therefore be interpreted as simple kriging in which the mean $m$ is concurrently estimated from the observations. The uncertainty associated with this second estimation is captured by the covariance term $\mathbf{R}_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})\succeq0$, and is added to the SK covariance.
+	Ordinary kriging can therefore be interpreted as the concurrent estimation of a centred field by simple kriging and that of the mean $\hat{m}_{\mathrm{OK}}$ on which it is centred. The uncertainty associated with this second estimation is captured by the covariance term $\mathbf{R}_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})\succeq0$, and is added to the SK covariance.
 \end{remark}
 
 \subsection{Universal Kriging}
@@ -338,10 +338,10 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 	In particular, when $\tilde{N}\gg r_{\mathrm{UK}}$, universal kriging retains the same dominant complexity as simple kriging.
 \end{remark}
 
-\Cref{th:simple_kriging_conditional} shows that simple kriging can be seen as a Gaussian conditioning, which ordinary and universal kriging do not admit as such, their estimators being BLUEs of an unknown mean rather than posterior expectations. This interpretation can nonetheless be recovered by using a Gaussian prior on the trend coefficients, as proven by \Cref{th:kriging_vague_prior} \cite{bib:Bayesian-kriging, bib:Bayesian-trend}.
+\Cref{th:simple_kriging_conditional} shows that simple kriging can be seen as a Gaussian conditioning, which ordinary and universal kriging do not admit as such, their estimators being BLUEs under an unknown mean rather than posterior expectations. This interpretation can nonetheless be recovered by using a Gaussian prior on the trend coefficients, as proven by \Cref{th:kriging_vague_prior} \cite{bib:Bayesian-kriging, bib:Bayesian-trend}.
 
 \begin{proposition}[Conditioning under a vague trend prior]\label{th:kriging_vague_prior}
-	Let $\mathbf{B}\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}$, and assume that the UK coefficients follow:
+	Let $\mathbf{B}\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})$, and assume that the UK coefficients follow:
 	\begin{equation}
 		\boldsymbol{\gamma}\sim\mathcal{N}(0,\mathbf{B})
 	\end{equation}
@@ -434,12 +434,12 @@ Formally, let the training data be split into the previous ones and a new batch 
 
 By the chain rule, the density of $z$ given $\tilde{\mathbf{z}}$ reads:
 \begin{equation}
-	p(z|\tilde{\mathbf{z}})=\frac{p(z,\tilde{\mathbf{z}}_{\mathrm{new}}|\tilde{\mathbf{z}}_{\mathrm{old}})}{p(\tilde{\mathbf{z}}_{\mathrm{new}}|\tilde{\mathbf{z}}_{\mathrm{old}})}
+	p(z\mid\tilde{\mathbf{z}})=\frac{p(z,\tilde{\mathbf{z}}_{\mathrm{new}}\mid\tilde{\mathbf{z}}_{\mathrm{old}})}{p(\tilde{\mathbf{z}}_{\mathrm{new}}\mid\tilde{\mathbf{z}}_{\mathrm{old}})}
 \end{equation}
 
 Conditioning on $\tilde{\mathbf{z}}$ thus amounts to conditioning on $\tilde{\mathbf{z}}_{\mathrm{old}}$, then on $\tilde{\mathbf{z}}_{\mathrm{new}}$, \textit{i.e.}:
 \begin{equation}
-	z|\tilde{\mathbf{z}}=(z|\tilde{\mathbf{z}}_{\mathrm{old}})|\tilde{\mathbf{z}}_{\mathrm{new}}
+	z\mid\tilde{\mathbf{z}}=(z\mid\tilde{\mathbf{z}}_{\mathrm{old}})\mid\tilde{\mathbf{z}}_{\mathrm{new}}
 \end{equation}
 
 In particular, this means that the new batch can be incorporated by kriging the GP defined in \Cref{th:conditional_GP} with the new observations $\tilde{\mathbf{z}}_{\mathrm{new}}$, as shown by \Cref{th:kriging_update} \cite{bib:kriging-update}.
@@ -471,7 +471,7 @@ In particular, this means that the new batch can be incorporated by kriging the 
 \begin{proof}
 	For the sake of clarity, we let $\hat{z}_{\mathrm{old}}$ denote $\hat{z}_{\mathrm{SK}}(\cdot,\tilde{\mathbf{x}}_{\mathrm{old}},\tilde{\mathbf{z}}_{\mathrm{old}},m)$. Since the joint covariance of $(z,\tilde{\mathbf{z}})$ is SPD, \Cref{th:Gaussian_conditioning} states that the covariance of $(z,\tilde{\mathbf{z}}_{\mathrm{new}})$ given $\tilde{\mathbf{z}}_{\mathrm{old}}$ is also SPD. Applying \Cref{th:simple_kriging_conditional} to the GP of \Cref{th:conditional_GP}, observed at $\tilde{\mathbf{x}}_{\mathrm{new}}$ with noises independent of $h$ and $\tilde{\mathbf{z}}_{\mathrm{old}}$, thus gives:
 	\begin{equation}
-		z|\tilde{\mathbf{z}}=(z|\tilde{\mathbf{z}}_{\mathrm{old}})|\tilde{\mathbf{z}}_{\mathrm{new}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{z}}_{\mathrm{new}},\hat{z}_{\mathrm{old}}),\mathbf{R}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\right)
+		z\mid\tilde{\mathbf{z}}=(z\mid\tilde{\mathbf{z}}_{\mathrm{old}})\mid\tilde{\mathbf{z}}_{\mathrm{new}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}},\tilde{\mathbf{z}}_{\mathrm{new}},\hat{z}_{\mathrm{old}}),\mathbf{R}_{\mathrm{SK}|\mathrm{old}}(x,\tilde{\mathbf{x}}_{\mathrm{new}})\right)
 	\end{equation}
 
 	By \Cref{th:simple_kriging_conditional} applied to $\tilde{\mathbf{x}}$, the mean and covariance of this distribution are also $\hat{z}_{\mathrm{SK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}},m)$ and $\mathbf{R}_{\mathrm{SK}}(x,\tilde{\mathbf{x}})$. Moreover, $\mathbf{S}_{\mathrm{new}|\mathrm{old}}$ is the Gram matrix of $\tilde{\mathbf{x}}_{\mathrm{new}}$ under $\kappa_{|\mathrm{old}}$, and \Cref{th:simple_kriging} gives:

@@ -11,9 +11,9 @@ The analytical and Monte Carlo methods of \cref{sec:Bayesian_estimation} all ass
 
 A first way to fill this gap is to reconstruct the field from these measurements. Several approaches have been proposed in the literature:
 \begin{itemize}
-	\item Deterministic interpolation through multilinear interpolation over a regular grid \cite{bib:MPF-TAN,bib:bathymetry-gravimetry}, or spline fitting.
+	\item Deterministic interpolation through multilinear interpolation over a regular grid \cite{bib:MPF-TAN,bib:bathymetry-gravimetry}, or spline fitting \cite{bib:splines}.
 	\item Linear regression on a fixed basis, such as polynomials, sinusoids, or the spherical harmonics of global geomagnetic models \cite{bib:IGRF}.
-	\item More expressive models, such as neural networks.
+	\item More expressive models, such as neural networks \cite{bib:neural-networks}.
 \end{itemize}
 All these methods return a point prediction at the queried location, without quantifying its uncertainty. However, their use within the filters introduced in \cref{sec:Bayesian_estimation} requires the observation likelihood $p(z_k\mid x_k)$, which describes a distribution rather than a single predicted value. The reconstruction error must therefore be accounted for in the observation noise, typically through a covariance assumed constant over the entire domain.  Since this error varies with the local density of training samples, this covariance may overestimate the error in some regions, unnecessarily discarding information, and underestimate it in others, making the filter overconfident.
 
@@ -29,7 +29,7 @@ The rest of this chapter is organised as follows:
 
 \section{Definition and Properties}\label{sec:GP_definition}
 
-Formally, a stochastic process generalises the notion of random variable to a random function, \textit{i.e.} a family $(h(x))_{x\in\Omega}$ of random variables indexed by a set $\Omega$, which may represent time $\mathbb{R}_+$, physical space $\mathbb{R}^2$ or $\mathbb{R}^3$, or any other domain. As shown by \Cref{th:GP_definition}, a GP is a special case of stochastic process \cite{bib:random-fields}.
+Formally, a stochastic process generalises the notion of random variable to a random function, \textit{i.e.} a family $(h(x))_{x\in\Omega}$ of random variables indexed by a set $\Omega$, which may represent time $\mathbb{R}_+$, physical space $\mathbb{R}^2$ or $\mathbb{R}^3$, or any other domain. A GP is a special case of stochastic process \cite{bib:random-fields}, as presented by \Cref{th:GP_definition}.
 
 \begin{definition}[Gaussian process]\label{th:GP_definition}
 	For $d_z\in\mathbb{N}^*$, a stochastic process $(h(x))_{x\in\Omega}$ taking values in $\mathbb{R}^{d_z}$ is a GP if every finite linear combination of its values follows a Gaussian distribution. Formally, for all $n\in\mathbb{N}^*$, all $x_1,\dots,x_n\in\Omega$ and all $a_1,\dots,a_n\in\mathbb{R}^{d_z}$, there exist $\mu\in\mathbb{R}$ and $\Sigma\in\mathbb{R}_+$ such that:
@@ -112,7 +112,7 @@ For two tuples of inputs $\mathbf{x}\triangleq(x_1,\dots,x_n)\in\Omega^n$ and $\
 	\end{bmatrix}
 \end{align}
 
-Using these notations, \Cref{th:GP_marginals} reads compactly:
+Using these notation, \Cref{th:GP_marginals} reads compactly:
 \begin{equation}
 	\forall n\in\mathbb{N}^*,\:\forall\mathbf{x}\in\Omega^n\text{ pairwise distinct},\:h(\mathbf{x})\sim\mathcal{N}\left(m(\mathbf{x}),\kappa(\mathbf{x},\mathbf{x})\right)
 \end{equation}
@@ -153,14 +153,14 @@ In order for the GP to be non-degenerate, the matrix $\kappa(\mathbf{x},\mathbf{
 \end{proof}
 
 \begin{remark}[Necessity of distinct points]
-	While pairwise distinctness does not intervene in the computation of the strict version above, it is necessary for the SPD condition to be satisfiable. Indeed, at coinciding inputs $x_1=x_2$, the choice $a_1=-a_2=1$, with the other coefficients set to zero, cancels the quadratic form for non-zero coefficients, so no kernel could be SPD.
+	While pairwise distinctness does not intervene in the computation of the strict version above, it is necessary for the SPD condition to be satisfiable. Indeed, at coinciding inputs $x_1=x_2$, the choice $a_1=-a_2\neq0$, with the other coefficients set to zero, cancels the quadratic form for non-zero coefficients, so no kernel could be SPD.
 \end{remark}
 
 \begin{remark}[Non-diagonal blocks]
 	While \Cref{th:kernel_gram_equivalence} equates the SPDness of $\kappa$ with that of $\kappa(\mathbf{x},\mathbf{x})$ at distinct points, it does not make the off-diagonal blocks $\kappa(x,x')$ SPD themselves. For $x\neq x'$, these may be non-positive or even non-symmetric.
 \end{remark}
 
-Throughout the rest of this document, we assume that the covariance kernel $\kappa$ is SPD and that the points of every collection $\mathbf{x}=(x_1,\dots,x_n)\in\Omega^n$ are pairwise distinct. This ensures that we only work with non-degenerate GPs.
+Throughout the rest of this document, and unless stated otherwise, we assume that the covariance kernel $\kappa$ is SPD and that the points of every collection $\mathbf{x}=(x_1,\dots,x_n)\in\Omega^n$ are pairwise distinct. This ensures that we only work with non-degenerate GPs.
 
 \subsection{Common Kernels}\label{sec:covariance_kernels}
 
@@ -174,7 +174,7 @@ Since $h$ typically represents a physical field, observations tend to become les
 		\forall x,x'\in\mathbb{R}^{d_x},\:\kappa(x,x')=\kappa_{\mathrm{rad}}(\|x-x'\|)
 	\end{equation}
 
-	To simplify notations, we identify $\kappa_{\mathrm{rad}}$ with $\kappa$ in the remainder of this document, such that we write:
+	To simplify the notation, we identify $\kappa_{\mathrm{rad}}$ with $\kappa$ in the remainder of this document, such that we write:
 	\begin{equation}
 		\forall x,x'\in\mathbb{R}^{d_x},\:\kappa(x,x')=\kappa(\|x-x'\|)
 	\end{equation}
@@ -188,7 +188,7 @@ Since $h$ typically represents a physical field, observations tend to become les
 		r&\mapsto\sigma_h^2\:\frac{2^{1-\nu}}{\Gamma(\nu)}\left(\frac{\sqrt{2\nu}\:r}{\ell}\right)^\nu K_\nu\left(\frac{\sqrt{2\nu}\:r}{\ell}\right)
 		\end{aligned}\right.
 	\end{equation}
-	where $\Gamma$ is the Gamma function, and $K_\nu$ is the modified Bessel function of the second kind \cite{bib:Abramowitz}.
+	where $\Gamma$ is the Gamma function, and $K_\nu$ is the modified Bessel function of the second kind \cite{bib:Abramowitz}. It is extended by continuity at $r=0$ with $\kappa_\nu(0)\triangleq\sigma_h^2$.
 
 	This family extends to $\nu=+\infty$ by taking the pointwise limit, yielding the squared exponential (SE) kernel:
 	\begin{equation}
@@ -200,7 +200,7 @@ Since $h$ typically represents a physical field, observations tend to become les
 \end{definition}
 
 \begin{proposition}[Properties of Matérn kernels]\label{th:Matérn_properties}
-	Let $\nu\in\mathbb{R}_+^*\cup\{+\infty\}$ and $\ell,\sigma_h\in\mathbb{R}_+^*$. The Matérn kernel associated with $\nu$, $\ell$ and $\sigma_h^2$ is a continuous SPD radial kernel.
+	Let $\nu\in\mathbb{R}_+^*\cup\{+\infty\}$ and $\ell,\sigma_h\in\mathbb{R}_+^*$. The Matérn kernel associated with $\nu$, $\ell$ and $\sigma_h^2$ is a continuous SPD radial kernel for the Euclidean norm $\|\cdot\|_2$.
 \end{proposition}
 
 \begin{proof}
@@ -244,7 +244,7 @@ In particular, the following kernels correspond to usual choices of $\nu$, the S
 	\begin{equation}
 		x\in\mathbb{R}^{d_x}\mapsto\|x\|_{\mathbf{M}}\triangleq\sqrt{x^\top \mathbf{M}^{-1}x}
 	\end{equation}
-	may produce anisotropic radial kernels in situations where $\mathbf{M}$ is not proportional to the identity matrix.
+	yields kernels that are radial for the metric induced by $\mathbf{M}$, while appearing anisotropic in the Euclidean coordinates whenever $\mathbf{M}$ is not proportional to the identity matrix.
 \end{remark}
 
 The main limitation of Matérn kernels is that they are scalar, while our observation model takes values in $\mathbb{R}^{d_z}$. To alleviate this issue, \Cref{th:separable_kernel} presents a method to create a vector-valued kernel from a scalar one.
@@ -287,7 +287,7 @@ The main limitation of Matérn kernels is that they are scalar, while our observ
 		r&\mapsto\sum_{i=1}^n\boldsymbol{\Sigma}_i\:\kappa^{(i)}(r)
 		\end{aligned}\right.
 	\end{equation}
-	Each of its terms is separable in the sense of \Cref{th:separable_kernel}, hence SPD, and a sum of SPD kernels with positive coefficients is itself SPD. When the correlation lengths have different orders of magnitude, such kernels can be used to capture local fluctuations and global trends simultaneously.
+	Each of its terms is separable in the sense of \Cref{th:separable_kernel}, hence SPD, and a sum of SPD kernels with positive coefficients is itself SPD. When the correlation lengths have different orders of magnitude, such kernels can simultaneously capture local fluctuations and global trends of the field.
 \end{remark}
 
 Every kernel considered in this section is specified by a set of hyperparameters, such as $\nu$, $\ell$ and $\sigma_h$ for a Matérn kernel, $\boldsymbol{\Sigma}$ for its separable extension, or one such set per scale for a multi-scale model. Their estimation is a standard step in GP modelling, and is independent of Bayesian estimation considerations. However, the specific characteristics of our applications can be used to improve the estimation of such hyperparameters. These aspects are thus discussed in \cref{sec:HP_estimation}, and the hyperparameters are assumed to be fully specified for the rest of this chapter.

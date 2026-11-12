@@ -47,13 +47,25 @@
 % LES TROIS TABLEAUX DE CAMPAGNE ETAIENT ECRITS EN DUR DANS LE MANUSCRIT. Ils sont
 % desormais generes, comme cout_maille.tex l'etait deja : douze lots passent a 1000
 % essais, et une transcription a la main par lot est une erreur qui attend son tour.
+%
+% LES VERSIONS DIAPO DE LA SOUTENANCE (2026-11-08) sortent du meme code quand
+% figures_soutenance.m appelle ce script avec la structure diapo : memes donnees, memes
+% calculs et meme palette, a la taille ou Latex/Soutenance/main.tex insere chaque figure et
+% sans mise a l'echelle, donc avec un texte a diapo.fs points. Le manuscrit n'est alors pas
+% touche : ses figures partent dans diapo.controle, ou figures_soutenance les compare a
+% celles d'Images/, et ses tableaux dans diapo.tab.
 
-clear; close all; clc;
+clearvars -except diapo; close all; clc;
 here = fileparts(mfilename('fullpath'));
 
 %% Ce que les figures declarent de leur insertion
 img_dir   = fullfile(fileparts(here), 'Images');
 tab_dir   = fullfile(fileparts(here), 'Latex', 'Manuscrit', 'include');
+en_diapo  = exist('diapo', 'var') && isstruct(diapo);
+if en_diapo
+    img_dir = diapo.controle;
+    tab_dir = diapo.tab;
+end
 textwidth = 425;                 % pt, mesure sur le document
 tex_frac  = 1.0;                 % \includegraphics[width=\textwidth]
 pdf_w     = textwidth * tex_frac;
@@ -222,60 +234,18 @@ srv_km  = survey.X / 1e3;
 % figure montre exactement le vol qui a produit les resultats.
 vol = S.scen.x_true(1:2, :) / 1e3;                    % km
 
-fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 carte_w carte_h]);
-imagesc(x_km, y_km, h_map); hold on;
-set(gca, 'YDir', 'normal');
-axis image;
-% Traits fins mais pas sous-pixel : a 0.25 pt les croix se fondent dans le fond a
-% l'impression et virent au sombre au lieu de rester rouges.
-plot(srv_km(1, :), srv_km(2, :), 'x', 'Color', [0.85 0 0], ...
-     'MarkerSize', 2.5, 'LineWidth', 0.6);
-plot(vol(1, :), vol(2, :), 'k-', 'LineWidth', linewidth);
-plot(vol(1, 1), vol(2, 1), 'ko', 'MarkerSize', 5, 'MarkerFaceColor', 'k');
-hold off;
-
-colormap(gca, parula);
-c = colorbar;
-c.Label.String        = '$h(x)$ (nT)';
-c.Label.Interpreter   = 'latex';
-c.Label.FontSize      = carte_font;
-c.TickLabelInterpreter = 'latex';
-c.FontSize            = carte_font;
-
-% Les axes portent les composantes de position de l'etat du scenario, pas des indices.
-xlabel('$p^{(x)}$ (km)', 'Interpreter', 'latex', 'FontSize', carte_font);
-ylabel('$p^{(y)}$ (km)', 'Interpreter', 'latex', 'FontSize', carte_font);
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', carte_font, 'Layer', 'top');
-box on;
-
-% La barre de couleur et son label vivent HORS des axes, et MATLAB dimensionne les axes
-% avant de savoir ce que le label mesure : sur une page figee, il sort donc du PDF. Les
-% marges de gauche et du bas sont MESUREES par TightInset et non devinees — une valeur en
-% dur finit par rogner des que la police ou les chiffres d'axe changent. Seule la bande de
-% droite reste imposee, TightInset ignorant la barre de couleur.
-ax = gca;
-drawnow;
-ax.Units = 'normalized';
-c.Units  = 'normalized';
-ti     = ax.TightInset;
-marg   = 0.015;
-cb_w   = 0.035;                  % la barre elle-meme
-% Ce qui vit A DROITE de la barre : les graduations, larges de cinq caracteres pour
-% « -1000 », puis le label tourne, plus une marge. On l'exprime en POINTS et on divise
-% par la largeur de page : en fraction, cette bande retrecit quand la page s'elargit ou
-% que la police diminue, et une valeur en dur laisse une bande blanche des que l'un des
-% deux change — ce qui est arrive au passage de 348 pt et 14 pt a 425 pt et 12 pt.
-cb_pad = (3.4 * carte_font + 10) / carte_w;
-gap    = 0.02;                   % entre les axes et la barre
-left   = ti(1) + marg;
-bot    = ti(2) + marg;
-top    = ti(4) + marg;
-cb_x   = 1 - cb_pad - cb_w;      % la barre est placee depuis le bord droit, pas depuis
-                                 % les axes : c'est son label qui touche le bord de page
-ax.Position = [left, bot, cb_x - gap - left, 1 - bot - top];
-c.Position  = [cb_x, bot, cb_w, 1 - bot - top];
-
+fig = figure_carte(x_km, y_km, h_map, srv_km, vol, carte_w, carte_h, carte_font, linewidth);
 exporter(fig, 'Carte anomalie magnetique', carte_w, carte_h, img_dir);
+if en_diapo
+    % Colonne de gauche de la diapo du scenario, inseree a 0.47\textwidth. La carte, carree,
+    % y est limitee par la largeur : 100 pt de haut lui suffisent, et la barre de couleur,
+    % haute comme les axes, ne la depasse plus. A cette taille la barre est si pres de la
+    % carte que le 200 de l'abscisse passait dessous : les graduations s'arretent a 150.
+    w_d = 0.47 * diapo.textwidth;  h_d = 100;
+    fig = figure_carte(x_km, y_km, h_map, srv_km, vol, w_d, h_d, diapo.fs, linewidth);
+    set(findobj(fig, 'Type', 'axes'), 'XTick', 50:50:150);
+    exporter(fig, 'Carte anomalie magnetique', w_d, h_d, diapo.img);
+end
 
 %% Les bornes communes aux grilles
 %
@@ -378,30 +348,24 @@ end
 % La figure ne porte QUE les deux courbes. L'equivalent et le nombre de tirages sont du
 % texte : ils vont dans la caption et dans l'analyse, comme pour les autres figures du
 % chapitre, dont aucune n'a de titre.
-fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 348 280]);
-hold on; box on; grid on;
-% La palette commune et non l'ordre par defaut de MATLAB, qui mettait le bilineaire en bleu
-% et le krigeage en orange, a rebours de toutes les autres figures.
-[cb, lb, eb] = style_modele('bilin');
-[ck, lk, ek] = style_modele('statique');
-plot(pas, ARMSE(:, 1), lb, 'Color', cb, 'Marker', 'o', 'LineWidth', linewidth);
-plot(pas, ARMSE(:, 2), lk, 'Color', ck, 'Marker', 'o', 'LineWidth', linewidth);
-hold off;
 fs = 12 * 348 / (0.6 * textwidth);   % inseree a 0.6\textwidth, donc 16,4 pt pour 12 au rendu :
                                      % reglee pour 0.7, la police tombait a 10,3 pt
-xlabel('Grid resolution (km)', 'Interpreter', 'latex', 'FontSize', fs);
-ylabel('$\mathrm{ARMSE}_{\hat{z}}$ (nT)', 'Interpreter', 'latex', 'FontSize', fs);
-legend({eb, ek}, 'Interpreter', 'latex', 'FontSize', fs, 'Location', 'southeast');
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fs);
-xlim([min(pas)-0.3 max(pas)+0.3]);
-
-% Les marges par defaut de MATLAB laissent 13 % a gauche et 9,5 % a droite : le trace
-% n'est pas centre dans la page, et il reste une bande blanche a droite qu'aucune
-% etiquette ne remplit. On les mesure et on remplit la page.
-ax = gca; drawnow; ti = ax.TightInset; marg = 0.02;
-ax.Position = [ti(1) + marg, ti(2) + marg, ...
-               1 - ti(1) - ti(3) - 2 * marg, 1 - ti(2) - ti(4) - 2 * marg];
+fig = figure_armse(pas, ARMSE, 348, 280, fs, linewidth);
 exporter(fig, 'ARMSE de reconstruction', 348, 280, img_dir);
+if en_diapo
+    % Colonne de gauche, a 0.5\textwidth, de la diapo de reserve sur la reconstruction.
+    w_d = 0.5 * diapo.textwidth;  h_d = 130;
+    fig = figure_armse(pas, ARMSE, w_d, h_d, diapo.fs, linewidth);
+    % La legende passe au-dessus des axes : relativement plus large qu'au manuscrit, elle
+    % couvrait les courbes en bas a droite (maille de 3 km) comme en haut a gauche (7 km).
+    % Les axes sont ramenes sous elle, avec les marges de figure_armse.
+    lg = findobj(fig, 'Type', 'legend');  ax = findobj(fig, 'Type', 'axes');
+    lg.Location = 'northoutside';  lg.Units = 'normalized';  drawnow;
+    ti = ax.TightInset;  marg = 0.02;
+    ax.Position = [ti(1) + marg, ti(2) + marg, 1 - ti(1) - ti(3) - 2 * marg, ...
+                   1 - ti(2) - ti(4) - 3 * marg - lg.Position(4)];
+    exporter(fig, 'ARMSE de reconstruction', w_d, h_d, diapo.img);
+end
 
 %% Les trois formes de fenetre
 %
@@ -469,29 +433,15 @@ S_nnak = union(S_nnak);
 fprintf(['Formes des fenetres : AK %.1f km de rayon, MCAK %.0f %%%% de l''aire de l''AK, ' ...
          'NNAK %.0f %%%%\n'], r_ak, 100 * area(S_mcak) / area(S_ak), 100 * area(S_nnak) / area(S_ak));
 
-fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 348 280]);
-hold on; box on;
-[c_ak,   ~, e_ak]   = style_modele('ak');
-[c_nnak, ~, e_nnak] = style_modele('reunion');
-[c_mcak, ~, e_mcak] = style_modele('mcak');
-h_ak   = plot(S_ak,   'FaceColor', c_ak,   'FaceAlpha', 0.20, 'EdgeColor', c_ak,   'LineWidth', linewidth);
-h_mcak = plot(S_mcak, 'FaceColor', c_mcak, 'FaceAlpha', 0.30, 'EdgeColor', c_mcak, 'LineWidth', linewidth);
-h_nnak = plot(S_nnak, 'FaceColor', c_nnak, 'FaceAlpha', 0.45, 'EdgeColor', c_nnak, 'LineWidth', 0.5);
-plot(G(:, 1), G(:, 2), '.', 'Color', [0.58 0.58 0.58], 'MarkerSize', 3);
-plot(P(:, 1), P(:, 2), '.', 'Color', [0.15 0.15 0.15], 'MarkerSize', 3);
-hold off; axis equal;
-[bx, by] = boundingbox(S_ak);
-xlim(bx + [-pas_km pas_km]); ylim(by + [-pas_km pas_km]);
 fs = 12 * 348 / (0.7 * textwidth);   % inseree a 0.7\textwidth
-xlabel('$p^{(x)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
-ylabel('$p^{(y)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
-legend([h_ak, h_nnak, h_mcak], {e_ak, e_nnak, e_mcak}, 'Interpreter', 'latex', ...
-       'FontSize', fs, 'Location', 'northwest');
-set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fs);
-ax = gca; drawnow; ti = ax.TightInset; marg = 0.02;
-ax.Position = [ti(1) + marg, ti(2) + marg, ...
-               1 - ti(1) - ti(3) - 2 * marg, 1 - ti(2) - ti(4) - 2 * marg];
+fig = figure_formes(S_ak, S_mcak, S_nnak, G, P, pas_km, 348, 280, fs, linewidth);
 exporter(fig, 'Formes des fenetres', 348, 280, img_dir);
+if en_diapo
+    % Colonne de gauche de la diapo des formes de fenetre, inseree a 0.4\textwidth.
+    w_d = 0.4 * diapo.textwidth;  h_d = 115;
+    fig = figure_formes(S_ak, S_mcak, S_nnak, G, P, pas_km, w_d, h_d, diapo.fs, linewidth);
+    exporter(fig, 'Formes des fenetres', w_d, h_d, diapo.img);
+end
 
 %% Le cout arithmetique par modele
 %
@@ -599,8 +549,12 @@ for j = 1:2
     fprintf('%.1f ', r); fprintf(')\n');
 end
 
-duo = @(titres, Y, ylab, logy) deal_duo(pas, Y, titres, ylab, logy, etiq, ...
-                                        textwidth, fontsize, linewidth);
+% L'ORDRE DE LA LEGENDE est celui des grilles et de la convergence : carte connue, krigeage
+% statique, bilineaire (2026-11-11). FIN garde l'ordre de modeles, que les rapports
+% ci-dessus indexent.
+ordre_leg = [1 3 2];
+duo = @(titres, Y, ylab, logy) deal_duo(pas, Y(:, ordre_leg, :), titres, ylab, logy, ...
+                                        etiq(ordre_leg), textwidth, fontsize, linewidth);
 
 % La convergence contre la maille est desormais produite par le bloc des comparaisons,
 % pour que les cinq figures de convergence du chapitre sortent du meme code.
@@ -615,6 +569,15 @@ duo = @(titres, Y, ylab, logy) deal_duo(pas, Y, titres, ylab, logy, etiq, ...
 fig = duo({'Position error (m)', 'Normalised error squared'}, FIN, ...
           {'Median over the last ten steps,', 'then over the $N_\mathrm{MC}$ runs'}, true);
 exporter(fig, 'Erreur finale par maille', textwidth, 230, img_dir);
+if en_diapo
+    % Au-dessus du bloc de la diapo, insere a 0.85\textwidth.
+    w_d = 0.85 * diapo.textwidth;  h_d = 120;
+    fig = deal_duo(pas, FIN(:, ordre_leg, :), {'Position error (m)', 'Normalised error squared'}, ...
+                   {'Median over the last ten steps,', 'then over the $N_\mathrm{MC}$ runs'}, ...
+                   true, etiq(ordre_leg), w_d, diapo.fs, linewidth);
+    ajuster_diapo(fig, w_d, h_d);
+    exporter(fig, 'Erreur finale par maille', w_d, h_d, diapo.img);
+end
 
 
 %% Les comparaisons par paires, sur les six mailles
@@ -868,6 +831,26 @@ for s = 1:size(etapes, 1)
            pdf_w, pdf_h, fontsize, linewidth, img_dir, ['RMSE ' etapes{s, 2}]);
     grille(kk, kd, CNE(:, :, sel), pas, cles, '$\mathrm{NEES}_{\hat{x}}(k)$', true, [bas haut], NaN, ...
            pdf_w, pdf_h, fontsize, linewidth, img_dir, ['NEES ' etapes{s, 2}]);
+    % LES VERSIONS DIAPO DES GRILLES. Les six cases tiennent sur une diapo de reserve pleine
+    % largeur pour le bilineaire et pour l'eclairci. L'AK contre le statique passe en
+    % diapo principale, ou six cases seraient illisibles : la RMSE et la NEES cote a cote,
+    % a la maille de 7,5 km que cite la diapo.
+    if en_diapo && any(s == [1 2])
+        w_d = diapo.textwidth;  h_d = 190;
+        grille(kk, kk, CRB(:, :, sel), pas, cles, '$\mathrm{RMSE}_{\hat{x}}(k)$ (m)', false, [], k_vir, ...
+               w_d, h_d, diapo.fs, linewidth, diapo.img, ['RMSE ' etapes{s, 2}], true);
+        if s == 1
+            grille(kk, kd, CNE(:, :, sel), pas, cles, '$\mathrm{NEES}_{\hat{x}}(k)$', true, [bas haut], NaN, ...
+                   w_d, h_d, diapo.fs, linewidth, diapo.img, ['NEES ' etapes{s, 2}]);
+        end
+    end
+    if en_diapo && s == 3
+        ip = find(abs(pas - 7.5) < 1e-9, 1);
+        w_d = diapo.textwidth;  h_d = 115;
+        fig = paire_diapo(kk, kd, CRB(:, ip, sel), CNE(:, ip, sel), cles, [bas haut], k_vir, ...
+                          w_d, h_d, diapo.fs, linewidth);
+        exporter(fig, 'RMSE et NEES adaptatif', w_d, h_d, diapo.img);
+    end
     % LES POINTS RETENUS AU COURS DU VOL, une case par maille, pour les seules series ou
     % plusieurs sous-echantillonnages se comparent : la carte connue et le bilineaire n'en
     % retiennent aucun, et le statique les prend tous. C'est la version par methode de la
@@ -891,6 +874,14 @@ for s = 1:size(etapes, 1)
     if ~isempty(sel_c) && any(isfinite(CNM(:, :, sel_c)), 'all')
         grille_deux_echelles(kk, CNM(:, :, sel_c), pas, cand(sel_c, 1)', '$N_{\mathrm{cl},k}$', ...
                k_vir, 1, pdf_w, pdf_h, fontsize, linewidth, img_dir, ['Clusters ' etapes{s, 2}]);
+        % En diapo de reserve, la seule maille de 2,5 km, celle que cite la diapo.
+        if en_diapo
+            ip = find(abs(pas - 2.5) < 1e-9, 1);
+            w_d = 0.5 * diapo.textwidth;  h_d = 150;
+            grille_deux_echelles(kk, CNM(:, ip, sel_c), pas(ip), cand(sel_c, 1)', '$N_{\mathrm{cl},k}$', ...
+                   k_vir, 1, w_d, h_d, diapo.fs, linewidth, diapo.img, ['Clusters ' etapes{s, 2}], ...
+                   struct('marge', 0.03, 'xl_h', 0.06));
+        end
         for ip = 1:numel(pas)
             for im = sel_c
                 y  = CNM(:, ip, im);
@@ -933,6 +924,16 @@ for s = 1:size(etapes, 1)
     ylabel(t2, 'Converged runs (\%)', 'Interpreter', 'latex', 'FontSize', fontsize);
     xlabel(t2, 'Grid resolution (km)', 'Interpreter', 'latex', 'FontSize', fontsize);
     exporter(f2, etapes{s, 3}, textwidth, 230, img_dir);
+    % La version diapo de la premiere, au-dessus des deux blocs de la diapo. deal_duo trace
+    % exactement ces deux panneaux.
+    if en_diapo && s == 1
+        % 0.85\textwidth comme l'erreur finale : a 0.8, la legende depassait de la page.
+        w_d = 0.85 * diapo.textwidth;  h_d = 110;
+        fig = deal_duo(pas, CCV(:, sel, :), titres, 'Converged runs (\%)', false, cles, ...
+                       w_d, diapo.fs, linewidth);
+        ajuster_diapo(fig, w_d, h_d);
+        exporter(fig, etapes{s, 3}, w_d, h_d, diapo.img);
+    end
 
     % Le tableau de cout de la premiere etape existe deja sous cout_maille.tex, avec ses
     % colonnes de setup et de requetes : on ne le refait pas.
@@ -1029,80 +1030,16 @@ if isnan(k_vir)
           'Pas de virage : la figure des echantillons coupe ses deux axes au premier.');
 end
 ech_h  = 250;
-teinte = interp1([0 0.5 1], [0.45 0.25 0.00; 0.95 0.60 0.00; 1.00 0.82 0.45], ...
-                 linspace(0, 1, numel(pas)));
-[~, ~, e_ak] = style_modele('ak');
-fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 textwidth ech_h]);
-axL = axes(fig);  axR = axes(fig);
-kL  = 1:k_vir;    kR  = k_vir:n_it;
-for ax = [axL axR], hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on'); end
-fen_leg  = {};
-fen_max  = 0;
-zoom_max = 0;
-for ip = 1:numel(pas)
-    e = find(contains(nomP, 'adaptatif') & abs(balP - pas(ip)) < 1e-9, 1);
-    if isempty(e), continue, end
-    n_r = pool(e).cout(1, :);
-    plot(axL, kk(kL), n_r(kL), '-', 'Color', teinte(ip, :), 'LineWidth', linewidth);
-    plot(axR, kk(kR), n_r(kR), '-', 'Color', teinte(ip, :), 'LineWidth', linewidth);
-    fen_leg{end + 1} = sprintf('$%.1f$ km', pas(ip));   %#ok<SAGROW>
-    fen_max  = max(fen_max,  max(n_r(kL)));
-    zoom_max = max(zoom_max, max(n_r(kR)));
-end
-for ax = [axL axR]
-    yline(ax, SE.par.krig.n_min, ':', 'LineWidth', linewidth, 'HandleVisibility', 'off');
-    hold(ax, 'off');
-    set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
-    xlabel(ax, '$k$', 'Interpreter', 'latex', 'FontSize', fontsize);
-end
-
-% Avant le virage : echelle log, une graduation par decade fixee a la main, et de la marge
-% au-dessus du pic de la maille la plus fine, sans laquelle la courbe touche le cadre. Le
-% plancher n_min est gradue en plus des decades, comme sur l'axe de droite, et les etiquettes
-% sont ecrites a la main pour que les decades gardent leur forme 10^n.
-set(axL, 'YScale', 'log');
-ylim(axL, [10^floor(log10(SE.par.krig.n_min)), 2 * fen_max]);
-ech_dec = 10.^(ceil(log10(axL.YLim(1))):floor(log10(axL.YLim(2))));
-[ech_yt, ech_o] = sort([ech_dec, SE.par.krig.n_min]);
-ech_lab = [arrayfun(@(d) sprintf('$10^{%d}$', round(log10(d))), ech_dec, 'UniformOutput', false), ...
-           {sprintf('$%g$', SE.par.krig.n_min)}];
-set(axL, 'YTick', ech_yt, 'YTickLabel', ech_lab(ech_o));
-set(axL, 'XTick', 10:20:k_vir);          % 10 et 30, sans graduation a 20
-xlim(axL, [1 k_vir]);
-ylabel(axL, '$\tilde{N}_k^r$', 'Interpreter', 'latex', 'FontSize', fontsize);
-
-% Apres : echelle lineaire, partant juste sous le plancher et non de zero. Toutes les
-% courbes y tiennent entre n_min et six points au-dessus, et un axe parti de zero les
-% ecrasait dans son quart superieur. La marge du bas decolle du cadre celles qui sont
-% posees sur le plancher.
-ech_marge = max(0.1 * (zoom_max - SE.par.krig.n_min), 1);
-ylim(axR, [SE.par.krig.n_min - ech_marge, zoom_max + ech_marge]);
-xlim(axR, [k_vir n_it]);
-axR.YAxisLocation = 'right';
-
-% La legende dans l'axe de droite, le seul assez large, en haut a droite : les courbes y
-% sont posees sur le plancher.
-lg = legend(axR, fen_leg, 'Interpreter', 'latex', 'FontSize', fontsize, ...
-            'Location', 'northeast', 'NumColumns', 3);
-lg.ItemTokenSize     = [18 18];          % propriete cachee, que legend() refuse en argument
-% lg.Title.String      = e_ak;
-% lg.Title.Interpreter = 'latex';
-
-% LA MISE EN PAGE A LA MAIN, marges mesurees sur les etiquettes : tiledlayout ne sait pas
-% donner a deux cases des largeurs dans un rapport quelconque. Deux passes, les etiquettes
-% bougeant un peu une fois les axes redimensionnes.
-ech_blanc = 0.025;  ech_marg = 0.015;
-for passe = 1:2
-    drawnow;
-    tL = axL.TightInset;  tR = axR.TightInset;
-    m_bas = max(tL(2), tR(2)) + ech_marg;   m_haut = max(tL(4), tR(4)) + ech_marg;
-    m_gau = tL(1) + ech_marg;               m_dro  = tR(3) + ech_marg;
-    W_ax  = 1 - m_gau - m_dro - ech_blanc;  H_ax   = 1 - m_bas - m_haut;
-    wL_ax = W_ax * (k_vir - 1) / (n_it - 1);
-    axL.Position = [m_gau, m_bas, wL_ax, H_ax];
-    axR.Position = [m_gau + wL_ax + ech_blanc, m_bas, W_ax - wL_ax, H_ax];
-end
+fig = figure_echantillons(kk, k_vir, pas, pool, nomP, balP, SE.par.krig.n_min, ...
+                          textwidth, ech_h, fontsize, linewidth);
 exporter(fig, 'Echantillons retenus par maille', textwidth, ech_h, img_dir);
+if en_diapo
+    % Au-dessus du bloc de la diapo de reserve, a 0.9\textwidth.
+    w_d = 0.9 * diapo.textwidth;  h_d = 120;
+    fig = figure_echantillons(kk, k_vir, pas, pool, nomP, balP, SE.par.krig.n_min, ...
+                              w_d, h_d, diapo.fs, linewidth);
+    exporter(fig, 'Echantillons retenus par maille', w_d, h_d, diapo.img);
+end
 
 fprintf('%d comparaisons ecrites : %s\n', size(etapes, 1), strjoin(etapes(:, 2)', ', '));
 for im = 1:n_mod
@@ -1313,6 +1250,253 @@ end
 fprintf('figures_campagnes : seize figures sous Images/ et huit tableaux sous include/\n');
 %% ------------------------------------------------------------ fonctions locales
 
+function fig = figure_carte(x_km, y_km, h_map, srv_km, vol, carte_w, carte_h, carte_font, linewidth)
+% La carte d'anomalie, le releve et le vol, sur une page figee de carte_w x carte_h points.
+% Une fonction depuis le 2026-11-08, pour que la version diapo sorte du meme code.
+    fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 carte_w carte_h]);
+    imagesc(x_km, y_km, h_map); hold on;
+    set(gca, 'YDir', 'normal');
+    axis image;
+    % Traits fins mais pas sous-pixel : a 0.25 pt les croix se fondent dans le fond a
+    % l'impression et virent au sombre au lieu de rester rouges.
+    plot(srv_km(1, :), srv_km(2, :), 'x', 'Color', [0.85 0 0], ...
+         'MarkerSize', 2.5, 'LineWidth', 0.6);
+    plot(vol(1, :), vol(2, :), 'k-', 'LineWidth', linewidth);
+    plot(vol(1, 1), vol(2, 1), 'ko', 'MarkerSize', 5, 'MarkerFaceColor', 'k');
+    hold off;
+
+    colormap(gca, parula);
+    c = colorbar;
+    c.Label.String        = '$h(x)$ (nT)';
+    c.Label.Interpreter   = 'latex';
+    c.Label.FontSize      = carte_font;
+    c.TickLabelInterpreter = 'latex';
+    c.FontSize            = carte_font;
+
+    % Les axes portent les composantes de position de l'etat du scenario, pas des indices.
+    xlabel('$p^{(x)}$ (km)', 'Interpreter', 'latex', 'FontSize', carte_font);
+    ylabel('$p^{(y)}$ (km)', 'Interpreter', 'latex', 'FontSize', carte_font);
+    set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', carte_font, 'Layer', 'top');
+    box on;
+
+    % La barre de couleur et son label vivent HORS des axes, et MATLAB dimensionne les axes
+    % avant de savoir ce que le label mesure : sur une page figee, il sort donc du PDF. Les
+    % marges de gauche et du bas sont MESUREES par TightInset et non devinees — une valeur en
+    % dur finit par rogner des que la police ou les chiffres d'axe changent. Seule la bande de
+    % droite reste imposee, TightInset ignorant la barre de couleur.
+    ax = gca;
+    drawnow;
+    ax.Units = 'normalized';
+    c.Units  = 'normalized';
+    ti     = ax.TightInset;
+    marg   = 0.015;
+    cb_w   = 0.035;                  % la barre elle-meme
+    % Ce qui vit A DROITE de la barre : les graduations, larges de cinq caracteres pour
+    % « -1000 », puis le label tourne, plus une marge. On l'exprime en POINTS et on divise
+    % par la largeur de page : en fraction, cette bande retrecit quand la page s'elargit ou
+    % que la police diminue, et une valeur en dur laisse une bande blanche des que l'un des
+    % deux change — ce qui est arrive au passage de 348 pt et 14 pt a 425 pt et 12 pt.
+    cb_pad = (3.4 * carte_font + 10) / carte_w;
+    gap    = 0.02;                   % entre les axes et la barre
+    left   = ti(1) + marg;
+    bot    = ti(2) + marg;
+    top    = ti(4) + marg;
+    cb_x   = 1 - cb_pad - cb_w;      % la barre est placee depuis le bord droit, pas depuis
+                                     % les axes : c'est son label qui touche le bord de page
+    ax.Position = [left, bot, cb_x - gap - left, 1 - bot - top];
+    c.Position  = [cb_x, bot, cb_w, 1 - bot - top];
+end
+
+function fig = figure_armse(pas, ARMSE, pdf_w, pdf_h, fs, linewidth)
+% L'ARMSE de reconstruction contre la maille, bilineaire et krigeage, sur une page figee de
+% pdf_w x pdf_h points. Une fonction depuis le 2026-11-08, pour la version diapo.
+    fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 pdf_w pdf_h]);
+    hold on; box on; grid on;
+    % La palette commune et non l'ordre par defaut de MATLAB, qui mettait le bilineaire en bleu
+    % et le krigeage en orange, a rebours de toutes les autres figures.
+    [cb, lb, eb] = style_modele('bilin');
+    [ck, lk, ek] = style_modele('statique');
+    hb = plot(pas, ARMSE(:, 1), lb, 'Color', cb, 'Marker', 'o', 'LineWidth', linewidth);
+    hk = plot(pas, ARMSE(:, 2), lk, 'Color', ck, 'Marker', 'o', 'LineWidth', linewidth);
+    hold off;
+    xlabel('Grid resolution (km)', 'Interpreter', 'latex', 'FontSize', fs);
+    ylabel('$\mathrm{ARMSE}_{\hat{z}}$ (nT)', 'Interpreter', 'latex', 'FontSize', fs);
+    % LE KRIGEAGE EN TETE DE LEGENDE, l'ordre des autres figures du chapitre (2026-11-11). Le
+    % trace garde le sien : les cercles des deux courbes se recouvrent, et le krigeage, trace
+    % en dernier, reste au-dessus du bilineaire en tirets.
+    legend([hk hb], {ek, eb}, 'Interpreter', 'latex', 'FontSize', fs, 'Location', 'southeast');
+    set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fs);
+    xlim([min(pas)-0.3 max(pas)+0.3]);
+
+    % Les marges par defaut de MATLAB laissent 13 % a gauche et 9,5 % a droite : le trace
+    % n'est pas centre dans la page, et il reste une bande blanche a droite qu'aucune
+    % etiquette ne remplit. On les mesure et on remplit la page.
+    ax = gca; drawnow; ti = ax.TightInset; marg = 0.02;
+    ax.Position = [ti(1) + marg, ti(2) + marg, ...
+                   1 - ti(1) - ti(3) - 2 * marg, 1 - ti(2) - ti(4) - 2 * marg];
+end
+
+function fig = figure_formes(S_ak, S_mcak, S_nnak, G, P, pas_km, pdf_w, pdf_h, fs, linewidth)
+% Les selections de l'AK, de la NNAK et du MCAK autour du nuage P, sur le releve G, sur une
+% page figee de pdf_w x pdf_h points. Une fonction depuis le 2026-11-08, pour la version
+% diapo.
+    fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 pdf_w pdf_h]);
+    hold on; box on;
+    [c_ak,   ~, e_ak]   = style_modele('ak');
+    [c_nnak, ~, e_nnak] = style_modele('reunion');
+    [c_mcak, ~, e_mcak] = style_modele('mcak');
+    h_ak   = plot(S_ak,   'FaceColor', c_ak,   'FaceAlpha', 0.20, 'EdgeColor', c_ak,   'LineWidth', linewidth);
+    h_mcak = plot(S_mcak, 'FaceColor', c_mcak, 'FaceAlpha', 0.30, 'EdgeColor', c_mcak, 'LineWidth', linewidth);
+    h_nnak = plot(S_nnak, 'FaceColor', c_nnak, 'FaceAlpha', 0.45, 'EdgeColor', c_nnak, 'LineWidth', 0.5);
+    plot(G(:, 1), G(:, 2), '.', 'Color', [0.58 0.58 0.58], 'MarkerSize', 3);
+    plot(P(:, 1), P(:, 2), '.', 'Color', [0.15 0.15 0.15], 'MarkerSize', 3);
+    hold off; axis equal;
+    [bx, by] = boundingbox(S_ak);
+    xlim(bx + [-pas_km pas_km]); ylim(by + [-pas_km pas_km]);
+    xlabel('$p^{(x)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
+    ylabel('$p^{(y)}$ (km)', 'Interpreter', 'latex', 'FontSize', fs);
+    legend([h_ak, h_nnak, h_mcak], {e_ak, e_nnak, e_mcak}, 'Interpreter', 'latex', ...
+           'FontSize', fs, 'Location', 'northwest');
+    set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fs);
+    ax = gca; drawnow; ti = ax.TightInset; marg = 0.02;
+    ax.Position = [ti(1) + marg, ti(2) + marg, ...
+                   1 - ti(1) - ti(3) - 2 * marg, 1 - ti(2) - ti(4) - 2 * marg];
+end
+
+function fig = figure_echantillons(kk, k_vir, pas, pool, nomP, balP, n_min, pdf_w, pdf_h, fontsize, linewidth)
+% La fenetre de l'AK au cours du vol, une courbe par maille, sur deux axes coupes au premier
+% virage, sur une page figee de pdf_w x pdf_h points. Une fonction depuis le 2026-11-08, pour
+% la version diapo ; n_min est le plancher de la campagne, SE.par.krig.n_min.
+    n_it   = numel(kk);
+    teinte = interp1([0 0.5 1], [0.45 0.25 0.00; 0.95 0.60 0.00; 1.00 0.82 0.45], ...
+                     linspace(0, 1, numel(pas)));
+    [~, ~, e_ak] = style_modele('ak'); %#ok<ASGLU>
+    fig = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 pdf_w pdf_h]);
+    axL = axes(fig);  axR = axes(fig);
+    kL  = 1:k_vir;    kR  = k_vir:n_it;
+    for ax = [axL axR], hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on'); end
+    fen_leg  = {};
+    fen_max  = 0;
+    zoom_max = 0;
+    for ip = 1:numel(pas)
+        e = find(contains(nomP, 'adaptatif') & abs(balP - pas(ip)) < 1e-9, 1);
+        if isempty(e), continue, end
+        n_r = pool(e).cout(1, :);
+        plot(axL, kk(kL), n_r(kL), '-', 'Color', teinte(ip, :), 'LineWidth', linewidth);
+        plot(axR, kk(kR), n_r(kR), '-', 'Color', teinte(ip, :), 'LineWidth', linewidth);
+        fen_leg{end + 1} = sprintf('$%.1f$ km', pas(ip));   %#ok<AGROW>
+        fen_max  = max(fen_max,  max(n_r(kL)));
+        zoom_max = max(zoom_max, max(n_r(kR)));
+    end
+    for ax = [axL axR]
+        yline(ax, n_min, ':', 'LineWidth', linewidth, 'HandleVisibility', 'off');
+        hold(ax, 'off');
+        set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
+        xlabel(ax, '$k$', 'Interpreter', 'latex', 'FontSize', fontsize);
+    end
+
+    % Avant le virage : echelle log, une graduation par decade fixee a la main, et de la marge
+    % au-dessus du pic de la maille la plus fine, sans laquelle la courbe touche le cadre. Le
+    % plancher n_min est gradue en plus des decades, comme sur l'axe de droite, et les
+    % etiquettes sont ecrites a la main pour que les decades gardent leur forme 10^n.
+    set(axL, 'YScale', 'log');
+    ylim(axL, [10^floor(log10(n_min)), 2 * fen_max]);
+    ech_dec = 10.^(ceil(log10(axL.YLim(1))):floor(log10(axL.YLim(2))));
+    [ech_yt, ech_o] = sort([ech_dec, n_min]);
+    ech_lab = [arrayfun(@(d) sprintf('$10^{%d}$', round(log10(d))), ech_dec, 'UniformOutput', false), ...
+               {sprintf('$%g$', n_min)}];
+    set(axL, 'YTick', ech_yt, 'YTickLabel', ech_lab(ech_o));
+    set(axL, 'XTick', 10:20:k_vir);          % 10 et 30, sans graduation a 20
+    xlim(axL, [1 k_vir]);
+    ylabel(axL, '$\tilde{N}_k^r$', 'Interpreter', 'latex', 'FontSize', fontsize);
+
+    % Apres : echelle lineaire, partant juste sous le plancher et non de zero. Toutes les
+    % courbes y tiennent entre n_min et six points au-dessus, et un axe parti de zero les
+    % ecrasait dans son quart superieur. La marge du bas decolle du cadre celles qui sont
+    % posees sur le plancher.
+    ech_marge = max(0.1 * (zoom_max - n_min), 1);
+    ylim(axR, [n_min - ech_marge, zoom_max + ech_marge]);
+    xlim(axR, [k_vir n_it]);
+    axR.YAxisLocation = 'right';
+
+    % La legende dans l'axe de droite, le seul assez large, en haut a droite : les courbes y
+    % sont posees sur le plancher.
+    lg = legend(axR, fen_leg, 'Interpreter', 'latex', 'FontSize', fontsize, ...
+                'Location', 'northeast', 'NumColumns', 3);
+    lg.ItemTokenSize     = [18 18];          % propriete cachee, que legend() refuse en argument
+    % lg.Title.String      = e_ak;
+    % lg.Title.Interpreter = 'latex';
+
+    % LA MISE EN PAGE A LA MAIN, marges mesurees sur les etiquettes : tiledlayout ne sait pas
+    % donner a deux cases des largeurs dans un rapport quelconque. Deux passes, les etiquettes
+    % bougeant un peu une fois les axes redimensionnes.
+    ech_blanc = 0.025;  ech_marg = 0.015;
+    for passe = 1:2
+        drawnow;
+        tL = axL.TightInset;  tR = axR.TightInset;
+        m_bas = max(tL(2), tR(2)) + ech_marg;   m_haut = max(tL(4), tR(4)) + ech_marg;
+        m_gau = tL(1) + ech_marg;               m_dro  = tR(3) + ech_marg;
+        W_ax  = 1 - m_gau - m_dro - ech_blanc;  H_ax   = 1 - m_bas - m_haut;
+        wL_ax = W_ax * (k_vir - 1) / (n_it - 1);
+        axL.Position = [m_gau, m_bas, wL_ax, H_ax];
+        axR.Position = [m_gau + wL_ax + ech_blanc, m_bas, W_ax - wL_ax, H_ax];
+    end
+end
+
+function ajuster_diapo(fig, pdf_w, pdf_h)
+% POUR LA SOUTENANCE : une figure de deal_duo, tracee a la largeur de la diapo, ramenee a sa
+% hauteur. tiledlayout redispose les cases a la nouvelle taille. Les marqueurs passent de 6
+% a 4 pt, la figure etant deux fois plus petite que dans le manuscrit.
+    fig.Position = [40 40 pdf_w pdf_h];
+    set(findobj(fig, 'Type', 'line', '-not', 'Marker', 'none'), 'MarkerSize', 4);
+end
+
+function fig = paire_diapo(kk, kd, Yr, Yn, cles, bande, k_vir, pdf_w, pdf_h, fontsize, linewidth)
+% POUR LA SOUTENANCE : la RMSE et la NEES d'une seule maille cote a cote, la ou le manuscrit
+% les donne en deux grilles de six cases, illisibles sur une diapo. Yr et Yn sont (pas de
+% temps, modele) et cles donne la cle style_modele de chaque modele. Memes conventions que
+% grille() : la RMSE sur tous les pas, avec le premier virage, la NEES sur les pas kd, en
+% echelle log, avec la bande du chi2.
+    n_it = numel(kk);
+    fig  = figure('Color', 'w', 'Units', 'points', 'Position', [40 40 pdf_w pdf_h]);
+    t    = tiledlayout(fig, 1, 2, 'TileSpacing', 'compact', 'Padding', 'compact');
+    leg  = cell(1, numel(cles));
+
+    ax = nexttile(t); hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on');
+    for im = 1:numel(cles)
+        [c, l, leg{im}] = style_modele(cles{im});
+        plot(ax, kk, Yr(:, im), l, 'Color', c, 'LineWidth', linewidth);
+    end
+    marqueur(k_vir, fontsize, true, ax, true);
+    hold(ax, 'off');
+    y_ok = Yr(isfinite(Yr));
+    xlim(ax, [1 n_it]);  ylim(ax, [0, 1.02 * max(y_ok)]);
+    title(ax, '$\mathrm{RMSE}_{\hat{x}}(k)$ (m)', 'Interpreter', 'latex', 'FontSize', fontsize);
+    set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
+    lg = legend(ax, leg, 'Interpreter', 'latex', 'FontSize', fontsize, 'Orientation', 'horizontal');
+    lg.ItemTokenSize = [18 18];
+    lg.Layout.Tile   = 'north';
+
+    ax = nexttile(t); hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on');
+    fill(ax, [1 n_it n_it 1], [bande(1) bande(1) bande(2) bande(2)], ...
+         [1 0.85 0.88], 'EdgeColor', 'none', 'FaceAlpha', 0.55, 'HandleVisibility', 'off');
+    for im = 1:numel(cles)
+        [c, l] = style_modele(cles{im});
+        plot(ax, kk(kd), Yn(kd, im), l, 'Color', c, 'LineWidth', linewidth);
+    end
+    hold(ax, 'off');
+    y_ok = Yn(kd, :);  y_ok = y_ok(isfinite(y_ok) & y_ok > 0);
+    lim  = [min(0.5 * min(y_ok), 0.7 * bande(1)), max(2 * max(y_ok), 1.4 * bande(2))];
+    dec  = floor(log10(lim(1))) : ceil(log10(lim(2)));
+    saut = 1 + (numel(dec) > 5);
+    set(ax, 'YScale', 'log', 'YTick', 10.^dec(mod(dec, saut) == 0));
+    if saut > 1, set(ax, 'YMinorTick', 'off', 'YMinorGrid', 'off'); end
+    xlim(ax, [1 n_it]);  ylim(ax, lim);
+    title(ax, '$\mathrm{NEES}_{\hat{x}}(k)$', 'Interpreter', 'latex', 'FontSize', fontsize);
+    set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
+    xlabel(t, 'Time step $k$', 'Interpreter', 'latex', 'FontSize', fontsize);
+end
+
 function fig = deal_duo(pas, Y, titres, ylab, logy, etiq, textwidth, fontsize, linewidth)
 % Deux panneaux cote a cote sur une meme abscisse de maille, trois modeles par panneau.
 % Y est (maille, modele, panneau). ylab est commun aux deux panneaux, ou l'un par panneau
@@ -1354,7 +1538,7 @@ function fig = deal_duo(pas, Y, titres, ylab, logy, etiq, textwidth, fontsize, l
     % Le label commun est porte par la disposition et non par le panneau de gauche, ce qui
     % le centre sur les deux et accepte un tableau de lignes tel quel.
     ylabel(t, ylab, 'Interpreter', 'latex', 'FontSize', fontsize);
-    xlabel(t, 'Map resolution (km)', 'Interpreter', 'latex', 'FontSize', fontsize);
+    xlabel(t, 'Grid resolution (km)', 'Interpreter', 'latex', 'FontSize', fontsize);
 end
 
 function t = flops_tex(v)
@@ -1501,7 +1685,7 @@ function M = metriques_e(res, e, fin, k_acq, seuil)
          mean(res(e).n_used, 'all')];
 end
 
-function fig = grille(kk, kd, Y, pas, cles, ylab, logy, bande, k_vir, pdf_w, pdf_h, fontsize, linewidth, img_dir, nom_fig)
+function fig = grille(kk, kd, Y, pas, cles, ylab, logy, bande, k_vir, pdf_w, pdf_h, fontsize, linewidth, img_dir, nom_fig, a_plat)
 % Une grille 3 x 2, une maille par case, les modeles superposes dans chacune. Y est
 % (pas de temps, maille, modele) et cles donne la cle style_modele de chaque modele, d'ou
 % se deduisent couleur, trait et nom. kd donne les pas effectivement traces : a 150 pas la
@@ -1510,6 +1694,10 @@ function fig = grille(kk, kd, Y, pas, cles, ylab, logy, bande, k_vir, pdf_w, pdf
 %
 % Les six mailles tiennent en une grille plutot qu'en six flottants : la degradation se lit
 % d'une case a l'autre, ce qu'une figure isolee par maille ne montre pas.
+%
+% a_plat (soutenance, 2026-11-08), facultatif : l'etiquette du premier virage a
+% l'horizontale, voir marqueur.
+    if nargin < 16, a_plat = false; end
     n_it = size(Y, 1);
     % LES BORNES SUIVENT CE QUI EST TRACE, et non tous les pas : la NEES du bilineaire a un
     % pic hors des pas retenus par kd, et l'axe montait a 1e6 pour des courbes qui ne
@@ -1548,7 +1736,7 @@ function fig = grille(kk, kd, Y, pas, cles, ylab, logy, bande, k_vir, pdf_w, pdf
         end
         % Le premier virage, etiquete dans la premiere case seulement : six fois la meme
         % etiquette chargerait la grille sans rien apprendre de plus.
-        marqueur(k_vir, fontsize, ip == 1, ax);
+        marqueur(k_vir, fontsize, ip == 1, ax, a_plat);
         hold(ax, 'off');
         title(ax, sprintf('$%.1f$ km', pas(ip)), 'Interpreter', 'latex', 'FontSize', fontsize);
         set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
@@ -1692,18 +1880,24 @@ function k = premier_virage(x_true)
     if isempty(k), k = NaN; end
 end
 
-function marqueur(k_vir, fontsize, etiquette, ax)
+function marqueur(k_vir, fontsize, etiquette, ax, a_plat)
 % Le debut du premier demi-tour. C'est lui qui leve l'ambiguite en echantillonnant le
 % champ dans une seconde direction, donc les courbes ne se lisent pas sans lui. etiquette
 % dit s'il faut ecrire « first turn » le long du trait, ax sur quels axes le tracer.
+% a_plat (soutenance, 2026-11-08), facultatif : l'etiquette a l'horizontale, a droite du
+% trait. Le long du trait, elle depassait sous l'axe des cases de 40 pt de haut des diapos.
     if nargin < 3, etiquette = true; end
     if nargin < 4, ax = gca; end
+    if nargin < 5, a_plat = false; end
     if isnan(k_vir), return, end
     txt = '';
     if etiquette, txt = 'first turn'; end
     xl = xline(ax, k_vir, '--', txt, 'LineWidth', 0.75, 'Color', [0.4 0.4 0.4], ...
                'HandleVisibility', 'off', 'Interpreter', 'latex', 'FontSize', fontsize, ...
                'LabelVerticalAlignment', 'top', 'LabelHorizontalAlignment', 'left');
+    if a_plat
+        set(xl, 'LabelOrientation', 'horizontal', 'LabelHorizontalAlignment', 'right');
+    end
     % En haut de l'axe : en bas, l'etiquette traversait les courbes posees sur le plancher
     % n_min, qu'elles atteignent toutes avant le premier virage.
     uistack(xl, 'bottom');
@@ -1850,7 +2044,7 @@ function ok = memes_reglages(pA, pB, cle)
          && isequal(pA.sigma_0, pB.sigma_0) && isequal(pA.sigma_q, pB.sigma_q);
 end
 
-function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w, pdf_h, fontsize, linewidth, img_dir, nom_fig)
+function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w, pdf_h, fontsize, linewidth, img_dir, nom_fig, gab)
 % La grille 3 x 2 de grille(), mais chaque case COUPEE AU PREMIER VIRAGE : a gauche
 % l'acquisition en echelle logarithmique, a droite la poursuite en lineaire, comme la
 % figure des echantillons de l'AK. Sans cette coupure, les milliers de points que
@@ -1867,6 +2061,13 @@ function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w,
 % LES BORNES SONT COMMUNES AUX SIX CASES, une par moitie : la degradation se lit d'une
 % maille a l'autre, ce qu'un axe ajuste case par case interdirait. Les graduations ne sont
 % ecrites qu'une fois par colonne — a gauche celles du log, a droite celles du lineaire.
+%
+% gab (soutenance, 2026-11-08), facultatif : la marge (marge) et la hauteur de la boite du
+% label des abscisses (xl_h), en fractions de page. Celles du manuscrit ne laissent pas la
+% place d'un texte a 7,5 pt sur une page de 150 pt : le label des abscisses y mordait sur
+% les graduations, et la legende sur le titre de la case.
+    marge = 0.012;  xl_h = 0.03;
+    if nargin >= 14, marge = gab.marge;  xl_h = gab.xl_h; end
     n_it = size(Y, 1);
     kL   = 1:k_vir;
     kR   = k_vir:n_it;
@@ -1881,7 +2082,9 @@ function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w,
     dec  = ceil(log10(limL(1))):floor(log10(limL(2)));
 
     fig = figure('Color', 'w', 'Units', 'points', 'Position', [40 40 pdf_w pdf_h]);
-    n_c = 2;  n_l = ceil(numel(pas) / n_c);
+    % UNE SEULE COLONNE POUR UNE SEULE MAILLE (2026-11-08, version diapo des clusters) : deux
+    % colonnes en laissaient une vide.
+    n_c = min(2, numel(pas));  n_l = ceil(numel(pas) / n_c);
     axL = gobjects(1, numel(pas));  axR = gobjects(1, numel(pas));  ttl = gobjects(1, numel(pas));
     leg = cell(1, numel(cles));
     for ip = 1:numel(pas)
@@ -1924,7 +2127,8 @@ function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w,
         % ligne. Les bornes etant communes aux six cases, les repeter n'apprend rien.
         if col == 1
             set(axL(ip), 'YTickLabel', yt_lab);
-            set(axR(ip), 'YTickLabel', []);
+            % Le lineaire n'est gradue qu'a droite de la derniere colonne : seul, il l'est ici.
+            if col < n_c, set(axR(ip), 'YTickLabel', []); end
         else
             set(axL(ip), 'YTickLabel', []);
         end
@@ -1945,14 +2149,14 @@ function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w,
     lg.ItemTokenSize = [18 18];
     % UN SEUL LABEL PAR AXE, centre sur la grille entiere. Les axes etant places a la main,
     % il n'y a pas de tiledlayout pour les porter, d'ou deux annotations.
-    xl = annotation(fig, 'textbox', [0 0 1 0.03], 'String', 'Time step $k$', ...
+    xl = annotation(fig, 'textbox', [0 0 1 xl_h], 'String', 'Time step $k$', ...
                     'Interpreter', 'latex', 'FontSize', fontsize, 'EdgeColor', 'none', ...
                     'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
     yl = annotation(fig, 'textbox', [0 0.4 0.04 0.2], 'String', ylab, 'FitBoxToText', 'on', ...
                     'Interpreter', 'latex', 'FontSize', fontsize, 'EdgeColor', 'none', ...
                     'HorizontalAlignment', 'left', 'VerticalAlignment', 'middle');
 
-    blanc = 0.012;  gap_x = 0.055;  gap_y = 0.075;  marge = 0.012;
+    blanc = 0.012;  gap_x = 0.055;  gap_y = 0.075;
     for passe = 1:2
         drawnow;
         tL = max(cell2mat(arrayfun(@(a) a.TightInset(:)', axL, 'UniformOutput', false)'), [], 1);
