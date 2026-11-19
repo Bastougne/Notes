@@ -241,11 +241,16 @@ In the special case where no prior distribution on $\varphi(X)$ is assumed, \eqr
 	\hat{\psi}_{\mathrm{ML}}(z)\triangleq\underset{u\in\mathbb{R}^{d_{\varphi}}}{\operatorname{argmax}}\left\{p_{Z|\varphi(X)}(z\mid u)\right\}
 \end{equation}
 
-As it does not take any prior information on $\varphi(X)$ into account, this estimator is not a Bayesian estimator and may be poorly suited when the available data are scarce. While it coincides with the MAP estimator under a uniform prior, it will not be considered in the rest of this document.
+As it does not take any prior information on $\varphi(X)$ into account, this estimator is not a Bayesian estimator. Moreover, it may perform poorly when the available data are scarce, as the likelihood alone may not provide enough information to distinguish between multiple equally plausible values. While it coincides with the MAP estimator under a uniform prior, it will not be considered in the rest of this document.
 
 \section{Analytical Density Estimation}\label{sec:analytical_estimation}
 
-As established in \cref{sec:state_estimation}, all three estimators ultimately rely on the PDF $p(x_k\mid\mathbf{z}_{1:k})$, from which an estimate of $\varphi(x_k)$ can be derived. Point estimators provide a concise and directly interpretable representation of the state, which is often desirable for our applications. However, reducing the posterior density to a single point estimate may discard valuable information, particularly when it is heavy-tailed or multimodal.
+As established in \cref{sec:state_estimation}, all three estimators ultimately rely on the PDF $p(x_k\mid\mathbf{z}_{1:k})$, from which an estimate of $\varphi(x_k)$ can be derived. Point estimators provide a concise and directly interpretable representation of the state, which is often desirable for our applications. However, reducing the posterior density to a single point estimate may discard valuable information, particularly when it is heavy-tailed or multimodal, as illustrated by \Cref{fig:point_estimators}.
+
+\begin{figure}[!htb]
+	\centering\includegraphics[width=0.75\textwidth]{../../Images/Trois estimateurs ponctuels.pdf}
+	\caption{The three point estimators on an example bimodal posterior. Each fails to represent the entire posterior distribution.}\label{fig:point_estimators}
+\end{figure}
 
 The goal of this section is thus to present algorithms that propagate the PDF itself at each discrete time step $k$ in order to solve the inference problem presented by \eqref{eq:navigation_problem}.
 

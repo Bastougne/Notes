@@ -851,9 +851,16 @@ function [z, R] = ok_solve_chunked(survey, Q, hyp, par)
 % bien meilleure fraction du pic.
     X = survey.X;  n = size(X, 2);
     C = ones(n, 1);
+    % LES TERMES SOUS 1e-80 (en relatif) SONT MIS A ZERO (2026-11-18). L'exponentielle
+    % quadratique decroit en exp(-d^2 / 2 ell^2) : sur une carte de 150 km, ses produits
+    % tombent sous 1e-308, dans les nombres denormaux, que le processeur traite cent fois
+    % plus lentement. A 2,5 km de maille, sa tabulation prenait 35 min au lieu de 2. Sur un
+    % releve de cette maille, les sorties sont identiques au bit pres avec ou sans.
     G = se_kernel(X, X, hyp) + par.krig.sigma_map^2 * eye(n);
+    G(G < 1e-80 * hyp.sigma_f^2) = 0;
     L = chol(G, 'lower');
     Ginv = L' \ (L \ eye(n));  Ginv = (Ginv + Ginv') / 2;
+    Ginv(abs(Ginv) < 1e-80 * max(abs(Ginv(:)))) = 0;
     clear G L
 
     Ginv_C = Ginv * C;
@@ -866,6 +873,7 @@ function [z, R] = ok_solve_chunked(survey, Q, hyp, par)
     for b = 1:par.krig.n_chunk:size(Q, 2)
         j  = b:min(b + par.krig.n_chunk - 1, size(Q, 2));
         K  = se_kernel(Q(:, j), X, hyp);
+        K(K < 1e-80 * hyp.sigma_f^2) = 0;
         z(j) = m_ok + K * Ginv_r;
         KG   = K * Ginv;
         U    = 1 - K * Ginv_C;

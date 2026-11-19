@@ -104,6 +104,10 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 	The general case is obtained by adding $m$ back into $h$.
 \end{proof}
 
+\begin{remark}[Link with Kalman correction]
+	\Cref{th:simple_kriging} has the form of the correction step of \Cref{alg:Kalman_filter}. Under this interpretation, the prior mean ${m(x)\in\mathbb{R}^{d_z}}$ plays the role of the predicted state and $\kappa(x,x)+\mathbf{R}$ acts as the predicted covariance matrix. The innovation term becomes $\tilde{\mathbf{z}}-m(\tilde{\mathbf{x}})\in\mathbb{R}^{\tilde{N}d_z}$, with its covariance matrix being the Gram matrix $\mathbf{G}(\tilde{\mathbf{x}})$. Finally, $\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\in\mathcal{M}_{d_z,\tilde{N}d_z}(\mathbb{R})$ can be seen as the Kalman gain.
+\end{remark}
+
 \begin{remark}[Additive query noise]
 	In \Cref{th:simple_kriging}, the term $\mathbf{R}$ appears because the noisy query $z$ is predicted rather than the field value $h(x)$. The two share the same estimator, and differ in covariance only by an additive $\mathbf{R}$ term. Kriging the field can thus be done by subtracting $\mathbf{R}$, or equivalently by taking $\mathbf{R}=0$ as mentioned in the introduction to kriging.
 \end{remark}
@@ -120,7 +124,7 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 	with equality if and only if $\mathbf{W}=\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)$ since $\mathbf{G}(\tilde{\mathbf{x}})\succ0$.
 \end{remark}
 
-\begin{proposition}[Exact interpolation in the noiseless case]
+\begin{proposition}[Exact interpolation in the noiseless case]\label{th:noiseless_kriging}
 	Assume that $\tilde{\mathbf{R}}=0$, and let $i\in[\![1,\tilde{N}]\!]$. The SK estimator interpolates the data at $\tilde{x}_i$ exactly:
 	\begin{equation}
 		\left\{\begin{aligned}
@@ -128,8 +132,6 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 		\mathbf{R}_{\mathrm{SK}}(\tilde{x}_i,\tilde{\mathbf{x}})&=\mathbf{R}
 		\end{aligned}\right.
 	\end{equation}
-
-	In particular, since the training observations are noiseless, the latent field is recovered exactly at the training points, and the error covariance reduces to the query noise $\mathbf{R}$ alone, which vanishes when $\mathbf{R}=0$. That degenerate case is the one set aside at the start of this section, and is reached by continuity in $x$. By contrast, a positive training noise $\tilde{\mathbf{R}}\succ0$ turns kriging into a smoother rather than an interpolator \cite{bib:spline-correspondence}.
 \end{proposition}
 
 \begin{proof}
@@ -163,6 +165,8 @@ Simple kriging (SK) is the simplest form of kriging, and assumes that the mean f
 		\end{aligned}
 	\end{equation}
 \end{proof}
+
+In particular, \Cref{th:noiseless_kriging} shows that the latent field is recovered exactly at the training points when the training observations are noiseless. Moreover, the associated error covariance reduces to the query noise $\mathbf{R}$ alone and vanishes when $\mathbf{R}=0$. That degenerate case is the one set aside at the start of this section, and is reached by continuity in $x$. By contrast, a positive training noise $\tilde{\mathbf{R}}\succ0$ turns kriging into a smoother rather than an interpolator \cite{bib:spline-correspondence}.
 
 \begin{proposition}[Gaussian conditioning interpretation]\label{th:simple_kriging_conditional}
 	The conditional distribution of $z$ knowing $\tilde{\mathbf{z}}$ is Gaussian, parametrised by the SK estimator and its error covariance matrix:
@@ -237,6 +241,17 @@ The OK weights thus minimise \eqref{eq:error_covariance} under the constraint \e
 	See \cref{sec:proof_OK}.
 \end{proof}
 
+The matrix $\mathbf{R}_{\hat{m}_{\mathrm{OK}}}(x,\tilde{\mathbf{x}})$ should not be confused with the covariance matrix of the estimated mean, which is:
+\begin{equation}
+	\mathbb{V}\left[\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\right]=\left(\mathbf{C}^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}\mathbf{C}\right)^{-1}\in\mathcal{S}_{d_z}^{++}(\mathbb{R})
+\end{equation}
+
+Nonetheless, it is obtained from $\mathbb{V}\left[\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})\right]$ through the transformation matrix:
+\begin{equation}
+	\mathbf{I}_{d_z}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\mathbf{C}
+\end{equation}
+which quantifies the sensitivity of $\hat{z}_{\mathrm{OK}}(x,\tilde{\mathbf{x}},\tilde{\mathbf{z}})$ to $\hat{m}_{\mathrm{OK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}})$.
+
 \begin{remark}[Comparison between simple and ordinary kriging]\label{th:ordinary_simple_kriging_link}
 	The formulas obtained in \eqref{eq:ordinary_kriging_equations} closely resemble those of simple kriging. In fact, they can be rewritten as follows:
 	\begin{equation}
@@ -304,6 +319,11 @@ This matrix is assumed to have full column rank, which requires at least $\tilde
 \begin{proof}
 	See \cref{sec:proof_UK}.
 \end{proof}
+
+Unlike for OK, $\hat{m}_{\mathrm{UK}}$ estimates the trend coefficients $\boldsymbol{\gamma}$ rather than the mean function itself, which can be recovered as $g(x)\:\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)$.  The matrix $\mathbf{R}_{\hat{m}_{\mathrm{UK}}}(x,\tilde{\mathbf{x}},g)$ is again not the covariance of these coefficients, which is:
+\begin{equation}
+	\mathbb{V}\left[\hat{m}_{\mathrm{UK}}(\tilde{\mathbf{x}},\tilde{\mathbf{z}},g)\right]=\left(g(\tilde{\mathbf{x}})^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\right)^{-1}\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})
+\end{equation}
 
 \begin{remark}[Link with ordinary and simple kriging]
 	As mentioned in the beginning of this section, ordinary kriging is a special case of universal kriging, which arises when $r_{\mathrm{UK}}=1$ and $g_1\equiv1$. In this scenario, the trend matrices reduce to $g(x)=\mathbf{I}_{d_z}$ and $g(\tilde{\mathbf{x}})=\mathbf{C}$. This, in turn, yields:

@@ -207,7 +207,23 @@ Since $h$ typically represents a physical field, observations tend to become les
 	See \cref{sec:proof_Matérn}.
 \end{proof}
 
-The parameter $\nu$ controls the regularity. Indeed, for $p\in\mathbb{N}$, it can be shown \cite{bib:Rasmussen-covariance} that a GP equipped with $\kappa_\nu$ is $p$ times mean-square differentiable if and only if $\nu>p$. For half-integer $\nu=p+\tfrac{1}{2}$, Matérn kernels can be written as the product of an exponential and a polynomial function of degree $p$:
+\begin{remark}[Anisotropic kernel]
+	The norm used in \Cref{th:radial_kernel} does not necessarily need to be the canonical norm of $\mathbb{R}^{d_x}$. In particular, for $\mathbf{M}\in\mathcal{S}_{d_x}^{++}(\mathbb{R})$, the Mahalanobis norm:
+	\begin{equation}
+		x\in\mathbb{R}^{d_x}\mapsto\|x\|_{\mathbf{M}}\triangleq\sqrt{x^\top \mathbf{M}^{-1}x}
+	\end{equation}
+	yields kernels that are radial for the metric induced by $\mathbf{M}$, while appearing anisotropic in the Euclidean coordinates whenever $\mathbf{M}$ is not proportional to the identity matrix.
+
+	Letting $\mathbf{A}$ be a Cholesky factor of $\mathbf{M}$ gives:
+	\begin{equation}
+		\forall x\in\mathbb{R}^{d_x},\:\|x\|_{\mathbf{M}}=\left\|\mathbf{A}^{-1}x\right\|_2
+	\end{equation}
+	so that a Matérn kernel defined with $\|\cdot\|_{\mathbf{M}}$ is the composition of a Euclidean radial kernel and an injective linear map. It is therefore still SPD by \Cref{th:Matérn_properties}, which an arbitrary norm would not guarantee.
+\end{remark}
+
+The three hyperparameters of \Cref{th:Matérn} admit direct physical interpretations. The variance $\sigma_h^2$ governs the amplitude of the GP's fluctuations, the correlation length $\ell$ characterises the spatial scale over which these fluctuations remain correlated, and the smoothness parameter $\nu$ controls the regularity of the field.
+
+Indeed, for $p\in\mathbb{N}$, it can be shown \cite{bib:Rasmussen-covariance} that a GP equipped with $\kappa_\nu$ is $p$ times mean-square differentiable if and only if $\nu>p$. For half-integer $\nu=p+\tfrac{1}{2}$, Matérn kernels can be written as the product of an exponential and a polynomial function of degree $p$:
 \begin{equation}
 	\kappa_{p+1/2}(r)=\sigma_h^2\:\exp\left(-\frac{\sqrt{2p+1}r}{\ell}\right)\frac{\Gamma(p+1)}{\Gamma(2p+1)}\:\sum_{i=0}^p\frac{(p+i)!}{i!(p-i)!}\left(\frac{2\sqrt{2p+1}r}{\ell}\right)^{p-i}
 \end{equation}
@@ -239,15 +255,7 @@ In particular, the following kernels correspond to usual choices of $\nu$, the S
 	\caption{Radial profile of Matérn kernels with increasing smoothness, together with their squared exponential limit. Larger values of $\nu$ produce smoother kernels, with flatter behaviours near the origin and faster-decaying tails.}\label{fig:Matérn}
 \end{figure}
 
-\begin{remark}[Anisotropic kernel]
-	The norm used in \Cref{th:radial_kernel} does not necessarily need to be the canonical norm of $\mathbb{R}^{d_x}$. In particular, for $\mathbf{M}\in\mathcal{S}_{d_x}^{++}(\mathbb{R})$, the Mahalanobis norm:
-	\begin{equation}
-		x\in\mathbb{R}^{d_x}\mapsto\|x\|_{\mathbf{M}}\triangleq\sqrt{x^\top \mathbf{M}^{-1}x}
-	\end{equation}
-	yields kernels that are radial for the metric induced by $\mathbf{M}$, while appearing anisotropic in the Euclidean coordinates whenever $\mathbf{M}$ is not proportional to the identity matrix.
-\end{remark}
-
-The main limitation of Matérn kernels is that they are scalar, while our observation model takes values in $\mathbb{R}^{d_z}$. To alleviate this issue, \Cref{th:separable_kernel} presents a method to create a vector-valued kernel from a scalar one.
+The main limitation of Matérn kernels is that they are scalar, while our observation model takes values in $\mathbb{R}^{d_z}$. To alleviate this issue, \Cref{th:separable_kernel} presents a method to create a vector-valued kernel from a scalar one \cite{bib:vector-valued-kernels}.
 
 \begin{proposition}[Separable kernel]\label{th:separable_kernel}
 	Let $\kappa:\Omega\times\Omega\to\mathbb{R}$ be a scalar SPD kernel, and let $\boldsymbol{\Sigma}\in\mathcal{S}_{d_z}^{++}(\mathbb{R})$. Then:
@@ -290,4 +298,4 @@ The main limitation of Matérn kernels is that they are scalar, while our observ
 	Each of its terms is separable in the sense of \Cref{th:separable_kernel}, hence SPD, and a sum of SPD kernels with positive coefficients is itself SPD. When the correlation lengths have different orders of magnitude, such kernels can simultaneously capture local fluctuations and global trends of the field.
 \end{remark}
 
-Every kernel considered in this section is specified by a set of hyperparameters, such as $\nu$, $\ell$ and $\sigma_h$ for a Matérn kernel, $\boldsymbol{\Sigma}$ for its separable extension, or one such set per scale for a multi-scale model. Their estimation is a standard step in GP modelling, and is independent of Bayesian estimation considerations. However, the specific characteristics of our applications can be used to improve the estimation of such hyperparameters. These aspects are thus discussed in \cref{sec:HP_estimation}, and the hyperparameters are assumed to be fully specified for the rest of this chapter.
+Every kernel considered in this section is specified by a set of hyperparameters, such as $\nu$, $\ell$ and $\sigma_h$ for a Matérn kernel, $\boldsymbol{\Sigma}$ for its separable extension, or one such set per scale for a multi-scale model. Their estimation is a standard step in GP modelling, and is independent of Bayesian estimation considerations. Since they are estimated as point values rather than marginalised, their own uncertainty is not propagated into the kriging covariance. However, the specific characteristics of our applications can be used to improve the estimation of such hyperparameters. These aspects are thus discussed in \cref{sec:HP_estimation}, and the hyperparameters are assumed to be fully specified for the rest of this chapter.

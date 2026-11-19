@@ -47,7 +47,7 @@ Two error metrics between $\hat{z}_{\mathrm{UK}}(x,\tilde{\mathbf{x}},\tilde{\ma
 
 \subsection{Residual Process and Quantities}
 
-The update of \Cref{th:universal_kriging_update} reveals two residual quantities that contribute to the error introduced by subsampling. The first one, called residual covariance function, quantifies the portion of the covariance between $x$ and the discarded training set $\tilde{\mathbf{x}}^d$ not accounted for by the retained set $\tilde{\mathbf{x}}^r$. It is the object of \Cref{th:residual_covariance_function}. Similarly, the residual observation vector captures the information contained within the discarded observations $\tilde{\mathbf{z}}^d$ and unexplained by the retained observations $\tilde{\mathbf{z}}^r$. Its expression is given by \Cref{th:residual_observation_vector}.
+The update of \Cref{th:universal_kriging_update} reveals two residual quantities that contribute to the error introduced by subsampling. The first one, called residual covariance function, quantifies the portion of the covariance between $x$ and the discarded training set $\tilde{\mathbf{x}}^d$ not accounted for by the retained set $\tilde{\mathbf{x}}^r$. It is the object of \Cref{th:residual_covariance_function}. The second one, called residual observation vector, captures the information contained within the discarded observations $\tilde{\mathbf{z}}^d$ and unexplained by the retained observations $\tilde{\mathbf{z}}^r$. Its expression is given by \Cref{th:residual_observation_vector}.
 
 \begin{definition}[Residual covariance function]\label{th:residual_covariance_function}
 	Let $\kappa_{|r}$ be the residual kernel, defined as the UK conditional kernel of \Cref{th:universal_kriging_update} with $\tilde{\mathbf{x}}_{\mathrm{old}}=\tilde{\mathbf{x}}^r$:
@@ -70,8 +70,6 @@ The update of \Cref{th:universal_kriging_update} reveals two residual quantities
 		\end{aligned}\right.
 	\end{equation}
 \end{definition}
-
-%\textbf{TODO: reprendre ici}
 
 The residual quantities admit a probabilistic interpretation, in terms of the part of the field left unexplained by the retained data, namely the difference between $h$ and the subsampled estimator. \Cref{th:residual_process} shows that this residual process is a GP whose law does not depend on the trend coefficients, and that the residual quantities describe its covariance and its noisy observations at the discarded data.
 

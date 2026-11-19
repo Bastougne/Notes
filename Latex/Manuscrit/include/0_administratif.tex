@@ -95,6 +95,8 @@
 
 	Ces travaux présentent ainsi de nouvelles méthodes pour la navigation autonome sur champs physiques, prenant en compte à la fois les ambiguïtés et la méconnaissance du modèle de champ, depuis l'exploitation de données dégradées jusqu'à la reconstruction du champ au cours de la navigation.
 
+	\vspace{\baselineskip}\textbf{Mots clés.} Estimation d'état, Filtrage particulaire, Processus gaussiens, krigeage, SLAM
+
 	\section*{English}
 
 	Autonomous vehicle navigation generally relies on the fusion of inertial measurements with external positioning data. When satellite-based positioning is unavailable or unreliable, surrounding physical fields can provide a complementary source of information for estimating the vehicle's position. However, exploiting such fields is challenging due to the non-linearities and ambiguities of the observation function, as well as imperfect knowledge of the field itself.
@@ -104,6 +106,8 @@
 	Two cases are considered depending on the availability of prior knowledge of the field. When it is only accessible through sparse and noisy data, kriging can be used to reconstruct the observation function. Subsampling strategies are developed to adapt the reconstruction to the local field while reducing its computational cost. Conversely, in the absence of prior data, the field is reconstructed jointly with the vehicle's localisation.
 
 	These contributions introduce new methods for autonomous navigation over physical fields that account for both ambiguities and incomplete knowledge of the field model, ranging from the exploitation of degraded data to field reconstruction during navigation.
+
+	\vspace{\baselineskip}\textbf{Keywords.} State estimation, Particle filter, Gaussian processes, kriging, SLAM
 \end{section_titre}
 
 % Résumé étendu en français
@@ -141,23 +145,6 @@
 \phantomsection
 \addcontentsline{toc}{chapter}{\listalgorithmname}
 \listofalgorithms
-
-% Énoncés
-
-\begin{comment}
-\begin{section_titre}{Statements}
-	\begingroup
-	\let\chapter\section % rétrograde les en-têtes de \listoftheorems en sections
-
-	\renewcommand{\listtheoremname}{Definitions}
-	\listoftheorems[ignoreall,show={definition}]
-
-	\renewcommand{\listtheoremname}{Propositions}
-	\listoftheorems[ignoreall,show={proposition}]
-
-	\endgroup
-\end{section_titre}
-\end{comment}
 
 % Notation
 
@@ -223,7 +210,7 @@
 
 	\lignetoc{$\cdot^\top,\cdot^{-1}$}{Transpose and inverse of a matrix}
 	\lignetoc{$*,\circ$}{Convolution and function composition operators}
-	\lignetoc{$\otimes$}{Kronecker product, tensor product of Hilbert spaces}
+	\lignetoc{$\otimes$}{Kronecker or tensor product}
 	\lignetoc{$\mathbbm{1}$}{Indicator function}
 	\lignetoc{$\triangleq$}{Equality by definition}
 	\lignetoc{$\propto$}{Proportionality}
@@ -232,7 +219,7 @@
 	\lignetoc{$\succeq,\succ$}{Loewner order, SPSD and SPD matrices}
 	\lignetoc{$\langle\cdot,\cdot\rangle$}{Measure/function duality pairing}
 	\lignetoc{$\langle\cdot\mid\cdot\rangle,\langle\cdot\mid\cdot\rangle_{\mathcal{E}}$}{Inner product, subscript: of the space $\mathcal{E}$}
-	\lignetoc{$\|\cdot\|,\|\cdot\|_2,\|\cdot\|_F,\|\cdot\|_{\mathrm{op}},\|\cdot\|_{\mathbf{M}}$}{Generic, Euclidean, Frobenius operator and Mahalanobis norms}
+	\lignetoc{$\|\cdot\|,\|\cdot\|_2,\|\cdot\|_F,\|\cdot\|_{\mathrm{op}},\|\cdot\|_{\mathbf{M}}$}{Norms}
 	\lignetoc{$[\![\cdot,\cdot]\!],[\cdot,\cdot],(\cdot,\cdot]$}{Discrete, closed and left-open intervals}
 	\lignetoc{$\partial$}{Partial derivative}
 	\lignetoc{$\mathbf{1}_n$}{Vector of ones of size $n$}
@@ -249,7 +236,7 @@
 	\lignetoc{$\zeta_\varepsilon,\zeta_h,\zeta_{\mathbf{R}},\zeta_{\hat{z}}$}{Kriging and subsampling errors}
 	\lignetoc{$\eta_k,\eta_k^l,\eta_k^n,\overline{\eta}_k^l$}{Evolution noises}
 	\lignetoc{$\theta,\hat{\theta}_k,\hat{\theta}_{\mathrm{ML}},\theta_{\mathrm{init}},\Theta$}{Kernel hyperparameters and their admissible set}
-	\lignetoc{$\kappa(\cdot,\cdot),\bar{\kappa},\kappa_\theta,\kappa_\nu,\kappa_{\mathbf{B}},\kappa_{\mathrm{MS}},\kappa_{|\mathrm{old}},\kappa_{|r},\kappa_{r_{\mathrm{KL}}},\kappa_{\mathrm{SE}},\kappa_{\mathrm{sep}},\kappa_{\mathrm{UK}|\mathrm{old}}$}{Covariance kernels}
+	\lignetoc{$\kappa,\bar{\kappa},\kappa_\theta,\kappa_\nu,\kappa_{\mathbf{B}},\kappa_{\mathrm{MS}},\kappa_{|\mathrm{old}},\kappa_{|r},\kappa_{r_{\mathrm{KL}}},\kappa_{\mathrm{SE}},\kappa_{\mathrm{sep}},\kappa_{\mathrm{UK}|\mathrm{old}}$}{Covariance kernels}
 	\lignetoc{$\kappa_{d|r}$}{Residual covariance function}
 	\lignetoc{$\kappa_X,\kappa_Z$}{Kernels on the value sets of $X$ and $Z$}
 	\lignetoc{$\kappa_{\mathrm{rad}}$}{Radial profile of a kernel}
@@ -266,6 +253,7 @@
 	\lignetoc{$\pi_k$}{Projection of a trajectory onto its last component}
 	\lignetoc{$\boldsymbol{\Pi}_{\mathrm{pos}}$}{Projection matrix onto the position subspace}
 	\lignetoc{$\rho$}{Distance on a space of estimators}
+	\lignetoc{$\varrho_k$}{Local roughness of the field}
 	\lignetoc{$\sigma_h,\sigma_{\mathbf{R}}$}{Kernel and subsampling standard deviations}
 	\lignetoc{$\boldsymbol{\Sigma},\boldsymbol{\Sigma}_i$}{Separable and multi-scale kernel shape matrices}
 	\lignetoc{$\boldsymbol{\Sigma}_{k|k-1},\boldsymbol{\Sigma}_{k|k},\boldsymbol{\Sigma}_{k|k}^+$}{Covariances of the embedded weights}

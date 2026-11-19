@@ -1,8 +1,8 @@
 \section{Adaptive Kriging}\label{sec:AK_PF}
 
-In this section, we propose to use training data subsampling, \textit{i.e.} selecting a subset $\tilde{\mathbf{x}}^r$ of $\tilde{N}^r$ training points and using only these points for regression \cite{bib:Rasmussen-approximation,bib:sparse-GP}, as a way to alleviate the computational issues raised above. Since the inversion of the Gram matrix scales cubically with the number of training points, and the memory and query costs of kriging quadratically, discarding half the data reduces the computational load by a factor of $4$ to $8$ and requires $4$ times less storage.
+In this section, we propose to use training data subsampling, \textit{i.e.} selecting a subset $\tilde{\mathbf{x}}^r$ of $\tilde{N}^r$ training points and using only these points for regression \cite{bib:Rasmussen-approximation,bib:sparse-GP}, as a way to alleviate the computational issues raised above. Since the inversion of the Gram matrix scales cubically with the number of training points, and the memory and query costs of kriging quadratically, discarding half the data reduces the computational load by a factor of $4$ to $8$ and requires $4$ times less storage. Two strategies are compared, a random subsampling of the training data, and an adaptive one that retains the data most relevant to the estimation.
 
-However, this method comes at a cost. In the following, we describe two subsampling strategies, each requiring a subsampling step at each time step. This means that the matrices depending on the retained subset can no longer be precomputed before the mission, and in particular that inverting $\mathbf{G}(\tilde{\mathbf{x}}^r)\in\mathcal{S}_{\tilde{N}^r\:d_z}^{++}(\mathbb{R})$ and $\mathbf{C}^\top \mathbf{G}(\tilde{\mathbf{x}}^r)^{-1}\mathbf{C}\in\mathcal{S}_{d_z}^{++}(\mathbb{R})$ must be done online.
+However, this method comes at a cost. Both strategies require a subsampling step at each time step. This means that the matrices depending on the retained subset can no longer be precomputed before the mission, and in particular that inverting $\mathbf{G}(\tilde{\mathbf{x}}^r)\in\mathcal{S}_{\tilde{N}^r\:d_z}^{++}(\mathbb{R})$ and $\mathbf{C}^\top \mathbf{G}(\tilde{\mathbf{x}}^r)^{-1}\mathbf{C}\in\mathcal{S}_{d_z}^{++}(\mathbb{R})$ must be done online.
 
 \subsection{Random Subsampling}
 
@@ -44,7 +44,9 @@ The results are compared here with those obtained with static kriging. \Cref{fig
 	\caption{Total computational cost, in flops, of using static kriging or random subsampling throughout the mission, for each grid resolution.}\label{tab:cout_eclairci}
 \end{table}
 
-For the RMSE curves, random subsampling is systematically outperformed by static kriging, especially before the first turn. From $4.5$ km onward, random subsampling only reaches its error plateau during this turn, whereas static kriging stabilises before it. This indicates that, although the subsampling (RS) is randomised at each time step, and each training point is therefore available to the filter on average $50\%$ of the time, the resulting map is too degraded to provide an accurate navigation solution. The late convergence of the filters with access to the fewest training points is likely a consequence of the additional information provided by the first turn.
+For the RMSE curves, random subsampling (RS) is consistently outperformed by static kriging, especially before the peak in field roughness. From $\Delta_g=4.5$ km onward, RS only reaches its error plateau after this peak, whereas static kriging has already stabilised. This sharp drop in RMSE at this point suggests that the highly informative observations associated with the roughness peak allow even filters with access to the fewest training points to converge.
+
+Thus, even though RS is randomised at each time step, and each training point is therefore available to the filter on average $p_{\mathrm{RS}}=50\%$ of the time, this method does not provide a sufficiently accurate map for reliable navigation.
 
 Nevertheless, the similarities between random subsampling at $\Delta_g=2.5$ and $5.5$ km, and static kriging at $\Delta_g=3.5\approx2.5/\sqrt{0.5}$ and $7.5\approx5.5/\sqrt{0.5}$ km respectively are noteworthy. This suggests that random subsampling effectively behaves as a map with a degraded resolution. Although the full training set is likely to have been sampled at least once over the course of the mission, only half of the points are available to the filter at each time step.
 
@@ -119,6 +121,13 @@ and:
 	\tilde{\mathbf{z}}_{\mathrm{AK},k}^r\triangleq\{\tilde{z}_i\mid\tilde{x}_i\in\tilde{\mathbf{x}}_{\mathrm{AK},k}^r\}
 \end{equation}
 
+\Cref{fig:AK_window} illustrates this construction for two different particle sets. On the left, the particles are spread out, and the ball of radius $r_{\mathrm{cov},k}$ contains enough training points to define the subsampling window. On the right, this ball contains too few points. The window is thus enlarged to a ball of radius $r_{\min,k}$, ensuring that at least $\tilde{N}_{\min}$ training points are retained.
+
+\begin{figure}[!htb]
+	\centering\includegraphics[width=0.9\textwidth]{../../Images/Construction de la fenêtre AK.pdf}
+	\caption{Adaptive kriging window, in red, around a spread particle set on the left (a) and a concentrated one on the right (b), in blue, with the retained training points in bold.}\label{fig:AK_window}
+\end{figure}
+
 At each time step, the hyperparameters $\hat{\theta}_k$ of the kernel are then re-estimated by maximum likelihood on the retained training set, as described in \cref{sec:HP_estimation}. In particular, since the navigation estimate varies slowly between two consecutive time steps, the latter is likely to remain similar. The hyperparameters estimated at time $k-1$ can thus be used as initial values for the estimation at time $k$, reducing the number of iterations required for convergence of the hyperparameter estimation algorithm.
 
 In particular, the number of retained points is, on average and up to boundary effects, the $d_{\mathrm{pos}}$-volume of the window divided by that of a grid cell:
@@ -131,7 +140,7 @@ The likelihood \eqref{eq:kriged_likelihood} is thus computed on the retained sub
 	z_k\mid x_k,\tilde{\mathbf{z}}_{\mathrm{AK},k}^r\sim\mathcal{N}\left(\hat{z}_{\mathrm{OK}}\left(x_k,\tilde{\mathbf{x}}_{\mathrm{AK},k}^r,\tilde{\mathbf{z}}_{\mathrm{AK},k}^r;\hat{\theta}_k\right),\mathbf{R}_{\mathrm{OK}}\left(x_k,\tilde{\mathbf{x}}_{\mathrm{AK},k}^r;\hat{\theta}_k\right)\right)\label{eq:AK_likelihood}
 \end{equation}
 
-This method, referred to as Adaptive Kriging (AK) and originally proposed in \cite{bib:AK-PF}, can be integrated into any navigation algorithm presented in \cref{sec:Bayesian_estimation}. In this section, we focus on its integration into the RPF of \Cref{alg:RPF} using the transition density as proposal, as described in \eqref{eq:prior_proposal}. The resulting algorithm is the Adaptive Kriging Regularised Particle Filter (AK-RPF) given in \Cref{alg:AK_RPF}.
+This method, referred to as Adaptive Kriging (AK) and originally proposed in our earlier work \cite{bib:AK-PF}, can be integrated into any navigation algorithm presented in \cref{sec:Bayesian_estimation}. In this section, we focus on its integration into the RPF of \Cref{alg:RPF} using the transition density as proposal, as described in \eqref{eq:prior_proposal}. The resulting algorithm is the Adaptive Kriging Regularised Particle Filter (AK-RPF) given in \Cref{alg:AK_RPF}.
 
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
@@ -200,11 +209,13 @@ The performance of the static kriging RPF is also given as a reference. Alongsid
 	\caption{Evolution of the average number of training points retained by the AK-RPF during the mission for each grid resolution. A logarithmic scale is used before the first turn at $k=33$ to capture the large variations in $\tilde{N}^r_{\mathrm{AK},k}$, while a linear scale is used afterwards, where these variations are smaller.}\label{fig:AK_echantillons}
 \end{figure}
 
-The first point to note is the strong similarity between the RMSE curves obtained with static kriging and AK for all grid resolutions. Apart from a slight reduction in the AK error between $k=60$ and $k=90$, and a slight increase during the first turn, particularly for the $7.5$ km grid resolution, the curves almost completely overlap. The absence of any noticeable accuracy loss despite discarding most of the training set can be attributed to the local nature of the AK window.
+The first point to note is the strong similarity between the RMSE curves obtained with static kriging and AK for all grid resolutions. Apart from a slight reduction in the AK RMSE between $k=60$ and $k=90$, and an increase between $k=30$ and $k=46$, particularly for $\Delta_g=7.5$ km, the curves almost completely overlap. The absence of any noticeable accuracy loss despite discarding most of the training set can be attributed to the local nature of the AK window.
 
 Since discarded points are far from the particle cloud, they have negligible contributions to the map reconstruction at the particle locations. Their removal thus has little effect on the relative particle likelihoods. While this is only shown numerically here, its theoretical analysis is the subject of \cref{sec:subsampling_error}.
 
-On the other hand, the NEES curves of both algorithms are significantly different. Although both remain within the $\chi^2$ confidence bounds throughout the trajectory, the NEES of static kriging rises to between $2.2$ and $3.2$ around $k=70$ for every resolution, before decreasing again around $k=125$. In contrast, the NEES of AK remains below $1$ throughout the mission and for all grid resolutions. This may be explained by the non-stationarity of the field. The global kernel would provide a poor description of this portion of the field, whereas the local estimation of the hyperparameters would allow AK to adapt to it. It must also be noted that the RMSE of AK is lower precisely around $k=70$, which further illustrates this explanation.
+Unlike the RMSE, the NEES curves of both algorithms are significantly different. Although both remain within the $\chi^2$ confidence bounds throughout the trajectory, the NEES of static kriging rises to between $2.2$ and $3.2$ around $k=70$ for every resolution, before decreasing again around $k=125$. In contrast, the NEES of AK remains below $1$ for all grid resolutions for the first $135$ iterations, after which it increases for both filters, likely due to a lack of high roughness of the field. 
+
+This difference may be explained by the non-stationarity of the field. The global kernel would provide a poor description of this portion of the field, whereas the local estimation of the hyperparameters would allow AK to adapt to it. Indeed, the NEES of static kriging peaks around $k=70$, on the second roughest portion of the field in \Cref{fig:field_roughness}, and already jumps at $k=46$ from $\Delta_g=4.5$ km onward, where the roughness reaches its maximum. Conversely, the second half-turn leaves no such trace, and so the difference in NEES cannot be accounted for by the turn itself. It must also be noted that the RMSE of AK is lower precisely around $k=70$, which further illustrates this explanation.
 
 Regarding convergence, the two filters exhibit the same overall trend, with a drop in convergence for both criteria from $\Delta_g=5.5$ km onward. Consistently with its generally more conservative NEES, AK achieves convergence for $87\%$ of the runs at $7.5$ km according to the Mahalanobis criterion, compared with $81\%$ for static kriging. Their convergence rates remain similar for the threshold criterion, with the same drop at grid resolutions greater than $5.5$ km.
 
@@ -388,7 +399,7 @@ This choice is constrained by both computational and structural considerations. 
 
 Mean shift introduces a characteristic scale through its bandwidth, which may artificially limit the size of each cluster and split a single, spatially extended cluster into several, whose windows may then overlap. However, this bound helps satisfy the last two requirements of \cref{sec:AK}. On the other hand, DBSCAN identifies clusters based on the connected components of the neighbourhood graph of the particle set. A chain of dense regions is thus returned as a single cluster, which is precisely the situation that the clustering step was introduced to prevent. Moreover, DBSCAN labels the isolated particles as noise, which violates the third criterion of \cref{sec:clustering}. The clustering step is thus performed using mean shift on the weighted particle set, with the weights from the previous time step carrying the particle density between two resamplings.
 
-While substantial work on clustered particle filters exists \cite{bib:these-Murangira}, this work focuses on the use of clustering for adaptive kriging rather than for particle management and mode preservation. Nonetheless, the two approaches are not mutually exclusive and can be applied jointly.
+While substantial work on clustered particle filters exists \cite{bib:these-Murangira,bib:robust-RPF-TAN}, this work focuses on the use of clustering for adaptive kriging rather than for particle management and mode preservation. Nonetheless, the two approaches are not mutually exclusive and can be applied jointly.
 
 Similarly to AK and NNAK, the clustering step must be performed after the particle propagation, but before the correction step. Let $N_{\mathrm{cl},k}$ be the number of clusters at time step $k$, and $\mathcal{C}_k^{(c)}$ denote the indices of the particles belonging to the $c$-th cluster. For $k\geq1$ and $c\in[\![1,N_{\mathrm{cl},k}]\!]$, the barycentre and empirical covariance matrix of the $c$-th cluster are respectively defined as:
 \begin{equation}
@@ -422,7 +433,7 @@ and:
 	\tilde{\mathbf{z}}_{\mathrm{ICAK},k}^{r,(c)}\triangleq\left\{\tilde{z}_i\mid\tilde{x}_i\in\tilde{\mathbf{x}}_{\mathrm{ICAK},k}^{r,(c)}\right\}
 \end{equation}
 
-The $N_{\mathrm{cl},k}$ windows can be handled in two ways. The first one, called Independent Clustering Adaptive Kriging (ICAK) and originally presented in \cite{bib:AK-PF-clustered}, keeps them separate in order to preserve the locality induced by the clustering step. Every cluster estimates its hyperparameters $\hat{\theta}_k^{(c)}$ on its own window, and the likelihood of a particle of $\mathcal{C}_k^{(c)}$ is computed using that window alone:
+The $N_{\mathrm{cl},k}$ windows can be handled in two ways. The first one, called Independent Clustering Adaptive Kriging (ICAK), which we introduced in \cite{bib:AK-PF-clustered}, keeps them separate in order to preserve the locality induced by the clustering step. Every cluster estimates its hyperparameters $\hat{\theta}_k^{(c)}$ on its own window, and the likelihood of a particle of $\mathcal{C}_k^{(c)}$ is computed using that window alone:
 \begin{equation}
 	z_k\mid x_k,\tilde{\mathbf{z}}_{\mathrm{ICAK},k}^{r,(c)}\sim\mathcal{N}\left(\hat{z}_{\mathrm{OK}}\left(x_k,\tilde{\mathbf{x}}_{\mathrm{ICAK},k}^{r,(c)},\tilde{\mathbf{z}}_{\mathrm{ICAK},k}^{r,(c)};\hat{\theta}_k^{(c)}\right),\mathbf{R}_{\mathrm{OK}}\left(x_k,\tilde{\mathbf{x}}_{\mathrm{ICAK},k}^{r,(c)};\hat{\theta}_k^{(c)}\right)\right)\label{eq:ICAK_likelihood}
 \end{equation}
@@ -563,7 +574,7 @@ training points for each particle. Finally, mean shift is performed with a bandw
 	\caption{Evolution of the average number of clusters computed by ICAK and MCAK during the mission, for each grid resolution. The two scales are those of \Cref{fig:AK_echantillons}.}\label{fig:fenetres_clusters}
 \end{figure}
 
-The RMSE curves of AK, NNAK and MCAK are indistinguishable at every grid resolution. Following the shape of the particle set, whether through one window per particle or one window per mode, therefore costs nothing in accuracy compared with the single window of AK. ICAK, on the other hand, achieves significantly higher RMSEs on grid resolutions $\Delta_g=6.5$ and $\Delta_g=7.5$ km during the first $50$ iterations, before rejoining them once the particle set has collapsed to a single mode. The difference in RMSE between ICAK and the other strategies is most likely due to the hyperparameter estimation, which is performed on a smaller training set and is therefore less robust.
+The RMSE curves of AK, NNAK and MCAK are indistinguishable at every grid resolution. Following the shape of the particle set, whether through one window per particle or one window per mode, therefore costs nothing in accuracy compared with the single window of AK. ICAK, on the other hand, achieves significantly higher RMSEs on grid resolutions $\Delta_g=6.5$ and $\Delta_g=7.5$ km until the maximum roughness, before rejoining them at $k=48$, as the number of clusters drops in \Cref{fig:fenetres_clusters}. The difference in RMSE between ICAK and the other strategies is thus most likely due to the hyperparameter estimation, which is performed on a smaller training set and is therefore less robust.
 
 Similarly, all four strategies exhibit almost identical NEES curves and convergence rates. Adapting the shape of the window thus preserves both the consistency and the robustness of AK.
 

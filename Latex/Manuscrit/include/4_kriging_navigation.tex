@@ -14,9 +14,14 @@ Assume a navigation scenario similar to that of \cref{sec:Bayesian_estimation}:
 	z_k&=h_k(x_k,\varepsilon_k)
 	\end{aligned}\right.
 \end{equation}
-with the exception that $h_k$ is unknown, and the observation noise is additive for the sake of simplicity. Since the likelihood density cannot be evaluated without an observation model, Bayesian data fusion is no longer applicable. The state $x_k$ must then be estimated from inertial measurements alone. However, inertial navigation is subject to drift and therefore cannot provide a reliable state estimate for longer missions.
+with the exception that $h_k$ is unknown, and the observation noise is additive for the sake of simplicity. Since the likelihood density cannot be evaluated without an observation model, Bayesian data fusion is no longer applicable. The state $x_k$ must then be estimated from inertial measurements alone. However, inertial navigation is subject to drift and therefore cannot provide a reliable state estimate for longer missions. The observation function must then be reconstructed using the kriging framework presented in \cref{sec:Gaussian_processes}. \Cref{fig:kriging_overview} summarises the resulting navigation problem.
 
-In our scenarios, the observation function describes the measurement of a physical field, assumed time-invariant, by an embedded sensor at each time step. Furthermore, we assume that the environment has been sampled beforehand, whether during a previous reconnaissance mission, or using a known but deteriorated map. GP regression has already been used to build magnetic maps from such samples, both indoors \cite{bib:magnetic-GP,bib:magnetic-interpolation} and at a regional scale \cite{bib:KED-geomagnetic}. This is formally modelled by \Cref{th:kriging_navigation_assumptions}.
+\begin{figure}[!htb]
+	\centering\includegraphics[width=\textwidth]{../../Images/Schéma de l'application krigeage.pdf}
+	\caption{The navigation problem for this chapter, applied to magnetic anomaly-aided navigation. At each time step, the observation model is reconstructed by kriging the training data and fed into a particle filter. While all available data could be used, more refined selection strategies are explored in \cref{sec:AK_PF,sec:window_shape}.}\label{fig:kriging_overview}
+\end{figure}
+
+In our scenarios, the observation function describes the measurement of a physical field, assumed time-invariant, by an embedded sensor at each time step. The observation $z_k$ thus carries the field measurement alone, the inertial information entering through the evolution function $f_k$, and no other sensor is assumed available. Furthermore, we assume that the environment has been sampled beforehand, whether during a previous reconnaissance mission, or using a known but deteriorated map. GP regression has already been used to build magnetic maps from such samples, both indoors \cite{bib:magnetic-GP,bib:magnetic-interpolation} and at a regional scale \cite{bib:KED-geomagnetic}. This is formally modelled by \Cref{th:kriging_navigation_assumptions}.
 
 \begin{assumption}[Observation model]\label{th:kriging_navigation_assumptions}
 	The observation function is a realisation of a time-invariant GP, and its noise is an additive Gaussian white noise of covariance matrix $\mathbf{R}_k\succeq0$:
@@ -35,9 +40,9 @@ In our scenarios, the observation function describes the measurement of a physic
 This chapter is organised as follows:
 \begin{itemize}
 	\item\Cref{sec:kriging_PF} combines \cref{sec:Bayesian_estimation,sec:Gaussian_processes} to create a kriging-based framework for autonomous navigation in a poorly known environment.
-	\item\Cref{sec:AK_PF} discusses non-stationary observation fields, and the necessity of training data selection for kriging.
-	\item\Cref{sec:window_shape} improves upon this framework by adapting the shape of the subsampling window to that of the particle cloud to better capture the non-stationarities of the field.
-	\item Finally, \cref{sec:subsampling_error} quantifies the estimation error committed by subsampling the training data used for kriging.
+	\item\Cref{sec:AK_PF} discusses non-stationary observation fields, and the necessity of training data selection for kriging. The resulting method was introduced in \cite{bib:AK-PF}.
+	\item\Cref{sec:window_shape} improves upon this framework by adapting the shape of the subsampling window to that of the particle cloud. This improvement was presented in \cite{bib:AK-PF-clustered} and extended in this document.
+	\item Finally, \cref{sec:subsampling_error} quantifies the estimation error committed by subsampling the training data used for kriging. This last contribution is currently being prepared for journal publication.
 \end{itemize}
 
 \section{Kriging the Observation Model}\label{sec:kriging_PF}
@@ -67,7 +72,7 @@ which is linear in $\tilde{\mathbf{z}}-h(\tilde{\mathbf{x}})$, every kriging est
 
 While $\varepsilon_k$ is drawn at each time step, $\zeta_h$ and $\zeta_\varepsilon$ are functions of the position, drawn once with the training data and the field, and fixed throughout the mission.
 
-Given the trajectory, the observations are jointly Gaussian:
+Given a candidate trajectory, the observations are jointly Gaussian:
 \begin{equation}
 	\mathbf{z}_{1:k}\mid\mathbf{x}_{1:k},\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{K}}(\mathbf{x}_{1:k},\tilde{\mathbf{x}},\tilde{\mathbf{z}};m,g),\mathbb{V}\left[\zeta_h(\mathbf{x}_{1:k})+\zeta_\varepsilon(\mathbf{x}_{1:k})\right]+\mathbb{V}\left[\boldsymbol{\varepsilon}_{1:k}\right]\right)
 \end{equation}
@@ -130,7 +135,7 @@ As motivated by \cref{sec:kriging}, ordinary kriging tackles this issue by direc
 
 For universal kriging, we considered polynomial means of degree $1$ and $5$. The affine basis behaves much like ordinary kriging, which it extends by a single coefficient. The affine UK envelope is barely wider than that of OK near the samples but grows faster outside the interpolation domain.
 
-On the other hand, the degree $5$ model overfits the seven training points with six coefficients, which causes the corresponding estimator to diverge from the true function farther away from the training data. This is reflected in the UK covariance, which indicates high uncertainty in poorly sampled regions.
+Unlike the affine basis, the degree $5$ model overfits the seven training points with six coefficients, which causes the corresponding estimator to diverge from the true function farther away from the training data. This is reflected in the UK covariance, which indicates high uncertainty in poorly sampled regions.
 
 Since the training observations are noisy, a single draw of $\tilde{\mathbf{z}}$ cannot accurately represent the performance of the estimators above. To alleviate this issue, the training observations are redrawn over $N_\mathrm{MC}=1000$ Monte Carlo simulations, in order to compute the root mean squared error (RMSE):
 \begin{equation}
@@ -212,7 +217,7 @@ where $\mathbf{C}$ is defined by \eqref{eq:C_definition}. Let:
 be the corresponding log-likelihood.
 
 \begin{remark}[Model complexity]
-	The first two terms of \eqref{eq:log_likelihood} have opposite effects. The first one measures the fit to the training observations, and increases as the field is allowed to vary more freely, while the second one decreases. Maximising the log-likelihood therefore retains the least flexible field that remains consistent with the training data \cite{bib:evidence}.
+	The first two terms of \eqref{eq:log_likelihood} have opposite effects. The first one, quadratic in $\mathbf{G}_\theta(\tilde{\mathbf{x}})^{-1}$, measures the fit to the training observations, and increases as the field is allowed to vary more freely, while the second one, the log-determinant of $\mathbf{G}_\theta(\tilde{\mathbf{x}})$, penalises this freedom. Maximising the log-likelihood therefore retains the least flexible field that remains consistent with the training data \cite{bib:evidence}.
 \end{remark}
 
 Since the logarithm is increasing, the maximum likelihood estimators of $m$ and $\theta$ are:
@@ -333,7 +338,19 @@ and its propagation is degraded with a Gaussian white noise of covariance matrix
 	0&0&0&1^2
 	\end{bmatrix}
 \end{equation}
-whose position and velocity entries are respectively expressed in $\text{m}^2$ and $\text{m}^2\text{s}^{-2}$.
+whose position and velocity entries are respectively expressed in $\text{m}^2$ and $\text{m}^2\text{s}^{-2}$. The positions can be extracted from the state by:
+\begin{equation}
+	\forall k\in\mathbb{N},\:\begin{bmatrix}
+	p_k^{(x)}&p_k^{(y)}
+	\end{bmatrix}^\top=\boldsymbol{\Pi}_{\mathrm{pos}}\:x_k
+\end{equation}
+where $\boldsymbol{\Pi}_{\mathrm{pos}}$ is projection matrix onto the position subspace:
+\begin{equation}
+	\boldsymbol{\Pi}_{\mathrm{pos}}\triangleq\begin{bmatrix}
+	1&0&0&0\\
+	0&1&0&0
+	\end{bmatrix}
+\end{equation}
 
 The considered filters use the following evolution equation:
 \begin{equation}
@@ -351,7 +368,7 @@ The considered filters use the following evolution equation:
 \end{equation}
 where $u_k$ is the commanded acceleration, set to match the true trajectory.
 
-The observation function is the scalar ($d_z=1$) ordinary kriging of the magnetic anomaly field, conditioned on the $\tilde{N}$ training points, and degraded by a Gaussian white noise of covariance $\mathbf{R}_k=5^2$ $(\text{nT})^2$. The chosen kernel is a Matérn kernel with smoothness $\nu=3/2$, which corresponds to the smallest half-integer for which the field and the kriging mean are mean-square differentiable, and its hyperparameters are estimated as described in \cref{sec:HP_estimation}. A bilinear observation function on the same samples is also used as comparison.
+The observation function is the scalar ($d_z=1$) ordinary kriging of the magnetic anomaly field, conditioned on the $\tilde{N}$ training points, and degraded by a Gaussian white noise of covariance $\mathbf{R}_k=5^2$ $(\text{nT})^2$. The chosen kernel is a Matérn kernel with smoothness $\nu=3/2$, which corresponds to the smallest half-integer for which the field and the kriging mean are mean-square differentiable, and its hyperparameters are estimated as described in \cref{sec:HP_estimation}. A bilinear estimation of observation function on the same samples is also used as comparison.
 
 The filter is an RPF, initialised on a cloud of $N=5000$ particles, drawn around a point itself drawn from $\mathcal{N}(x_0,\mathbf{P}_0)$, with:
 \begin{equation}
@@ -401,6 +418,17 @@ in the same units, to prevent the particle cloud from being centred on the true 
 	\caption{Simulation parameters for the navigation scenario. For improved readability, covariance matrices are represented by their diagonal coefficients only.}\label{tab:scenario}
 \end{table}
 
+The field is not equally informative everywhere along the trajectory, as shown by \Cref{fig:field_roughness}. Its local roughness is taken as the standard deviation of its values within a $\pm10$ km square around the vehicle, sampled every $2$ km, which at step $k$ reads:
+\begin{equation}
+	\varrho_k\triangleq\sqrt{\mathbb{V}\left[h\left(\boldsymbol{\Pi}_{\mathrm{pos}}\:x_k+\delta\right)\right]},\qquad\delta\sim\mathcal{U}\left(\mathcal{D}\right),\qquad\mathcal{D}=\{-10,-8,\dots,10\}^2\text{ km}
+\end{equation}
+This gives a mean of $126$ nT over the flight, for a mean gradient of $50.1$ nT/km. A single time step thus displaces the reading by an order of magnitude above the $5$ nT standard deviation of the measurement noise. As such, one observation already discriminates between distant candidate positions. This roughness varies by a factor of almost five along the flight, from $57$ nT to a maximum of $280$ nT reached at step $46$, during the first turn of the trajectory.
+
+\begin{figure}[!htb]
+	\centering\includegraphics[width=\textwidth]{../../Images/Rugosite locale du champ.pdf}
+	\caption{Local roughness of the field along the trajectory, where the shaded bands correspond to the two half-turns. The vertical dashed line marks the maximum roughness, reached at $k=46$.}\label{fig:field_roughness}
+\end{figure}
+
 Each configuration is run over $N_\mathrm{MC}=1000$ Monte Carlo realisations, redrawing the initial state and white noises. The training data are also redrawn every $10$ runs so that the metrics are averaged over the reconstruction as well as the trajectory. The chosen estimator is the MMSE estimator from \eqref{eq:PF_MMSE}. A run is declared convergent under two different criteria, as each describes a different behaviour:
 \begin{itemize}
 	\item A fixed threshold of $2000$ m, under which the median of the position error over the last ten steps of a filter must be. This metric is simple to read and ensures that the estimation is relatively close to the true state. However, the threshold value is arbitrary, and only chosen below the smallest grid resolution considered, so that a convergent run locates the vehicle to within one cell of the training grid.
@@ -417,13 +445,7 @@ Similarly, the performance of the compared approach at each time step is read th
 	\begin{equation}
 		\mathrm{RMSE}_{\hat{x}}:k\mapsto\sqrt{\frac{1}{N_{\mathrm{conv}}}\sum_{\substack{i=1\\i\text{ is convergent}}}^{N_\mathrm{MC}}\left\|\boldsymbol{\Pi}_{\mathrm{pos}}\:\hat{x}_k^{(i)}-\boldsymbol{\Pi}_{\mathrm{pos}}\:x_k\right\|_2^2}\label{eq:estimation_RMSE}
 	\end{equation}
-	where $N_{\mathrm{conv}}$ is the number of runs that converge under the threshold criterion, and $\boldsymbol{\Pi}_{\mathrm{pos}}$ is the projection matrix onto the position subspace:
-	\begin{equation}
-		\boldsymbol{\Pi}_{\mathrm{pos}}\triangleq\begin{bmatrix}
-		1&0&0&0\\
-		0&1&0&0
-		\end{bmatrix}
-	\end{equation}
+	where $N_{\mathrm{conv}}$ is the number of runs that converge under the threshold criterion.
 
 	This metric quantifies the root mean squared position error of the filter. For the sake of readability, it is only computed on the convergent runs, whereas other metrics are computed over the $N_\mathrm{MC}$ runs. This is done to ensure that diverged runs do not dominate or skew this average, which is sensitive to outliers \cite{bib:estimation-evaluation}.
 	\item The median normalised estimation error squared (NEES):
@@ -453,29 +475,29 @@ Before analysing the filters themselves, it is important to assess the quality o
 	\caption{Reconstruction ARMSE of the field over the trajectory corridor for ordinary kriging and bilinear interpolation as a function of the training grid resolution. The domain $E$ considered is a rectangular corridor around the true trajectory, with a $28$ km margin. It covers $74\%$ of the map.}\label{fig:reconstruction_ARMSE}
 \end{figure}
 
-\begin{comment}
-	\textbf{TODO: parler de rugosité locale du champ le long de la trajectoire. Mesurée dans MATLAB/notes\_rugosite\_nees.md : écart-type du champ dans un carré de $\pm10$ km autour de la position, médiane $125$ nT sur le vol, maximum $281$ nT au pas $47$, et mêmes valeurs sur les cinq segments du vol ($112$ à $132$ nT), donc indépendante du découpage droite/virage. C'est elle qui justifie l'explication de la NEES de \cref{sec:AK_PF} par la non-stationnarité : l'incertitude déclarée du krigeage statique y est anticorrélée ($-0{,}51$ au sens de Spearman), celle de l'AK non ($-0{,}01$). À déplacer avec la figure de la carte, la rugosité étant une propriété du scénario.}
-\end{comment}
-
-As one could have expected, denser grids lead to better reconstructions, the ARMSE evolving as the logarithm of $\Delta_g$. However, kriging and bilinear interpolation exhibit similar errors, within $3$ nT of each other at every resolution. Thus, the advantage of kriging cannot be attributed to the reconstruction accuracy alone.
+As one could have expected, denser grids lead to better reconstructions, the ARMSE evolving as the logarithm of $\Delta_g$, from about $24$ to $64$ nT, far above the $5$ nT of the measurement noise. However, kriging and bilinear interpolation exhibit similar errors, within $3$ nT of each other at every resolution. Thus, the advantage of kriging cannot be attributed to the reconstruction accuracy alone.
 
 Focusing now on the filter performance, \Cref{fig:kriging_RMSE,fig:kriging_NEES} respectively compare the RMSE and NEES of the filter using the true map, kriging and bilinear interpolation on each of the six grid resolutions.
 
 \begin{figure}[!p]
 	\centering
 	\includegraphics[width=\textwidth]{../../Images/RMSE par maille.pdf}
-	\caption{Estimation RMSE of the navigation algorithms using the known map, bilinear interpolation and static kriging. Each panel corresponds to a different grid resolution, and the true map result is repeated for comparison.}\label{fig:kriging_RMSE}
+	\caption{Estimation RMSE of the navigation algorithms using the known map, bilinear interpolation and static kriging. Each panel corresponds to a different grid resolution, and the true map result is repeated for comparison. The vertical dashed line marks the maximum local roughness of \Cref{fig:field_roughness}, reached at $k=46$.}\label{fig:kriging_RMSE}
 \end{figure}
 
 \begin{figure}[!p]
 	\centering
 	\includegraphics[width=\textwidth]{../../Images/NEES par maille.pdf}
-	\caption{Estimation NEES of the navigation algorithms using the known map, bilinear interpolation and static kriging. The shaded area delimits the quantiles of a $\chi^2$ law with $d_x$ degrees of freedom, within which the NEES of a single run of a consistent filter falls with probability $0.99$.}\label{fig:kriging_NEES}
+	\caption{Estimation NEES of the navigation algorithms using the known map, bilinear interpolation and static kriging. The shaded area delimits the quantiles of a $\chi^2$ law with $d_x$ degrees of freedom, within which the NEES of a single run of a consistent filter falls with probability $0.99$. The vertical dashed line is that of \Cref{fig:kriging_RMSE}.}\label{fig:kriging_NEES}
 \end{figure}
 
 Three main results can be drawn from the RMSE curves. First, filters with access to more training points from a denser grid achieve better performance, with the limit case of the filter using the true map outperforming every other configuration. Second, kriging-based filters consistently achieve lower RMSEs than their bilinear counterparts despite having similar map reconstruction accuracy. This result, combined with \Cref{fig:reconstruction_ARMSE}, suggests that the advantage of kriging lies in its ability to quantify reconstruction uncertainty through its covariance matrix. Finally, the time required to reach a stable estimation error increases from $13$ to $25$ steps as the grid resolution grows from $2.5$ to $7.5$ km. In particular, the vehicle begins its first turn at $k=33$, so any potential information gained from this turn does not affect this result.
 
 The NEES curves further highlight the improved consistency of kriging methods by taking the estimated error covariance matrix into account. Kriging-based filters stay within the consistency band at every resolution, whereas bilinear interpolation lies above it even on the densest map. This shows that kriging not only leads to more accurate state estimates than bilinear interpolation, but also provides a better characterisation of their associated uncertainty.
+
+It must also be noted that the NEES for bilinear interpolation rises sharply around the maximum roughness of the field and exceeds $10^3$ at $k=46$ from $\Delta_g=4.5$ km onward. Since a high roughness means that the field varies strongly around the vehicle, each observation is highly informative, but the field is harder to interpolate between training points. As bilinear interpolation ignores this error, the filter trusts a biased observation as if it were exact, and becomes overconfident.
+
+Static kriging also reacts to the maximum roughness, as the map is less accurately interpolated there. From $\Delta_g=4.5$ km onward, its RMSE rises slightly and locally around $k=46$ before returning to its previous level after.
 
 In terms of convergence rates, \Cref{fig:erreur_maille} starts by extracting the relevant median errors from the previous curves, and \Cref{fig:convergence_maille} computes the associated convergence rates using the two metrics introduced at the beginning of this section.
 

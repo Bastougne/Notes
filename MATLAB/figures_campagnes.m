@@ -247,6 +247,69 @@ if en_diapo
     exporter(fig, 'Carte anomalie magnetique', w_d, h_d, diapo.img);
 end
 
+%% La rugosite locale du champ le long du vol
+%
+% Ce que chiffre sec:scenario : l'ecart-type du champ vrai dans un carre de +/-10 km autour
+% de la position vraie, echantillonne tous les 2 km. Elle dit pourquoi une seule observation
+% discrimine, et surtout que le champ n'est pas egalement informatif d'un bout a l'autre du
+% vol, sur quoi sec:AK_PF appuie son explication de la NEES par la non-stationnarite.
+%
+% LES DEMI-TOURS SONT GRISES, et c'est le point de la figure : le pic tombe dans le premier,
+% et le second se range parmi les lignes droites. Un virage sur deux seulement : la variation
+% est une propriete du champ survole, pas de la dynamique du vol. Sans les bandes, un lecteur
+% attribuerait le pic au virage.
+%
+% LE MAXIMUM EST MARQUE D'UN TRAIT VERTICAL, LE MEME QUE SUR LES GRILLES AU COURS DU VOL
+% (Bastien, 2026-11-19) : les sauts de RMSE et de NEES s'y lisent contre lui, voir
+% marqueur_rugosite. Il remplace les moyennes par troncon, tracees en tirets avec leur valeur
+% jusqu'au 19 novembre (113, 150, 118, 118 et 133 nT, a sa demande retirees le meme jour).
+%
+% LES PAS SONT CEUX DU FILTRE : navigation.m compare son pas k a la colonne k+1 de x_true, la
+% premiere etant l'etat initial. Tracee sur les colonnes, la figure avancait d'un pas sur
+% celles de RMSE et de NEES, avec un premier virage au pas 34 et un maximum au pas 47, quand
+% le texte et premier_virage le font commencer au pas 33 (2026-11-18).
+%
+% Rien n'est rejoue ici : la carte, le releve et la trajectoire sont ceux deja charges
+% pour la figure precedente. L'ECART-TYPE EST NORMALISE PAR LES 121 POINTS DU CARRE,
+% std(., 1), et non par 120 : la formule de sec:scenario est une variance sous la loi
+% uniforme sur ce carre. Les 0,4 % d'ecart decalaient d'une unite le minimum et le maximum
+% cites dans le texte.
+[dx, dy] = meshgrid(-10e3 : 2e3 : 10e3);
+voisins  = [dx(:)'; dy(:)'];
+X_vrai   = S.scen.x_true(1:2, 2:end);
+rugo     = arrayfun(@(k) std(krig.lire(h_map, pas_m, X_vrai(:, k) + voisins), 1), ...
+                    1 : size(X_vrai, 2));
+
+% Les demi-tours, releves sur le cap vrai comme premier_virage, mais tous et non le premier.
+% tourne(k) dit que le cap du pas k differe de celui du pas k-1, donc tombe sur les pas du
+% filtre sans decalage.
+v_vrai = S.scen.x_true(3:4, :);
+n_v    = vecnorm(v_vrai, 2, 1);
+cos_a  = sum(v_vrai(:, 1:end-1) .* v_vrai(:, 2:end), 1) ./ max(n_v(1:end-1) .* n_v(2:end), eps);
+tourne = acosd(min(max(cos_a, -1), 1)) > 0.5;
+
+% Le gradient que le texte cite avec la moyenne : la norme du gradient du champ au point du
+% vehicule, en differences centrees a la maille de la carte, moyennee sur le vol. Les
+% 41,5 nT/km de notes_rugosite_nees.md n'avaient pas de definition ecrite et aucune variante
+% ne retrouve sa table. Choix de Bastien le 2026-11-18 : au vehicule, plutot que moyennee sur
+% le carre de la rugosite (41,1 nT/km).
+d_g  = pas_m(1);
+gx   = krig.lire(h_map, pas_m, X_vrai + [d_g; 0]) - krig.lire(h_map, pas_m, X_vrai - [d_g; 0]);
+gy   = krig.lire(h_map, pas_m, X_vrai + [0; d_g]) - krig.lire(h_map, pas_m, X_vrai - [0; d_g]);
+grad = 1e3 * hypot(gx, gy) / (2 * d_g);            % nT/km
+
+% k_rug, le pas du maximum, sert aussi aux grilles au cours du vol, plus bas.
+[rugo_max, k_rug] = max(rugo);
+fprintf(['Rugosite : moyenne %.0f nT (mediane %.0f), de %.0f a %.0f nT, maximum au pas %d, ' ...
+         'gradient moyen %.1f nT/km\n'], mean(rugo), median(rugo), min(rugo), rugo_max, k_rug, mean(grad));
+
+% Inseree a pleine largeur, donc en 12 pt sans mise a l'echelle, comme l'erreur finale par
+% maille. A 0.6\textwidth, les cinq moyennes qu'elle portait alors se disputaient la place
+% avec la courbe.
+rugo_h = 250;
+fig    = figure_rugosite(rugo, tourne, k_rug, textwidth, rugo_h, fontsize, linewidth);
+exporter(fig, 'Rugosite locale du champ', textwidth, rugo_h, img_dir);
+
 %% Les bornes communes aux grilles
 %
 % La bande ou une NEES honnete doit tomber, et le sous-echantillonnage des pas traces : a
@@ -263,8 +326,12 @@ bas  = chi2inv(q, d_x) / m_chi;
 haut = chi2inv(1 - q, d_x) / m_chi;
 kd   = 1 : pas_trace : n_it;
 
-% Le premier virage, trace sur les grilles de RMSE : c'est lui qui leve l'ambiguite le long
-% de la premiere branche, et les retards d'acquisition entre methodes se lisent contre lui.
+% Le premier virage. Il etait trace sur les grilles de RMSE, ou les retards d'acquisition
+% entre methodes se lisaient contre lui. DEPUIS LE 2026-11-19 (Bastien), les figures du
+% manuscrit portent a sa place le maximum de rugosite k_rug, treize pas plus loin, et sur
+% toutes les figures au cours du vol, NEES comprises : c'est contre lui que sautent les
+% courbes. k_vir coupe encore en deux echelles les figures des points retenus et des
+% clusters, et reste trace sur les versions diapo, que la soutenance decide a part.
 k_vir = premier_virage(S.scen.x_true);
 
 %% ARMSE de la reconstruction de la carte
@@ -827,21 +894,23 @@ for s = 1:size(etapes, 1)
     leg  = cell(size(cles));
     for im = 1:numel(cles), [~, ~, leg{im}] = style_modele(cles{im}); end
 
-    grille(kk, kk, CRB(:, :, sel), pas, cles, '$\mathrm{RMSE}_{\hat{x}}(k)$ (m)', false, [], k_vir, ...
-           pdf_w, pdf_h, fontsize, linewidth, img_dir, ['RMSE ' etapes{s, 2}]);
+    % Le premier virage n'est plus trace au manuscrit, le maximum de rugosite le remplace.
+    grille(kk, kk, CRB(:, :, sel), pas, cles, '$\mathrm{RMSE}_{\hat{x}}(k)$ (m)', false, [], NaN, ...
+           k_rug, pdf_w, pdf_h, fontsize, linewidth, img_dir, ['RMSE ' etapes{s, 2}]);
     grille(kk, kd, CNE(:, :, sel), pas, cles, '$\mathrm{NEES}_{\hat{x}}(k)$', true, [bas haut], NaN, ...
-           pdf_w, pdf_h, fontsize, linewidth, img_dir, ['NEES ' etapes{s, 2}]);
+           k_rug, pdf_w, pdf_h, fontsize, linewidth, img_dir, ['NEES ' etapes{s, 2}]);
     % LES VERSIONS DIAPO DES GRILLES. Les six cases tiennent sur une diapo de reserve pleine
     % largeur pour le bilineaire et pour l'eclairci. L'AK contre le statique passe en
     % diapo principale, ou six cases seraient illisibles : la RMSE et la NEES cote a cote,
-    % a la maille de 7,5 km que cite la diapo.
+    % a la maille de 7,5 km que cite la diapo. SANS LE MAXIMUM DE RUGOSITE pour l'instant
+    % (NaN) : il est entre au manuscrit le 19 novembre, et les diapos se decident ailleurs.
     if en_diapo && any(s == [1 2])
         w_d = diapo.textwidth;  h_d = 190;
         grille(kk, kk, CRB(:, :, sel), pas, cles, '$\mathrm{RMSE}_{\hat{x}}(k)$ (m)', false, [], k_vir, ...
-               w_d, h_d, diapo.fs, linewidth, diapo.img, ['RMSE ' etapes{s, 2}], true);
+               NaN, w_d, h_d, diapo.fs, linewidth, diapo.img, ['RMSE ' etapes{s, 2}], true);
         if s == 1
             grille(kk, kd, CNE(:, :, sel), pas, cles, '$\mathrm{NEES}_{\hat{x}}(k)$', true, [bas haut], NaN, ...
-                   w_d, h_d, diapo.fs, linewidth, diapo.img, ['NEES ' etapes{s, 2}]);
+                   NaN, w_d, h_d, diapo.fs, linewidth, diapo.img, ['NEES ' etapes{s, 2}]);
         end
     end
     if en_diapo && s == 3
@@ -863,7 +932,7 @@ for s = 1:size(etapes, 1)
     sel_n = sel(ismember(sel, [4 5 7 8]));
     if numel(sel_n) >= 2
         grille_deux_echelles(kk, CNT(:, :, sel_n), pas, cand(sel_n, 1)', '$\tilde{N}_k^r$', ...
-               k_vir, SE.par.krig.n_min, pdf_w, pdf_h, fontsize, linewidth, img_dir, ...
+               k_vir, k_rug, SE.par.krig.n_min, pdf_w, pdf_h, fontsize, linewidth, img_dir, ...
                ['Echantillons ' etapes{s, 2}]);
     end
     % LE NOMBRE MOYEN DE CLUSTERS au cours du vol (2026-10-25, TODO de 4.4.3), pour les seules
@@ -873,13 +942,13 @@ for s = 1:size(etapes, 1)
     sel_c = sel(ismember(cand(sel, 1)', {'cak', 'mcak'}));
     if ~isempty(sel_c) && any(isfinite(CNM(:, :, sel_c)), 'all')
         grille_deux_echelles(kk, CNM(:, :, sel_c), pas, cand(sel_c, 1)', '$N_{\mathrm{cl},k}$', ...
-               k_vir, 1, pdf_w, pdf_h, fontsize, linewidth, img_dir, ['Clusters ' etapes{s, 2}]);
+               k_vir, k_rug, 1, pdf_w, pdf_h, fontsize, linewidth, img_dir, ['Clusters ' etapes{s, 2}]);
         % En diapo de reserve, la seule maille de 2,5 km, celle que cite la diapo.
         if en_diapo
             ip = find(abs(pas - 2.5) < 1e-9, 1);
             w_d = 0.5 * diapo.textwidth;  h_d = 150;
             grille_deux_echelles(kk, CNM(:, ip, sel_c), pas(ip), cand(sel_c, 1)', '$N_{\mathrm{cl},k}$', ...
-                   k_vir, 1, w_d, h_d, diapo.fs, linewidth, diapo.img, ['Clusters ' etapes{s, 2}], ...
+                   k_vir, NaN, 1, w_d, h_d, diapo.fs, linewidth, diapo.img, ['Clusters ' etapes{s, 2}], ...
                    struct('marge', 0.03, 'xl_h', 0.06));
         end
         for ip = 1:numel(pas)
@@ -1024,19 +1093,20 @@ end
 % et 31 de l'autre, et au virage la courbe de 7,5 km sauterait de 20 a 91 % de la hauteur.
 % D'ou deux axes separes d'un blanc, les graduations du second sur son bord droit, et des
 % largeurs proportionnelles au nombre de pas pour que le temps reste uniforme. Le virage
-% etant la frontiere, plus de tirete. Pleine largeur, donc 12 pt sans mise a l'echelle.
+% etant la frontiere, plus de tirete pour lui ; celui du maximum de rugosite (2026-11-19)
+% tombe dans l'axe de droite. Pleine largeur, donc 12 pt sans mise a l'echelle.
 if isnan(k_vir)
     error('figures_campagnes:virage', ...
           'Pas de virage : la figure des echantillons coupe ses deux axes au premier.');
 end
 ech_h  = 250;
-fig = figure_echantillons(kk, k_vir, pas, pool, nomP, balP, SE.par.krig.n_min, ...
+fig = figure_echantillons(kk, k_vir, k_rug, pas, pool, nomP, balP, SE.par.krig.n_min, ...
                           textwidth, ech_h, fontsize, linewidth);
 exporter(fig, 'Echantillons retenus par maille', textwidth, ech_h, img_dir);
 if en_diapo
     % Au-dessus du bloc de la diapo de reserve, a 0.9\textwidth.
     w_d = 0.9 * diapo.textwidth;  h_d = 120;
-    fig = figure_echantillons(kk, k_vir, pas, pool, nomP, balP, SE.par.krig.n_min, ...
+    fig = figure_echantillons(kk, k_vir, NaN, pas, pool, nomP, balP, SE.par.krig.n_min, ...
                               w_d, h_d, diapo.fs, linewidth);
     exporter(fig, 'Echantillons retenus par maille', w_d, h_d, diapo.img);
 end
@@ -1307,6 +1377,44 @@ function fig = figure_carte(x_km, y_km, h_map, srv_km, vol, carte_w, carte_h, ca
     c.Position  = [cb_x, bot, cb_w, 1 - bot - top];
 end
 
+function fig = figure_rugosite(rugo, tourne, k_rug, pdf_w, pdf_h, fs, linewidth)
+% La rugosite locale du champ le long du vol, sur une page figee de pdf_w x pdf_h points.
+% Les demi-tours sont grises derriere la courbe, et son maximum, au pas k_rug, porte le
+% trait des grilles au cours du vol, sans etiquette : il tombe sur le pic qu'il designe.
+% Pas de legende : la caption dit ce que sont les bandes et le trait, comme pour l'ARMSE.
+    n    = numel(rugo);
+    k    = 1 : n;
+    fig  = figure('Color', 'w', 'Units', 'points', 'Position', [80 80 pdf_w pdf_h]);
+    hold on; box on; grid on;
+
+    % L'axe part de zero, sinon le facteur cinq entre le creux et le pic ne se lit plus.
+    yl = [0, 1.08 * max(rugo)];
+
+    % Les demi-tours, lus sur les changements d'etat de tourne plutot que supposes au nombre
+    % de deux. Chaque pas possede l'intervalle [k-1/2, k+1/2].
+    deb = find(diff([false, tourne]) ==  1);
+    fin = find(diff([tourne, false]) == -1);
+    for i = 1 : numel(deb)
+        patch([deb(i) - 0.5, fin(i) + 0.5, fin(i) + 0.5, deb(i) - 0.5], yl([1 1 2 2]), ...
+              [0.90 0.90 0.90], 'EdgeColor', 'none', 'HandleVisibility', 'off');
+    end
+    marqueur_rugosite(k_rug, fs, false, gca);
+
+    % En noir : la figure ne compare aucun modele, donc la palette de style_modele n'a rien
+    % a y dire et sa couleur ferait croire a une methode.
+    plot(k, rugo, 'k-', 'LineWidth', linewidth);
+    hold off;
+
+    xlabel('Time step $k$', 'Interpreter', 'latex', 'FontSize', fs);
+    ylabel('$\varrho_k$ (nT)', 'Interpreter', 'latex', 'FontSize', fs);
+    set(gca, 'TickLabelInterpreter', 'latex', 'FontSize', fs);
+    xlim([1 n]);  ylim(yl);
+
+    ax = gca; drawnow; ti = ax.TightInset; marg = 0.02;
+    ax.Position = [ti(1) + marg, ti(2) + marg, ...
+                   1 - ti(1) - ti(3) - 2 * marg, 1 - ti(2) - ti(4) - 2 * marg];
+end
+
 function fig = figure_armse(pas, ARMSE, pdf_w, pdf_h, fs, linewidth)
 % L'ARMSE de reconstruction contre la maille, bilineaire et krigeage, sur une page figee de
 % pdf_w x pdf_h points. Une fonction depuis le 2026-11-08, pour la version diapo.
@@ -1363,10 +1471,11 @@ function fig = figure_formes(S_ak, S_mcak, S_nnak, G, P, pas_km, pdf_w, pdf_h, f
                    1 - ti(1) - ti(3) - 2 * marg, 1 - ti(2) - ti(4) - 2 * marg];
 end
 
-function fig = figure_echantillons(kk, k_vir, pas, pool, nomP, balP, n_min, pdf_w, pdf_h, fontsize, linewidth)
+function fig = figure_echantillons(kk, k_vir, k_rug, pas, pool, nomP, balP, n_min, pdf_w, pdf_h, fontsize, linewidth)
 % La fenetre de l'AK au cours du vol, une courbe par maille, sur deux axes coupes au premier
 % virage, sur une page figee de pdf_w x pdf_h points. Une fonction depuis le 2026-11-08, pour
-% la version diapo ; n_min est le plancher de la campagne, SE.par.krig.n_min.
+% la version diapo ; n_min est le plancher de la campagne, SE.par.krig.n_min. k_rug, le
+% maximum de rugosite, est trace sur l'axe de droite, ou NaN pour s'en passer.
     n_it   = numel(kk);
     teinte = interp1([0 0.5 1], [0.45 0.25 0.00; 0.95 0.60 0.00; 1.00 0.82 0.45], ...
                      linspace(0, 1, numel(pas)));
@@ -1388,6 +1497,7 @@ function fig = figure_echantillons(kk, k_vir, pas, pool, nomP, balP, n_min, pdf_
         fen_max  = max(fen_max,  max(n_r(kL)));
         zoom_max = max(zoom_max, max(n_r(kR)));
     end
+    marqueur_rugosite(k_rug, fontsize, true, axR);
     for ax = [axL axR]
         yline(ax, n_min, ':', 'LineWidth', linewidth, 'HandleVisibility', 'off');
         hold(ax, 'off');
@@ -1685,19 +1795,20 @@ function M = metriques_e(res, e, fin, k_acq, seuil)
          mean(res(e).n_used, 'all')];
 end
 
-function fig = grille(kk, kd, Y, pas, cles, ylab, logy, bande, k_vir, pdf_w, pdf_h, fontsize, linewidth, img_dir, nom_fig, a_plat)
+function fig = grille(kk, kd, Y, pas, cles, ylab, logy, bande, k_vir, k_rug, pdf_w, pdf_h, fontsize, linewidth, img_dir, nom_fig, a_plat)
 % Une grille 3 x 2, une maille par case, les modeles superposes dans chacune. Y est
 % (pas de temps, maille, modele) et cles donne la cle style_modele de chaque modele, d'ou
 % se deduisent couleur, trait et nom. kd donne les pas effectivement traces : a 150 pas la
 % NEES est trop bruitee pour qu'on distingue les modeles, la RMSE ne l'est pas. k_vir est le
-% pas du premier virage, marque d'un tirete dans chaque case, ou NaN pour s'en passer.
+% pas du premier virage, marque d'un tirete dans chaque case, ou NaN pour s'en passer ;
+% k_rug celui du maximum de rugosite, de meme. Le manuscrit ne trace plus que le second.
 %
 % Les six mailles tiennent en une grille plutot qu'en six flottants : la degradation se lit
 % d'une case a l'autre, ce qu'une figure isolee par maille ne montre pas.
 %
 % a_plat (soutenance, 2026-11-08), facultatif : l'etiquette du premier virage a
 % l'horizontale, voir marqueur.
-    if nargin < 16, a_plat = false; end
+    if nargin < 17, a_plat = false; end
     n_it = size(Y, 1);
     % LES BORNES SUIVENT CE QUI EST TRACE, et non tous les pas : la NEES du bilineaire a un
     % pic hors des pas retenus par kd, et l'axe montait a 1e6 pour des courbes qui ne
@@ -1735,8 +1846,10 @@ function fig = grille(kk, kd, Y, pas, cles, ylab, logy, bande, k_vir, pdf_w, pdf
             end
         end
         % Le premier virage, etiquete dans la premiere case seulement : six fois la meme
-        % etiquette chargerait la grille sans rien apprendre de plus.
+        % etiquette chargerait la grille sans rien apprendre de plus. Le maximum de
+        % rugosite de meme.
         marqueur(k_vir, fontsize, ip == 1, ax, a_plat);
+        marqueur_rugosite(k_rug, fontsize, ip == 1, ax);
         hold(ax, 'off');
         title(ax, sprintf('$%.1f$ km', pas(ip)), 'Interpreter', 'latex', 'FontSize', fontsize);
         set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
@@ -1903,6 +2016,27 @@ function marqueur(k_vir, fontsize, etiquette, ax, a_plat)
     uistack(xl, 'bottom');
 end
 
+function marqueur_rugosite(k_rug, fontsize, etiquette, ax)
+% LE MAXIMUM DE LA RUGOSITE LOCALE DU CHAMP (Bastien, 2026-11-19), au pas k_rug : le meme trait
+% sur la figure de rugosite et sur toutes les figures au cours du vol, pour que les sauts des
+% courbes s'y lisent contre lui. IL REMPLACE LE PREMIER VIRAGE dans les figures du manuscrit,
+% a sa demande le meme jour, et en reprend le tirete gris : un trait mixte, essaye d'abord
+% pour que les deux se distinguent, n'avait plus de raison d'etre une fois seul. L'etiquette
+% « max. rho_k » vient de lui. etiquette et ax comme dans marqueur ; NaN pour s'en passer.
+    if nargin < 3, etiquette = true; end
+    if nargin < 4, ax = gca; end
+    if isnan(k_rug), return, end
+    txt = '';
+    if etiquette, txt = 'max. $\varrho_k$'; end
+    xl = xline(ax, k_rug, '--', txt, 'LineWidth', 0.75, 'Color', [0.4 0.4 0.4], ...
+               'HandleVisibility', 'off', 'Interpreter', 'latex', 'FontSize', fontsize, ...
+               'LabelVerticalAlignment', 'top', 'LabelHorizontalAlignment', 'right');
+    % Sous les courbes, mais AU-DESSUS DES APLATS : le maximum tombe dans la bande grise du
+    % premier demi-tour, qui le cachait, et la bande du chi2 des NEES l'aurait pali.
+    uistack(xl, 'bottom');
+    uistack(findobj(ax, 'Type', 'patch'), 'bottom');
+end
+
 
 function n = n_colonnes(idx, sel_t, CGP)
 % Le nombre de colonnes chiffrees qu'un groupe de methodes demande : le krigeage pour
@@ -2044,7 +2178,7 @@ function ok = memes_reglages(pA, pB, cle)
          && isequal(pA.sigma_0, pB.sigma_0) && isequal(pA.sigma_q, pB.sigma_q);
 end
 
-function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w, pdf_h, fontsize, linewidth, img_dir, nom_fig, gab)
+function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, k_rug, n_min, pdf_w, pdf_h, fontsize, linewidth, img_dir, nom_fig, gab)
 % La grille 3 x 2 de grille(), mais chaque case COUPEE AU PREMIER VIRAGE : a gauche
 % l'acquisition en echelle logarithmique, a droite la poursuite en lineaire, comme la
 % figure des echantillons de l'AK. Sans cette coupure, les milliers de points que
@@ -2066,8 +2200,11 @@ function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w,
 % label des abscisses (xl_h), en fractions de page. Celles du manuscrit ne laissent pas la
 % place d'un texte a 7,5 pt sur une page de 150 pt : le label des abscisses y mordait sur
 % les graduations, et la legende sur le titre de la case.
+%
+% k_rug, le maximum de rugosite, est trace dans la moitie de droite, comme dans grille(),
+% ou NaN pour s'en passer. Il tombe apres la coupure, qui marque deja le premier virage.
     marge = 0.012;  xl_h = 0.03;
-    if nargin >= 14, marge = gab.marge;  xl_h = gab.xl_h; end
+    if nargin >= 15, marge = gab.marge;  xl_h = gab.xl_h; end
     n_it = size(Y, 1);
     kL   = 1:k_vir;
     kR   = k_vir:n_it;
@@ -2101,6 +2238,7 @@ function fig = grille_deux_echelles(kk, Y, pas, cles, ylab, k_vir, n_min, pdf_w,
                 set(hR, 'MarkerIndices', 1:10:numel(kR));
             end
         end
+        marqueur_rugosite(k_rug, fontsize, ip == 1, axR(ip));
         col = mod(ip - 1, n_c) + 1;
         for ax = [axL(ip) axR(ip)]
             hold(ax, 'off');

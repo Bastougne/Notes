@@ -394,7 +394,14 @@ opt = struct('n_part', par.mc.n_part, 'n_th', 0.5 * par.mc.n_part, ...
              'alpha_reg', par.filt.alpha_reg, 'R_obs', par.sigma_obs^2, ...
              'P_eval', P_eval, 'mem_max', par.slam.mem_max, 'akkf', par.akkf, ...
              'sigma_f2', par.slam.sigma_f^2, 'bloc_octets', par.slam.bloc_octets);
-opt.akkf.echelle_x = par.sigma_0(:);
+% L'ECHELLE DU NOYAU D'ETAT SUIT SIGMA_0 par defaut. L'annexe C (2026-11-15) balaie sigma_0
+% en gardant la norme de kappa_X a 1 km, pour ne faire varier qu'un parametre : elle donne
+% alors par.akkf.echelle_x, qui prend le pas sur sigma_0. Absent, rien ne change.
+if isfield(par.akkf, 'echelle_x') && ~isempty(par.akkf.echelle_x)
+    opt.akkf.echelle_x = par.akkf.echelle_x(:);
+else
+    opt.akkf.echelle_x = par.sigma_0(:);
+end
 opt.carte = struct('noyau', par.slam.noyau, 'ell', par.slam.ell);   % pour akkf.noyau_etat = 2
 opt.h_vrai = @(P) krig.lire(map.h, map.step, P) - par.slam.moyenne;   % pour akkf.obs_simulees = 1
 

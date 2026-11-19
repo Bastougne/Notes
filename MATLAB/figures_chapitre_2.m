@@ -98,11 +98,17 @@ arrow([0.400 0.400], [0.445 0.550], linewidth, asp);   % P_{k|k}     -> next ste
 arrow([0.400 0.400], [0.725 0.825], linewidth, asp);   % next step   -> P_{k-1|k-1}
 arrow([0.400 0.400], [0.270 0.185], linewidth, asp);   % P_{k|k}     -> output
 
-% The three densities last: each opens an axes of its own, which would otherwise
-% capture the text and the arrows drawn after it.
-gaussian_blob(0.045, 0.540, 0.135, 0.215, -0.55, blue, linewidth);
-gaussian_blob(0.840, 0.055, 0.125, 0.200,  0.10, blue, linewidth);
-gaussian_blob(0.125, 0.010, 0.125, 0.200, -0.30, blue, linewidth);
+% The four densities last: each opens an axes of its own, which would otherwise
+% capture the text and the arrows drawn after it. The prediction one faces the
+% prior across the page, at the same height so that the two can be read against
+% each other, and 1.15 times wider: P_{k|k-1} is a propagated P_{k-1|k-1} with
+% Q_k added to it. Its correlation is weakened for the same reason, an isotropic
+% Q_k rounding the ellipse it inflates. The output one is back to the width of
+% the prior, as a filter at steady state returns the cycle to where it started.
+gaussian_blob(0.045, 0.540, 0.135, 0.215, -0.55, blue, linewidth);   % prior
+gaussian_blob(0.780, 0.525, 0.155, 0.247, -0.40, blue, linewidth);   % prediction
+gaussian_blob(0.840, 0.055, 0.125, 0.200,  0.10, blue, linewidth);   % observation
+gaussian_blob(0.125, 0.010, 0.125, 0.200, -0.30, blue, linewidth);   % output
 
 save_pdf(fig, 'Étapes du filtre de Kalman avec équations', w_21, h_21, img_dir);
 
