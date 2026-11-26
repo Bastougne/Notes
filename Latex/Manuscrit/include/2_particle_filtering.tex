@@ -1,6 +1,6 @@
 \section{Advanced Particle Filters}\label{sec:particle_filtering}
 
-Even though the SIR applies under very mild assumptions, it has several caveats. Indeed, while resampling at every step eliminates the weight degeneracy of the SIS, it wastes computational load, and erodes particle diversity. Furthermore, the number of particles required grows quickly with the state dimension, a phenomenon known as the curse of dimensionality \cite{bib:PF-dimension}.
+Even though the SIR applies under very mild assumptions, it has several caveats. Indeed, while resampling at every step eliminates the weight degeneracy of the SIS, it wastes computational resources, and erodes particle diversity. Furthermore, the number of particles required grows quickly with the state dimension, a phenomenon known as the curse of dimensionality \cite{bib:PF-dimension}.
 
 The SIR admits several refinements \cite{bib:beyond-Kalman,bib:these-Merlinge}, each targeting a specific issue. We first present the generic particle filter, which reduces the SIR's computational cost by only resampling when necessary. We then introduce the regularised and auxiliary particle filters to restore particle diversity and improve on the prior proposal. Finally, we derive the equations of the Rao-Blackwellised particle filter, which reduces the dimension of the explored space under linear-Gaussian substructure assumptions.
 
@@ -218,7 +218,7 @@ Each term of this decomposition can be simplified as follows:
 	\begin{equation}
 		p(z_k\mid x_k,i,\mathbf{z}_{1:k-1})=p(z_k\mid x_k)
 	\end{equation}
-	\item Since the parent index uniquely determines the ancestor trajectory, conditioning on $i$ is equivalent to conditioning on $\mathbf{x}_{0:k-1}^{(i)}$. Moreover, \Cref{th:Markov} establishes that $(x_k)_{k\geq0}$ is a Markov chain, and thus:
+	\item Since the parent index uniquely determines the ancestor trajectory, conditioning on $i$ is equivalent to conditioning on $\mathbf{x}_{0:k-1}^{(i)}$. Moreover, \Cref{th:Markov} states that $(x_k)_{k\geq0}$ is a Markov chain, and thus:
 	\begin{equation}
 		p(x_k\mid i,\mathbf{z}_{1:k-1})=p\left(x_k\:\middle|\:\mathbf{x}_{0:k-1}^{(i)},\mathbf{z}_{1:k-1}\right)=p\left(x_k\:\middle|\:x_{k-1}^{(i)}\right)
 	\end{equation}
@@ -258,7 +258,7 @@ The new particle set is then propagated through a standard SIS algorithm using t
 with their weights updating as:
 \begin{equation}
 	\begin{aligned}
-	w_k^{(j)}&\propto\frac{\tilde{p}\left(x_k,i^{(j)}\:\middle|\:\mathbf{z}_{1:k}\right)}{\tilde{q}\left(x_k,i^{(j)}\:\middle|\:\mathbf{z}_{1:k}\right)}\\
+	w_k^{(j)}&\propto\frac{\tilde{p}\left(x_k^{(j)},i^{(j)}\:\middle|\:\mathbf{z}_{1:k}\right)}{\tilde{q}\left(x_k^{(j)},i^{(j)}\:\middle|\:\mathbf{z}_{1:k}\right)}\\
 	&\propto\frac{\tilde{p}\left(z_k\:\middle|\:x_k^{(j)}\right)\:\tilde{p}\left(x_k^{(j)}\:\middle|\:x_{k-1}^{\left(i^{(j)}\right)}\right)\:w_{k-1}^{\left(i^{(j)}\right)}}{\tilde{p}\left(z_k\:\middle|\:a_k^{\left(i^{(j)}\right)}\right)\:\tilde{p}\left(x_k^{(j)}\:\middle|\:x_{k-1}^{\left(i^{(j)}\right)}\right)\:w_{k-1}^{\left(i^{(j)}\right)}}\\
 	&\propto\frac{\tilde{p}\left(z_k\:\middle|\:x_k^{(j)}\right)}{\tilde{p}\left(z_k\:\middle|\:a_k^{\left(i^{(j)}\right)}\right)}
 	\end{aligned}
@@ -269,30 +269,30 @@ The full APF pseudo-code is given in \Cref{alg:APF}.
 \begin{algorithm}[!htb]
 	\begin{algorithmic}
 	\State{$\forall i\in[\![1,N]\!],\:a_k^{(i)}\sim p\left(\cdot\:\middle|\:x_{k-1}^{(i)}\right)$}\Comment{Auxiliary propagation}
-	\State{$\forall i\in[\![1,N]\!],\:\tilde{v}_k^{(i)}\propto w_{k-1}^{(i)}\:\tilde{p}\left(z_k\:\middle|\:a_k^{(i)}\right)$}\Comment{Auxiliary update}
+	\State{$\forall i\in[\![1,N]\!],\:\tilde{v}_k^{(i)}=w_{k-1}^{(i)}\:\tilde{p}\left(z_k\:\middle|\:a_k^{(i)}\right)$}\Comment{Auxiliary update}
 	\State{$\displaystyle\forall i\in[\![1,N]\!],\:v_k^{(i)}=\left.\tilde{v}_k^{(i)}\middle/\sum_{j=1}^N\tilde{v}_k^{(j)}\right.$}\Comment{Normalisation}
 	\State{$\left\{-,-,i^{(j)}\right\}_{j=1}^N=\operatorname{Resampling}\left(\left\{a_k^{(i)},v_k^{(i)}\right\}_{i=1}^N\right)$}\Comment{Resampling}
 	\State{$\forall j\in[\![1,N]\!],\:x_k^{(j)}\sim p\left(\cdot\:\middle|\:x_{k-1}^{\left(i^{(j)}\right)}\right)$}\Comment{Particle propagation}
-	\State{$\forall j\in[\![1,N]\!],\:\tilde{w}_k^{(j)}\propto\dfrac{\tilde{p}\left(z_k\:\middle|\:x_k^{(j)}\right)}{\tilde{p}\left(z_k\:\middle|\:a_k^{\left(i^{(j)}\right)}\right)}$}\Comment{Weight update}
+	\State{$\forall j\in[\![1,N]\!],\:\tilde{w}_k^{(j)}=\dfrac{\tilde{p}\left(z_k\:\middle|\:x_k^{(j)}\right)}{\tilde{p}\left(z_k\:\middle|\:a_k^{\left(i^{(j)}\right)}\right)}$}\Comment{Weight update}
 	\State{$\displaystyle\forall j\in[\![1,N]\!],\:w_k^{(j)}=\left.\tilde{w}_k^{(j)}\middle/\sum_{i=1}^N\tilde{w}_k^{(i)}\right.$}\Comment{Normalisation}
 	\end{algorithmic}\caption{Auxiliary Particle Filter}\label{alg:APF}
 \end{algorithm}
 
 \begin{remark}[Comparison between the RPF and the APF]
-	Both the RPF and the APF aim to alleviate the degeneracy and impoverishment problems of the standard PF, but they target different sources:
+	Both the RPF and the APF aim to improve on the standard PF, but they target different problems:
 	\begin{itemize}
-		\item The RPF restores diversity through kernel density estimation, addressing the severe impoverishment caused by near-deterministic dynamics. It is therefore suited to low evolution noise scenarios.
+		\item The RPF restores diversity through kernel density estimation, addressing the severe impoverishment caused by near-deterministic dynamics. It is therefore suited to scenarios where the evolution noise is typically small compared to the spread of the particle set.
 		\item The APF instead pre-selects promising parents from the incoming observation. It is preferred when the observation noise is small, since a peaked likelihood triggers a significant single-step weight degeneracy.
 	\end{itemize}
 
-	These preferences are rules of thumb rather than theoretical results, and the APF's pre-selection also degrades under strong evolution noise. Acting at different stages, both filters are ultimately complementary rather than exclusive.
+	These preferences are rules of thumb rather than theoretical results, and the APF's pre-selection also degrades when the evolution noise is large compared to the width of the likelihood, as the auxiliary particles would poorly represent the future particle set. Acting at different stages, both filters are ultimately complementary rather than exclusive.
 \end{remark}
 
 \subsection{Rao-Blackwellised Particle Filter}
 
 The marginalised particle filter \cite{bib:MPF}, also known as the Rao-Blackwellised particle filter (RBPF) \cite{bib:Rao-Blackwellisation,bib:RBPF}, reduces the dimension of the state space explored by the particle filter by exploiting a partial linear-Gaussian structure in the state-space model. Suppose that the state can be decomposed as:
 \begin{equation}
-	x_k=\left[x_k^n,x_k^l\right]
+	x_k=\begin{bmatrix}x_k^n\\x_k^l\end{bmatrix}
 \end{equation}
 such that \eqref{eq:navigation_problem} is linear and Gaussian in $x_k^l$ conditionally on $x_k^n$. The navigation system can be rewritten as:
 \begin{equation}
@@ -367,7 +367,7 @@ In full generality, a standard RBPF is computed in five steps:
 \begin{itemize}
 	\item\textbf{Particle propagation.} The non-linear state is propagated according to the proposal density:
 	\begin{equation}
-		{x_k^n}^{(i)}\sim q\left(\cdot\:\middle|\:{\mathbf{x}_{0:k-1}^n}^{(i)},\mathbf{z}_{1:k}\right)\label{eq:RBPF_propagation}
+		x_k^{n(i)}\sim q\left(\cdot\:\middle|\:\mathbf{x}_{0:k-1}^{n(i)},\mathbf{z}_{1:k}\right)\label{eq:RBPF_propagation}
 	\end{equation}
 	\item\textbf{Kalman pre-correction.} The previous linear state is corrected according to the Kalman equations applied to $(S_1)$:
 	\begin{align}

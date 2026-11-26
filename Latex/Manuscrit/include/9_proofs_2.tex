@@ -54,7 +54,7 @@ Since $\kappa$ is uniformly continuous on the compact $\Omega\times\Omega$, $\ma
 \begin{equation}
 	\psi_i=\lambda_i^{-1}\mathcal{K}\psi_i
 \end{equation}
-is continuous. Without loss of generality, it must be noted that the $\psi_i$ associated with a zero eigenvalue do not contribute to \eqref{eq:Mercer} and may thus be dismissed.
+is continuous. The $\psi_i$ associated with a zero eigenvalue do not contribute to \eqref{eq:Mercer} and may thus be dismissed.
 
 Since $(\psi_i)_{i\in\mathbb{N}^*}$ completed with the dismissed eigenfunctions is an orthonormal basis of $\mathcal{L}^2(\Omega,\mathbb{R}^{d_z})$, the family $(\psi_i\:\psi_j^\top)_{i,j\in\mathbb{N}^*}$ completed likewise is an orthonormal basis of $\mathcal{F}$. Let $\langle\cdot\mid\cdot\rangle_{\Omega\times\Omega}$ denote:
 \begin{equation}
@@ -134,7 +134,7 @@ together with \eqref{eq:reduced_rank_lemma} yields:
 \begin{equation}
 	\begin{aligned}
 	\mathbf{R}_{\mathrm{SK}}&=\kappa(x,x)+\mathbf{R}-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}(\tilde{\mathbf{x}})^{-1}\kappa(\tilde{\mathbf{x}},x)\\
-	&\approx\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top+\mathbf{R}-\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}\times\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top\\
+	&\approx\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top+\mathbf{R}-\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})^\top \mathbf{A}^{-1}\boldsymbol{\Psi}(\tilde{\mathbf{x}})\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top\\
 	&=\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top+\mathbf{R}-\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\left(\tilde{\mathbf{G}}(\tilde{\mathbf{x}})-\boldsymbol{\Lambda}^{-1}\right)\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top\\
 	&=\boldsymbol{\Psi}(x)\:\boldsymbol{\Lambda}\:\boldsymbol{\Psi}(x)^\top+\mathbf{R}-\boldsymbol{\Psi}(x)\left(\boldsymbol{\Lambda}-\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\right)\boldsymbol{\Psi}(x)^\top\\
 	&=\mathbf{R}+\boldsymbol{\Psi}(x)\:\tilde{\mathbf{G}}(\tilde{\mathbf{x}})^{-1}\boldsymbol{\Psi}(x)^\top

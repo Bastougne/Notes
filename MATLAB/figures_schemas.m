@@ -13,8 +13,13 @@
 % canvas 348/298 times its included width renders MATLAB's fontsize 14 at the 12 pt
 % of the body text. Each figure declares the fraction of \textwidth it is included
 % at, and changing that fraction in the LaTeX means changing it here too.
+%
+% SLIDE VERSIONS (2026-11-22). Called by figures_soutenance.m with the diapo structure
+% in its workspace, the script also draws the slide version of the AK window, at the
+% size Latex/Soutenance/main.tex includes it and with text at diapo.fs. The manuscript
+% figures then go to diapo.controle, where figures_soutenance compares them with Images/.
 
-clearvars; close all; clc;
+clearvars -except diapo; close all; clc;
 
 %% Shared parameters
 textwidth = 425;                 % pt, measured on the class
@@ -23,6 +28,10 @@ fontsize  = 14;
 linewidth = 1;
 root      = fileparts(fileparts(mfilename('fullpath')));
 img_dir   = fullfile(root, 'Images');
+en_diapo  = exist('diapo', 'var') && isstruct(diapo);
+if en_diapo
+    img_dir = diapo.controle;
+end
 
 canvas = @(frac) oversize * frac * textwidth;
 
@@ -58,11 +67,27 @@ droite = struct('lam', [0.030 0.012], 'theta', 25, 'n_min', 12, 'r_min', 1.95);
 fig = new_figure(w_ak, h_ak);
 
 panneau(0.030, [], gauche, chi2, alpha, pas, jitter, fontsize, linewidth, ...
-        red, blue, grey, 'a');
+        red, blue, grey);
 panneau(0.520, [], droite, chi2, alpha, pas, jitter, fontsize, linewidth, ...
-        red, blue, grey, 'b');
+        red, blue, grey);
 
 save_pdf(fig, 'Construction de la fenêtre AK', w_ak, h_ak, img_dir);
+
+% THE SLIDE VERSION, under the block of the AK slide, at the 0.7\textwidth main.tex
+% includes it at, and 95 pt high, what the block leaves above the bottom of the page.
+% The same two panels from the same draw, hence the second rng(7). The squares are half
+% the size they have in the manuscript, so the crosses and the centre shrink by 0.6 to
+% keep the survey readable; the particles keep their dots, already the smallest mark.
+if en_diapo
+    w_d = 0.7 * diapo.textwidth;  h_d = 95;
+    rng(7);
+    fig = new_figure(w_d, h_d);
+    panneau(0.030, 0.6, gauche, chi2, alpha, pas, jitter, diapo.fs, linewidth, ...
+            red, blue, grey);
+    panneau(0.520, 0.6, droite, chi2, alpha, pas, jitter, diapo.fs, linewidth, ...
+            red, blue, grey);
+    save_pdf(fig, 'Construction de la fenêtre AK', w_d, h_d, diapo.img);
+end
 
 %% Trois estimateurs ponctuels
 % One posterior and three point estimates, drawn to carry the fact that opens
@@ -141,7 +166,7 @@ save_pdf(fig, 'Trois estimateurs ponctuels', w_es, h_es, img_dir);
 w_ap  = canvas(1.00);
 H     = 0.590;                       % the height of the page, in units of its width
 h_ap  = H * w_ap;
-src   = fullfile(img_dir, 'sources');
+src   = fullfile(root, 'Images', 'sources');   % not img_dir, which a slide run redirects
 pouce = textwidth / 72;              % the printed width of the figure, in inches
 cible = @(w) round(300 * w * pouce);
 lw_fl = 1.6;                         % the arrows carry the drawing, so they are heavier
@@ -229,9 +254,11 @@ end
 fprintf('Written to %s\n', img_dir);
 
 %% Local functions
-function panneau(left, ~, par, chi2, alpha, pas, jitter, fs, lw, red, blue, grey, tag)
+function panneau(left, ech, par, chi2, alpha, pas, jitter, fs, lw, red, blue, grey)
 % One panel of the AK window figure, in an axes of its own occupying the left half or
-% the right half of the page. Data units are survey spacings throughout.
+% the right half of the page. Data units are survey spacings throughout. ech scales the
+% crosses and the centre, [] leaving them at the manuscript's size.
+    if isempty(ech), ech = 1; end
     ax = axes('Units', 'normalized', 'Position', [left 0.02 0.45 0.96]);
     hold on; axis equal off;
 
@@ -258,9 +285,9 @@ function panneau(left, ~, par, chi2, alpha, pas, jitter, fs, lw, red, blue, grey
     % Retained points first as filled discs, so the crosses read on top of them.
     garde = vecnorm(P) <= r;
     plot(P(1, ~garde), P(2, ~garde), 'x', 'Color', [0.55 0.55 0.55], ...
-         'MarkerSize', 5, 'LineWidth', 0.8*lw);
+         'MarkerSize', 5*ech, 'LineWidth', 0.8*lw);
     plot(P(1, garde), P(2, garde), 'x', 'Color', 'k', ...
-         'MarkerSize', 6, 'LineWidth', 1.3*lw);
+         'MarkerSize', 6*ech, 'LineWidth', 1.3*lw);
 
     plot(X(1, :), X(2, :), '.', 'Color', blue, 'MarkerSize', 4);
     plot(el(1, :), el(2, :), '-', 'Color', grey, 'LineWidth', lw);
@@ -270,7 +297,7 @@ function panneau(left, ~, par, chi2, alpha, pas, jitter, fs, lw, red, blue, grey
         plot(r_cov*cos(t), r_cov*sin(t), ':', 'Color', red, 'LineWidth', lw);
     end
     plot(r*cos(t), r*sin(t), '-', 'Color', red, 'LineWidth', 1.4*lw);
-    plot(0, 0, '+', 'Color', red, 'MarkerSize', 8, 'LineWidth', 1.2*lw);
+    plot(0, 0, '+', 'Color', red, 'MarkerSize', 8*ech, 'LineWidth', 1.2*lw);
 
     % Each radius drawn as a segment, so that its name sits on a length rather than
     % beside a curve. When r_min governs, both are named: the reader has to see that
@@ -280,9 +307,6 @@ function panneau(left, ~, par, chi2, alpha, pas, jitter, fs, lw, red, blue, grey
     if par.r_min > r_cov
         rayon(par.r_min, 295, '$r_{\min,k}$', fs, lw, red);
     end
-
-    text(0, -demi*0.90, ['(' tag ')'], 'Interpreter', 'latex', ...
-         'FontSize', fs, 'HorizontalAlignment', 'center');
     hold off;
 end
 

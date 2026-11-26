@@ -24,11 +24,10 @@
 % d'une figure à l'autre et la police apparente avec elle. À 348 x 280 points inclus à
 % 0.7\textwidth, une police de 14 pt en donne 12,0 dans le manuscrit.
 %
-% LA VERSION DIAPO DE LA SOUTENANCE (2026-11-08) du krigeage 3D sort du même code quand
-% figures_soutenance.m appelle ce script avec la structure diapo : même page à l'échelle
-% près, à la largeur où Latex/Soutenance/main.tex l'insère, graduations à diapo.fs. Les
-% figures du manuscrit partent alors dans diapo.controle, où figures_soutenance les compare
-% à celles d'Images/.
+% PLUS DE VERSION DIAPO depuis le 2026-11-22 : la soutenance montre les exemples 2D, et non
+% plus le krigeage 3D. Quand figures_soutenance.m appelle ce script avec la structure
+% diapo, les figures du manuscrit partent dans diapo.controle, où figures_soutenance les
+% compare à celles d'Images/ ; le script ne trace rien d'autre.
 
 clearvars -except diapo; close all; clc;
 rng(123456789);                  % reproductibilité de la partie krigée
@@ -141,16 +140,6 @@ fprintf('\nMoyenne estimée m_ok = %.2f sur %d échantillons\n', m_ok, n_train);
 figure_krigeage_3d(P1, P2, f_star, Z_ok, S_ok, X_train, z_train, z_lim, ...
                    linewidth, fontsize, alpha_band, alpha_field, pdf_w, pdf_h, ...
                    vector_pdf, img_dir);
-if en_diapo
-    % Colonne de droite de la diapo du krigeage, à 0.37\textwidth, la page du manuscrit
-    % réduite au tiers. Les croix passent de 8 à 5 pt, et le maillage de la moyenne krigée
-    % à 21 lignes par côté au lieu de 60 : à cette taille, ses lignes seraient espacées de
-    % 1,5 pt et couvriraient la surface de rouge.
-    w_d = 0.37 * diapo.textwidth;  h_d = w_d * pdf_h / pdf_w;
-    figure_krigeage_3d(P1, P2, f_star, Z_ok, S_ok, X_train, z_train, z_lim, ...
-                       linewidth, diapo.fs, alpha_band, alpha_field, w_d, h_d, ...
-                       vector_pdf, diapo.img, struct('croix', 5, 'maillage', 21));
-end
 
 %% ------------------------------------------------------------ fonctions locales
 

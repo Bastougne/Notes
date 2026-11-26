@@ -18,7 +18,7 @@ with the exception that $h_k$ is unknown, and the observation noise is additive 
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=\textwidth]{../../Images/Schéma de l'application krigeage.pdf}
-	\caption{The navigation problem for this chapter, applied to magnetic anomaly-aided navigation. At each time step, the observation model is reconstructed by kriging the training data and fed into a particle filter. While all available data could be used, more refined selection strategies are explored in \cref{sec:AK_PF,sec:window_shape}.}\label{fig:kriging_overview}
+	\caption{The navigation problem of this chapter, applied to magnetic anomaly-aided navigation. At each time step, the observation model is reconstructed by kriging the training data and fed into a particle filter. While all available data could be used, more refined selection strategies are explored in \cref{sec:AK_PF,sec:window_shape}.}\label{fig:kriging_overview}
 \end{figure}
 
 In our scenarios, the observation function describes the measurement of a physical field, assumed time-invariant, by an embedded sensor at each time step. The observation $z_k$ thus carries the field measurement alone, the inertial information entering through the evolution function $f_k$, and no other sensor is assumed available. Furthermore, we assume that the environment has been sampled beforehand, whether during a previous reconnaissance mission, or using a known but deteriorated map. GP regression has already been used to build magnetic maps from such samples, both indoors \cite{bib:magnetic-GP,bib:magnetic-interpolation} and at a regional scale \cite{bib:KED-geomagnetic}. This is formally modelled by \Cref{th:kriging_navigation_assumptions}.
@@ -34,7 +34,7 @@ In our scenarios, the observation function describes the measurement of a physic
 \end{assumption}
 
 \begin{remark}[Time-varying observation function]
-	In full generality, the observed physical field could vary over time, and so the underlying GP would need to include a temporal input. While the kriging theory perfectly works with this additional parameter, it would require the training data to be sampled over time as well as space.
+	In full generality, the observed physical field could vary over time, and so the underlying GP would need to include a temporal input. While the kriging theory still applies with this additional input, it would require the training data to be sampled over time as well as space.
 \end{remark}
 
 This chapter is organised as follows:
@@ -47,7 +47,7 @@ This chapter is organised as follows:
 
 \section{Kriging the Observation Model}\label{sec:kriging_PF}
 
-Using \Cref{th:kriging_navigation_assumptions}, the likelihood can be expressed as \cite{bib:GP-BayesFilters,bib:magnetic-GP-PF}:
+Using \Cref{th:kriging_navigation_assumptions} and \Cref{th:simple_kriging_conditional,th:kriging_vague_prior}, the likelihood can be expressed as \cite{bib:GP-BayesFilters,bib:magnetic-GP-PF}:
 \begin{equation}
 	z_k\mid x_k,\tilde{\mathbf{z}}\sim\mathcal{N}\left(\hat{z}_{\mathrm{K}}(x_k,\tilde{\mathbf{x}},\tilde{\mathbf{z}};m,g),\mathbf{R}_{\mathrm{K}}(x_k,\tilde{\mathbf{x}};g)\right)\label{eq:kriged_likelihood}
 \end{equation}
@@ -70,7 +70,7 @@ and $\zeta_\varepsilon(x_k)$ corresponds to the impact of the training noise:
 \end{equation}
 which is linear in $\tilde{\mathbf{z}}-h(\tilde{\mathbf{x}})$, every kriging estimator being affine in its training observations.
 
-While $\varepsilon_k$ is drawn at each time step, $\zeta_h$ and $\zeta_\varepsilon$ are functions of the position, drawn once with the training data and the field, and fixed throughout the mission.
+While $\varepsilon_k$ is drawn at each time step, $\zeta_h$ and $\zeta_\varepsilon$ are functions of the state, drawn once with the training data and the field, and fixed throughout the mission.
 
 Given a candidate trajectory, the observations are jointly Gaussian:
 \begin{equation}
@@ -126,7 +126,7 @@ and contains $h(x)$ with probability $\operatorname{erf}(3/\sqrt{2})\approx99.73
 	\centering
 	\includegraphics[width=0.49\textwidth]{../../Images/Exemple de krigeage universel 2D.pdf}
 	\includegraphics[width=0.49\textwidth]{../../Images/Exemple de krigeage universel à mauvaise base 2D.pdf}
-	\caption{Universal kriging over an affine trend basis, on the left, and over a degree five monomial basis, on the right. The trend coefficients are estimated here at $\hat{m}_{\mathrm{UK}}=[9.78,0.15]^\top$ and $\hat{m}_{\mathrm{UK}}=[4.95,15.85,-10.82,2.40,-0.20,0.01]^\top$ respectively.}\label{fig:universal_kriging_2D}
+	\caption{Universal kriging over an affine trend basis, on the left, and over a degree $5$ monomial basis, on the right. The trend coefficients are estimated here at $\hat{m}_{\mathrm{UK}}=[9.78,0.15]^\top$ and $\hat{m}_{\mathrm{UK}}=[4.95,15.85,-10.82,\allowbreak 2.40,-0.20,0.01]^\top$ respectively.}\label{fig:universal_kriging_2D}
 \end{figure}
 
 While it is the computationally simplest estimator, the SK estimator relies heavily on the prior knowledge of the mean function $m$, and poorly represents the true function in regions with a lower density of training points when that knowledge is wrong. This is particularly apparent in the gap within the training points distribution, and outside the sampled region.
@@ -179,9 +179,9 @@ This table confirms the trend observed in the ARMSE results, as the average conf
 
 Furthermore, it must be noted that both SK confidence intervals are the same, showing that simple kriging is unable to account for an incorrectly specified prior mean. Both present a half-width of $9.05$ in the gap, well inside the sampled range, although their ARMSE differ by a factor of three. This issue is particularly relevant in autonomous navigation scenarios, as a poorly informed SK estimator will be overconfident, resulting in skewed likelihood peaks. This, in turn, may lead to relevant particles being discarded while incorrect ones are retained, and so simple kriging is set aside.
 
-Conversely, the degree $5$ UK estimator fails by trying to fit six trend coefficients to only seven training points. Outside the sampled range, the mean becomes highly uncertain, and accounts for an average of $94.5\%$ of the total covariance. Unlike simple kriging, the UK estimator propagates this uncertainty to its confidence interval, whose half-width reaches $320.03$. From a computational point of view, universal kriging requires $\tilde{N}\geq r_{\mathrm{UK}}$, where we recall that $r_{\mathrm{UK}}\in\mathbb{N}^*$ is the number of trend functions used for kriging. This causes the matrix $g(\tilde{\mathbf{x}})^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$ to become ill-conditioned when the training set is too small relative to the number of trend functions.
+Conversely, the degree $5$ UK estimator fails by trying to fit six trend coefficients to only seven training points. Outside the sampled range, the mean becomes highly uncertain, and accounts for an average of $94.5\%$ of the total covariance. Unlike simple kriging, the UK estimator propagates this uncertainty to its confidence interval, whose half-width reaches $320.03$. From a computational point of view, universal kriging requires $\tilde{N}\geq r_{\mathrm{UK}}$, where we recall that $r_{\mathrm{UK}}\in\mathbb{N}^*$ is the number of trend functions used for kriging. The matrix $g(\tilde{\mathbf{x}})^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})$ also becomes ill-conditioned when the training set is too small relative to the number of trend functions.
 
-Furthermore, every estimator requires the $\mathcal{O}(\tilde{N}^3)$ inversion of $\mathbf{G}(\tilde{\mathbf{x}})$ once, after which, solving any related system costs $\mathcal{O}(\tilde{N}^2)$. Simple kriging thus requires an additional $\mathcal{O}(\tilde{N}^2)$ at each query point. Estimating the mean amounts to solving $r_{\mathrm{UK}}d_z$ equations, which costs $\mathcal{O}(r_{\mathrm{UK}}\:\tilde{N}^2)$ once and $\mathcal{O}(r_{\mathrm{UK}}\:\tilde{N})$ per query. The inversion of $g(\tilde{\mathbf{x}})^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})$ does not depend on $\tilde{N}$, and is negligible as soon as $r_{\mathrm{UK}}d_z\ll\tilde{N}$. \Cref{tab:kriging_cost} gives the computational cost of each estimator in floating-point operations (flop), for $\tilde{N}\in\{7,100,1600\}$.
+Furthermore, every estimator requires the $\mathcal{O}(\tilde{N}^3)$ inversion of $\mathbf{G}(\tilde{\mathbf{x}})$ once, after which, solving any related system costs $\mathcal{O}(\tilde{N}^2)$. Simple kriging thus requires an additional $\mathcal{O}(\tilde{N}^2)$ at each query point. Estimating the mean amounts to solving $r_{\mathrm{UK}}d_z$ such systems, which costs $\mathcal{O}(r_{\mathrm{UK}}\:\tilde{N}^2)$ once and $\mathcal{O}(r_{\mathrm{UK}}\:\tilde{N})$ per query. The inversion of $g(\tilde{\mathbf{x}})^\top \mathbf{G}(\tilde{\mathbf{x}})^{-1}g(\tilde{\mathbf{x}})\in\mathcal{S}_{r_{\mathrm{UK}}d_z}^{++}(\mathbb{R})$ does not depend on $\tilde{N}$, and is negligible as soon as $r_{\mathrm{UK}}d_z\ll\tilde{N}$. \Cref{tab:kriging_cost} gives the computational cost of each estimator in floating-point operations (flop), for $\tilde{N}\in\{7,100,1600\}$.
 
 \begin{table}[!htb]
 	\centering\input{include/kriging_cost.tex}
@@ -225,7 +225,7 @@ Since the logarithm is increasing, the maximum likelihood estimators of $m$ and 
 	\left(\hat{m}_{\mathrm{ML}},\hat{\theta}_{\mathrm{ML}}\right)\triangleq\underset{m\in\mathbb{R}^{d_z},\:\theta\in\Theta}{\operatorname{argmax}}\left\{L(m,\theta)\right\}\label{eq:MLE_problem}
 \end{equation}
 
-\Cref{th:MLE} gives the derivatives of $L$, and shows that the mean can be eliminated from \eqref{eq:MLE_problem}.
+\Cref{th:MLE} recalls the derivatives of $L$, and how the mean can be eliminated from \eqref{eq:MLE_problem}.
 
 \begin{proposition}[Maximum likelihood hyperparameters]\label{th:MLE}
 	Let $m\in\mathbb{R}^{d_z}$ and $\theta\in\Theta$. The derivatives of the log-likelihood are:
@@ -283,7 +283,7 @@ According to \Cref{th:MLE}, the maximum likelihood estimator of the mean is the 
 \begin{equation}
 	\hat{m}_{\mathrm{ML}}=\hat{m}_{\mathrm{OK}}\left(\tilde{\mathbf{x}},\tilde{\mathbf{z}};\hat{\theta}_{\mathrm{ML}}\right)
 \end{equation}
-and \eqref{eq:MLE_problem} reduces to a maximisation over $\theta$ alone. However, the derivatives of $L$ with respect to the hyperparameters cannot be cancelled analytically in general, and so $\hat{\theta}_{\mathrm{ML}}$ is computed by a gradient ascent.
+and \eqref{eq:MLE_problem} reduces to a maximisation over $\theta$ alone. However, the derivatives of $L$ with respect to the hyperparameters cannot be set to zero analytically in general, and so $\hat{\theta}_{\mathrm{ML}}$ is computed by a gradient ascent.
 
 To ensure that the hyperparameters remain strictly positive, as the Matérn kernels of \Cref{th:Matérn} require, this ascent is performed on their logarithm, with a step size $\tau>0$. Since the derivative of $L$ with respect to $\ln\theta_i$ is $\theta_i$ times its derivative with respect to $\theta_i$, each hyperparameter is multiplied by a positive factor at each iteration. One iteration of the resulting algorithm is presented by \Cref{alg:MLE}.
 
@@ -338,13 +338,13 @@ and its propagation is degraded with a Gaussian white noise of covariance matrix
 	0&0&0&1^2
 	\end{bmatrix}
 \end{equation}
-whose position and velocity entries are respectively expressed in $\text{m}^2$ and $\text{m}^2\text{s}^{-2}$. The positions can be extracted from the state by:
+whose position and velocity entries are respectively expressed in $\text{m}^2$ and $\text{m}^2\text{s}^{-2}$. Without any observation, $\mathbf{Q}_k$ brings the standard deviation of each position coordinate to about $5.4$ km at the end of the flight, which corresponds to the characteristic drift of a tactical grade inertial unit \cite{bib:inertial-grades}. The field depends only on the positions, extracted from the state by:
 \begin{equation}
 	\forall k\in\mathbb{N},\:\begin{bmatrix}
 	p_k^{(x)}&p_k^{(y)}
 	\end{bmatrix}^\top=\boldsymbol{\Pi}_{\mathrm{pos}}\:x_k
 \end{equation}
-where $\boldsymbol{\Pi}_{\mathrm{pos}}$ is projection matrix onto the position subspace:
+where $\boldsymbol{\Pi}_{\mathrm{pos}}$ is the projection matrix onto the position subspace:
 \begin{equation}
 	\boldsymbol{\Pi}_{\mathrm{pos}}\triangleq\begin{bmatrix}
 	1&0&0&0\\
@@ -368,7 +368,7 @@ The considered filters use the following evolution equation:
 \end{equation}
 where $u_k$ is the commanded acceleration, set to match the true trajectory.
 
-The observation function is the scalar ($d_z=1$) ordinary kriging of the magnetic anomaly field, conditioned on the $\tilde{N}$ training points, and degraded by a Gaussian white noise of covariance $\mathbf{R}_k=5^2$ $(\text{nT})^2$. The chosen kernel is a Matérn kernel with smoothness $\nu=3/2$, which corresponds to the smallest half-integer for which the field and the kriging mean are mean-square differentiable, and its hyperparameters are estimated as described in \cref{sec:HP_estimation}. A bilinear estimation of observation function on the same samples is also used as comparison.
+The observation function is the scalar ($d_z=1$) ordinary kriging of the magnetic anomaly field, conditioned on the $\tilde{N}$ training points, and degraded by a Gaussian white noise of covariance $\mathbf{R}_k=5^2$ $(\text{nT})^2$, which models the residual of a magnetometer compensated for the disturbances of its platform \cite{bib:magnetic-compensation,bib:these-Gnadt}. The chosen kernel is a Matérn kernel with smoothness $\nu=3/2$, which corresponds to the smallest half-integer for which the field and the kriging mean are mean-square differentiable, and its hyperparameters are estimated as described in \cref{sec:HP_estimation}. A bilinear estimation of the observation function on the same samples is also used for comparison.
 
 The filter is an RPF, initialised on a cloud of $N=5000$ particles, drawn around a point itself drawn from $\mathcal{N}(x_0,\mathbf{P}_0)$, with:
 \begin{equation}
@@ -402,18 +402,18 @@ in the same units, to prevent the particle cloud from being centred on the true 
 		&Speed&$500$ m/s\\\cline{2-3}
 		&$\Delta_t$&$5$ s\\\cline{2-3}
 		&$N_\mathrm{steps}$&$150$\\\hline
-		\multirow{3}{*}{State}&$d_x$&$4$\\\cline{2-3}
+		\multirow{4}{*}{State}&$d_x$&$4$\\\cline{2-3}
 		&$x_k$&$\left[p_k^{(x)},p_k^{(y)},\dot{p}_k^{(x)},\dot{p}_k^{(y)}\right]^\top$\rule[-4mm]{0pt}{11mm}\\\cline{2-3}
-		&$\mathbf{Q}_k$&$100^2\text{ m}^2$, $1^2\text{ m}^2\text{s}^{-2}$\\\hline
+		&$\mathbf{Q}_k$&$100^2\text{ m}^2$, $1^2\text{ m}^2\text{s}^{-2}$\\\cline{2-3}
+		&$\mathbf{P}_0$&$8000^2\text{ m}^2$, $2^2\text{ m}^2\text{s}^{-2}$\\\hline
 		\multirow{4}{*}{Observation}&$d_z$&$1$\\\cline{2-3}
 		&Function&OK or bilinear\\\cline{2-3}
 		&Kriging kernel&Matérn, $\nu=3/2$\\\cline{2-3}
 		&$\mathbf{R}_k$&$5^2$ $(\text{nT})^2$\\\hline
-		\multirow{5}{*}{Filter}&Filter&RPF\\\cline{2-3}
+		\multirow{4}{*}{Filter}&Filter&RPF\\\cline{2-3}
 		&$N$&$5000$\\\cline{2-3}
 		&$N_\mathrm{th}$&$0.5\:N$\\\cline{2-3}
-		&$\alpha_{\mathrm{RPF}}$&$0.3$\\\cline{2-3}
-		&$\mathbf{P}_0$&$8000^2\text{ m}^2$, $2^2\text{ m}^2\text{s}^{-2}$\\\hline
+		&$\alpha_{\mathrm{RPF}}$&$0.3$\\\hline
 	\end{tabular}
 	\caption{Simulation parameters for the navigation scenario. For improved readability, covariance matrices are represented by their diagonal coefficients only.}\label{tab:scenario}
 \end{table}
@@ -439,7 +439,7 @@ Each configuration is run over $N_\mathrm{MC}=1000$ Monte Carlo realisations, re
 	must remain under the $99\%$ quantile of a $\chi^2$ law with $d_x$ degrees of freedom, written $\chi_{d_x}^2(99\%)$. Here, $\hat{x}_k^{(i)}$ and $\hat{\mathbf{P}}_k^{(i)}$ are the state and error covariance estimated by the $i$-th filter at time $k$, and $x_k$ is the corresponding true state. While this criterion follows the property of a Gaussian error, it primarily assesses the consistency between the estimation error and the uncertainty reported by the filter. Consequently, a filter with a large estimation error may still satisfy this criterion if it reports a sufficiently large uncertainty.
 \end{itemize}
 
-Similarly, the performance of the compared approach at each time step is read through two quantities:
+Similarly, the performance of the compared approaches at each time step is read through two quantities:
 \begin{itemize}
 	\item The estimation RMSE, defined as:
 	\begin{equation}
@@ -499,7 +499,7 @@ It must also be noted that the NEES for bilinear interpolation rises sharply aro
 
 Static kriging also reacts to the maximum roughness, as the map is less accurately interpolated there. From $\Delta_g=4.5$ km onward, its RMSE rises slightly and locally around $k=46$ before returning to its previous level after.
 
-In terms of convergence rates, \Cref{fig:erreur_maille} starts by extracting the relevant median errors from the previous curves, and \Cref{fig:convergence_maille} computes the associated convergence rates using the two metrics introduced at the beginning of this section.
+In terms of convergence rates, \Cref{fig:erreur_maille} starts by extracting the relevant median errors from the previous curves, and \Cref{fig:convergence_maille} computes the associated convergence rates using the two metrics introduced in \cref{sec:scenario}.
 
 \begin{figure}[!p]
 	\centering\includegraphics[width=\textwidth]{../../Images/Erreur finale par maille.pdf}
@@ -513,7 +513,7 @@ In terms of convergence rates, \Cref{fig:erreur_maille} starts by extracting the
 
 \Cref{fig:erreur_maille} shows that the bilinear-to-kriging error ratio ranges from $1.4$ to $1.9$, and increases to $9$ to $56$ for the NEES. Furthermore, while the error ratio tends to decrease at larger grid resolutions, the NEES ratio follows the opposite trend. Bilinear interpolation thus completely fails to measure its accuracy at larger resolutions, while kriging degrades in step with its announced accuracy.
 
-The convergence rates follow the same pattern. Under the threshold criterion, the rate for kriging decreases from $100\%$ to $60\%$ as the grid resolution grows, while that of bilinear interpolation decreases from $99$ to $42\%$. The two thus remain comparable. For the Mahalanobis criterion, however, kriging only falls to $81\%$ while bilinear interpolation collapses to $1\%$, having lost every run whose reported uncertainty is consistent with its error.
+The convergence rates follow the same pattern. Under the threshold criterion, the rate for kriging decreases from $100\%$ to $60\%$ as the grid resolution grows, while that of bilinear interpolation decreases from $99$ to $42\%$. The two thus remain comparable. For the Mahalanobis criterion, however, kriging only falls to $81\%$ while bilinear interpolation collapses to $1\%$.
 
 However, the advantages of kriging come at increased computational and memory costs, as described by \Cref{tab:cout_maille}.
 
@@ -522,4 +522,4 @@ However, the advantages of kriging come at increased computational and memory co
 	\caption{Memory and computational costs of the navigation algorithm using the known map, bilinear interpolation, or static kriging. Since the cost of kriging depends on the number of training data, one row is assigned per grid resolution.}\label{tab:cout_maille}
 \end{table}
 
-While the setup cost can be paid before the mission, the vehicle must still be able to store between $3.67$ and $312$ MB of data, and sustain an average computational rate of $0.46$ to $38.9$ Gflop/s over the navigation period. These requirements remain affordable at larger grid resolutions, but these configurations result in poor navigation performance, as shown above. Reducing the grid resolution improves navigation accuracy, but quickly leads to prohibitive storage and computational requirements.
+While the setup cost can be paid before the mission, the vehicle must still be able to store between $3.67$ and $312$ MB of data, and sustain an average computational rate of $0.46$ to $38.9$ Gflop/s over the navigation period. These requirements remain affordable at larger grid resolutions, but these configurations result in poor navigation performance, as shown above. Reducing the grid resolution improves navigation accuracy, but multiplies these requirements by $85$ between the coarsest and the finest grid.

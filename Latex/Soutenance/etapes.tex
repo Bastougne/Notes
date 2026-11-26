@@ -1,0 +1,62 @@
+\pgfdeclarelayer{fond}
+\pgfsetlayers{fond,main}
+\begin{tikzpicture}[
+	x=2.25cm, y=-1.4cm,
+	methode/.style={draw=structure.fg, fill=structure.fg!8, rounded corners=2pt, text width=1.7cm, minimum height=8mm, align=center, inner sep=1pt, font=\small},
+	fleche/.style={-stealth, thick, structure.fg},
+	enjeu/.style={circle, shade, shading=ball, ball color=structure.fg, text=white, inner sep=0pt, minimum size=2.2ex},
+	groupe/.style={draw=structure.fg!60, densely dashed, rounded corners=4pt, overlay},
+	contribution/.style={draw=structure.fg, thick, fill=structure.fg!18, rounded corners=4pt, overlay},
+]
+	% Navigation
+	\node[methode] (auto) at (0,0) {Autonomous navigation};
+	\node[methode] (ins)  at (0,1) {Inertial navigation};
+	\node[methode] (bay)  at (1,1) {Bayesian estimation};
+	\node[methode] (gnss) at (1,2) {GNSS navigation};
+	\node[methode] (fan)  at (2,2) {Field-aided navigation};
+	% Filtrage
+	\node[methode] (kf)   at (1,0) {Kalman filter};
+	\node[methode] (sis)  at (2,0) {SIS};
+	\node[methode] (pf)   at (3,0) {Generic PF};
+	\node[methode] (rpf)  at (4,0) {RPF};
+	% Krigeage
+	\node[methode] (hp)   at (3,2) {HP\\estimation};
+	\node[methode] (sk)   at (3,1) {(Simple) kriging};
+	\node[methode] (uk)   at (4,1) {Universal kriging};
+	\node[methode] (ok)   at (4,2) {Ordinary kriging};
+	% Krigeage adaptatif
+	\node[methode] (kpf)  at (4,3) {Kriging-based RPF};
+	\node[methode] (rs)   at (4,4) {(Random) subsampling};
+	\node[methode] (ak)   at (3,4) {AK-RPF};
+	\node[methode] (nnak) at (3,3) {NNAK-RPF};
+	\node[methode] (cak)  at (3,5) {ICAK-RPF MCAK-RPF};
+	\node[methode] (sub)  at (4,5) {Error bounds};
+
+	% Groupes, tracés avant les flèches qui les traversent
+	\draw[groupe] ([xshift=-3pt, yshift=-3pt]kf.south west) rectangle ([xshift=3pt, yshift=3pt]rpf.north east);
+	\draw[groupe] ([xshift=-3pt, yshift=-3pt]hp.south west) rectangle ([xshift=3pt, yshift=3pt]uk.north east);
+	\begin{pgfonlayer}{fond}
+		\draw[contribution] ([xshift=-3pt, yshift=-3pt]cak.south west) rectangle ([xshift=3pt, yshift=3pt]kpf.north east);
+	\end{pgfonlayer}
+
+	\draw[fleche] (auto) -- (ins);
+	\draw[fleche] (ins)  -- node[enjeu, above=1pt] {\scalebox{0.8}{1}} (bay);
+	\draw[fleche] (bay)  -- (gnss);
+	\draw[fleche] (gnss) -- node[enjeu, above=1pt] {\scalebox{0.8}{2}} (fan);
+	\draw[fleche] (bay)  -- (kf);
+	\draw[fleche] (kf)   -- node[enjeu, above=1pt] {\scalebox{0.8}{3}} (sis);
+	\draw[fleche] ([xshift=-10pt]fan.north) -- node[enjeu, left=1pt] {\scalebox{0.8}{4}} ([xshift=-10pt]sis.south);
+	\draw[fleche] (sis)  -- node[enjeu, above=1pt] {\scalebox{0.8}{7}} (pf);
+	\draw[fleche] (pf)   -- node[enjeu, above=1pt] {\scalebox{0.8}{8}} (rpf);
+	\draw[fleche, rounded corners=2pt] ([xshift=10pt]fan.north) |- node[enjeu, above=1pt, pos=0.75] {\scalebox{0.8}{5}} (sk.west);
+	\draw[fleche] (sk)   -- node[enjeu, right=1pt] {\scalebox{0.8}{9}} (hp);
+	\draw[fleche] (sk)   -- node[enjeu, above=1pt] {\scalebox{0.8}{10}} (uk);
+	\draw[fleche] (uk)   -- node[enjeu, right=1pt] {\scalebox{0.8}{11}} (ok);
+	\draw[fleche] (ok)   -- (kpf);
+	\draw[fleche, overlay, rounded corners=2pt] (rpf.east) -- ++(10pt,0) |- (kpf.east);
+	\draw[fleche] (kpf)  -- node[enjeu, right=1pt] {\scalebox{0.8}{12}} (rs);
+	\draw[fleche] (rs)   -- node[enjeu, right=1pt] {\scalebox{0.8}{16}} (sub);
+	\draw[fleche] (rs)   -- node[enjeu, above=1pt] {\scalebox{0.8}{13}} (ak);
+	\draw[fleche] (ak)   -- node[enjeu, right=1pt] {\scalebox{0.8}{14}} (nnak);
+	\draw[fleche] (ak)   -- node[enjeu, right=1pt] {\scalebox{0.8}{15}} (cak);
+\end{tikzpicture}

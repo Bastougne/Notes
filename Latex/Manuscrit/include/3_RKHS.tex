@@ -1,6 +1,6 @@
 \section{Reproducing Kernel Hilbert Spaces}\label{sec:RKHS}
 
-Beyond regression, the covariance kernel also induces a functional Hilbert space, known as a reproducing kernel Hilbert space (RKHS) \cite{bib:Aronszajn,bib:RKHS-Dumbgen}. The RKHS representation is complementary to the probabilistic viewpoint described throughout this chapter. Indeed, while the GP describes a probabilistic distribution over functions, the RKHS associated with its covariance kernel provides a deterministic functional space in which their estimates can be represented, manipulated, or approximated. For the sake of simplicity, we assume that $d_z=1$, so that the reproducing property can be written in its most natural form.
+Beyond regression, the covariance kernel also induces a functional Hilbert space, known as a reproducing kernel Hilbert space (RKHS) \cite{bib:Aronszajn,bib:RKHS-Dumbgen}. The RKHS representation is complementary to the probabilistic viewpoint described throughout this chapter. Indeed, while the GP describes a probability distribution over functions, the RKHS associated with its covariance kernel provides a deterministic functional space in which their estimates can be represented, manipulated, or approximated. For the sake of simplicity, we assume that $d_z=1$, so that the reproducing property can be written in its most natural form.
 
 \subsection{Reproducing Property and Definition}
 
@@ -277,7 +277,7 @@ Beyond evaluating functions inside $\mathcal{H}_\kappa$, the feature map can als
 	\end{equation}
 \end{definition}
 
-Since \eqref{eq:KME} integrates a function taking its values in $\mathcal{H}_\kappa$, its existence is not granted. \Cref{th:KME_existence} gives a sufficient condition \cite{bib:RKHS-Dumbgen}, which every bounded kernel satisfies.
+Since \eqref{eq:KME} integrates a function taking its values in $\mathcal{H}_\kappa$, its existence is not guaranteed. \Cref{th:KME_existence} gives a sufficient condition \cite{bib:RKHS-Dumbgen}, which every bounded kernel satisfies.
 
 \begin{proposition}[Existence of the KME]\label{th:KME_existence}
 	If $\mathbb{E}_p\left[\sqrt{\kappa(X,X)}\right]<\infty$, then $\mu_X$ is well defined, as the unique element of $\mathcal{H}_\kappa$ for which \eqref{eq:KME_expectation} holds for all $\varphi\in\mathcal{H}_\kappa$. Moreover:

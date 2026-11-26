@@ -236,16 +236,7 @@ vol = S.scen.x_true(1:2, :) / 1e3;                    % km
 
 fig = figure_carte(x_km, y_km, h_map, srv_km, vol, carte_w, carte_h, carte_font, linewidth);
 exporter(fig, 'Carte anomalie magnetique', carte_w, carte_h, img_dir);
-if en_diapo
-    % Colonne de gauche de la diapo du scenario, inseree a 0.47\textwidth. La carte, carree,
-    % y est limitee par la largeur : 100 pt de haut lui suffisent, et la barre de couleur,
-    % haute comme les axes, ne la depasse plus. A cette taille la barre est si pres de la
-    % carte que le 200 de l'abscisse passait dessous : les graduations s'arretent a 150.
-    w_d = 0.47 * diapo.textwidth;  h_d = 100;
-    fig = figure_carte(x_km, y_km, h_map, srv_km, vol, w_d, h_d, diapo.fs, linewidth);
-    set(findobj(fig, 'Type', 'axes'), 'XTick', 50:50:150);
-    exporter(fig, 'Carte anomalie magnetique', w_d, h_d, diapo.img);
-end
+% Pas de version diapo : la diapo du scenario insere la carte du manuscrit (2026-11-22).
 
 %% La rugosite locale du champ le long du vol
 %
@@ -637,13 +628,14 @@ fig = duo({'Position error (m)', 'Normalised error squared'}, FIN, ...
           {'Median over the last ten steps,', 'then over the $N_\mathrm{MC}$ runs'}, true);
 exporter(fig, 'Erreur finale par maille', textwidth, 230, img_dir);
 if en_diapo
-    % Au-dessus du bloc de la diapo, insere a 0.85\textwidth.
-    w_d = 0.85 * diapo.textwidth;  h_d = 120;
-    fig = deal_duo(pas, FIN(:, ordre_leg, :), {'Position error (m)', 'Normalised error squared'}, ...
-                   {'Median over the last ten steps,', 'then over the $N_\mathrm{MC}$ runs'}, ...
-                   true, etiq(ordre_leg), w_d, diapo.fs, linewidth);
-    ajuster_diapo(fig, w_d, h_d);
-    exporter(fig, 'Erreur finale par maille', w_d, h_d, diapo.img);
+    % LA DIAPO DE LA PRECISION, en une figure de trois cases sous une seule legende
+    % (2026-11-22) : l'erreur de carte de la section de l'ARMSE, puis les deux erreurs
+    % finales. Elle remplace la version diapo de cette figure-ci. Inseree a \textwidth, sur
+    % toute la hauteur que laissent le titre de la diapo et les logos.
+    w_d = diapo.textwidth;  h_d = 200;
+    fig = precision_diapo(pas, ARMSE, FIN(:, ordre_leg, :), etiq(ordre_leg), w_d, h_d, ...
+                          diapo.fs, linewidth);
+    exporter(fig, 'Precision par maille', w_d, h_d, diapo.img);
 end
 
 
@@ -902,23 +894,63 @@ for s = 1:size(etapes, 1)
     % LES VERSIONS DIAPO DES GRILLES. Les six cases tiennent sur une diapo de reserve pleine
     % largeur pour le bilineaire et pour l'eclairci. L'AK contre le statique passe en
     % diapo principale, ou six cases seraient illisibles : la RMSE et la NEES cote a cote,
-    % a la maille de 7,5 km que cite la diapo. SANS LE MAXIMUM DE RUGOSITE pour l'instant
-    % (NaN) : il est entre au manuscrit le 19 novembre, et les diapos se decident ailleurs.
+    % a la maille de 7,5 km que cite la diapo. LE MAXIMUM DE RUGOSITE ET NON PLUS LE PREMIER
+    % VIRAGE depuis le 2026-11-23 (« afficher le 1er tournant n'a pas d'interet, eventuellement
+    % varrho_max ») : le meme trait que le manuscrit, etiquete a l'horizontale.
     if en_diapo && any(s == [1 2])
         w_d = diapo.textwidth;  h_d = 190;
-        grille(kk, kk, CRB(:, :, sel), pas, cles, '$\mathrm{RMSE}_{\hat{x}}(k)$ (m)', false, [], k_vir, ...
-               NaN, w_d, h_d, diapo.fs, linewidth, diapo.img, ['RMSE ' etapes{s, 2}], true);
+        grille(kk, kk, CRB(:, :, sel), pas, cles, '$\mathrm{RMSE}_{\hat{x}}(k)$ (m)', false, [], NaN, ...
+               k_rug, w_d, h_d, diapo.fs, linewidth, diapo.img, ['RMSE ' etapes{s, 2}], true);
         if s == 1
             grille(kk, kd, CNE(:, :, sel), pas, cles, '$\mathrm{NEES}_{\hat{x}}(k)$', true, [bas haut], NaN, ...
-                   NaN, w_d, h_d, diapo.fs, linewidth, diapo.img, ['NEES ' etapes{s, 2}]);
+                   k_rug, w_d, h_d, diapo.fs, linewidth, diapo.img, ['NEES ' etapes{s, 2}], true);
         end
     end
-    if en_diapo && s == 3
-        ip = find(abs(pas - 7.5) < 1e-9, 1);
-        w_d = diapo.textwidth;  h_d = 115;
-        fig = paire_diapo(kk, kd, CRB(:, ip, sel), CNE(:, ip, sel), cles, [bas haut], k_vir, ...
-                          w_d, h_d, diapo.fs, linewidth);
-        exporter(fig, 'RMSE et NEES adaptatif', w_d, h_d, diapo.img);
+    % LA DIAPO COMMUNE DU SOUS-ECHANTILLONNAGE (2026-11-22, Bastien) : la soutenance presente
+    % les fenetres non spheriques avant les resultats, puis tous les resultats ensemble.
+    % L'eclairci, l'AK et ses trois variantes sur une meme paire de cases, contre le statique
+    % et la carte connue, a la maille de 7,5 km que citent les diapos. Elle remplace « RMSE
+    % et NEES adaptatif », qui n'opposait que l'AK au statique. Sortie avec la derniere
+    % etape, la seule ou toutes les courbes sont deja assemblees.
+    if en_diapo && s == size(etapes, 1)
+        sel_d = [1 3 6 4 7 5 8];       % connue, statique, RS, AK, NNAK, ICAK, MCAK
+        ip    = find(abs(pas - 7.5) < 1e-9, 1);
+        w_d   = diapo.textwidth;  h_d = 200;   % seule sur sa diapo, comme la precision
+        fig   = paire_diapo(kk, kd, CRB(:, ip, sel_d), CNE(:, ip, sel_d), cand(sel_d, 1)', ...
+                            [bas haut], k_rug, w_d, h_d, diapo.fs, linewidth);
+        exporter(fig, 'RMSE et NEES sous-echantillonnage', w_d, h_d, diapo.img);
+
+        % LE COUT DE TOUTES CES METHODES, EN DEUX POSTES, pour la diapo de convergence et de
+        % cout. Un total par methode le 22 novembre (Bastien), quand la diapo portait encore
+        % trois blocs ; detaille le 23 (« peut-on detailler le tableau ? »), en krigeage d'un
+        % cote et tout le reste reuni de l'autre (« tu peux combiner HP et clustering/NN ») :
+        % le detail du manuscrit en treize colonnes faisait 389 pt pour 307. Voir
+        % ecrire_cout_diapo. Sans la carte connue, qui ne krige rien. Ecrit a cote de main.tex,
+        % que la soutenance \input.
+        sel_c  = sel_d(2:end);
+        noms_c = cell(1, numel(sel_c));
+        for im = 1:numel(sel_c), [~, ~, noms_c{im}] = style_modele(cand{sel_c(im), 1}); end
+        fid = fopen(fullfile(fileparts(diapo.img), 'cout_sous_echantillonnage.tex'), 'w', 'n', 'UTF-8');
+        fprintf(fid, ['%% Generated by figures_campagnes.m, do not edit by hand.\n' ...
+                      '%% Analytic flop counts per run, not timings, for %d particles over %d steps:\n' ...
+                      '%% kriging (factorisation and queries), then for the adaptive methods the rest\n' ...
+                      '%% gathered, HP for the local hyperparameter fits plus the mean-shift of the\n' ...
+                      '%% ICAK and the MCAK (clust.) or the neighbour search of the NNAK (NN).\n\n'], ...
+                par.mc.n_part, par.mc.n_steps);
+        ecrire_cout_diapo(fid, sel_c, noms_c, cand(sel_c, 1)', CGP, pas);
+        fclose(fid);
+
+        % LES TAUX DE CONVERGENCE DE CES MEMES METHODES (2026-11-23, « juste le tableau et une
+        % figure de taux de convergence »), au-dessus du tableau de cout comme sur la diapo
+        % du krigeage statique : seuil et Mahalanobis contre la maille, par deal_duo. Pleine
+        % largeur, et 120 pt de haut : a 140, le tableau passe par Bastien en \footnotesize
+        % touchait les logos (« reduis un peu la hauteur », 23/11) ; a 120, environ 4 mm les
+        % en separent. A 110 pt, avec le tableau en \scriptsize, 35 pt restaient vides.
+        w_c = diapo.textwidth;  h_c = 120;
+        fig = deal_duo(pas, CCV(:, sel_d, :), {'Threshold', 'Mahalanobis'}, ...
+                       'Converged runs (\%)', false, cand(sel_d, 1)', w_c, diapo.fs, linewidth);
+        ajuster_diapo(fig, w_c, h_c);
+        exporter(fig, 'Convergence sous-echantillonnage', w_c, h_c, diapo.img);
     end
     % LES POINTS RETENUS AU COURS DU VOL, une case par maille, pour les seules series ou
     % plusieurs sous-echantillonnages se comparent : la carte connue et le bilineaire n'en
@@ -1561,12 +1593,13 @@ function ajuster_diapo(fig, pdf_w, pdf_h)
     set(findobj(fig, 'Type', 'line', '-not', 'Marker', 'none'), 'MarkerSize', 4);
 end
 
-function fig = paire_diapo(kk, kd, Yr, Yn, cles, bande, k_vir, pdf_w, pdf_h, fontsize, linewidth)
+function fig = paire_diapo(kk, kd, Yr, Yn, cles, bande, k_rug, pdf_w, pdf_h, fontsize, linewidth)
 % POUR LA SOUTENANCE : la RMSE et la NEES d'une seule maille cote a cote, la ou le manuscrit
 % les donne en deux grilles de six cases, illisibles sur une diapo. Yr et Yn sont (pas de
 % temps, modele) et cles donne la cle style_modele de chaque modele. Memes conventions que
-% grille() : la RMSE sur tous les pas, avec le premier virage, la NEES sur les pas kd, en
-% echelle log, avec la bande du chi2.
+% grille() : la RMSE sur tous les pas, la NEES sur les pas kd, en echelle log, avec la bande
+% du chi2, et dans les deux le maximum de rugosite k_rug, etiquete dans la premiere (le
+% premier virage jusqu'au 2026-11-23).
     n_it = numel(kk);
     fig  = figure('Color', 'w', 'Units', 'points', 'Position', [40 40 pdf_w pdf_h]);
     t    = tiledlayout(fig, 1, 2, 'TileSpacing', 'compact', 'Padding', 'compact');
@@ -1574,10 +1607,16 @@ function fig = paire_diapo(kk, kd, Yr, Yn, cles, bande, k_vir, pdf_w, pdf_h, fon
 
     ax = nexttile(t); hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on');
     for im = 1:numel(cles)
-        [c, l, leg{im}] = style_modele(cles{im});
-        plot(ax, kk, Yr(:, im), l, 'Color', c, 'LineWidth', linewidth);
+        [c, l, leg{im}, mk] = style_modele(cles{im});
+        h = plot(ax, kk, Yr(:, im), l, 'Color', c, 'LineWidth', linewidth);
+        % LE MARQUEUR CLAIRSEME DES GRILLES, depuis que la diapo commune porte le MCAK
+        % (2026-11-22) : un tous les vingt-quatre pas, comme dans grille().
+        if ~isempty(mk)
+            set(h, 'Marker', mk, 'MarkerSize', 3, 'MarkerFaceColor', 'none', ...
+                   'MarkerIndices', 1:24:n_it);
+        end
     end
-    marqueur(k_vir, fontsize, true, ax, true);
+    marqueur_rugosite(k_rug, fontsize, true, ax, true);
     hold(ax, 'off');
     y_ok = Yr(isfinite(Yr));
     xlim(ax, [1 n_it]);  ylim(ax, [0, 1.02 * max(y_ok)]);
@@ -1586,14 +1625,25 @@ function fig = paire_diapo(kk, kd, Yr, Yn, cles, bande, k_vir, pdf_w, pdf_h, fon
     lg = legend(ax, leg, 'Interpreter', 'latex', 'FontSize', fontsize, 'Orientation', 'horizontal');
     lg.ItemTokenSize = [18 18];
     lg.Layout.Tile   = 'north';
+    % SEPT COURBES NE TIENNENT PAS SUR UNE LIGNE de la largeur d'une diapo : deux lignes au-dela
+    % de quatre. La legende a ete un temps en colonne a droite, quand la diapo commune portait
+    % encore deux blocs sous la figure ; depuis qu'elle ne porte que la figure (2026-11-23,
+    % « juste la figure (en plus haute du coup) »), la hauteur ne manque plus et les cases
+    % gardent toute la largeur.
+    if numel(cles) > 4, lg.NumColumns = ceil(numel(cles) / 2); end
 
     ax = nexttile(t); hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on');
     fill(ax, [1 n_it n_it 1], [bande(1) bande(1) bande(2) bande(2)], ...
          [1 0.85 0.88], 'EdgeColor', 'none', 'FaceAlpha', 0.55, 'HandleVisibility', 'off');
     for im = 1:numel(cles)
-        [c, l] = style_modele(cles{im});
-        plot(ax, kk(kd), Yn(kd, im), l, 'Color', c, 'LineWidth', linewidth);
+        [c, l, ~, mk] = style_modele(cles{im});
+        h = plot(ax, kk(kd), Yn(kd, im), l, 'Color', c, 'LineWidth', linewidth);
+        if ~isempty(mk)
+            set(h, 'Marker', mk, 'MarkerSize', 3, 'MarkerFaceColor', 'none', ...
+                   'MarkerIndices', 1:8:numel(kd));
+        end
     end
+    marqueur_rugosite(k_rug, fontsize, false, ax);
     hold(ax, 'off');
     y_ok = Yn(kd, :);  y_ok = y_ok(isfinite(y_ok) & y_ok > 0);
     lim  = [min(0.5 * min(y_ok), 0.7 * bande(1)), max(2 * max(y_ok), 1.4 * bande(2))];
@@ -1643,11 +1693,82 @@ function fig = deal_duo(pas, Y, titres, ylab, logy, etiq, textwidth, fontsize, l
                         'Orientation', 'horizontal');
             lg.ItemTokenSize = [18 18];      % propriete cachee, que legend() refuse en argument
             lg.Layout.Tile   = 'north';
+            % Deux lignes au-dela de quatre methodes, comme dans paire_diapo (2026-11-23).
+            if numel(leg) > 4, lg.NumColumns = ceil(numel(leg) / 2); end
         end
     end
     % Le label commun est porte par la disposition et non par le panneau de gauche, ce qui
     % le centre sur les deux et accepte un tableau de lignes tel quel.
     ylabel(t, ylab, 'Interpreter', 'latex', 'FontSize', fontsize);
+    xlabel(t, 'Grid resolution (km)', 'Interpreter', 'latex', 'FontSize', fontsize);
+end
+
+function fig = precision_diapo(pas, ARMSE, Y, etiq, pdf_w, pdf_h, fontsize, linewidth)
+% POUR LA SOUTENANCE : l'erreur de carte et les deux erreurs finales en trois cases de meme
+% taille, sous une seule legende (2026-11-22). La diapo empilait jusque-la la figure de
+% l'ARMSE et celle de deal_duo, chacune avec sa legende et a sa propre echelle. Y est
+% (maille, modele, panneau) dans l'ordre de etiq, comme pour deal_duo ; ARMSE est
+% (maille, [bilineaire krigeage]), comme pour figure_armse. La carte connue n'a pas
+% d'erreur de carte : sa courbe manque a la premiere case, et la legende vient donc de la
+% deuxieme.
+%
+% EN TRIANGLE, pour remplir la diapo (« passe les en triangle ») : l'erreur de carte seule
+% en haut, au milieu, et les deux erreurs finales qu'elle explique cote a cote en dessous.
+% Une grille de deux lignes sur quatre colonnes, chaque case sur deux colonnes, garde les
+% trois cases de meme taille.
+%
+% PAS DE LABEL D'ORDONNEE : un label commun mentirait sur la case de la carte, et un label
+% sur une seule case elargirait tous les intervalles de la disposition. Le titre de chaque
+% case porte la grandeur et l'unite ; la double mediane des deux erreurs finales se dit a
+% l'oral. L'abscisse est nommee sous la case du haut, seule sur sa ligne, et une fois sous
+% la ligne du bas.
+    fig = figure('Color', 'w', 'Units', 'points', 'Position', [40 40 pdf_w pdf_h]);
+    t   = tiledlayout(fig, 2, 4, 'TileSpacing', 'compact', 'Padding', 'compact');
+    titres = {'Map error (nT)', 'Position error (m)', 'Normalised error squared'};
+    cases  = [2 5 7];                 % premiere colonne de chaque case
+    ms  = 4;                          % les marqueurs d'ajuster_diapo
+
+    % L'erreur de carte, en echelle lineaire comme au manuscrit. Le krigeage trace en
+    % dernier, comme dans figure_armse : les cercles des deux courbes se recouvrent.
+    ax = nexttile(t, cases(1), [1 2]); hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on');
+    [cb, lb] = style_modele('bilin');
+    [ck, lk] = style_modele('statique');
+    plot(ax, pas, ARMSE(:, 1), lb, 'Color', cb, 'Marker', 'o', 'MarkerSize', ms, 'LineWidth', linewidth);
+    plot(ax, pas, ARMSE(:, 2), lk, 'Color', ck, 'Marker', 'o', 'MarkerSize', ms, 'LineWidth', linewidth);
+    hold(ax, 'off');
+    title(ax, titres{1}, 'Interpreter', 'latex', 'FontSize', fontsize);
+    xlabel(ax, 'Grid resolution (km)', 'Interpreter', 'latex', 'FontSize', fontsize);
+    set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
+    xlim(ax, [min(pas) - 0.3, max(pas) + 0.3]);
+    % Une dizaine de nT de marge, a 10 nT pres : la case est basse, et MATLAB calait l'axe
+    % sur la valeur la plus petite, coupant en deux le premier marqueur du krigeage.
+    ylim(ax, [10 * floor(min(ARMSE(:)) / 10 - 0.2), 10 * ceil(max(ARMSE(:)) / 10 + 0.2)]);
+    yticks(ax, 0:20:200);
+
+    % Les deux erreurs finales, en echelle log, avec les marges et les graduations de deal_duo.
+    leg = cell(1, size(Y, 2));
+    for j = 1:2
+        ax = nexttile(t, cases(j + 1), [1 2]); hold(ax, 'on'); box(ax, 'on'); grid(ax, 'on');
+        for im = 1:size(Y, 2)
+            [c, l, leg{im}] = style_modele(etiq{im});
+            plot(ax, pas, Y(:, im, j), l, 'Color', c, 'Marker', 'o', 'MarkerSize', ms, ...
+                 'LineWidth', linewidth);
+        end
+        hold(ax, 'off');
+        y   = Y(:, :, j);  y = y(isfinite(y) & y > 0);
+        lim = [min(y) / 1.5, 1.5 * max(y)];
+        set(ax, 'YScale', 'log', 'YLim', lim, ...
+                'YTick', 10.^(ceil(log10(lim(1))) : floor(log10(lim(2)))));
+        title(ax, titres{j + 1}, 'Interpreter', 'latex', 'FontSize', fontsize);
+        set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
+        xlim(ax, [min(pas) - 0.3, max(pas) + 0.3]);
+        if j == 1
+            lg = legend(ax, leg, 'Interpreter', 'latex', 'FontSize', fontsize, ...
+                        'Orientation', 'horizontal');
+            lg.ItemTokenSize = [18 18];
+            lg.Layout.Tile   = 'north';
+        end
+    end
     xlabel(t, 'Grid resolution (km)', 'Interpreter', 'latex', 'FontSize', fontsize);
 end
 
@@ -1806,8 +1927,8 @@ function fig = grille(kk, kd, Y, pas, cles, ylab, logy, bande, k_vir, k_rug, pdf
 % Les six mailles tiennent en une grille plutot qu'en six flottants : la degradation se lit
 % d'une case a l'autre, ce qu'une figure isolee par maille ne montre pas.
 %
-% a_plat (soutenance, 2026-11-08), facultatif : l'etiquette du premier virage a
-% l'horizontale, voir marqueur.
+% a_plat (soutenance, 2026-11-08), facultatif : l'etiquette du premier virage et celle du
+% maximum de rugosite a l'horizontale, voir marqueur.
     if nargin < 17, a_plat = false; end
     n_it = size(Y, 1);
     % LES BORNES SUIVENT CE QUI EST TRACE, et non tous les pas : la NEES du bilineaire a un
@@ -1849,7 +1970,7 @@ function fig = grille(kk, kd, Y, pas, cles, ylab, logy, bande, k_vir, k_rug, pdf
         % etiquette chargerait la grille sans rien apprendre de plus. Le maximum de
         % rugosite de meme.
         marqueur(k_vir, fontsize, ip == 1, ax, a_plat);
-        marqueur_rugosite(k_rug, fontsize, ip == 1, ax);
+        marqueur_rugosite(k_rug, fontsize, ip == 1, ax, a_plat);
         hold(ax, 'off');
         title(ax, sprintf('$%.1f$ km', pas(ip)), 'Interpreter', 'latex', 'FontSize', fontsize);
         set(ax, 'TickLabelInterpreter', 'latex', 'FontSize', fontsize);
@@ -2016,21 +2137,27 @@ function marqueur(k_vir, fontsize, etiquette, ax, a_plat)
     uistack(xl, 'bottom');
 end
 
-function marqueur_rugosite(k_rug, fontsize, etiquette, ax)
+function marqueur_rugosite(k_rug, fontsize, etiquette, ax, a_plat)
 % LE MAXIMUM DE LA RUGOSITE LOCALE DU CHAMP (Bastien, 2026-11-19), au pas k_rug : le meme trait
 % sur la figure de rugosite et sur toutes les figures au cours du vol, pour que les sauts des
 % courbes s'y lisent contre lui. IL REMPLACE LE PREMIER VIRAGE dans les figures du manuscrit,
 % a sa demande le meme jour, et en reprend le tirete gris : un trait mixte, essaye d'abord
 % pour que les deux se distinguent, n'avait plus de raison d'etre une fois seul. L'etiquette
-% « max. rho_k » vient de lui. etiquette et ax comme dans marqueur ; NaN pour s'en passer.
+% « max. rho_k » vient de lui. etiquette, ax et a_plat comme dans marqueur ; NaN pour s'en
+% passer. DANS LES DIAPOS AUSSI depuis le 2026-11-23 (« afficher le 1er tournant n'a pas
+% d'interet, eventuellement varrho_max »), d'ou a_plat, que ses cases de 40 pt demandent.
     if nargin < 3, etiquette = true; end
     if nargin < 4, ax = gca; end
+    if nargin < 5, a_plat = false; end
     if isnan(k_rug), return, end
     txt = '';
     if etiquette, txt = 'max. $\varrho_k$'; end
     xl = xline(ax, k_rug, '--', txt, 'LineWidth', 0.75, 'Color', [0.4 0.4 0.4], ...
                'HandleVisibility', 'off', 'Interpreter', 'latex', 'FontSize', fontsize, ...
                'LabelVerticalAlignment', 'top', 'LabelHorizontalAlignment', 'right');
+    if a_plat
+        set(xl, 'LabelOrientation', 'horizontal');
+    end
     % Sous les courbes, mais AU-DESSUS DES APLATS : le maximum tombe dans la bande grise du
     % premier demi-tour, qui le cachait, et la bande du chi2 des NEES l'aurait pali.
     uistack(xl, 'bottom');
@@ -2048,6 +2175,63 @@ function n = n_colonnes(idx, sel_t, CGP)
             if any(CGP(:, sel_t(idx(a)), q) > 0), n = n + 1; end
         end
     end
+end
+
+function ecrire_cout_diapo(fid, sel_c, noms_c, cles_c, CGP, pas)
+% POUR LA SOUTENANCE (2026-11-23) : le cout de chaque methode en deux postes au plus, le
+% krigeage (factorisation et requetes) et tout le reste reuni, ajustement local des
+% hyperparametres plus clusterisation ou recherche des voisins (« tu peux combiner HP et
+% clustering/NN »). Le detail du manuscrit, treize colonnes, faisait 389 pt pour les 307 de
+% la diapo. Une methode qui ne paie que le krigeage tient en une colonne, son nom sur deux
+% lignes a cheval sur les deux lignes d'en-tete. « clust. » est l'abreviation que Bastien a
+% retenue le meme jour. Memes traits que ecrire_cout_tabular.
+    nm  = numel(sel_c);
+    un  = ~any(CGP(:, sel_c, 2:3) > 0, [1 3]);
+    lab = cell(1, nm);
+    for a = 1:nm
+        if ~any(CGP(:, sel_c(a), 3) > 0)
+            lab{a} = 'HP';
+        elseif strcmp(cles_c{a}, 'reunion')
+            lab{a} = 'HP + NN';
+        else
+            lab{a} = 'HP + clust.';
+        end
+    end
+    % Les lignes sont assemblees en texte et ecrites par '%s' : aucune sequence d'echappement
+    % de fprintf a doubler dans le LaTeX.
+    spec = '|c';  h1 = '\multirow{2}{*}{$\Delta_g$}';  h2 = '';  cl = '';  j = 1;
+    for a = 1:nm
+        if un(a)
+            spec = [spec '|c'];                                                %#ok<AGROW>
+            h1   = [h1 ' & \multirow{2}{*}{\shortstack{' strrep(noms_c{a}, ' ', '\\') '}}']; %#ok<AGROW>
+            h2   = [h2 ' &'];                                                  %#ok<AGROW>
+            j    = j + 1;
+        else
+            spec = [spec '|cc'];                                               %#ok<AGROW>
+            h1   = [h1 ' & \multicolumn{2}{c|}{' noms_c{a} '}'];               %#ok<AGROW>
+            h2   = [h2 ' & Kriging & ' lab{a}];                                %#ok<AGROW>
+            cl   = [cl sprintf('\\cline{%d-%d}', j + 1, j + 2)];               %#ok<AGROW>
+            j    = j + 2;
+        end
+    end
+    % 2,5 pt et non 3 : a 3 pt, le tableau depassait encore la diapo de 1,75 pt.
+    fprintf(fid, '%s\n', '{\setlength{\tabcolsep}{2.5pt}%');
+    fprintf(fid, '%s\n', ['\begin{tabular}{' spec '|}\hline']);
+    fprintf(fid, '%s\n', [h1 '\\' cl]);
+    fprintf(fid, '%s\n', [h2 '\\\hline']);
+    for ip = 1:numel(pas)
+        ligne = sprintf('$%.1f$ km', pas(ip));
+        for a = 1:nm
+            ligne = [ligne ' & ' flops_tex(CGP(ip, sel_c(a), 1))];             %#ok<AGROW>
+            if ~un(a)
+                ligne = [ligne ' & ' flops_tex(CGP(ip, sel_c(a), 2) + CGP(ip, sel_c(a), 3))]; %#ok<AGROW>
+            end
+        end
+        fprintf(fid, '%s\n', [ligne '\\']);
+    end
+    fprintf(fid, '%s\n', '\hline');
+    fprintf(fid, '%s\n', '\end{tabular}');
+    fprintf(fid, '%s\n', '}');
 end
 
 function ecrire_cout_tabular(fid, idx_m, sel_t, leg_t, cles_t, CGP, CGF, pas, postes, serre_force)

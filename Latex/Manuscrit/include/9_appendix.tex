@@ -30,7 +30,7 @@
 	\begin{equation}
 		\begin{bmatrix}u\\-\mathbf{D}^{-1}\mathbf{B}^\top u\end{bmatrix}^\top\begin{bmatrix}\mathbf{A}&\mathbf{B}\\\mathbf{B}^\top&\mathbf{D}\end{bmatrix}\begin{bmatrix}u\\-\mathbf{D}^{-1}\mathbf{B}^\top u\end{bmatrix}=u^\top\left(\mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{B}^\top\right)u>0
 	\end{equation}
-	by SPDness of the joint covariance, the left-hand vector being non-zero. $\mathbf{S}$ is thus also invertible, and we can apply the lower-right Schur inversion formula (see \Cref{th:Schur}) to obtain:
+	by SPDness of the joint covariance, the left-hand vector being non-zero. $\mathbf{S}$ is thus also invertible, and we can apply the lower-right Schur inversion formula (see \Cref{th:Schur_D}) to obtain:
 	\begin{equation}
 		\begin{aligned}
 			\begin{bmatrix}\bar{\mathbf{A}}&\bar{\mathbf{B}}\\\bar{\mathbf{C}}&\bar{\mathbf{D}}\end{bmatrix}&\triangleq\begin{bmatrix}\mathbf{A}&\mathbf{B}\\\mathbf{B}^\top&\mathbf{D}\end{bmatrix}^{-1}\\
@@ -64,7 +64,7 @@
 	\end{equation}
 	and covariance:
 	\begin{equation}
-		\mathbf{P}_{U|V}\triangleq \mathbf{S}=\mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{B}^\top\succ0
+		\mathbf{P}_{U|V}=\mathbf{S}=\mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{B}^\top\succ0
 	\end{equation}
 \end{proof}
 
@@ -150,7 +150,7 @@
 	so that $\mathbf{M}\bar{\mathbf{M}}=\mathbf{I}$. Since $\mathbf{M}$ is a square matrix, it is invertible with inverse $\bar{\mathbf{M}}$.
 \end{proof}
 
-\begin{remark}[Inversion with respect to $\mathbf{D}$]
+\begin{remark}[Inversion with respect to $\mathbf{D}$]\label{th:Schur_D}
 	If $\mathbf{D}$ is invertible, one can instead introduce the Schur complement with respect to $\mathbf{D}$:
 	\begin{equation}
 		\mathbf{M}/\mathbf{D}\triangleq \mathbf{A}-\mathbf{B}\mathbf{D}^{-1}\mathbf{C}
@@ -163,7 +163,7 @@
 \end{remark}
 
 \begin{remark}[Combining both formulations]
-	When both $\mathbf{A}$ and $\mathbf{D}$ are invertible, the Woodbury lemma proves that the two formulations give the same matrices for each block. In particular, they can be combined block by block at will.
+	When both $\mathbf{A}$ and $\mathbf{D}$ are invertible, the two formulations give the same matrices for each block. In particular, they can be combined block by block at will.
 \end{remark}
 
 \section{Woodbury Inversion Formula}

@@ -436,7 +436,7 @@ By definition of $\mathbf{M}_{\mathbf{B}}$, we have:
 	&\left(\mathbf{B}^{-1}+\mathbf{M}^{-1}\right)\mathbf{M}_{\mathbf{B}}=\mathbf{I}\\
 	\iff\quad&\mathbf{M}^{-1}\mathbf{M}_{\mathbf{B}}=\mathbf{I}-\mathbf{B}^{-1}\mathbf{M}_{\mathbf{B}}\\
 	\iff\quad&\mathbf{B}\:\mathbf{M}^{-1}\mathbf{M}_{\mathbf{B}}=\mathbf{B}-\mathbf{M}_{\mathbf{B}}
-	\end{aligned}
+	\end{aligned}\label{eq:M_B_identity}
 \end{equation}
 
 We also precompute:
@@ -477,7 +477,7 @@ For the covariance, we compute:
 	&\qquad \kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}g\:\mathbf{B}\:g(x)^\top+\mathbf{U}^\top(\mathbf{B}-\mathbf{M}_{\mathbf{B}})\:g(x)^\top
 	\end{aligned}
 \end{equation}
-and:
+where the last equality follows from the transpose of \eqref{eq:M_B_identity}, and:
 \begin{equation}
 	\begin{aligned}
 	g(x)\:\mathbf{B}\:g(x)^\top-\kappa(x,\tilde{\mathbf{x}})\:\mathbf{G}^{-1}g\:\mathbf{B}\:g(x)^\top&=\mathbf{U}^\top \mathbf{B}\:g(x)^\top
@@ -592,7 +592,7 @@ For the conditional kernel, let $x'\in\Omega$. For the sake of clarity, we now l
 	\bar{\mathbf{G}}_{\mathbf{B}}\triangleq\begin{bmatrix}\mathbf{G}&g\\g^\top&-\mathbf{B}^{-1}\end{bmatrix}
 \end{equation}
 
-Its Schur complement with respect to $-\mathbf{B}^{-1}$ is $\mathbf{G}+g\:\mathbf{B}\:g^\top=\mathbf{G}_{\mathbf{B}}$, which is SPD. The lower-right Schur inversion formula (see \Cref{th:Schur}) thus gives:
+Its Schur complement with respect to $-\mathbf{B}^{-1}$ is $\mathbf{G}+g\:\mathbf{B}\:g^\top=\mathbf{G}_{\mathbf{B}}$, which is SPD. The lower-right Schur inversion formula (see \Cref{th:Schur_D}) thus gives:
 \begin{equation}
 	\bar{\mathbf{G}}_{\mathbf{B}}^{-1}=\begin{bmatrix}\mathbf{G}_{\mathbf{B}}^{-1}&\mathbf{G}_{\mathbf{B}}^{-1}g\:\mathbf{B}\\\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}&-\mathbf{B}+\mathbf{B}\:g^\top \mathbf{G}_{\mathbf{B}}^{-1}g\:\mathbf{B}\end{bmatrix}
 \end{equation}

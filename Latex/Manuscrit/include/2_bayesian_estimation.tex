@@ -51,7 +51,7 @@ This thesis focuses on the filtering problem. The rest of this chapter is organi
 
 \section{State Estimation}\label{sec:state_estimation}
 
-The first issue to tackle is to define precisely the meaning of ``best estimator'' of $\varphi(x_k)$ given $\mathbf{z}_{1:k}$ \cite{bib:Bayesian-estimators}. Formally, given a functional metric space $(\mathcal{F},\rho)$, it amounts to finding a measurable function $\psi\in\mathcal{F}$ that minimises the expected loss:
+The first issue to tackle is to define precisely the meaning of `best estimator' of $\varphi(x_k)$ given $\mathbf{z}_{1:k}$ \cite{bib:Bayesian-estimators}. Formally, given a space of functions $\mathcal{F}$ and a distance $\rho$ between random variables, it amounts to finding a measurable function $\psi\in\mathcal{F}$ that minimises the expected loss:
 \begin{equation}
 	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}\{\rho(\psi(\mathbf{z}_{1:k}),\varphi(x_k))\}\label{eq:loss_function_with_k}
 \end{equation}
@@ -76,13 +76,13 @@ Let:
 \begin{equation}
 	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)\:\middle|\:\mathbb{E}\left[\|\psi(Z)\|^2\right]<\infty\right\}
 \end{equation}
-To simplify the notation, we identify each estimator $\psi\in\mathcal{F}$ with the random variable $\psi(Z)$ it produces. Under this identification, $\mathcal{F}$ is equal to $\mathcal{L}^2\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)$ taken with respect to the law of $Z$, and can be equipped with the inner product:
+To simplify the notation, we identify each estimator $\psi\in\mathcal{F}$ with the random variable $\psi(Z)$ it produces. Under this identification, $\mathcal{F}$ is equal to $\mathcal{L}^2\left(\mathbb{R}^{d_z},\mathbb{R}^{d_{\varphi}}\right)$ taken with respect to the law of $Z$, and can be equipped with the inner product, defined for any square-integrable $\mathbb{R}^{d_{\varphi}}$-valued random variables $A$ and $B$:
 \begin{equation}
-	(A,B)\in\mathcal{F}^2\mapsto\langle A\mid B\rangle\triangleq\mathbb{E}\left[A(Z)^\top B(Z)\right]
+	(A,B)\mapsto\langle A\mid B\rangle\triangleq\mathbb{E}\left[A^\top B\right]
 \end{equation}
 where $\mathbb{E}[X]$ denotes the expectation of the random variable $X$.
 
-Let $\|\cdot\|$ be the norm associated with $\langle\cdot\mid\cdot\rangle$. When $\varphi(X)$ is square-integrable, that is $\mathbb{E}\left[\|\varphi(X)\|^2\right]<\infty$, the minimisation problem \eqref{eq:loss_function} is equivalent to:
+Let $\|\cdot\|$ and $\rho$ be the norm and the distance associated with $\langle\cdot\mid\cdot\rangle$. When $\varphi(X)$ is square-integrable, that is $\mathbb{E}\left[\|\varphi(X)\|^2\right]<\infty$, the minimisation problem \eqref{eq:loss_function} is equivalent to:
 \begin{equation}
 	\underset{\psi\in\mathcal{F}}{\operatorname{argmin}}\left\{\mathbb{E}\left[\|\psi(Z)-\varphi(X)\|^2\right]\right\}\label{eq:MMSE_problem}
 \end{equation}
@@ -146,9 +146,9 @@ Because the MMSE estimator minimises a quadratic loss, it is highly sensitive to
 	\mathcal{F}\triangleq\left\{\psi\in\mathcal{L}^0\left(\mathbb{R}^{d_z},\mathbb{R}\right)\:\middle|\:\mathbb{E}[|\psi(Z)|]<\infty\right\}
 \end{equation}
 
-As previously, $\mathcal{F}$ is identified as a subspace of $\mathcal{L}^1\left(\mathbb{R}^{d_z},\mathbb{R}\right)$, and is equipped with the following non-Euclidean distance:
+As previously, $\mathcal{F}$ is identified as a subspace of $\mathcal{L}^1\left(\mathbb{R}^{d_z},\mathbb{R}\right)$, and is equipped with the following non-Euclidean distance, defined for any integrable real-valued random variables $A$ and $B$:
 \begin{equation}
-	(A,B)\in\mathcal{F}^2\mapsto\rho(A,B)\triangleq\mathbb{E}[|A(Z)-B(Z)|]
+	(A,B)\mapsto\rho(A,B)\triangleq\mathbb{E}[|A-B|]
 \end{equation}
 
 The minimisation problem \eqref{eq:loss_function} thus becomes:
@@ -224,9 +224,9 @@ since the normalising constant $p_Z(z)$ is independent of $u$.
 Although the MAP estimator avoids low-density regions, it still reduces the posterior to a single point. In particular, in multimodal situations, only one mode is retained, while the remaining ones are discarded.
 
 \begin{remark}[MAP optimisation problem]
-	The MAP estimator can be seen as the solution of an optimisation problem of the form \eqref{eq:loss_function}, associated with the threshold loss:
+	The MAP estimator can be seen as the solution of an optimisation problem of the form \eqref{eq:loss_function}, associated with the threshold loss, defined for any $\mathbb{R}^{d_{\varphi}}$-valued random variables $A$ and $B$:
 	\begin{equation}
-		\forall\epsilon>0,\:(A,B)\in\mathcal{F}^2\mapsto\rho_\epsilon(A,B)\triangleq\mathbb{E}\left[\mathbbm{1}_{\|A(Z)-B(Z)\|>\epsilon}\right]
+		\forall\epsilon>0,\:(A,B)\mapsto\rho_\epsilon(A,B)\triangleq\mathbb{E}\left[\mathbbm{1}_{\|A-B\|>\epsilon}\right]
 	\end{equation}
 	in the limit $\epsilon\to0^+$:
 	\begin{equation}
@@ -348,10 +348,10 @@ In particular, the state-space model \eqref{eq:navigation_problem} becomes:
 	\end{aligned}\right.\label{eq:navigation_Kalman}
 \end{equation}
 
-Finally, $x_0$, $(\eta_k)_{k\geq0}$ and $(\varepsilon_k)_{k\geq0}$ are assumed to be mutually independent. Under these assumptions, the true state $x_k$ follows a Gaussian distribution at each time step as an affine transformation of Gaussian random variables.
+Under the Kalman assumptions, the true state $x_k$ follows a Gaussian distribution at each time step as an affine transformation of Gaussian random variables.
 
 \begin{proposition}[Gaussian closure under affine assumptions]\label{th:Kalman}
-	For $m,n\in\mathbb{N}$, let the index $m|n$ denote ``at time $m$ conditioned on the observations from $1$ to $n$''. Under the hypotheses of \eqref{eq:Kalman_assumptions}, if $p(x_{k-1}\mid\mathbf{z}_{1:k-1})=\mathcal{N}\left(\hat{x}_{k-1|k-1},\mathbf{P}_{k-1|k-1}\right)$, then:
+	For $m,n\in\mathbb{N}$, let the index $m|n$ denote `at time $m$ conditioned on the observations from $1$ to $n$'. Under the hypotheses of \eqref{eq:Kalman_assumptions}, if $p(x_{k-1}\mid\mathbf{z}_{1:k-1})=\mathcal{N}\left(\hat{x}_{k-1|k-1},\mathbf{P}_{k-1|k-1}\right)$, then:
 	\begin{equation}
 		\left\{\begin{aligned}
 		p(x_k\mid\mathbf{z}_{1:k-1})&=\mathcal{N}\left(\hat{x}_{k|k-1},\mathbf{P}_{k|k-1}\right)\\
@@ -430,7 +430,7 @@ where $\mathbf{J}_f(a)\in\mathcal{M}_{m,n}(\mathbb{R})$ is the Jacobian matrix o
 	\dfrac{\partial f^{(m)}}{\partial x^{(1)}}&\cdots&\cdots&\dfrac{\partial f^{(m)}}{\partial x^{(n)}}
 	\end{bmatrix}
 \end{equation}
-and $f^{(i)}$ and $x^{(j)}$ respectively denote the $i$-th and $j$-th component of $f$ and $x$.
+and $f^{(i)}$ and $x^{(j)}$ respectively denote the $i$-th and $j$-th components of $f$ and $x$.
 
 Assuming that the noises remain additive:
 \begin{equation}
@@ -464,6 +464,8 @@ While less restrictive than the standard Kalman filter, the EKF is suboptimal fo
 
 \subsection{Other Suboptimal Kalman Filters}
 
+The EKF admits several refinements, which reduce its first two limitations. We first present the iterated and higher-order EKF, designed to lessen the linearisation error, then the unscented and ensemble Kalman filters, which require no derivative of $f_k$ and $h_k$.
+
 \subsubsection{Iterated and Higher-Order EKF}
 
 The iterated EKF (IEKF) \cite{bib:IEKF} improves upon the EKF correction step by iteratively re-linearising $h_k$ around successive state estimates within the same measurement update, while keeping the prediction step unchanged. Starting from the initialisation $\hat{x}_{k|k}^{(0)}=\hat{x}_{k|k-1}$, each iteration produces a new $\hat{x}_{k|k}^{(i)}$ by repeating the correction step from the predicted state, with $h_k$ linearised around the latest estimate. This is done until:
@@ -495,7 +497,7 @@ For a function $\varphi$, the first and second moments of $\varphi(X)$ can then 
 	\end{aligned}\right.
 \end{equation}
 
-This procedure is known as the unscented transform \cite{bib:unscented}, and is applied twice per time step by the UKF. It is first used with $\mu=\hat{x}_{k-1|k-1}$, $\mathbf{P}=\mathbf{P}_{k-1|k-1}$ and $\varphi=f_k$ to compute the predicted state, then with $\mu=\hat{x}_{k|k-1}$, $\mathbf{P}=\mathbf{P}_{k|k-1}$ and $\varphi=h_k$ to obtain the predicted observation and thus the innovation. In both cases, $\mathbf{Q}_k$ and $\mathbf{R}_k$ are added to the transformed covariance $\hat{\mathbf{P}}$, as in \Cref{alg:EKF}, to account for evolution and observation uncertainty.
+This procedure is known as the unscented transform \cite{bib:unscented}, and is applied twice per time step by the UKF. It is first used with $\mu=\hat{x}_{k-1|k-1}$, $\mathbf{P}=\mathbf{P}_{k-1|k-1}$ and $\varphi=f_k$ to compute the predicted state, then with $\mu=\hat{x}_{k|k-1}$, $\mathbf{P}=\mathbf{P}_{k|k-1}$ and $\varphi=h_k$ to obtain the predicted observation and thus the innovation. In both cases, $\mathbf{Q}_k$ and $\mathbf{R}_k$ are added to the transformed covariance $\hat{\mathbf{P}}$, as in \Cref{alg:EKF}, to account for evolution and observation uncertainty. In the Kalman gain, $\mathbf{P}_{k|k-1}\:\tilde{\mathbf{H}}_k^\top$ is then replaced by the weighted cross-covariance between the sigma points and their images by $h_k$.
 
 This removes the linearisation shortcomings of the EKF, at the cost of $2d_x+1$ evaluations of $f_k$ and $h_k$ per time step. A square-root formulation \cite{bib:SRUKF} propagates a factor of the covariance rather than the covariance itself, which preserves its symmetry and positive definiteness throughout the recursion. However, the UKF still relies on the Gaussian assumption, the posterior remaining summarised by a mean and a covariance matrix.
 

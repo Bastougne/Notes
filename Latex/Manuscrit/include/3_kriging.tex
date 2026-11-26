@@ -30,7 +30,7 @@ such that the error vector has an expectation of $0$ and a minimum covariance. T
 
 \begin{figure}[!htb]
 	\centering\includegraphics[width=0.7\textwidth]{../../Images/Exemple de krigeage 3D.pdf}
-	\caption{Ordinary kriging (red mesh) of an unknown field (blue surface) from noisy samples (black crosses). The confidence band (red envelope) is proportional to the square root of the interpolation covariance, and widens away from the samples.}\label{fig:kriging_example}
+	\caption{Kriging (red mesh) of an unknown field (blue surface) from noisy samples (black crosses). The confidence band (red envelope) is proportional to the square root of the error covariance, and widens away from the samples.}\label{fig:kriging_example}
 \end{figure}
 
 Since $\hat{z}-z$ is a vector, its covariance is a matrix, and cannot be minimised as such. To alleviate this issue, we minimise its trace, which is exactly the mean squared error:
@@ -190,7 +190,7 @@ In particular, \Cref{th:noiseless_kriging} shows that the latent field is recove
 	As noted at the start of this section, this joint covariance is SPD. The Gaussian conditioning formula (see \Cref{th:Gaussian_conditioning}) can thus be used to give the desired result.
 \end{proof}
 
-This result is a special case of the more general result established in \Cref{th:MMSE_estimator}. Since the unbiased hypothesis of the BLUE is automatically verified by the SK estimator, the minimisation criterion \eqref{eq:error_covariance} amounts to finding the MMSE estimator of $z$ given $\tilde{\mathbf{z}}$, which is always the conditional expectation.
+This result is a special case of the more general result established in \Cref{th:MMSE_estimator}. Since the unbiased hypothesis of the BLUE is automatically verified by the SK estimator, the minimisation criterion \eqref{eq:error_covariance} amounts to finding the MMSE estimator of $z$ given $\tilde{\mathbf{z}}$, which is always the conditional expectation, and is affine in the Gaussian case.
 
 \begin{remark}[Simultaneous estimation]
 	The simultaneous estimation of $z$ at several query points $\mathbf{x}=(x_1,\dots,x_n)\in\Omega^n$ can be done by directly replacing $x$ with $\mathbf{x}$ in \eqref{eq:simple_kriging_equations}. In particular, the $\mathcal{O}\left(\tilde{N}^3\right)$ cost of inverting $\mathbf{G}(\tilde{\mathbf{x}})$ can be shared across the $n$ estimations whether they are performed successively or simultaneously.
@@ -200,7 +200,7 @@ This result is a special case of the more general result established in \Cref{th
 
 \subsection{Ordinary Kriging}
 
-Assuming the mean function to be known is a strong assumption, and can be unrealistic in practical scenarios. While an approximated model could be used instead of the true $m$, this would cause the kriging estimator to be overly confident in its estimation. Ordinary kriging (OK) extends its simple counterpart by assuming that the mean is an unknown constant $m\in\mathbb{R}^{d_z}$, and estimating it alongside the weights.
+Assuming the mean function to be known is a strong assumption, and can be unrealistic in practical scenarios. While an approximate model could be used instead of the true $m$, this would cause the kriging estimator to be overly confident in its estimation. Ordinary kriging (OK) extends its simple counterpart by assuming that the mean is an unknown constant $m\in\mathbb{R}^{d_z}$, and estimating it alongside the weights.
 
 The unbiased assumption of the OK estimator for all $m\in\mathbb{R}^{d_z}$ yields:
 \begin{equation}

@@ -1,14 +1,14 @@
 function figures_soutenance(lots_ch5, scripts)
 % FIGURES_SOUTENANCE  Les figures du manuscrit au format des diapos de soutenance.
 %
-%   figures_soutenance                     les quatre scripts, lots du chapitre 5 lus dans
+%   figures_soutenance                     les cinq scripts, lots du chapitre 5 lus dans
 %                                          resultats/ch5_v2/lots
 %   figures_soutenance(lots_ch5)           les lots du chapitre 5 lus dans ce dossier
 %   figures_soutenance(lots_ch5, scripts)  seulement ces scripts, cellule de noms ; [] pour
 %                                          lots_ch5 garde le dossier par defaut
 %
 % Chaque script de figures du manuscrit (figures_chapitre_2, figures_chapitre_3,
-% figures_campagnes, figures_chapitre_5) trace aussi, quand il trouve la structure diapo
+% figures_campagnes, figures_chapitre_5, figures_schemas) trace aussi, quand il trouve la structure diapo
 % dans son espace de travail, les versions diapo des figures que Latex/Soutenance/main.tex
 % insere : memes donnees, memes calculs et meme palette, a la taille d'insertion et sans
 % mise a l'echelle, donc avec un texte a diapo.fs points (7 pt pour les schemas du
@@ -44,7 +44,7 @@ function figures_soutenance(lots_ch5, scripts)
     if nargin >= 1 && ~isempty(lots_ch5), base.lots_ch5 = lots_ch5; end
     if nargin < 2 || isempty(scripts)
         scripts = {'figures_chapitre_2', 'figures_chapitre_3', 'figures_campagnes', ...
-                   'figures_chapitre_5'};
+                   'figures_chapitre_5', 'figures_schemas'};
     end
     for d = {base.img, base.controle, base.tab}
         if ~exist(d{1}, 'dir'), mkdir(d{1}); end

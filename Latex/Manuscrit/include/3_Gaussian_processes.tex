@@ -15,7 +15,7 @@ A first way to fill this gap is to reconstruct the field from these measurements
 	\item Linear regression on a fixed basis, such as polynomials, sinusoids, or the spherical harmonics of global geomagnetic models \cite{bib:IGRF}.
 	\item More expressive models, such as neural networks \cite{bib:neural-networks}.
 \end{itemize}
-All these methods return a point prediction at the queried location, without quantifying its uncertainty. However, their use within the filters introduced in \cref{sec:Bayesian_estimation} requires the observation likelihood $p(z_k\mid x_k)$, which describes a distribution rather than a single predicted value. The reconstruction error must therefore be accounted for in the observation noise, typically through a covariance assumed constant over the entire domain.  Since this error varies with the local density of training samples, this covariance may overestimate the error in some regions, unnecessarily discarding information, and underestimate it in others, making the filter overconfident.
+These methods return a point prediction at the queried location, without quantifying its uncertainty. However, their use within the filters introduced in \cref{sec:Bayesian_estimation} requires the observation likelihood $p(z_k\mid x_k)$, which describes a distribution rather than a single predicted value. The reconstruction error must therefore be accounted for in the observation noise, typically through a covariance assumed constant over the entire domain.  Since this error varies with the local density of training samples, this covariance may overestimate the error in some regions, unnecessarily discarding information, and underestimate it in others, making the filter overconfident.
 
 This chapter instead models such fields as a Gaussian process (GP), an adaptable framework that encodes both a prior expectation of the field and its spatial correlation structure. Conditioned on the measurements, it yields an estimate of the field and an error covariance which, together, form a surrogate observation model \cite{bib:GP-BayesFilters,bib:magnetic-GP-PF} for the filters of \cref{sec:Bayesian_estimation}.
 
@@ -78,7 +78,7 @@ As shown by \Cref{th:GP_marginals}, $m$ and $\kappa$ entirely characterise every
 	\begin{equation}
 		a^\top H=\sum_{i=1}^na_i^\top h(x_i),\qquad a\triangleq\begin{bmatrix}a_1\\\vdots\\a_n\end{bmatrix}\in\mathbb{R}^{nd_z}
 	\end{equation}
-	is Gaussian. By the Cramér-Wold theorem \cite{bib:Cramér-Wold} $H$ is thus also a Gaussian vector of $\mathbb{R}^{nd_z}$.
+	is Gaussian. By the Cramér-Wold theorem \cite{bib:Cramér-Wold}, $H$ is thus also a Gaussian vector of $\mathbb{R}^{nd_z}$.
 
 	Such a vector is entirely determined by its mean and covariance, which we compute. In particular, we have:
 	\begin{equation}
@@ -153,7 +153,7 @@ In order for the GP to be non-degenerate, the matrix $\kappa(\mathbf{x},\mathbf{
 \end{proof}
 
 \begin{remark}[Necessity of distinct points]
-	While pairwise distinctness does not intervene in the computation of the strict version above, it is necessary for the SPD condition to be satisfiable. Indeed, at coinciding inputs $x_1=x_2$, the choice $a_1=-a_2\neq0$, with the other coefficients set to zero, cancels the quadratic form for non-zero coefficients, so no kernel could be SPD.
+	While pairwise distinctness plays no role in the computation of the strict version above, it is necessary for the SPD condition to be satisfiable. Indeed, at coinciding inputs $x_1=x_2$, the choice $a_1=-a_2\neq0$, with the other coefficients set to zero, cancels the quadratic form for non-zero coefficients, so no kernel could be SPD.
 \end{remark}
 
 \begin{remark}[Non-diagonal blocks]
@@ -295,7 +295,7 @@ The main limitation of Matérn kernels is that they are scalar, while our observ
 		r&\mapsto\sum_{i=1}^n\boldsymbol{\Sigma}_i\:\kappa^{(i)}(r)
 		\end{aligned}\right.
 	\end{equation}
-	Each of its terms is separable in the sense of \Cref{th:separable_kernel}, hence SPD, and a sum of SPD kernels with positive coefficients is itself SPD. When the correlation lengths have different orders of magnitude, such kernels can simultaneously capture local fluctuations and global trends of the field.
+	Each of its terms is separable in the sense of \Cref{th:separable_kernel}, hence SPD, and a linear combination of SPD kernels with positive coefficients is itself SPD. When the correlation lengths have different orders of magnitude, such kernels can simultaneously capture local fluctuations and global trends of the field.
 \end{remark}
 
 Every kernel considered in this section is specified by a set of hyperparameters, such as $\nu$, $\ell$ and $\sigma_h$ for a Matérn kernel, $\boldsymbol{\Sigma}$ for its separable extension, or one such set per scale for a multi-scale model. Their estimation is a standard step in GP modelling, and is independent of Bayesian estimation considerations. Since they are estimated as point values rather than marginalised, their own uncertainty is not propagated into the kriging covariance. However, the specific characteristics of our applications can be used to improve the estimation of such hyperparameters. These aspects are thus discussed in \cref{sec:HP_estimation}, and the hyperparameters are assumed to be fully specified for the rest of this chapter.
